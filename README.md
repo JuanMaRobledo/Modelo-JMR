@@ -11,6 +11,7 @@ en un **modelo replicable** para analizar nuevas empresas de forma consistente.
 | `modelo/METODOLOGIA.md` | El proceso paso a paso (8 pasos) inferido de los 55 casos | Leerlo antes de valorar una empresa nueva — es el "manual" del modelo |
 | `modelo/Modelo_Valoracion.xlsx` | Calculadora en Excel + checklist cualitativo + índice de los 55 casos | Herramienta de trabajo: se llena con los datos de una empresa nueva y calcula precios objetivo, CAGR y zonas de valor automáticamente |
 | `casos_de_estudio/CASOS_DE_ESTUDIO.md` | Ficha detallada de cada uno de los 55 casos (negocio, moat, métricas, múltiplos, objetivos, riesgos, actualizaciones) | Consulta rápida de cualquier caso histórico y sus números |
+| `casos_de_estudio/Resumen_Casos_de_Estudio.pdf` | Tabla en PDF (3 páginas) con el resumen de resultados de los 55 casos: precio de entrada, precio objetivo Base, CAGR, conclusión y última actualización/retorno | Para imprimir o compartir un resumen rápido, sin abrir el Excel ni el Markdown |
 
 ## Cómo usar esto en la práctica
 
