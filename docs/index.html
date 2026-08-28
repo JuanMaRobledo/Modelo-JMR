@@ -1,0 +1,490 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bitácora de Valoración</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --bg:#F5F6F2;
+    --surface:#FFFFFF;
+    --surface-2:#ECEFE9;
+    --ink:#16231F;
+    --ink-soft:#51615A;
+    --ink-faint:#8A968F;
+    --border:#DBE1D9;
+    --border-soft:#E7EBE3;
+    --accent:#A6791F;
+    --accent-soft:#F1E6CC;
+    --accent-ink:#5C4212;
+    --positive:#1E7F52;
+    --positive-soft:#E1F0E6;
+    --negative:#B0452F;
+    --negative-soft:#F7E5DF;
+    --chip-std-bg:#E4F0E7;
+    --chip-std-fg:#1E5C3C;
+    --chip-spec-bg:#F8E4DA;
+    --chip-spec-fg:#8A3B1E;
+    --shadow: 0 1px 2px rgba(22,35,31,0.06), 0 8px 24px -12px rgba(22,35,31,0.18);
+    --focus: #3B7CE0;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#10160F;
+      --surface:#161F1B;
+      --surface-2:#1D2822;
+      --ink:#ECEEE9;
+      --ink-soft:#A9B6AF;
+      --ink-faint:#6E7B75;
+      --border:#2B3833;
+      --border-soft:#212C27;
+      --accent:#D9A64B;
+      --accent-soft:#3B2E12;
+      --accent-ink:#F2D9A0;
+      --positive:#4FBD82;
+      --positive-soft:#173627;
+      --negative:#E07857;
+      --negative-soft:#3B2016;
+      --chip-std-bg:#1E3A2A;
+      --chip-std-fg:#8FDDB0;
+      --chip-spec-bg:#3D2418;
+      --chip-spec-fg:#F0A47C;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 12px 28px -14px rgba(0,0,0,0.6);
+      --focus: #6FA8FF;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#10160F;
+    --surface:#161F1B;
+    --surface-2:#1D2822;
+    --ink:#ECEEE9;
+    --ink-soft:#A9B6AF;
+    --ink-faint:#6E7B75;
+    --border:#2B3833;
+    --border-soft:#212C27;
+    --accent:#D9A64B;
+    --accent-soft:#3B2E12;
+    --accent-ink:#F2D9A0;
+    --positive:#4FBD82;
+    --positive-soft:#173627;
+    --negative:#E07857;
+    --negative-soft:#3B2016;
+    --chip-std-bg:#1E3A2A;
+    --chip-std-fg:#8FDDB0;
+    --chip-spec-bg:#3D2418;
+    --chip-spec-fg:#F0A47C;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 12px 28px -14px rgba(0,0,0,0.6);
+    --focus: #6FA8FF;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Public Sans", -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}
+  }
+
+  .wrap{max-width:1180px; margin:0 auto; padding:0 20px 64px;}
+
+  header.top{
+    position:sticky; top:0; z-index:20;
+    background:var(--bg);
+    border-bottom:1px solid var(--border);
+    padding:22px 0 16px;
+  }
+  header.top .inner{max-width:1180px; margin:0 auto; padding:0 20px; display:flex; flex-direction:column; gap:16px;}
+  .title-row{display:flex; align-items:baseline; justify-content:space-between; gap:16px; flex-wrap:wrap;}
+  h1{
+    font-family:"Fraunces", Georgia, serif;
+    font-weight:700;
+    font-size:clamp(26px, 4vw, 34px);
+    letter-spacing:-0.01em;
+    margin:0;
+    text-wrap:balance;
+  }
+  .subtitle{
+    color:var(--ink-soft);
+    font-size:14px;
+    margin:4px 0 0;
+    max-width:62ch;
+  }
+  .theme-toggle{
+    border:1px solid var(--border);
+    background:var(--surface);
+    color:var(--ink-soft);
+    border-radius:8px;
+    padding:7px 12px;
+    font:inherit;
+    font-size:12.5px;
+    cursor:pointer;
+  }
+  .theme-toggle:hover{color:var(--ink); border-color:var(--ink-faint);}
+  .theme-toggle:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+
+  .controls{display:flex; gap:12px; flex-wrap:wrap; align-items:center;}
+  .search-box{
+    position:relative;
+    flex:1 1 260px; min-width:220px;
+  }
+  .search-box input{
+    width:100%;
+    font:inherit;
+    font-size:14px;
+    padding:9px 12px 9px 34px;
+    border-radius:9px;
+    border:1px solid var(--border);
+    background:var(--surface);
+    color:var(--ink);
+  }
+  .search-box input:focus-visible{outline:2px solid var(--focus); outline-offset:1px;}
+  .search-box svg{position:absolute; left:11px; top:50%; transform:translateY(-50%); color:var(--ink-faint);}
+
+  .pills{display:flex; gap:6px; flex-wrap:wrap;}
+  .pill{
+    font:inherit; font-size:13px; font-weight:600;
+    padding:7px 13px; border-radius:999px;
+    border:1px solid var(--border);
+    background:var(--surface);
+    color:var(--ink-soft);
+    cursor:pointer;
+  }
+  .pill:hover{border-color:var(--ink-faint);}
+  .pill:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+  .pill[aria-pressed="true"]{background:var(--accent); border-color:var(--accent); color:#fff;}
+  .pill[aria-pressed="true"].std{background:var(--chip-std-fg); border-color:var(--chip-std-fg);}
+  .pill[aria-pressed="true"].spec{background:var(--chip-spec-fg); border-color:var(--chip-spec-fg);}
+
+  .stats{
+    display:grid; grid-template-columns:repeat(4, minmax(120px,1fr));
+    gap:10px; margin:20px 0 22px;
+  }
+  .stat{
+    background:var(--surface); border:1px solid var(--border-soft); border-radius:12px;
+    padding:14px 16px;
+  }
+  .stat .num{
+    font-family:"IBM Plex Mono", monospace; font-weight:600; font-size:22px;
+    font-variant-numeric:tabular-nums;
+  }
+  .stat .lbl{font-size:11.5px; text-transform:uppercase; letter-spacing:0.06em; color:var(--ink-faint); margin-top:2px;}
+
+  .result-line{
+    font-size:12.5px; color:var(--ink-faint); margin:0 0 8px 2px;
+  }
+
+  .table-scroll{
+    overflow-x:auto;
+    border:1px solid var(--border-soft);
+    border-radius:14px;
+    background:var(--surface);
+    box-shadow:var(--shadow);
+  }
+  .grid{min-width:980px;}
+  .row{
+    display:grid;
+    grid-template-columns: 78px minmax(150px,1.3fr) 108px 92px 176px 54px 196px 92px 30px;
+    align-items:center;
+    column-gap:10px;
+    padding:11px 14px;
+    border-bottom:1px solid var(--border-soft);
+  }
+  .row.head{
+    position:sticky; top:0; z-index:5;
+    background:var(--surface-2);
+    font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-faint);
+    font-weight:600;
+  }
+  .row.head button{
+    all:unset; cursor:pointer; display:inline-flex; align-items:center; gap:3px;
+    color:inherit; font:inherit; text-transform:inherit; letter-spacing:inherit;
+  }
+  .row.head button:hover{color:var(--ink);}
+  .row.head button:focus-visible{outline:2px solid var(--focus); outline-offset:2px; border-radius:3px;}
+  .row.head .arrow{font-size:9px; opacity:0.55;}
+  .row.data{cursor:pointer;}
+  .row.data:hover{background:var(--surface-2);}
+  .row.data:focus-visible{outline:2px solid var(--focus); outline-offset:-2px;}
+  .row:last-child{border-bottom:none;}
+
+  .c-ticker{font-family:"IBM Plex Mono", monospace; font-weight:600; font-size:13.5px;}
+  .c-empresa{font-size:13px; color:var(--ink-soft); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .c-cat{}
+  .chip{
+    display:inline-block; font-size:11px; font-weight:600; padding:3px 9px; border-radius:999px;
+    white-space:nowrap;
+  }
+  .chip.std{background:var(--chip-std-bg); color:var(--chip-std-fg);}
+  .chip.spec{background:var(--chip-spec-bg); color:var(--chip-spec-fg);}
+
+  .c-precio{font-family:"IBM Plex Mono", monospace; font-size:13px; font-variant-numeric:tabular-nums;}
+
+  .zones{display:flex; flex-direction:column; gap:2px; font-family:"IBM Plex Mono", monospace; font-size:11.5px; line-height:1.5;}
+  .zones span{display:flex; gap:5px;}
+  .zones b{color:var(--ink-faint); font-weight:600; width:16px; flex:none;}
+
+  .c-anio{font-family:"IBM Plex Mono", monospace; font-size:12.5px; color:var(--ink-soft); text-align:right;}
+
+  .scen{display:flex; flex-direction:column; gap:2px; font-family:"IBM Plex Mono", monospace; font-size:11.5px; line-height:1.5;}
+  .scen span{display:flex; gap:5px;}
+  .scen b{color:var(--ink-faint); font-weight:600; width:34px; flex:none;}
+
+  .c-cagr{font-family:"IBM Plex Mono", monospace; font-size:12.5px; font-weight:600; text-align:right; font-variant-numeric:tabular-nums;}
+  .c-cagr.pos{color:var(--positive);}
+  .c-cagr.neg{color:var(--negative);}
+
+  .chev{color:var(--ink-faint); transition:transform 0.15s ease; justify-self:end;}
+  .row.data[aria-expanded="true"] .chev{transform:rotate(90deg);}
+
+  .detail{
+    grid-column:1 / -1;
+    padding:4px 18px 20px 102px;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px 28px;
+    border-bottom:1px solid var(--border-soft);
+    background:var(--surface-2);
+  }
+  .detail .full{grid-column:1 / -1;}
+  .dfield .dlbl{font-size:10.5px; text-transform:uppercase; letter-spacing:0.06em; color:var(--ink-faint); margin-bottom:3px;}
+  .dfield .dval{font-size:13.5px; line-height:1.5; color:var(--ink);}
+  .dfield .dval.mono{font-family:"IBM Plex Mono", monospace; font-size:12.5px;}
+
+  @media (max-width: 720px){
+    .detail{grid-template-columns:1fr; padding-left:18px;}
+    .stats{grid-template-columns:repeat(2, 1fr);}
+  }
+
+  footer{
+    margin-top:26px;
+    font-size:12px; color:var(--ink-faint); line-height:1.6;
+    border-top:1px solid var(--border-soft); padding-top:16px;
+  }
+  footer code{font-family:"IBM Plex Mono", monospace; background:var(--surface-2); padding:1px 5px; border-radius:4px;}
+
+  .empty{padding:40px 16px; text-align:center; color:var(--ink-faint); font-size:13.5px;}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="inner">
+    <div class="title-row">
+      <div>
+        <h1>Bitácora de Valoración</h1>
+        <p class="subtitle">55 hipótesis de inversión (2022-2026): zonas de valor, escenarios de precio objetivo y resultado de cada caso.</p>
+      </div>
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Cambiar tema">Tema: sistema</button>
+    </div>
+    <div class="controls">
+      <div class="search-box">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input id="search" type="text" placeholder="Buscar por ticker o empresa…" autocomplete="off">
+      </div>
+      <div class="pills" id="catFilters" role="group" aria-label="Filtrar por categoría">
+        <button class="pill" data-cat="all" aria-pressed="true" type="button">Todos</button>
+        <button class="pill std" data-cat="Estándar" aria-pressed="false" type="button">Estándar</button>
+        <button class="pill spec" data-cat="Especulativa" aria-pressed="false" type="button">Especulativa</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="stats" id="stats"></div>
+  <p class="result-line" id="resultLine"></p>
+
+  <div class="table-scroll">
+    <div class="grid" id="grid">
+      <div class="row head">
+        <button data-sort="ticker">Ticker <span class="arrow" data-arrow="ticker"></span></button>
+        <button data-sort="empresa">Empresa <span class="arrow" data-arrow="empresa"></span></button>
+        <span>Categoría</span>
+        <button data-sort="precio">Entrada <span class="arrow" data-arrow="precio"></span></button>
+        <span>Zonas de valor</span>
+        <button data-sort="anio">Año <span class="arrow" data-arrow="anio"></span></button>
+        <span>Escenarios objetivo</span>
+        <button data-sort="cagr">CAGR base <span class="arrow" data-arrow="cagr"></span></button>
+        <span></span>
+      </div>
+      <div id="rows"></div>
+    </div>
+  </div>
+
+  <footer>
+    Contenido con fines educativos y de organización personal de información — no constituye asesoría financiera ni recomendación de inversión.
+    Detalle narrativo completo de cada caso en <code>casos_de_estudio/CASOS_DE_ESTUDIO.md</code>, metodología replicable en <code>modelo/METODOLOGIA.md</code>, y calculadora interactiva en <code>modelo/Modelo_Valoracion.xlsx</code>.
+  </footer>
+</div>
+
+<script>
+(function(){
+  var DATA = [{"n":1,"ticker":"MSFT","empresa":"Microsoft","fecha":"2026-04-06","cat":"Estándar","precio":"358 USD","multP":"P/E","multA":"23x","multH":"25.9x","zV":"350-370","zD":"300-315","zH":"250-270","anio":"2029","oNeg":"400","oBase":"480","oOpt":"540","cagr":"10.3%+0.9%div","moat":"Switching costs, distribución, bundling, datos, escala de capital","riesgos":"CAPEX masivo en IA sin certeza de retorno; circularidad de ingresos/CAPEX hyperscalers","conclusion":"Compra - ya tiene valor","actualizacion":"Posición abierta"},{"n":2,"ticker":"INTU","empresa":"Intuit","fecha":"2026-02-24","cat":"Estándar","precio":"365 USD","multP":"P/E","multA":"22x","multH":"58x","zV":"360-370","zD":"330-340","zH":"290-310","anio":"2029","oNeg":"440","oBase":"520","oOpt":"580","cagr":"12.5%+1%div","moat":"Switching costs, confianza, ecosistema/datos, IA+humanos","riesgos":"IA erosiona TurboTax DIY y Mailchimp; sin skin in the game","conclusion":"Mantiene, no compra más a 440","actualizacion":"Precio actual (440) ya superó el escenario negativo"},{"n":3,"ticker":"DVA","empresa":"DaVita","fecha":"2026-01-15 (reactiv.)","cat":"Estándar","precio":"105 USD","multP":"P/E","multA":"10.6x","multH":"n/d","zV":"100-106","zD":"75-85","zH":"65-75","anio":"2029","oNeg":"120","oBase":"150","oOpt":"170","cagr":"12.6%","moat":"No detallado (negocio recurrente)","riesgos":"Regulación Medicare/CMS; deuda alta (3.6x); ventas forzadas por Berkshire","conclusion":"Compra","actualizacion":"Cierre parcial 30% en 149 (+42%) 05-Mar-2026"},{"n":4,"ticker":"DUOL","empresa":"Duolingo","fecha":"2026-01-05","cat":"Especulativa","precio":"186 USD","multP":"P/S","multA":"8.4x","multH":"16.6x","zV":"180-190","zD":"150-160","zH":"130-140","anio":"2029","oNeg":"210","oBase":"260","oOpt":"400","cagr":"11.22%","moat":"Marca/engagement tipo videojuego, efecto red, data+IA, freemium","riesgos":"IA podría reemplazar el modelo; dependencia Apple/Google; desaceleración de crecimiento","conclusion":"Compra, riesgo alto declarado","actualizacion":"Posición abierta"},{"n":5,"ticker":"DECK","empresa":"Deckers (Hoka/UGG)","fecha":"2025-11-10","cat":"Estándar","precio":"79.8 USD","multP":"P/E","multA":"12x","multH":"19.5x","zV":"79-82","zD":"70-74","zH":"65-66","anio":"2028","oNeg":"100","oBase":"125","oOpt":"155","cagr":"16.5%","moat":"Marcas HOKA/UGG bien posicionadas (no gran moat)","riesgos":"Aranceles, desaceleración económica, moda; sin skin in the game","conclusion":"Compra fuerte","actualizacion":"Posición abierta"},{"n":6,"ticker":"CMG","empresa":"Chipotle","fecha":"2025-10-02","cat":"Estándar","precio":"39 USD","multP":"P/E","multA":"29x (proy.)","multH":"47x","zV":"37-40","zD":"32-35","zH":"27-30","anio":"2028","oNeg":"40","oBase":"55","oOpt":"66","cagr":"12.4%","moat":"Marca fuerte, ticket alto","riesgos":"Commodities (aguacate/pollo/carne); riesgo reputacional","conclusion":"Compra decente, no barata","actualizacion":"Posición abierta"},{"n":7,"ticker":"ADBE","empresa":"Adobe","fecha":"2025 (~Sep)","cat":"Estándar","precio":"350 USD","multP":"P/E","multA":"15-16x (proy.)","multH":"33x proy./49x hist.","zV":"335-355","zD":"300-310","zH":"260-280","anio":"2028","oNeg":"360","oBase":"540","oOpt":"590","cagr":"15.5%","moat":"Cuasi-monopolio, suscripciones, switching costs altos","riesgos":"Amenaza de IA (Canva); sin skin in the game","conclusion":"Compra fuerte","actualizacion":"Posición abierta"},{"n":8,"ticker":"DLO","empresa":"dLocal","fecha":"2025-07-17","cat":"Estándar","precio":"11 USD","multP":"P/E","multA":"20x","multH":"n/d","zV":"10-11","zD":"8.5-9.5","zH":"7-8","anio":"2028","oNeg":"11.5","oBase":"16","oOpt":"21","cagr":"13.3%+4.5%div","moat":"Peaje digital 40+ países, retención neta 106%","riesgos":"Concentración de clientes; competencia (Adyen/PayPal); fraude/cortos activos","conclusion":"Compra moderada, llegó algo tarde","actualizacion":"Posición abierta"},{"n":9,"ticker":"LVMUY/MC","empresa":"LVMH","fecha":"2025-05-27","cat":"Estándar","precio":"483 EUR / 109 USD","multP":"P/E","multA":"19x","multH":"24x","zV":"450-485","zD":"400-420","zH":"330-350","anio":"2028","oNeg":"540","oBase":"625","oOpt":"750","cagr":"9.2%+2.6%div","moat":"Marca/herencia/exclusividad, savoir-faire artesanal","riesgos":"Aranceles, desaceleración China, cambio preferencias consumo","conclusion":"Posición mediana","actualizacion":"Posición abierta"},{"n":10,"ticker":"UNH","empresa":"UnitedHealth","fecha":"2025-05-14","cat":"Estándar","precio":"285 USD","multP":"P/E","multA":"10.8x (proy.)","multH":"17.7x","zV":"280-300","zD":"245-265","zH":"215-230","anio":"2028","oNeg":"320","oBase":"400","oOpt":"460","cagr":"12%+2.9%div","moat":"Aseguramiento+servicios+tecnología, escala","riesgos":"Investigación DOJ fraude; renuncia CEO; ciberataque; regulación PBM","conclusion":"Entrada pequeña, riesgo altísimo","actualizacion":"Posición abierta"},{"n":11,"ticker":"AMD","empresa":"AMD","fecha":"2025-02-20","cat":"Especulativa","precio":"99.51 USD","multP":"P/E","multA":"21x (proy.)","multH":"37x","zV":"95-105","zD":"80-85","zH":"60-65","anio":"2028","oNeg":"110","oBase":"155","oOpt":"179","cagr":"16.1%","moat":"Chiplets, liderazgo Ryzen/EPYC, cultura Lisa Su","riesgos":"Casi toda la valoración depende de expectativas, no realidades","conclusion":"Especulativa/alto riesgo","actualizacion":"Cierre parcial 35% en 215 (+145%) 07-Oct-2025"},{"n":12,"ticker":"NVO","empresa":"Novo Nordisk","fecha":"2025-02-20","cat":"Especulativa","precio":"82 USD","multP":"P/E","multA":"21.5x (proy.)","multH":"28x","zV":"77-83","zD":"67-72","zH":"60-63","anio":"2028","oNeg":"100","oBase":"116","oOpt":"140","cagr":"11.8%+2%div","moat":"Liderazgo GLP-1, pipeline de fármacos","riesgos":"CagriSema decepcionó; demanda por fraude; competencia Eli Lilly; aranceles","conclusion":"Especulativa, compra","actualizacion":"Tocó 43 (24-Nov-2025), entra al TOP del portafolio"},{"n":13,"ticker":"BLD","empresa":"TopBuild","fecha":"2025-02-13","cat":"Estándar","precio":"325 USD","multP":"EV/EBITDA","multA":"10x","multH":"13x","zV":"310-330","zD":"255-270","zH":"220-230","anio":"2028","oNeg":"350","oBase":"410","oOpt":"450","cagr":"7.95%","moat":"Red de distribución 410+, 1300+ proveedores, 130+ patentes","riesgos":"Regulación HUD en duda legal; ciclo de construcción; materias primas","conclusion":"Buen negocio, precio justo (no ganga)","actualizacion":"Cierre parcial 35% en 443 (+50%) 13-Ago-2025"},{"n":14,"ticker":"EWZ/EWZS","empresa":"Especial Brasileiro","fecha":"2025-01-07","cat":"Especulativa","precio":"n/d (ETF)","multP":"P/E","multA":"6-7x (mercado)","multH":"~10x","zV":"n/d","zD":"n/d","zH":"n/d","anio":"-","oNeg":"-","oBase":"-","oOpt":"-","cagr":"-","moat":"Diversificación Brasil (PBR/NU/VALE/ITAU/WEG en EWZ; small caps en EWZS)","riesgos":"Riesgo político (Lula), real brasilero débil","conclusion":"Oportunidad histórica, horizonte 1-2 años","actualizacion":"Sin actualización registrada"},{"n":15,"ticker":"CROX","empresa":"Crocs","fecha":"2024-11-08","cat":"Estándar","precio":"102 USD","multP":"P/E","multA":"7.7x","multH":"14x","zV":"100-104","zD":"80-85","zH":"65-70","anio":"2027","oNeg":"130","oBase":"154","oOpt":"175","cagr":"14.7%","moat":"Marca, jibbitz, DTC con márgenes elevados","riesgos":"HeyDude en declive; prohibiciones escolares; sin skin in the game","conclusion":"Compra fuerte - ganga","actualizacion":"Posición abierta"},{"n":16,"ticker":"AAD","empresa":"Amadeus Fire","fecha":"2024-09-18","cat":"Estándar","precio":"92 EUR","multP":"P/E","multA":"12x","multH":"17x","zV":"89-93","zD":"80-83","zH":"70-73","anio":"2027","oNeg":"110","oBase":"135","oOpt":"159","cagr":"13.6%+5.4%div","moat":"Especialización de nicho (débil)","riesgos":"Baja caja vs. deuda; sin skin in the game institucional","conclusion":"Compra posición baja-media","actualizacion":"Posición abierta"},{"n":17,"ticker":"YUMC","empresa":"Yum China","fecha":"2024-09-12","cat":"Estándar","precio":"34 USD","multP":"P/E","multA":"14x (proy.)","multH":"27x","zV":"32-35","zD":"28-30","zH":"25-26","anio":"2026","oNeg":"40","oBase":"59","oOpt":"65","cagr":"20.1%+2%div","moat":"Líder en pollo (63%) y pizza (45%) en China","riesgos":"Riesgo país China; DADA bajo investigación de fraude","conclusion":"Posición media, defensiva","actualizacion":"Posición abierta"},{"n":18,"ticker":"KER","empresa":"Kering","fecha":"2024-07-25","cat":"Estándar","precio":"276 EUR","multP":"P/E","multA":"15x","multH":"24x","zV":"258-276","zD":"230-235","zH":"205-215","anio":"2027","oNeg":"300","oBase":"390","oOpt":"430","cagr":"14.7%+5.4%div","moat":"Poder de precio del lujo (menor que MC)","riesgos":"Desaceleración global; deuda alta (2.77x); cambio de preferencias","conclusion":"Posición mediana, acumulando","actualizacion":"Cayó a 150 EUR, recuperó a 310, cierre 40% (+36%+div) 07-Oct-2025"},{"n":19,"ticker":"LULU","empresa":"Lululemon","fecha":"2024-07-25","cat":"Estándar","precio":"252 USD","multP":"P/E","multA":"18.6x","multH":"35x","zV":"250-260","zD":"210-220","zH":"160-180","anio":"2027","oNeg":"290","oBase":"360","oOpt":"440","cagr":"12.6%","moat":"Marca premium/tecnología en telas, poder de precio ~20%","riesgos":"Sin ventaja competitiva estructural fuerte; competencia Alo/NKE/UAA","conclusion":"Compra fuerte","actualizacion":"Subió a 404 (cierre 25%), cayó a 167, entra al TOP 05-Sep-2025"},{"n":20,"ticker":"MNST","empresa":"Monster Beverage","fecha":"2024-06-25","cat":"Especulativa","precio":"50 USD","multP":"P/E","multA":"31x/21x (proy.)","multH":"35x","zV":"42-45 (VALUE)","zD":"n/d","zH":"n/d","anio":"2027","oNeg":"n/d","oBase":"63","oOpt":"n/d","cagr":"8%","moat":"Líder mundial 23% mercado bebidas energéticas","riesgos":"Red flag: tender offer con participación del Co-CEO","conclusion":"No comprar aún (especulativa a este precio)","actualizacion":"Alcanzó 63 (base), cierre 50% (+34%) 26-Jun-2025"},{"n":21,"ticker":"CELH","empresa":"Celsius","fecha":"2024-06-25","cat":"Especulativa","precio":"55.75 USD","multP":"P/E","multA":"49x/27x (proy.)","multH":"89x","zV":"51-56","zD":"45-48","zH":"36-40","anio":"2027","oNeg":"50","oBase":"70","oOpt":"85","cagr":"7.9%","moat":"Bebidas energéticas 'saludables' sin azúcar","riesgos":"Sin barreras de entrada; ciclicidad del consumo","conclusion":"Compra pequeña, riesgo alto","actualizacion":"Cayó -68% a 32.8, subió a 56 (+180% desde mín.), cierre 30% 13-Ago-2025"},{"n":22,"ticker":"ULTA","empresa":"Ulta Beauty","fecha":"2024-05-08","cat":"Estándar","precio":"388 USD","multP":"P/E","multA":"14.6x","multH":"27x","zV":"375-395","zD":"320-340","zH":"270-290","anio":"2027","oNeg":"550","oBase":"640","oOpt":"750","cagr":"18.15%","moat":"Programa de lealtad 95% ventas (fácilmente desarmable)","riesgos":"Sin moat cualitativo fuerte; sin skin in the game","conclusion":"Compra grande, con convicción","actualizacion":"Bajó a 318 (Deep Value), rebote fuerte con entrada de Buffett"},{"n":23,"ticker":"SBUX","empresa":"Starbucks","fecha":"2024-05-07","cat":"Estándar","precio":"71.9 USD","multP":"P/E","multA":"19.2x (adj.)","multH":"28x","zV":"70-73","zD":"55-60","zH":"45-50","anio":"2027","oNeg":"90","oBase":"105","oOpt":"130","cagr":"13.4%+3.1%div","moat":"Marca (moat 'Wide'), lealtad, poder de precio","riesgos":"China (Luckin Coffee); inflación laboral/materias primas; ciclicidad","conclusion":"Compra, empezando a acumular","actualizacion":"Posición abierta"},{"n":24,"ticker":"LW","empresa":"Lamb Weston","fecha":"2024-04-04","cat":"Estándar","precio":"81.8 USD","multP":"P/E","multA":"12.8x/14.8x","multH":"23.6x","zV":"80-82","zD":"70-72","zH":"60-62","anio":"2027","oNeg":"90","oBase":"110","oOpt":"130","cagr":"11.2%+1.8%div","moat":"Liderazgo en restaurantes, ubicación de cultivo ventajosa","riesgos":"Deuda creciente (2.8x); negocio poco diversificado (100% papa)","conclusion":"Posición controlada","actualizacion":"Cayó a 53 (31-Mar-2025); nuevo objetivo 2028 Base 95 (21.5%+2.8%)"},{"n":25,"ticker":"NESN/NSRGY","empresa":"Nestlé","fecha":"2024-03","cat":"Estándar","precio":"91.2 CHF / 102.7 USD","multP":"P/E","multA":"18.3x (proy.)","multH":"20x","zV":"89-92","zD":"82-86","zH":"71-76","anio":"2026","oNeg":"110","oBase":"115","oOpt":"125","cagr":"8.2%+3.2%div","moat":"Marca, poder de precio, escala, diversificación","riesgos":"Inflación; tamaño limita crecimiento; controversias históricas","conclusion":"Posición media-baja, mejor valoración en 10 años","actualizacion":"Bajó a 83 CHF (Deep Value) 15-Oct-2024"},{"n":26,"ticker":"PUM","empresa":"Puma","fecha":"2024-02-01","cat":"Estándar","precio":"37 EUR","multP":"P/E","multA":"16.3x (proy.)","multH":"30x","zV":"36-38","zD":"31-33","zH":"27-28","anio":"2026","oNeg":"48","oBase":"60","oOpt":"72","cagr":"17.4%+2.1%div","moat":"Marca/reconocimiento débil, sin fuerte poder de precio","riesgos":"CEO robado por Adidas; caja operativa negativa; sin moat fuerte","conclusion":"Posición intermedia","actualizacion":"Cayó a 22.4 EUR (bajo histórica); nuevo objetivo 2028 Base 50 (30.8%+2.7%)"},{"n":27,"ticker":"JD","empresa":"JD.com","fecha":"2024-01-12","cat":"Especulativa","precio":"24.7 USD","multP":"P/E","multA":"7.8x (proy.)","multH":"n/d","zV":"24-25","zD":"20-21","zH":"18","anio":"2026","oNeg":"37","oBase":"50","oOpt":"58","cagr":"27.7%","moat":"Prácticamente ninguna (márgenes bajos)","riesgos":"Riesgo país China total; posible fraude vía DADA; competencia PDD","conclusion":"Absolutamente especulativo, máx. 3% del portafolio","actualizacion":"Posición abierta"},{"n":28,"ticker":"PFE","empresa":"Pfizer","fecha":"2023-10-27","cat":"Estándar","precio":"30 USD","multP":"P/E","multA":"9x (guidance)","multH":"18x","zV":"29-31","zD":"27-28","zH":"24-25","anio":"2026","oNeg":"35","oBase":"44","oOpt":"50","cagr":"13.6%+5.4%div","moat":"No explícito (servicio esencial de salud)","riesgos":"Desinfle post-COVID; complejidad del negocio farmacéutico","conclusion":"Compra, acumulando","actualizacion":"Guidance no cumplido, cayó a 27.74; nuevo objetivo 2027 Base 42 (15.1%+6%div)"},{"n":29,"ticker":"BMY","empresa":"Bristol Myers Squibb","fecha":"2023-10-27","cat":"Estándar","precio":"51 USD","multP":"P/E","multA":"13x (GAAP)","multH":"n/d","zV":"50-51","zD":"43-45","zH":"40-41","anio":"2026","oNeg":"57","oBase":"63","oOpt":"70","cagr":"7.3%+4.3%div","moat":"No explícito","riesgos":"Pérdida de patentes; competencia de genéricos","conclusion":"Posición menor que PFE","actualizacion":"Alcanzó 62 (base); redujo 30% (+36%) 11-Nov-2024"},{"n":30,"ticker":"DG","empresa":"Dollar General","fecha":"2023-10-04","cat":"Estándar","precio":"103.7 USD","multP":"P/E","multA":"10.8x/13.5x","multH":"17x","zV":"100-105","zD":"85-90","zH":"75-80","anio":"2026","oNeg":"90","oBase":"140","oOpt":"160","cagr":"10.7%+2.6%div","moat":"Débil - red rural, bajo costo","riesgos":"Manejo de deuda irresponsable (recompras con deuda); recesión","conclusion":"Compra moderada - caso de qué NO hacer con deuda","actualizacion":"Subió a 153 (+53%, cierre 35%), cayó a 84; se retoma la posición"},{"n":31,"ticker":"SE","empresa":"Sea Limited","fecha":"2023-08-22","cat":"Especulativa","precio":"36.7 USD","multP":"P/S","multA":"1.76x","multH":"13x","zV":"35-38","zD":"29-32","zH":"25-27","anio":"2026","oNeg":"50","oBase":"70","oOpt":"110","cagr":"24.24%","moat":"Free Fire (líder mobile gaming), Shopee líder en el sudeste asiático","riesgos":"Sin utilidades/caja consistente; alta volatilidad","conclusion":"Compra fuerte (especulativa)","actualizacion":"Alcanzó 164 (+345%), cierre acumulado 65% 26-May-2025"},{"n":32,"ticker":"IMXI","empresa":"Intermex","fecha":"2023-08-02","cat":"Estándar","precio":"19.14 USD","multP":"P/E","multA":"8.5x (fwd)","multH":"12.9x","zV":"19-20","zD":"17-18","zH":"15-16","anio":"2026","oNeg":"25","oBase":"35","oOpt":"45","cagr":"22.3%","moat":"Débiles - red de agentes fácilmente replicable","riesgos":"Small cap volátil; sin skin in the game; competencia; regulación multi-país","conclusion":"Compra en la caída - gran oportunidad","actualizacion":"Posición abierta"},{"n":33,"ticker":"EPAM","empresa":"EPAM Systems","fecha":"2023-06-06","cat":"Estándar","precio":"208 USD","multP":"P/E","multA":"19x (proy.)","multH":"29x","zV":"200-215","zD":"180-190","zH":"160-170","anio":"2025","oNeg":"260","oBase":"390","oOpt":"460","cagr":"23.3%","moat":"Débil - nombre/cobertura global, talento replicable","riesgos":"Guidance reducido; desaceleración de crecimiento","conclusion":"Compra fuerte, casi TOP del portafolio","actualizacion":"Cayó -27% a 180 (Deep Value), luego a 146; nuevo objetivo 2028 Base 290 (25.7%)"},{"n":34,"ticker":"UAA","empresa":"Under Armour","fecha":"2023-05-24","cat":"Especulativa","precio":"7.07 USD","multP":"P/E","multA":"8.8x","multH":"n/c (57x hist. no comparable)","zV":"6.6-7.1","zD":"5-5.5","zH":"4.5","anio":"2025","oNeg":"6","oBase":"9.5","oOpt":"13","cagr":"10.7%","moat":"Débil - sin poder de precio equivalente a NKE","riesgos":"Inventarios crecientes; incertidumbre estructural vs. coyuntural","conclusion":"Turnaround especulativo pequeño","actualizacion":"Alcanzó 10.8 (+59%), cierre 65% 07-Nov-2024"},{"n":35,"ticker":"TEP","empresa":"Teleperformance","fecha":"2023-05-25","cat":"Estándar","precio":"148 EUR","multP":"P/E","multA":"14.4x","multH":"23x","zV":"145-155","zD":"130-135","zH":"110-115","anio":"2025","oNeg":"190","oBase":"260","oOpt":"290","cagr":"20.66%+2.6%div","moat":"Escala/efecto red en call centers, contratos recurrentes largos","riesgos":"Narrativa de reemplazo por IA; demandas laborales; deuda por Majorel","conclusion":"Compra","actualizacion":"Se desplomó -25% a 84 EUR; nuevo objetivo (castigo -15%) Base 220 (37.8%+4.6%)"},{"n":36,"ticker":"CVS","empresa":"CVS Health","fecha":"2023-03-31","cat":"Estándar","precio":"72 USD","multP":"P/E","multA":"8.18x (fwd)","multH":"n/d","zV":"70-75","zD":"63-65","zH":"56-60","anio":"2025","oNeg":"90","oBase":"96","oOpt":"109","cagr":"10.5%+2%div","moat":"Fuerte - servicio esencial, base leal, ingresos recurrentes","riesgos":"Regulación del sector salud; sobrepago en adquisiciones; alta deuda","conclusion":"Compra decente, no top","actualizacion":"Alcanzó 80.6, cierre 45% (+30% con dividendos) 29-Oct-2025"},{"n":37,"ticker":"AFYA","empresa":"Afya","fecha":"2023-02-21","cat":"Estándar","precio":"12.9 USD","multP":"P/E","multA":"17x","multH":"29x","zV":"12-13","zD":"10.5-11","zH":"9","anio":"2025","oNeg":"17","oBase":"21","oOpt":"25","cagr":"17.3%/25%","moat":"No explícito","riesgos":"Small cap brasilera, alto riesgo país","conclusion":"Una de las posiciones principales del autor","actualizacion":"Alcanzó 20.6 (+93% con div), cierre 30% 29-Nov-2023"},{"n":38,"ticker":"WGO","empresa":"Winnebago Industries","fecha":"2023-02-08","cat":"Estándar","precio":"65 USD","multP":"P/E","multA":"9.18x","multH":"14x","zV":"60-65","zD":"50-55","zH":"45","anio":"2025","oNeg":"80","oBase":"95","oOpt":"130","cagr":"13.4%","moat":"Ganancia sostenida de market share (3.3%→12.7%)","riesgos":"Alta sensibilidad a recesión; sostenibilidad de márgenes incierta","conclusion":"Compra - pasó todos los filtros","actualizacion":"Posición abierta"},{"n":39,"ticker":"ABEV","empresa":"Ambev","fecha":"2023-01-11","cat":"Estándar","precio":"2.7 USD","multP":"EV/EBITDA","multA":"10x","multH":"13.5x","zV":"2.65-2.75","zD":"2.3-2.4","zH":"2.1","anio":"2025","oNeg":"3.5","oBase":"3.9","oOpt":"4.5","cagr":"13%+4.1%div","moat":"No explícito","riesgos":"Riesgo político (Lula)","conclusion":"Compra para perfil conservador","actualizacion":"Posición abierta"},{"n":40,"ticker":"XP","empresa":"XP Inc","fecha":"2022-12-16","cat":"Estándar","precio":"13.99 USD","multP":"P/E","multA":"10x (proy.)","multH":"n/c (IPO ~75x)","zV":"n/d","zD":"n/d","zH":"n/d","anio":"2025","oNeg":"22","oBase":"30","oOpt":"35","cagr":"28.9%","moat":"No explícito","riesgos":"Riesgo político Lula/Brasil","conclusion":"Compra, no será posición principal (máx. 5%)","actualizacion":"Alcanzó 26.8 (+91%); retomó en 11.54; nuevo objetivo 2027 Base 24 (44%+5.6%)"},{"n":41,"ticker":"PAGS","empresa":"PagSeguro","fecha":"2022-11-23","cat":"Estándar","precio":"9.75 USD","multP":"P/E","multA":"12x (mín. hist.)","multH":"n/d","zV":"11-12","zD":"9.5-10.5","zH":"8.5-9","anio":"2025","oNeg":"15","oBase":"19","oOpt":"24","cagr":"24.9%","moat":"No explícito","riesgos":"Sin skin in the game; riesgo político Brasil","conclusion":"Posición principal, alto riesgo","actualizacion":"Cayó a 6.32 (desplome Lula), P/E 5.5x (mín. histórico)"},{"n":42,"ticker":"TCEHY/BABA/BIDU","empresa":"China (grupo)","fecha":"2022-11-04","cat":"Especulativa","precio":"TCEHY~30 / BABA~65-68 / BIDU 75-106","multP":"P/E","multA":"TCEHY 11x / BABA 29x / BIDU 9.45x","multH":"TCEHY 40x / BABA 10x / BIDU 27x","zV":"n/d","zD":"n/d","zH":"n/d","anio":"2026","oNeg":"n/d","oBase":"TCEHY 450 / BABA 135 / BIDU 180","oOpt":"n/d","cagr":"18-23%","moat":"Escala/red (Tencent), ecommerce dominante (Alibaba), buscador líder (Baidu)","riesgos":"Riesgo país extremo; posible deslistado en US; invasión a Taiwán","conclusion":"Especulativa, 3-5% máx. del portafolio","actualizacion":"Cierres parciales 07-Oct-2025: KWEB +91%, BABA +177%, BIDU +45%"},{"n":43,"ticker":"GPN","empresa":"Global Payments","fecha":"2022-11-03","cat":"Estándar","precio":"94 USD","multP":"P/E","multA":"9.3x (normalizado)","multH":"18.5x","zV":"94-99","zD":"80-85","zH":"70-75","anio":"2025","oNeg":"105","oBase":"150","oOpt":"175","cagr":"16.8%","moat":"No explícito (similar a PAGS/STNE, mayor escala)","riesgos":"Deuda alta (3.1x); incertidumbre sobre sostenibilidad de utilidades","conclusion":"Compra, posición al 50% del objetivo","actualizacion":"Posición abierta"},{"n":44,"ticker":"TLT","empresa":"ETF renta fija (bonos US)","fecha":"~2022-11","cat":"Especulativa","precio":"92 USD","multP":"n/a (basado en tasas FED)","multA":"n/a","multH":"n/a","zV":"n/d","zD":"n/d","zH":"n/d","anio":"-","oNeg":"80","oBase":"-","oOpt":"-","cagr":"-","moat":"No aplica (ETF de bonos, no equity)","riesgos":"Dirección de tasas de la FED","conclusion":"Compra acumulada, entradas escalonadas","actualizacion":"Posición abierta"},{"n":45,"ticker":"TSM","empresa":"Taiwan Semiconductor","fecha":"2022-10-12","cat":"Estándar","precio":"63 USD","multP":"P/E","multA":"11x (proy.)","multH":"17x","zV":"60-64","zD":"50-53","zH":"46","anio":"2025","oNeg":"95","oBase":"115","oOpt":"140","cagr":"22%","moat":"Costo de reemplazo altísimo de fabs, escala","riesgos":"Conflicto China-Taiwán; restricciones de exportación de EE.UU.","conclusion":"Compra 30% inicial","actualizacion":"Alcanzó 182.5 (+194%), cierre 60% total 03-Jul-2024"},{"n":46,"ticker":"NAGARRO","empresa":"Nagarro","fecha":"2022-09-26","cat":"Estándar","precio":"91 EUR","multP":"P/E","multA":"21x (mín. hist.)","multH":"47x","zV":"90-100","zD":"80-90","zH":"75-80","anio":"2025","oNeg":"135","oBase":"165","oOpt":"190","cagr":"22%","moat":"No explícito (similar a EPAM)","riesgos":"Small cap volátil; recesión global; contratación de IT difícil","conclusion":"Compra fuerte, reemplazo de IRBT en Favoritas","actualizacion":"Posición abierta"},{"n":47,"ticker":"QRVO","empresa":"Qorvo","fecha":"2022-09-01","cat":"Estándar","precio":"90 USD","multP":"P/E","multA":"11x","multH":"n/d","zV":"90-92","zD":"80-85","zH":"72-75","anio":"2025","oNeg":"135","oBase":"n/d","oOpt":"160","cagr":"0.8%","moat":"No explícito","riesgos":"Concentración Apple (33%)/Samsung (11%); exposición a China","conclusion":"Compra escalonada pequeña","actualizacion":"Subió a 129 (+54%), cierre 30%; nuevo objetivo 2027 Base 132 (0.8%)"},{"n":48,"ticker":"NKE","empresa":"Nike","fecha":"2022-07-13","cat":"Estándar","precio":"103 USD","multP":"P/E","multA":"27x","multH":"29x","zV":"80-90","zD":"70","zH":"60","anio":"-","oNeg":"n/d","oBase":"n/d","oOpt":"n/d","cagr":"n/d","moat":"Marca aspiracional, escala (el mayor moat del sector)","riesgos":"Competencia de HOKA/ON; ciclos de moda","conclusion":"Entrada pequeña, apuesta técnica más que fundamental","actualizacion":"Se desplomó a 75 (-20%, 28-Jun-2024); P/E 20x, mejor valoración desde 2012"},{"n":49,"ticker":"NU","empresa":"Nubank","fecha":"2022-05-25","cat":"Especulativa","precio":"3.4 USD","multP":"P/S","multA":"4.4x ingresos","multH":"n/c (IPO 33x ingresos)","zV":"3.5-3.6","zD":"3-3.2","zH":"2.5-2.6","anio":"-","oNeg":"n/d","oBase":"n/d","oOpt":"n/d","cagr":"n/d","moat":"No explícito","riesgos":"Sensibilidad a tasas de interés; riesgo Brasil","conclusion":"Compra, acumulando","actualizacion":"Alcanzó 12.05 (+258%), cierre 60% total 05-Abr-2024"},{"n":50,"ticker":"MELI","empresa":"Mercado Libre","fecha":"2022-05-18","cat":"Especulativa","precio":"750 USD","multP":"P/S","multA":"mín. desde 2008-09","multH":"n/d","zV":"730-780","zD":"550-600","zH":"450-500","anio":"-","oNeg":"n/d","oBase":"n/d","oOpt":"n/d","cagr":"n/d","moat":"Líder ecommerce en Latinoamérica","riesgos":"Sin utilidades/FCF significativo (todo a crecimiento)","conclusion":"Compra pequeña inicial","actualizacion":"Alcanzó 1800 (+160%), cierre 75% total 26-Ene-2024"},{"n":51,"ticker":"DIS","empresa":"Disney","fecha":"2022-05-10","cat":"Estándar","precio":"115 USD","multP":"P/S","multA":"2.67x","multH":"2.67x (= promedio)","zV":"105-110","zD":"80-85","zH":"65-75","anio":"2025","oNeg":"n/d","oBase":"n/d","oOpt":"n/d","cagr":"n/d","moat":"No explícito","riesgos":"Rentabilidad de streaming/ESPN no resuelta","conclusion":"Posición pequeña, sentimientos encontrados","actualizacion":"Cayó a 88.9 (Deep Value); nuevo objetivo 2026 Base 135 (15%)"},{"n":52,"ticker":"GOOG","empresa":"Alphabet","fecha":"2022","cat":"Estándar","precio":"2280 USD (pre-split)","multP":"P/E","multA":"21.5x","multH":"32x","zV":"100-105","zD":"87.5-92.5","zH":"75-80","anio":"2025","oNeg":"120","oBase":"140","oOpt":"165","cagr":"15.4%","moat":"No explícito","riesgos":"No explícito","conclusion":"Compra, una de mis posiciones TOP","actualizacion":"Alcanzó 297-300 (+240% con div), cierre 80% total 19-Nov-2025"},{"n":53,"ticker":"SHAK","empresa":"Shake Shack","fecha":"'Oportunidad Tech'","cat":"Estándar","precio":"n/d (llegó a 55, Deep Value)","multP":"n/d","multA":"n/d","multH":"n/d","zV":"n/d","zD":"n/d","zH":"n/d","anio":"2028","oNeg":"110","oBase":"130","oOpt":"150","cagr":"-2.2%","moat":"No explícito","riesgos":"No explícito","conclusion":"Favorito personal, mantenido a largo plazo","actualizacion":"Cierre 50% en 139 (+208% desde mín. 37), cayó a 88.5 (-36%) 10-Mar-2025"},{"n":54,"ticker":"PYPL","empresa":"PayPal","fecha":"'Oportunidad Tech'","cat":"Estándar","precio":"84 (orig.) / 42 (últ. act.)","multP":"P/E","multA":"8x (2026)","multH":"32x","zV":"80-90","zD":"70-80","zH":"60-70","anio":"2028","oNeg":"55","oBase":"75","oOpt":"90","cagr":"21%","moat":"Pagos digitales, líder histórico","riesgos":"Competencia Apple Pay/Amazon; nuevo CEO enfocado en costos","conclusion":"Compra fuerte en 40-42","actualizacion":"Posición abierta"},{"n":55,"ticker":"AMZN","empresa":"Amazon","fecha":"'Oportunidad Tech'","cat":"Estándar","precio":"90 USD","multP":"P/S","multA":"1.8x","multH":"2.7x","zV":"100","zD":"87-92","zH":"76-80","anio":"2025","oNeg":"115","oBase":"140","oOpt":"160","cagr":"15.8%","moat":"No explícito","riesgos":"No explícito (autor nunca antes la había recomendado)","conclusion":"Compra","actualizacion":"Alcanzó 197.6 (+114%), cierre 70% total 03-Jul-2024"}];
+
+  var state = { q: "", cat: "all", sortKey: "n", sortDir: 1, expanded: null };
+
+  var rowsEl = document.getElementById("rows");
+  var resultLine = document.getElementById("resultLine");
+  var statsEl = document.getElementById("stats");
+
+  function parseNum(str){
+    if(!str) return null;
+    var m = String(str).match(/-?\d+(\.\d+)?/);
+    return m ? parseFloat(m[0]) : null;
+  }
+
+  function catClass(cat){ return cat === "Estándar" ? "std" : "spec"; }
+
+  function renderStats(list){
+    var std = list.filter(function(d){return d.cat === "Estándar";}).length;
+    var spec = list.length - std;
+    var cagrs = list.map(function(d){return parseNum(d.cagr);}).filter(function(v){return v !== null;});
+    var avg = cagrs.length ? (cagrs.reduce(function(a,b){return a+b;},0)/cagrs.length) : null;
+    var tiles = [
+      ["Casos totales", list.length],
+      ["Estándar", std],
+      ["Especulativa", spec],
+      ["CAGR base prom.", avg !== null ? avg.toFixed(1) + "%" : "—"]
+    ];
+    statsEl.innerHTML = tiles.map(function(t){
+      return '<div class="stat"><div class="num">' + t[1] + '</div><div class="lbl">' + t[0] + '</div></div>';
+    }).join("");
+  }
+
+  function escapeHtml(s){
+    return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];
+    });
+  }
+
+  function rowHtml(d, idx){
+    var cagrNum = parseNum(d.cagr);
+    var cagrClass = cagrNum === null ? "" : (cagrNum >= 0 ? "pos" : "neg");
+    var expanded = state.expanded === d.n;
+    var html = '';
+    html += '<div class="row data" tabindex="0" role="button" aria-expanded="' + expanded + '" data-n="' + d.n + '">';
+    html += '<span class="c-ticker">' + escapeHtml(d.ticker) + '</span>';
+    html += '<span class="c-empresa" title="' + escapeHtml(d.empresa) + '">' + escapeHtml(d.empresa) + '</span>';
+    html += '<span class="c-cat"><span class="chip ' + catClass(d.cat) + '">' + escapeHtml(d.cat) + '</span></span>';
+    html += '<span class="c-precio">' + escapeHtml(d.precio) + '</span>';
+    html += '<span class="zones"><span><b>V</b>' + escapeHtml(d.zV) + '</span><span><b>DV</b>' + escapeHtml(d.zD) + '</span><span><b>VH</b>' + escapeHtml(d.zH) + '</span></span>';
+    html += '<span class="c-anio">' + escapeHtml(d.anio) + '</span>';
+    html += '<span class="scen"><span><b>Neg</b>' + escapeHtml(d.oNeg) + '</span><span><b>Base</b>' + escapeHtml(d.oBase) + '</span><span><b>Opt</b>' + escapeHtml(d.oOpt) + '</span></span>';
+    html += '<span class="c-cagr ' + cagrClass + '">' + escapeHtml(d.cagr) + '</span>';
+    html += '<span class="chev">▸</span>';
+    html += '</div>';
+    if(expanded){
+      html += '<div class="detail">';
+      html += '<div class="dfield"><div class="dlbl">Múltiplo (' + escapeHtml(d.multP) + ')</div><div class="dval mono">Actual ' + escapeHtml(d.multA) + ' · Promedio histórico ' + escapeHtml(d.multH) + '</div></div>';
+      html += '<div class="dfield"><div class="dlbl">Fecha de análisis</div><div class="dval mono">' + escapeHtml(d.fecha) + '</div></div>';
+      html += '<div class="dfield full"><div class="dlbl">Moat</div><div class="dval">' + escapeHtml(d.moat) + '</div></div>';
+      html += '<div class="dfield full"><div class="dlbl">Riesgos clave</div><div class="dval">' + escapeHtml(d.riesgos) + '</div></div>';
+      html += '<div class="dfield full"><div class="dlbl">Conclusión / acción</div><div class="dval">' + escapeHtml(d.conclusion) + '</div></div>';
+      html += '<div class="dfield full"><div class="dlbl">Última actualización / retorno</div><div class="dval">' + escapeHtml(d.actualizacion) + '</div></div>';
+      html += '</div>';
+    }
+    return html;
+  }
+
+  function render(){
+    var q = state.q.trim().toLowerCase();
+    var list = DATA.filter(function(d){
+      if(state.cat !== "all" && d.cat !== state.cat) return false;
+      if(!q) return true;
+      return d.ticker.toLowerCase().indexOf(q) !== -1 || d.empresa.toLowerCase().indexOf(q) !== -1;
+    });
+
+    var key = state.sortKey, dir = state.sortDir;
+    list.sort(function(a,b){
+      var av, bv;
+      if(key === "cagr"){ av = parseNum(a.cagr); bv = parseNum(b.cagr); }
+      else if(key === "precio"){ av = parseNum(a.precio); bv = parseNum(b.precio); }
+      else if(key === "anio"){ av = parseNum(a.anio); bv = parseNum(b.anio); }
+      else if(key === "n"){ av = a.n; bv = b.n; }
+      else { av = (a[key]||"").toLowerCase(); bv = (b[key]||"").toLowerCase(); }
+      if(av === null || av === undefined || av === "") return 1;
+      if(bv === null || bv === undefined || bv === "") return -1;
+      if(av < bv) return -1 * dir;
+      if(av > bv) return 1 * dir;
+      return 0;
+    });
+
+    renderStats(list);
+    resultLine.textContent = "Mostrando " + list.length + " de " + DATA.length + " casos";
+
+    if(!list.length){
+      rowsEl.innerHTML = '<div class="empty">Ningún caso coincide con la búsqueda.</div>';
+      return;
+    }
+    rowsEl.innerHTML = list.map(rowHtml).join("");
+
+    document.querySelectorAll("#rows .row.data").forEach(function(el){
+      el.addEventListener("click", function(){ toggleExpand(Number(el.dataset.n)); });
+      el.addEventListener("keydown", function(e){
+        if(e.key === "Enter" || e.key === " "){ e.preventDefault(); toggleExpand(Number(el.dataset.n)); }
+      });
+    });
+
+    document.querySelectorAll(".arrow").forEach(function(el){
+      var k = el.dataset.arrow;
+      el.textContent = state.sortKey === k ? (state.sortDir === 1 ? "▲" : "▼") : "";
+    });
+  }
+
+  function toggleExpand(n){
+    state.expanded = (state.expanded === n) ? null : n;
+    render();
+  }
+
+  document.getElementById("search").addEventListener("input", function(e){
+    state.q = e.target.value; render();
+  });
+
+  document.getElementById("catFilters").addEventListener("click", function(e){
+    var btn = e.target.closest(".pill");
+    if(!btn) return;
+    state.cat = btn.dataset.cat;
+    document.querySelectorAll("#catFilters .pill").forEach(function(p){
+      p.setAttribute("aria-pressed", p === btn ? "true" : "false");
+    });
+    render();
+  });
+
+  document.querySelectorAll(".row.head [data-sort]").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      var k = btn.dataset.sort;
+      if(state.sortKey === k){ state.sortDir *= -1; }
+      else { state.sortKey = k; state.sortDir = 1; }
+      render();
+    });
+  });
+
+  var themeBtn = document.getElementById("themeToggle");
+  var themeOrder = ["system", "light", "dark"];
+  var themeLabels = {system:"Tema: sistema", light:"Tema: claro", dark:"Tema: oscuro"};
+  var savedTheme = "system";
+  try { savedTheme = localStorage.getItem("bitacora-theme") || "system"; } catch(e){}
+  function applyTheme(t){
+    if(t === "system"){ document.documentElement.removeAttribute("data-theme"); }
+    else { document.documentElement.setAttribute("data-theme", t); }
+    themeBtn.textContent = themeLabels[t];
+  }
+  applyTheme(savedTheme);
+  themeBtn.addEventListener("click", function(){
+    var idx = themeOrder.indexOf(savedTheme);
+    savedTheme = themeOrder[(idx + 1) % themeOrder.length];
+    try { localStorage.setItem("bitacora-theme", savedTheme); } catch(e){}
+    applyTheme(savedTheme);
+  });
+
+  render();
+})();
+</script>
+
+</body>
+</html>

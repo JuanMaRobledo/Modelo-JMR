@@ -12,6 +12,18 @@ en un **modelo replicable** para analizar nuevas empresas de forma consistente.
 | `modelo/Modelo_Valoracion.xlsx` | Calculadora en Excel + checklist cualitativo + índice de los 55 casos | Herramienta de trabajo: se llena con los datos de una empresa nueva y calcula precios objetivo, CAGR y zonas de valor automáticamente |
 | `casos_de_estudio/CASOS_DE_ESTUDIO.md` | Ficha detallada de cada uno de los 55 casos (negocio, moat, métricas, múltiplos, objetivos, riesgos, actualizaciones) | Consulta rápida de cualquier caso histórico y sus números |
 | `casos_de_estudio/Resumen_Casos_de_Estudio.pdf` | Tabla en PDF (formato A3 horizontal, 3 páginas) con las 3 zonas de valor y los 3 escenarios de precio objetivo de los 55 casos, más conclusión y última actualización/retorno | Para ver de un vistazo, sin abrir el Excel, dónde escalonar entradas y qué retorno implica cada escenario en cualquier caso |
+| `docs/index.html` | Página web autocontenida (sin dependencias de build) con los 55 casos: buscador, filtro por categoría, columnas ordenables y cada fila expandible con el detalle completo | La forma más rápida de consultar — abre el archivo en el navegador o publícalo con GitHub Pages (ver abajo) |
+
+### Consultar los casos en el navegador (`docs/index.html`)
+
+Dos formas de verlo:
+
+1. **Local:** descarga o clona el repo y abre `docs/index.html` directamente en el navegador (doble clic) — no necesita servidor ni instalar nada.
+2. **Publicado con GitHub Pages** (para tener un link):
+   - En GitHub, ve a **Settings → Pages**.
+   - En "Build and deployment", elige **Source: Deploy from a branch**.
+   - Selecciona la rama de este trabajo (o `main` una vez fusionada) y la carpeta **/docs**.
+   - Guarda; GitHub te da una URL tipo `https://<tu-usuario>.github.io/Modelo-JMR/` en un par de minutos.
 
 ## Cómo usar esto en la práctica
 
