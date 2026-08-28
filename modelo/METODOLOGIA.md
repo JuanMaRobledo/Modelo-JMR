@@ -92,6 +92,49 @@ bajos en términos absolutos.
 3. Calcular el **CAGR** de cada escenario desde el precio actual hasta el precio objetivo, y
    sumarle el **dividend yield** si aplica, para obtener el retorno anualizado total esperado.
 
+### Anexo al Paso 5 — Regla automática para los múltiplos de salida
+
+La Calculadora (`Modelo_Valoracion.xlsx`) puede fijar los 3 múltiplos de salida por ti, en vez de
+que los estimes a ojo cada vez. Esta regla se obtuvo analizando cuantitativamente 15-18 de los 55
+casos de estudio que tenían datos completos: para cada uno se calculó el **múltiplo implícito**
+de cada escenario (precio objetivo ÷ EPS/FCF proyectado) y se comparó contra el múltiplo actual y
+el promedio histórico del propio caso.
+
+**Resultado:**
+
+| Escenario | Regla | Rango observado |
+|---|---|---|
+| Negativo | ≈ **1.00×** el múltiplo actual | 0.70x - 1.30x |
+| Base | ≈ **0.78×** el múltiplo promedio histórico | 0.56x - 1.01x |
+| Optimista | ≈ **0.92×** el múltiplo promedio histórico | 0.65x - 1.23x |
+
+En Excel: `Negativo = Múltiplo_actual`, `Base = 0.78 × Múltiplo_promedio_histórico`,
+`Optimista = 0.92 × Múltiplo_promedio_histórico`.
+
+**Nivel de confianza: medio.** No es una fórmula que el autor haya aplicado mecánicamente — él
+mismo describe el proceso como juicio caso por caso ("le doy castigo", "soy ácido", "un múltiplo
+decente sería..."). Lo que arroja el análisis es el **promedio de ese juicio**, con evidencia
+textual directa que lo respalda (ej. en TEP el autor fija su múltiplo "razonable" en 18x contra un
+promedio de 23x → 0.78, exactamente la media encontrada; en Nagarro dice explícitamente que evitó
+irse "a la valoración promedio... porque de hacerlo, la valoración me daría por encima" del
+optimista que sí usó).
+
+**Matices importantes:**
+- El escenario **Negativo se ancla al múltiplo actual, no al mínimo histórico de crisis** — la
+  lectura es "el mercado no vuelve a pagar más de lo que paga hoy", no "vamos a una crisis".
+- Los casos etiquetados **"Especulativa"** (AMD, NVO, DUOL, SE, CELH, UAA, NU, DLO, JD, entre
+  otros) muestran razones sistemáticamente más bajas que el promedio — el "castigo" al múltiplo es
+  mayor cuando hay menos convicción o experticia sobre el negocio.
+- Cuando el autor se desvió al alza de esta regla (ej. EPAM en 2023, apostando a una
+  reaceleración de crecimiento que no se cumplió), el resultado fue peor que en los casos donde
+  se mantuvo conservador — una señal de que desviarse de la regla es un indicador de riesgo, no
+  la norma.
+
+Por eso la Calculadora deja una columna de **"ajuste manual" (%)** junto a cada múltiplo
+automático: en 0% aplica la regla pura; puedes moverla (ej. -10% a -20% en hipótesis
+especulativas, o al alza si tienes convicción de que el negocio merece re-ratear por encima de su
+propia historia) sin perder el punto de partida objetivo.
+
 ## Paso 6 — Definir las 3 "zonas de valor"
 
 A partir de los múltiplos históricos mínimos y el precio actual, definir tres rangos de precio
