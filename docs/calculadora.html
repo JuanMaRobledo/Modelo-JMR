@@ -163,22 +163,27 @@
   <p class="subtitle">Reimplementación web del motor de tu Excel (DCF estilo Damodaran + 5 múltiplos relativos, ponderados por tipo de empresa). Los valores de ejemplo son los de ADBE.</p>
   <div class="disclaimer">
     <b>Dos simplificaciones deliberadas frente al Excel original:</b> (1) usa un único ingreso/EBIT/acciones base para el DCF y para los múltiplos (tu Excel a veces trae dos cifras ligeramente distintas si actualizaste hojas en momentos distintos); (2) las razones D&amp;A, CapEx, ΔNWC, etc. se piden como un solo porcentaje fijo en vez del promedio móvil de 3 años que usa el Excel. El motor del DCF en sí está validado celda por celda contra la plantilla real.<br><br>
-    <b>Autocompletado desde datos públicos:</b> al buscar un ticker, el navegador consulta el 10-K más reciente en <b>SEC EDGAR</b> — solo funciona para empresas que reportan ante la SEC de EE.UU. SEC EDGAR no permite leer su respuesta directamente desde un sitio como este (bloqueo de CORS del lado de la SEC, no de aquí), así que la consulta pasa por un <b>proxy CORS público de terceros</b> (allorigins.win, corsproxy.io o thingproxy, se intentan en orden); por ahí solo viaja el ticker/CIK que buscas, nunca tus valores del formulario. Si alguno de esos servicios falla o cambia, la búsqueda puede dejar de funcionar sin que sea un problema de esta página. El precio actual y los 5 múltiplos base son mejor esfuerzo desde una fuente secundaria (Stooq) y pueden no obtenerse siempre. Todo campo llenado automáticamente queda marcado en verde (dato reportado) o dorado (calculado a partir de esos datos) y se puede editar libremente — al escribir en un campo, la marca desaparece. El tipo de empresa, WACC, tasas de descuento, sales-to-capital y los escenarios Conservador/Optimista siguen siendo siempre tu criterio: no existen como "dato" en ningún reporte. Contenido educativo — no es asesoría financiera.
+    <b>Autocompletado desde datos públicos:</b> al buscar un ticker, el navegador consulta directamente la API de <b>Financial Modeling Prep</b> (financialmodelingprep.com) — necesitas tu propia <b>API key gratuita</b> (se guarda solo en este navegador, en localStorage; nunca se envía a ningún servidor propio). El plan gratuito cubre miles de empresas listadas en EE.&nbsp;UU. y varios otros mercados. El precio actual viene directo de la API, así que los 5 múltiplos base también se calculan automáticamente cuando hay suficientes datos. Todo campo llenado queda marcado en verde (dato reportado) o dorado (calculado a partir de esos datos) y se puede editar libremente — al escribir en un campo, la marca desaparece. El tipo de empresa, WACC, tasas de descuento, sales-to-capital y los escenarios Conservador/Optimista siguen siendo siempre tu criterio: no existen como "dato" en ningún reporte. Es un servicio de terceros fuera de nuestro control — puede fallar, cambiar sus términos o su cobertura. Contenido educativo — no es asesoría financiera.
   </div>
 
   <form id="calcForm">
     <fieldset>
       <legend>Identificación</legend>
+      <div class="frow"><label for="fmpKey">API key de Financial Modeling Prep</label>
+        <div class="lookup-row" style="grid-column:1/-1;">
+          <input id="fmpKey" type="text" placeholder="pega aquí tu API key gratuita" autocomplete="off" spellcheck="false">
+        </div>
+      </div>
+      <p class="field-help" style="margin:2px 0 0;">Gratis en <a href="https://site.financialmodelingprep.com/developer/docs" target="_blank" rel="noopener" style="color:inherit;">site.financialmodelingprep.com</a> (crea una cuenta → Dashboard → API Keys). Se guarda solo en este navegador.</p>
       <div class="frow"><label for="ticker">Ticker / empresa</label>
         <div class="lookup-row" style="grid-column:1/-1;">
           <input id="ticker" type="text" value="ADBE" autocomplete="off" spellcheck="false">
           <button type="button" id="lookupBtn" class="lookup-btn">Buscar datos</button>
         </div>
       </div>
-      <p class="field-help" style="margin:2px 0 0;">Si la búsqueda por ticker falla en tu navegador, prueba escribiendo el <b>CIK</b> numérico de la SEC en vez del ticker (ej. <code>320193</code> para Apple) — lo puedes encontrar buscando "[empresa] SEC CIK" o en <a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany" target="_blank" rel="noopener" style="color:inherit;">EDGAR company search</a>. Eso salta el primer paso de la búsqueda, que a veces bloquea el navegador.</p>
       <div id="lookupStatus" class="lookup-status"></div>
       <div class="field-legend">
-        <span><i class="auto"></i> dato de SEC EDGAR / precio de mercado</span>
+        <span><i class="auto"></i> dato reportado / precio de mercado</span>
         <span><i class="derived"></i> calculado a partir de esos datos</span>
         <span>sin marca = tu criterio</span>
       </div>
@@ -306,7 +311,7 @@
 </div>
 
 <script src="jmr_engine.js"></script>
-<script src="sec_edgar.js"></script>
+<script src="market_data.js"></script>
 <script>
 (function(){
   function setStatus(msg, kind){
@@ -334,17 +339,26 @@
     return true;
   }
 
+  var fmpKeyInput = document.getElementById('fmpKey');
+  fmpKeyInput.value = MarketData.getApiKey();
+  fmpKeyInput.addEventListener('change', function(){ MarketData.setApiKey(fmpKeyInput.value); });
+
   function runLookup(){
     var ticker = document.getElementById('ticker').value.trim();
     if(!ticker){ setStatus('Escribe un ticker primero (ej. ADBE, AAPL, MSFT).', 'warn'); return; }
+    MarketData.setApiKey(fmpKeyInput.value);
+    if(!MarketData.getApiKey()){
+      setStatus('Pega tu API key gratuita de Financial Modeling Prep arriba antes de buscar (ver el enlace debajo del campo).', 'warn');
+      return;
+    }
     var btn = document.getElementById('lookupBtn');
     btn.disabled = true; btn.textContent = 'Buscando…';
-    setStatus('Consultando SEC EDGAR…', 'warn');
+    setStatus('Consultando Financial Modeling Prep…', 'warn');
     clearSourceMarks();
 
-    SecEdgar.buscar(ticker).then(function(r){
-      if(!r.ok && r.notFoundInSec){
-        setStatus('No se encontró "' + ticker + '" en SEC EDGAR. Es normal si la empresa no reporta ante la SEC de EE. UU. (solo cubre emisores de EE. UU. y algunos ADRs). Completa los campos manualmente.', 'warn');
+    MarketData.buscar(ticker).then(function(r){
+      if(!r.ok && r.notFound){
+        setStatus('No se encontró "' + ticker + '" en Financial Modeling Prep. Revisa el ticker o completa los campos manualmente.', 'warn');
         return;
       }
       var autoCount = 0, derivedCount = 0;
@@ -352,16 +366,20 @@
       r.derived.forEach(function(f){ if(fillField(f, r.values[f], 'src-derived')) derivedCount++; });
 
       var parts = [];
-      parts.push((r.companyName || r.ticker) + ' (CIK ' + r.cik + ')' + (r.fiscalYearEnd ? ', 10-K con cierre ' + r.fiscalYearEnd : ''));
-      parts.push(autoCount + ' campos de SEC EDGAR, ' + derivedCount + ' calculados a partir de ellos.');
-      if(!r.priceOk){
-        parts.push('No se pudo obtener el precio de mercado automáticamente — completa "Precio actual" y los 5 múltiplos base a mano.');
+      parts.push((r.companyName || r.ticker) + (r.fiscalYearEnd ? ', último año fiscal con cierre ' + r.fiscalYearEnd : ''));
+      parts.push(autoCount + ' campos reportados, ' + derivedCount + ' calculados a partir de ellos.');
+      if(r.missing && r.missing.length){
+        parts.push(r.missing.length + ' campo(s) no disponibles en el plan gratuito — quedaron con su valor anterior, complétalos a mano si los necesitas.');
       }
       parts.push('Revisa todo antes de calcular: puedes editar cualquier campo.');
-      setStatus(parts.join(' '), r.priceOk ? 'ok' : 'warn');
+      setStatus(parts.join(' '), (r.missing && r.missing.length > 5) ? 'warn' : 'ok');
     }).catch(function(err){
+      if(err && err.noApiKey){
+        setStatus('Pega tu API key gratuita de Financial Modeling Prep arriba antes de buscar.', 'warn');
+        return;
+      }
       var etapa = err && err.stage ? ' en ' + err.stage : '';
-      setStatus('No se pudo consultar SEC EDGAR desde este navegador' + etapa + ' (' + (err && err.message ? err.message : 'error de red') + '). Suele ser un bloqueo de CORS o de red del navegador — revisa la pestaña Red/Network de las herramientas de desarrollador (F12) si se repite. Completa los campos manualmente mientras tanto.', 'err');
+      setStatus('No se pudo consultar Financial Modeling Prep' + etapa + ' (' + (err && err.message ? err.message : 'error de red') + '). Revisa que la API key sea correcta y la pestaña Red/Network (F12) si se repite. Completa los campos manualmente mientras tanto.', 'err');
     }).finally(function(){
       btn.disabled = false; btn.textContent = 'Buscar datos';
     });
