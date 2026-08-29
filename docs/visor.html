@@ -13,6 +13,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Modelo JMR">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="market_data.js"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
   :root{
@@ -92,6 +93,10 @@
   .head-card .meta{font-size:12.5px; color:var(--ink-faint); margin-top:2px;}
   .head-card .price{font-family:"IBM Plex Mono", monospace; font-size:24px; font-weight:600; text-align:right;}
   .head-card .price .lbl{font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-faint); font-family:"Public Sans",sans-serif; font-weight:600;}
+  .head-id{display:flex; align-items:center; gap:14px;}
+  .r-logo{width:44px; height:44px; border-radius:10px; object-fit:contain; background:var(--surface-2); border:1px solid var(--border-soft); flex:none;}
+  .r-company{font-size:13px; color:var(--ink-soft); margin-top:2px;}
+  .price-sub{font-size:11px; color:var(--ink-faint); margin-top:4px; font-family:"Public Sans",sans-serif; font-weight:500; text-align:right;}
 
   .grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:18px;}
   .grid4{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:18px;}
@@ -194,14 +199,28 @@
 
   <div id="result">
     <div class="head-card">
-      <div>
-        <h2 id="rTicker">—</h2>
-        <div class="meta" id="rMeta">—</div>
+      <div class="head-id">
+        <img class="r-logo" id="rLogo" alt="" hidden>
+        <div>
+          <h2 id="rTicker">—</h2>
+          <div class="r-company" id="rCompanyName"></div>
+          <div class="meta" id="rMeta">—</div>
+        </div>
       </div>
       <div class="price">
         <div class="lbl">Precio actual</div>
         <div id="rPrice">—</div>
+        <div class="price-sub" id="rPriceNote"></div>
       </div>
+    </div>
+
+    <div class="gh-row" id="liveKeyRow" hidden style="margin:0 0 8px;">
+      <input id="visorApiKey" type="text" placeholder="API key de Financial Modeling Prep" autocomplete="off" spellcheck="false">
+      <button class="gh-btn" id="visorSaveKeyBtn" type="button">Guardar clave</button>
+    </div>
+    <div class="gh-row" style="margin:0 0 18px;">
+      <button class="gh-btn" id="refreshLiveBtn" type="button">Actualizar precio y logo</button>
+      <span class="gh-status" id="livePriceStatus" style="margin:0;"></span>
     </div>
 
     <div class="tabs" id="mainTabs">
@@ -279,6 +298,7 @@
 
   <footer>
     Este visor lee los resultados ya calculados por tu Excel (Modelo JMR); no recalcula el DCF ni los múltiplos por sí mismo.
+    El nombre y el logo se toman de la hoja "Input sheet" y de Financial Modeling Prep respectivamente; el "Precio actual" se consulta en vivo con la misma API key de la Calculadora y la Bitácora — si no hay key o el ticker no se encuentra, se muestra el precio que quedó guardado en el Excel al momento de llenarlo, marcado como tal.
     Las pestañas "Estados Financieros", "Valoración" y "Análisis" muestran, tal cual, las hojas de tu Excel involucradas en la valoración (no las tablas fijas de referencia de la plantilla — primas de riesgo país, promedios de industria, convertidores, etc. — que son iguales para cualquier empresa).
     Guardar una valoración la sube como un archivo JSON a un repositorio privado tuyo en GitHub (<code>Modelo-JMR-datos</code>) usando un Personal Access Token que solo tú generas y que se guarda únicamente en este navegador — nunca se envía a ningún servidor propio.
     Para valorar una empresa nueva sin Excel, usa la <a href="calculadora.html" style="color:inherit;">Calculadora DCF</a>.
@@ -295,6 +315,7 @@
 
   var currentWb = null;
   var currentResumen = null;
+  var currentTicker = null;
 
   // Hojas de la plantilla "involucradas en la valoración" (informes
   // financieros, tablas de valoración y de análisis) — se excluyen a
@@ -343,12 +364,21 @@
     if(typeof ticker !== 'string' || ticker.indexOf('#') === 0 || !ticker){
       ticker = 'Modelo JMR';
     }
+    var inputSheet = wb.Sheets['Input sheet'];
+    var nombreActivo = inputSheet ? cellVal(inputSheet, 'A1') : undefined;
+    if(typeof nombreActivo !== 'string' || !nombreActivo.trim() || nombreActivo.indexOf('#') === 0){
+      nombreActivo = '';
+    }
     var precio = cellVal(res, 'B3');
     var fecha = cellVal(res, 'B2');
     var tipo = cellVal(res, 'G3');
     var mos = cellVal(res, 'G4');
 
     document.getElementById('rTicker').textContent = ticker;
+    document.getElementById('rCompanyName').textContent = nombreActivo;
+    var logoImg = document.getElementById('rLogo');
+    logoImg.hidden = true;
+    logoImg.removeAttribute('src');
     var fechaTxt = '';
     if(fecha instanceof Date){
       fechaTxt = 'Análisis del ' + fecha.toLocaleDateString('es-CO', {day:'2-digit', month:'short', year:'numeric'});
@@ -359,6 +389,7 @@
     }
     document.getElementById('rMeta').textContent = fechaTxt || 'Modelo JMR — DCF Damodaran + múltiplos';
     document.getElementById('rPrice').textContent = fmtMoney(precio);
+    document.getElementById('rPriceNote').textContent = 'Dato del Excel — actualizando al precio de hoy…';
     document.getElementById('rTipo').textContent = tipo || '—';
     document.getElementById('rMOS').textContent = fmtPct(mos);
     document.getElementById('rPrecioMOS').textContent = fmtMoney(cellVal(res,'C19'));
@@ -397,8 +428,10 @@
     document.getElementById('zMOS').textContent = fmtMoney(cellVal(res,'C19')) + ' – ' + fmtMoney(cellVal(res,'B19'));
 
     currentWb = wb;
+    currentTicker = ticker;
     currentResumen = {
       ticker: ticker,
+      nombreActivo: nombreActivo || null,
       fecha: fechaTxt || null,
       precio: precio,
       tipo: tipo || null,
@@ -421,6 +454,7 @@
     resetTabs();
 
     result.classList.add('show');
+    fetchLiveQuote();
   }
 
   function renderGenericSheet(name){
@@ -547,8 +581,13 @@
 
   function displaySavedRecord(rec){
     document.getElementById('rTicker').textContent = rec.ticker || '—';
+    document.getElementById('rCompanyName').textContent = rec.nombreActivo || '';
+    var logoImg = document.getElementById('rLogo');
+    logoImg.hidden = true;
+    logoImg.removeAttribute('src');
     document.getElementById('rMeta').textContent = (rec.fecha || 'Modelo JMR — DCF Damodaran + múltiplos') + (rec.savedAt ? ' · guardada el ' + new Date(rec.savedAt).toLocaleDateString('es-CO') : '');
     document.getElementById('rPrice').textContent = fmtMoney(rec.precio);
+    document.getElementById('rPriceNote').textContent = 'Dato guardado — actualizando al precio de hoy…';
     document.getElementById('rTipo').textContent = rec.tipo || '—';
     document.getElementById('rMOS').textContent = fmtPct(rec.mos);
     document.getElementById('rPrecioMOS').textContent = fmtMoney(rec.precioMOS);
@@ -579,6 +618,7 @@
     // original, así que las pestañas de hojas crudas no aplican aquí.
     currentWb = null;
     currentResumen = rec;
+    currentTicker = rec.ticker || null;
     document.querySelectorAll('#mainTabs button').forEach(function(b){ b.classList.toggle('active', b.dataset.tab === 'resumen'); });
     document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.toggle('active', p.dataset.panel === 'resumen'); });
     ['financieros','valoracion','analisis'].forEach(function(g){
@@ -589,6 +629,7 @@
     clearError();
     result.classList.add('show');
     result.scrollIntoView({behavior:'smooth', block:'start'});
+    fetchLiveQuote();
   }
 
   function renderSaveBlock(){
@@ -655,6 +696,59 @@
       status.textContent = 'Error: ' + err.message;
     });
   });
+
+  // Precio y logo en vivo (día de hoy) desde Financial Modeling Prep, vía la
+  // misma API key/localStorage que la Calculadora y la Bitácora — el
+  // "Precio actual" del Excel queda como respaldo si no hay key o falla.
+  function refreshLiveKeyRowVisibility(){
+    var row = document.getElementById('liveKeyRow');
+    if(typeof MarketData === 'undefined'){ row.hidden = true; return; }
+    row.hidden = !!MarketData.getApiKey();
+    if(!row.hidden) document.getElementById('visorApiKey').value = MarketData.getApiKey();
+  }
+  refreshLiveKeyRowVisibility();
+
+  function fetchLiveQuote(){
+    var status = document.getElementById('livePriceStatus');
+    var note = document.getElementById('rPriceNote');
+    if(!currentTicker || currentTicker === 'Modelo JMR'){ status.textContent = ''; return; }
+    if(typeof MarketData === 'undefined'){ status.textContent = 'No se pudo cargar market_data.js.'; return; }
+    var key = MarketData.getApiKey();
+    if(!key){
+      document.getElementById('liveKeyRow').hidden = false;
+      status.textContent = 'Ingresa tu API key de Financial Modeling Prep para ver el precio de hoy y el logo.';
+      return;
+    }
+    status.textContent = 'Actualizando…';
+    MarketData.fetchQuote(currentTicker).then(function(q){
+      if(!q){ status.textContent = 'No encontré "' + currentTicker + '" en Financial Modeling Prep.'; return; }
+      if(q.price != null){
+        document.getElementById('rPrice').textContent = fmtMoney(q.price);
+        note.textContent = 'En vivo · ' + new Date().toLocaleTimeString();
+      } else {
+        note.textContent = 'Dato del Excel (FMP no reportó precio para este ticker)';
+      }
+      if(q.companyName) document.getElementById('rCompanyName').textContent = q.companyName;
+      if(q.image){
+        var logoImg = document.getElementById('rLogo');
+        logoImg.onerror = function(){ logoImg.hidden = true; };
+        logoImg.src = q.image;
+        logoImg.hidden = false;
+      }
+      status.textContent = 'Actualizado ' + new Date().toLocaleTimeString();
+    }).catch(function(err){
+      note.textContent = 'Dato del Excel (no se pudo obtener el precio de hoy)';
+      status.textContent = 'Error: ' + err.message;
+    });
+  }
+
+  document.getElementById('visorSaveKeyBtn').addEventListener('click', function(){
+    if(typeof MarketData === 'undefined') return;
+    MarketData.setApiKey(document.getElementById('visorApiKey').value);
+    refreshLiveKeyRowVisibility();
+    fetchLiveQuote();
+  });
+  document.getElementById('refreshLiveBtn').addEventListener('click', fetchLiveQuote);
 
   input.addEventListener('change', function(e){ handleFile(e.target.files[0]); });
   dz.addEventListener('dragover', function(e){ e.preventDefault(); dz.classList.add('drag'); });

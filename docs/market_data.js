@@ -315,6 +315,31 @@ var MarketData = (function () {
       });
   }
 
+  // Precio, nombre y logo — usado por el Visor Modelo JMR para mostrar el
+  // precio del día (no el que quedó guardado en el Excel al momento de
+  // llenarlo) junto al nombre completo del activo y su logo, cuando FMP
+  // los reporta (campo "image" del profile).
+  function fetchQuote(ticker) {
+    var t = (ticker || "").trim().toUpperCase();
+    if (!t) return Promise.reject(new Error("Ingresa un ticker."));
+    var key = getApiKey();
+    if (!key) {
+      var e = new Error("Falta la API key de Financial Modeling Prep.");
+      e.noApiKey = true;
+      return Promise.reject(e);
+    }
+    return fetchJSON("profile?symbol=" + encodeURIComponent(t) + "&apikey=" + encodeURIComponent(key))
+      .then(function (data) {
+        var p = data && data[0];
+        if (!p) return null;
+        return {
+          price: isFinite(p.price) ? p.price : null,
+          companyName: p.companyName || null,
+          image: p.image || null
+        };
+      });
+  }
+
   function buscar(ticker) {
     var t = (ticker || "").trim().toUpperCase();
     if (!t) return Promise.reject(new Error("Ingresa un ticker."));
@@ -378,5 +403,5 @@ var MarketData = (function () {
     });
   }
 
-  return { buscar: buscar, fetchPrice: fetchPrice, getApiKey: getApiKey, setApiKey: setApiKey };
+  return { buscar: buscar, fetchPrice: fetchPrice, fetchQuote: fetchQuote, getApiKey: getApiKey, setApiKey: setApiKey };
 })();
