@@ -214,6 +214,10 @@
       </div>
     </div>
 
+    <div class="gh-row" style="margin:0 0 8px;">
+      <input id="tickerOverride" type="text" placeholder="Ticker (ej. ADBE) — corrígelo si no se detectó bien" autocomplete="off" spellcheck="false">
+      <button class="gh-btn" id="tickerOverrideBtn" type="button">Usar este ticker</button>
+    </div>
     <div class="gh-row" id="liveKeyRow" hidden style="margin:0 0 8px;">
       <input id="visorApiKey" type="text" placeholder="API key de Financial Modeling Prep" autocomplete="off" spellcheck="false">
       <button class="gh-btn" id="visorSaveKeyBtn" type="button">Guardar clave</button>
@@ -376,7 +380,7 @@
     clearError();
 
     var inputSheet = wb.Sheets['Input sheet'];
-    var stockInfo = parseStockCell(res, 'A1') || parseStockCell(inputSheet, 'A1');
+    var stockInfo = parseStockCell(inputSheet, 'A1') || parseStockCell(res, 'A1');
 
     var ticker = (stockInfo && stockInfo.ticker) || cellVal(res, 'A1');
     if(typeof ticker !== 'string' || ticker.indexOf('#') === 0 || !ticker){
@@ -394,6 +398,7 @@
     var mos = cellVal(res, 'G4');
 
     document.getElementById('rTicker').textContent = ticker;
+    document.getElementById('tickerOverride').value = (ticker !== 'Modelo JMR') ? ticker : '';
     document.getElementById('rCompanyName').textContent = nombreActivo;
     var logoImg = document.getElementById('rLogo');
     logoImg.hidden = true;
@@ -600,6 +605,7 @@
 
   function displaySavedRecord(rec){
     document.getElementById('rTicker').textContent = rec.ticker || '—';
+    document.getElementById('tickerOverride').value = rec.ticker || '';
     document.getElementById('rCompanyName').textContent = rec.nombreActivo || '';
     var logoImg = document.getElementById('rLogo');
     logoImg.hidden = true;
@@ -777,6 +783,25 @@
     fetchLiveQuote();
   });
   document.getElementById('refreshLiveBtn').addEventListener('click', fetchLiveQuote);
+
+  // El ticker/nombre de "Resumen de Valoración"/"Input sheet" A1 viene del
+  // tipo de dato vinculado "Acciones" de Excel — por diseño de Microsoft,
+  // cualquier herramienta que no implemente ese formato (como el lector de
+  // Excel que usa este visor) ve esa celda como "#VALUE!", incluso cuando
+  // en Excel se ve perfecta. Por eso queda este campo para corregirlo a
+  // mano cuando la detección automática falla.
+  function applyTickerOverride(){
+    var val = (document.getElementById('tickerOverride').value || '').trim().toUpperCase();
+    if(!val) return;
+    currentTicker = val;
+    document.getElementById('rTicker').textContent = val;
+    if(currentResumen) currentResumen.ticker = val;
+    fetchLiveQuote();
+  }
+  document.getElementById('tickerOverrideBtn').addEventListener('click', applyTickerOverride);
+  document.getElementById('tickerOverride').addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){ e.preventDefault(); applyTickerOverride(); }
+  });
 
   input.addEventListener('change', function(e){ handleFile(e.target.files[0]); });
   dz.addEventListener('dragover', function(e){ e.preventDefault(); dz.classList.add('drag'); });
