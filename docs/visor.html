@@ -104,8 +104,19 @@
   .stat{background:var(--surface); border:1px solid var(--border-soft); border-radius:12px; padding:14px 16px;}
   .stat .lbl{font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-faint); margin-bottom:6px;}
   .stat .big{font-family:"IBM Plex Mono", monospace; font-weight:600; font-size:18px; font-variant-numeric:tabular-nums;}
-  .stat .big.pos{color:var(--positive);}
-  .stat .big.neg{color:var(--negative);}
+
+  table.price-compare{width:100%; border-collapse:collapse; background:var(--surface); border:1px solid var(--border-soft); border-radius:12px; overflow:hidden; box-shadow:var(--shadow);}
+  table.price-compare th{padding:11px 18px; text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-faint); font-weight:700; background:var(--surface-2); border-bottom:1px solid var(--border-soft);}
+  table.price-compare td{padding:18px; font-family:"IBM Plex Mono", monospace; font-size:24px; font-weight:700; font-variant-numeric:tabular-nums;}
+  table.price-compare td:nth-child(2){color:var(--accent-ink); background:var(--accent-soft);}
+  .chg-badge{display:inline-flex; align-items:center; gap:6px; padding:6px 14px; border-radius:999px; font-size:16px; font-weight:700; font-family:"IBM Plex Mono", monospace;}
+  .chg-badge.pos{background:var(--positive-soft); color:var(--positive);}
+  .chg-badge.neg{background:var(--negative-soft); color:var(--negative);}
+  .chg-badge.flat{background:var(--surface-2); color:var(--ink-faint);}
+  @media (max-width:640px){
+    table.price-compare th, table.price-compare td{padding:12px;}
+    table.price-compare td{font-size:19px;}
+  }
   .stat .rng{font-family:"IBM Plex Mono", monospace; font-size:12px; color:var(--ink-soft); margin-top:2px;}
 
   .section-title{font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint); margin:24px 0 10px;}
@@ -222,18 +233,26 @@
     </div>
     <div class="gh-row" id="liveKeyRow" hidden style="margin:0 0 8px;">
       <input id="visorApiKey" type="text" placeholder="API key de Financial Modeling Prep" autocomplete="off" spellcheck="false">
-      <button class="gh-btn" id="visorSaveKeyBtn" type="button">Guardar clave</button>
+      <button class="gh-btn" id="visorSaveKeyBtn" type="button">Guardar y actualizar</button>
     </div>
-    <div class="gh-row" style="margin:0 0 18px;">
-      <button class="gh-btn" id="refreshLiveBtn" type="button">Actualizar precio y logo</button>
+    <div class="gh-row" style="margin:0 0 18px; align-items:baseline;">
+      <button class="gh-btn" id="refreshLiveBtn" type="button" hidden>Actualizar a precio en vivo</button>
+      <a href="#" id="toggleKeyLink" style="font-size:12px; color:var(--ink-faint);">¿Precio más reciente que el de tu Excel? Configura una API key gratis de FMP (opcional — el logo y el precio de "Input sheet" ya funcionan sin ella)</a>
       <span class="gh-status" id="livePriceStatus" style="margin:0;"></span>
     </div>
 
     <p class="section-title">Precio de hoy vs. precio al día del análisis</p>
-    <div class="grid3" style="margin-bottom:22px;">
-      <div class="stat"><div class="lbl">Precio al día del análisis</div><div class="big" id="rPrecioAnalisis">—</div></div>
-      <div class="stat"><div class="lbl">Precio de hoy</div><div class="big" id="rPrecioHoy">—</div></div>
-      <div class="stat"><div class="lbl">Cambio desde el análisis</div><div class="big" id="rCambio">—</div></div>
+    <div class="methods-scroll" style="margin-bottom:22px;">
+      <table class="price-compare">
+        <thead><tr><th>Precio al día del análisis</th><th>Precio de hoy</th><th>Cambio</th></tr></thead>
+        <tbody>
+          <tr>
+            <td id="rPrecioAnalisis">—</td>
+            <td id="rPrecioHoy">—</td>
+            <td id="rCambio">—</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <div class="tabs" id="mainTabs">
@@ -363,11 +382,12 @@
        typeof precioHoy === 'number' && isFinite(precioHoy)){
       var delta = precioHoy - precioAnalisis;
       var pct = (delta / precioAnalisis) * 100;
-      cambioEl.textContent = (delta >= 0 ? '+' : '') + fmtMoney(delta) + ' (' + (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%)';
-      cambioEl.className = 'big ' + (delta >= 0 ? 'pos' : 'neg');
+      var cls = delta > 0 ? 'pos' : (delta < 0 ? 'neg' : 'flat');
+      var arrow = delta > 0 ? '▲' : (delta < 0 ? '▼' : '—');
+      cambioEl.innerHTML = '<span class="chg-badge ' + cls + '">' + arrow + ' ' +
+        (delta >= 0 ? '+' : '') + fmtMoney(delta) + ' · ' + (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%</span>';
     } else {
       cambioEl.textContent = '—';
-      cambioEl.className = 'big';
     }
   }
   function cellVal(ws, addr){
@@ -388,6 +408,21 @@
     var m = text.match(/^(.*?)\s*\(([A-Za-z]+):([A-Za-z0-9.]+)\)\s*$/);
     if(m) return { name: m[1].trim(), exchange: m[2], ticker: m[3].toUpperCase() };
     return { name: text.trim(), exchange: null, ticker: null };
+  }
+  // El CDN de logos de FMP es un recurso estático público — a diferencia
+  // del endpoint "profile" (que sí requiere API key), esta URL no necesita
+  // ninguna llamada a la API: se arma directo con el ticker y, si existe,
+  // el navegador la carga sola; si no existe, el <img> simplemente falla
+  // en silencio (ver onerror donde se usa).
+  function logoUrlForTicker(t){
+    return 'https://images.financialmodelingprep.com/symbol/' + encodeURIComponent(t) + '.png';
+  }
+  function showLogo(t){
+    var logoImg = document.getElementById('rLogo');
+    if(!t || t === 'Modelo JMR'){ logoImg.hidden = true; logoImg.removeAttribute('src'); return; }
+    logoImg.onerror = function(){ logoImg.hidden = true; };
+    logoImg.onload = function(){ logoImg.hidden = false; };
+    logoImg.src = logoUrlForTicker(t);
   }
   function showError(msg){
     errorBox.textContent = msg;
@@ -429,9 +464,7 @@
     document.getElementById('rTicker').textContent = ticker;
     document.getElementById('tickerOverride').value = (ticker !== 'Modelo JMR') ? ticker : '';
     document.getElementById('rCompanyName').textContent = nombreActivo;
-    var logoImg = document.getElementById('rLogo');
-    logoImg.hidden = true;
-    logoImg.removeAttribute('src');
+    showLogo(ticker);
     var fechaTxt = '';
     if(fecha instanceof Date){
       fechaTxt = 'Análisis del ' + fecha.toLocaleDateString('es-CO', {day:'2-digit', month:'short', year:'numeric'});
@@ -442,7 +475,7 @@
     }
     document.getElementById('rMeta').textContent = fechaTxt || 'Modelo JMR — DCF Damodaran + múltiplos';
     document.getElementById('rPrice').textContent = fmtMoney(precio);
-    document.getElementById('rPriceNote').textContent = (precio === precioExcelD1 ? 'Del Excel (Input sheet) — ' : 'Precio al día del análisis — ') + 'actualizando al precio de hoy…';
+    document.getElementById('rPriceNote').textContent = (precio === precioExcelD1 ? 'Del Excel (Input sheet)' : 'Precio al día del análisis') + (hasApiKey() ? ' — actualizando al precio de hoy…' : '');
     currentPrecioAnalisis = (typeof precioAnalisis === 'number' && isFinite(precioAnalisis)) ? precioAnalisis : null;
     renderPriceCompare(currentPrecioAnalisis, precio);
     document.getElementById('rTipo').textContent = tipo || '—';
@@ -510,7 +543,7 @@
     resetTabs();
 
     result.classList.add('show');
-    fetchLiveQuote();
+    maybeAutoFetchLive();
   }
 
   function renderGenericSheet(name){
@@ -639,12 +672,10 @@
     document.getElementById('rTicker').textContent = rec.ticker || '—';
     document.getElementById('tickerOverride').value = rec.ticker || '';
     document.getElementById('rCompanyName').textContent = rec.nombreActivo || '';
-    var logoImg = document.getElementById('rLogo');
-    logoImg.hidden = true;
-    logoImg.removeAttribute('src');
+    showLogo(rec.ticker);
     document.getElementById('rMeta').textContent = (rec.fecha || 'Modelo JMR — DCF Damodaran + múltiplos') + (rec.savedAt ? ' · guardada el ' + new Date(rec.savedAt).toLocaleDateString('es-CO') : '');
     document.getElementById('rPrice').textContent = fmtMoney(rec.precio);
-    document.getElementById('rPriceNote').textContent = 'Dato guardado — actualizando al precio de hoy…';
+    document.getElementById('rPriceNote').textContent = 'Dato guardado' + (hasApiKey() ? ' — actualizando al precio de hoy…' : '');
     currentPrecioAnalisis = (typeof rec.precioAnalisis === 'number' && isFinite(rec.precioAnalisis)) ? rec.precioAnalisis : null;
     renderPriceCompare(currentPrecioAnalisis, rec.precio);
     document.getElementById('rTipo').textContent = rec.tipo || '—';
@@ -688,7 +719,7 @@
     clearError();
     result.classList.add('show');
     result.scrollIntoView({behavior:'smooth', block:'start'});
-    fetchLiveQuote();
+    maybeAutoFetchLive();
   }
 
   function renderSaveBlock(){
@@ -756,35 +787,49 @@
     });
   });
 
-  // Precio y logo en vivo (día de hoy) desde Financial Modeling Prep, vía la
-  // misma API key/localStorage que la Calculadora y la Bitácora — el
-  // "Precio actual" del Excel queda como respaldo si no hay key o falla.
+  // Precio en vivo (día de hoy) desde Financial Modeling Prep — opcional:
+  // el logo ya se muestra sin key (logoUrlForTicker) y el precio de hoy ya
+  // viene gratis de 'Input sheet'!D1, así que nunca se pide la key sola;
+  // solo se usa si el usuario ya la guardó antes, o si la pide a propósito
+  // con el enlace/botón de abajo.
+  function hasApiKey(){
+    return typeof MarketData !== 'undefined' && !!MarketData.getApiKey();
+  }
   function refreshLiveKeyRowVisibility(){
-    var row = document.getElementById('liveKeyRow');
-    if(typeof MarketData === 'undefined'){ row.hidden = true; return; }
-    row.hidden = !!MarketData.getApiKey();
-    if(!row.hidden) document.getElementById('visorApiKey').value = MarketData.getApiKey();
+    var has = hasApiKey();
+    document.getElementById('liveKeyRow').hidden = true;
+    document.getElementById('refreshLiveBtn').hidden = !has;
+    document.getElementById('toggleKeyLink').hidden = has;
+    if(has) document.getElementById('visorApiKey').value = MarketData.getApiKey();
   }
   refreshLiveKeyRowVisibility();
+  document.getElementById('toggleKeyLink').addEventListener('click', function(e){
+    e.preventDefault();
+    document.getElementById('liveKeyRow').hidden = false;
+    e.target.hidden = true;
+  });
+  // Si ya hay una key guardada de una visita anterior, mejora el precio en
+  // silencio, sin ningún aviso ni bloqueo — nunca vuelve a pedirla.
+  function maybeAutoFetchLive(){
+    if(hasApiKey()) fetchLiveQuote();
+  }
 
   function fetchLiveQuote(){
     var status = document.getElementById('livePriceStatus');
     var note = document.getElementById('rPriceNote');
     if(!currentTicker || currentTicker === 'Modelo JMR'){
-      note.textContent = 'Dato del Excel (no identifiqué el ticker en este archivo)';
-      status.textContent = '';
+      status.textContent = 'No identifiqué el ticker en este archivo — corrígelo arriba primero.';
       return;
     }
     if(typeof MarketData === 'undefined'){
-      note.textContent = 'Dato del Excel (no se pudo cargar market_data.js)';
       status.textContent = 'No se pudo cargar market_data.js.';
       return;
     }
     var key = MarketData.getApiKey();
     if(!key){
       document.getElementById('liveKeyRow').hidden = false;
-      note.textContent = 'Dato del Excel (ingresa tu API key para ver el precio de hoy)';
-      status.textContent = 'Ingresa tu API key de Financial Modeling Prep para ver el precio de hoy y el logo.';
+      document.getElementById('toggleKeyLink').hidden = true;
+      status.textContent = 'Ingresa tu API key de Financial Modeling Prep.';
       return;
     }
     status.textContent = 'Actualizando…';
@@ -832,7 +877,8 @@
     currentTicker = val;
     document.getElementById('rTicker').textContent = val;
     if(currentResumen) currentResumen.ticker = val;
-    fetchLiveQuote();
+    showLogo(val);
+    maybeAutoFetchLive();
   }
   document.getElementById('tickerOverrideBtn').addEventListener('click', applyTickerOverride);
   document.getElementById('tickerOverride').addEventListener('keydown', function(e){
