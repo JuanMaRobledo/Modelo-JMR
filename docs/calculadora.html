@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calculadora Modelo JMR</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --bg:#F5F6F2; --surface:#FFFFFF; --surface-2:#ECEFE9;
+    --ink:#16231F; --ink-soft:#51615A; --ink-faint:#8A968F;
+    --border:#DBE1D9; --border-soft:#E7EBE3;
+    --accent:#A6791F; --accent-soft:#F1E6CC; --accent-ink:#5C4212;
+    --positive:#1E7F52; --positive-soft:#E1F0E6;
+    --negative:#B0452F; --negative-soft:#F7E5DF;
+    --shadow: 0 1px 2px rgba(22,35,31,0.06), 0 8px 24px -12px rgba(22,35,31,0.18);
+    --focus: #3B7CE0;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#10160F; --surface:#161F1B; --surface-2:#1D2822;
+      --ink:#ECEEE9; --ink-soft:#A9B6AF; --ink-faint:#6E7B75;
+      --border:#2B3833; --border-soft:#212C27;
+      --accent:#D9A64B; --accent-soft:#3B2E12; --accent-ink:#F2D9A0;
+      --positive:#4FBD82; --positive-soft:#173627;
+      --negative:#E07857; --negative-soft:#3B2016;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 12px 28px -14px rgba(0,0,0,0.6);
+      --focus: #6FA8FF;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#10160F; --surface:#161F1B; --surface-2:#1D2822;
+    --ink:#ECEEE9; --ink-soft:#A9B6AF; --ink-faint:#6E7B75;
+    --border:#2B3833; --border-soft:#212C27;
+    --accent:#D9A64B; --accent-soft:#3B2E12; --accent-ink:#F2D9A0;
+    --positive:#4FBD82; --positive-soft:#173627;
+    --negative:#E07857; --negative-soft:#3B2016;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 12px 28px -14px rgba(0,0,0,0.6);
+    --focus: #6FA8FF;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:"Public Sans", -apple-system, "Segoe UI", sans-serif;-webkit-font-smoothing:antialiased;}
+  @media (prefers-reduced-motion: reduce){*{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}}
+
+  nav.appnav{display:flex; gap:4px; padding:14px 20px 0; max-width:1180px; margin:0 auto; border-bottom:1px solid var(--border);}
+  nav.appnav a{font-size:13.5px; font-weight:600; text-decoration:none; color:var(--ink-faint); padding:10px 14px; border-bottom:2px solid transparent; margin-bottom:-1px;}
+  nav.appnav a:hover{color:var(--ink);}
+  nav.appnav a.active{color:var(--accent); border-bottom-color:var(--accent);}
+
+  .wrap{max-width:920px; margin:0 auto; padding:28px 20px 80px;}
+  h1{font-family:"Fraunces", Georgia, serif; font-weight:700; font-size:clamp(24px,4vw,32px); letter-spacing:-0.01em; margin:0 0 6px; text-wrap:balance;}
+  .subtitle{color:var(--ink-soft); font-size:14px; margin:0 0 8px; max-width:66ch; line-height:1.5;}
+  .disclaimer{font-size:12px; color:var(--ink-faint); background:var(--surface); border:1px solid var(--border-soft); border-radius:10px; padding:12px 14px; line-height:1.55; margin-bottom:22px;}
+  .disclaimer b{color:var(--ink-soft);}
+
+  fieldset{border:1px solid var(--border-soft); border-radius:14px; background:var(--surface); padding:16px 18px 18px; margin:0 0 16px; box-shadow:var(--shadow);}
+  legend{font-family:"Fraunces",Georgia,serif; font-weight:600; font-size:16px; padding:0 8px; color:var(--ink);}
+  .field-help{font-size:11.5px; color:var(--ink-faint); margin:2px 0 12px; line-height:1.5;}
+
+  .frow{display:grid; grid-template-columns:1fr 130px; gap:10px; align-items:center; padding:6px 0;}
+  .frow label{font-size:13px; color:var(--ink-soft);}
+  .frow input, .frow select{
+    font:inherit; font-size:13px; padding:7px 9px; border-radius:8px; border:1px solid var(--border);
+    background:var(--bg); color:var(--ink); text-align:right; font-family:"IBM Plex Mono",monospace;
+    width:100%;
+  }
+  .frow select{text-align:left; font-family:"Public Sans",sans-serif;}
+  .frow input:focus-visible, .frow select:focus-visible{outline:2px solid var(--focus); outline-offset:1px;}
+
+  .scen-table{width:100%; border-collapse:collapse; margin-top:4px;}
+  .scen-table th{font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint); text-align:right; padding:4px 6px; font-weight:600;}
+  .scen-table th:first-child{text-align:left;}
+  .scen-table td{padding:4px 6px;}
+  .scen-table td:first-child{font-size:13px; color:var(--ink-soft); font-weight:600;}
+  .scen-table input{width:100%; font:inherit; font-size:13px; padding:6px 8px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--ink); text-align:right; font-family:"IBM Plex Mono",monospace;}
+
+  details.advanced{margin-top:8px;}
+  details.advanced summary{cursor:pointer; font-size:12.5px; font-weight:600; color:var(--accent); padding:4px 0;}
+
+  .calc-btn{
+    display:block; width:100%; padding:14px; border-radius:12px; border:none;
+    background:var(--accent); color:#fff; font:inherit; font-weight:700; font-size:14.5px; cursor:pointer;
+    margin:8px 0 24px; box-shadow:var(--shadow);
+  }
+  .calc-btn:hover{opacity:0.92;}
+  .calc-btn:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+
+  #result{display:none;}
+  #result.show{display:block;}
+  .head-card{background:var(--surface); border:1px solid var(--border-soft); border-radius:14px; padding:18px 22px; box-shadow:var(--shadow); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:18px;}
+  .head-card h2{font-family:"Fraunces", Georgia, serif; font-size:24px; margin:0; font-weight:700;}
+  .head-card .meta{font-size:12.5px; color:var(--ink-faint); margin-top:2px;}
+  .head-card .price{font-family:"IBM Plex Mono", monospace; font-size:22px; font-weight:600; text-align:right;}
+  .head-card .price .lbl{font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-faint); font-family:"Public Sans",sans-serif; font-weight:600;}
+
+  .grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:18px;}
+  .grid4{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:18px;}
+  @media (max-width:640px){.grid3,.grid4{grid-template-columns:repeat(2,1fr);} .frow{grid-template-columns:1fr 100px;}}
+  .stat{background:var(--surface); border:1px solid var(--border-soft); border-radius:12px; padding:14px 16px;}
+  .stat .lbl{font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-faint); margin-bottom:6px;}
+  .stat .big{font-family:"IBM Plex Mono", monospace; font-weight:600; font-size:18px; font-variant-numeric:tabular-nums;}
+  .stat .rng{font-family:"IBM Plex Mono", monospace; font-size:12px; color:var(--ink-soft); margin-top:2px;}
+
+  .section-title{font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint); margin:24px 0 10px;}
+  table.methods{width:100%; border-collapse:collapse; background:var(--surface); border:1px solid var(--border-soft); border-radius:12px; overflow:hidden; box-shadow:var(--shadow);}
+  table.methods th, table.methods td{padding:10px 12px; text-align:right; font-size:13px; border-bottom:1px solid var(--border-soft);}
+  table.methods th:first-child, table.methods td:first-child{text-align:left;}
+  table.methods thead th{background:var(--surface-2); font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint); font-weight:700;}
+  table.methods td{font-family:"IBM Plex Mono", monospace; font-variant-numeric:tabular-nums;}
+  table.methods td:first-child{font-family:"Public Sans",sans-serif; font-weight:600;}
+  table.methods tr.total td{font-weight:700; background:var(--accent-soft); color:var(--accent-ink);}
+  table.methods tr:last-child td{border-bottom:none;}
+
+  footer{margin-top:32px; font-size:12px; color:var(--ink-faint); line-height:1.6; border-top:1px solid var(--border-soft); padding-top:16px;}
+</style>
+</head>
+<body>
+
+<nav class="appnav">
+  <a href="index.html">Bitácora de Valoración</a>
+  <a href="visor.html">Visor Modelo JMR</a>
+  <a href="calculadora.html" class="active">Calculadora DCF</a>
+</nav>
+
+<div class="wrap">
+  <h1>Calculadora Modelo JMR</h1>
+  <p class="subtitle">Reimplementación web del motor de tu Excel (DCF estilo Damodaran + 5 múltiplos relativos, ponderados por tipo de empresa). Los valores de ejemplo son los de ADBE.</p>
+  <div class="disclaimer">
+    <b>Dos simplificaciones deliberadas frente al Excel original:</b> (1) usa un único ingreso/EBIT/acciones base para el DCF y para los múltiplos (tu Excel a veces trae dos cifras ligeramente distintas si actualizaste hojas en momentos distintos); (2) las razones D&amp;A, CapEx, ΔNWC, etc. se piden como un solo porcentaje fijo en vez del promedio móvil de 3 años que usa el Excel. El motor del DCF en sí está validado celda por celda contra la plantilla real. Contenido educativo — no es asesoría financiera.
+  </div>
+
+  <form id="calcForm">
+    <fieldset>
+      <legend>Identificación</legend>
+      <div class="frow"><label for="ticker">Ticker / empresa</label><input id="ticker" type="text" value="ADBE"></div>
+      <div class="frow"><label for="precioActual">Precio actual</label><input id="precioActual" type="number" step="0.01" value="273.47"></div>
+      <div class="frow"><label for="tipoEmpresa">Tipo de empresa</label>
+        <select id="tipoEmpresa">
+          <option>Crecimiento</option><option>Madura</option><option selected>Genérico</option>
+          <option>Defensiva</option><option>Cíclica/Commodity</option><option>Intensiva en Capital</option>
+          <option>Financiera</option><option>Infraestructura</option><option>REIT/Inmobiliaria</option><option>Software</option>
+        </select>
+      </div>
+      <div class="frow"><label for="mos">Margen de Seguridad (MOS)</label><input id="mos" type="number" step="0.01" value="35"><span style="display:none"></span></div>
+      <p class="field-help">El MOS se expresa en %.</p>
+    </fieldset>
+
+    <fieldset>
+      <legend>DCF — datos base (últimos 12 meses)</legend>
+      <div class="frow"><label for="revenue0">Ingresos LTM</label><input id="revenue0" type="number" step="0.01" value="25198"></div>
+      <div class="frow"><label for="ebit0">EBIT LTM (ajustado si capitalizas R&amp;D/leases)</label><input id="ebit0" type="number" step="0.01" value="9680.33"></div>
+      <div class="frow"><label for="taxEffective">Tasa de impuesto efectiva</label><input id="taxEffective" type="number" step="0.01" value="20.2"></div>
+      <div class="frow"><label for="taxMarginal">Tasa de impuesto marginal (terminal)</label><input id="taxMarginal" type="number" step="0.01" value="25"></div>
+      <div class="frow"><label for="shares0">Acciones en circulación (diluidas)</label><input id="shares0" type="number" step="0.01" value="399"></div>
+      <div class="frow"><label for="cash">Caja y equivalentes</label><input id="cash" type="number" step="0.01" value="5626"></div>
+      <div class="frow"><label for="debt">Deuda total</label><input id="debt" type="number" step="0.01" value="7065"></div>
+      <details class="advanced"><summary>Ajustes avanzados (opcional)</summary>
+        <div class="frow"><label for="nonOperatingAssets">Activos no operativos / participaciones</label><input id="nonOperatingAssets" type="number" step="0.01" value="3643"></div>
+        <div class="frow"><label for="minorityInterests">Intereses minoritarios</label><input id="minorityInterests" type="number" step="0.01" value="0"></div>
+        <div class="frow"><label for="probFailure">Probabilidad de fracaso</label><input id="probFailure" type="number" step="0.01" value="0"></div>
+        <div class="frow"><label for="recoveryPct">Recuperación si fracasa (% del valor)</label><input id="recoveryPct" type="number" step="0.01" value="50"></div>
+      </details>
+      <p class="field-help">Tasas en %. El EBIT LTM debe incluir cualquier ajuste que hagas por capitalización de R&amp;D o leases operativos (en tu Excel esto lo hacen los conversores dedicados).</p>
+    </fieldset>
+
+    <fieldset>
+      <legend>DCF — costo de capital</legend>
+      <div class="frow"><label for="wacc">WACC (años 1-5)</label><input id="wacc" type="number" step="0.01" value="9.38"></div>
+      <div class="frow"><label for="riskFreeRate">Tasa libre de riesgo (= crecimiento terminal)</label><input id="riskFreeRate" type="number" step="0.01" value="4.62"></div>
+      <div class="frow"><label for="matureMarketERP">Prima de riesgo de mercado maduro</label><input id="matureMarketERP" type="number" step="0.01" value="4.23"></div>
+      <div class="frow"><label for="salesToCapital">Sales-to-capital ratio (reinversión)</label><input id="salesToCapital" type="number" step="0.001" value="1.5432"></div>
+      <p class="field-help">WACC terminal = tasa libre de riesgo + prima de mercado maduro. Tasas en %.</p>
+    </fieldset>
+
+    <fieldset>
+      <legend>Crecimiento y margen EBIT objetivo por escenario</legend>
+      <table class="scen-table">
+        <thead><tr><th>Escenario</th><th>Crecimiento ingresos (años 1-5)</th><th>Margen EBIT objetivo</th></tr></thead>
+        <tbody>
+          <tr><td>Conservador</td><td><input id="growthCons" type="number" step="0.01" value="6.99"></td><td><input id="marginCons" type="number" step="0.01" value="32.25"></td></tr>
+          <tr><td>Base</td><td><input id="growthBase" type="number" step="0.01" value="11.5"></td><td><input id="marginBase" type="number" step="0.01" value="36.1"></td></tr>
+          <tr><td>Optimista</td><td><input id="growthOpt" type="number" step="0.01" value="15.04"></td><td><input id="marginOpt" type="number" step="0.01" value="38.42"></td></tr>
+        </tbody>
+      </table>
+      <p class="field-help">Tasas en %. El margen converge linealmente desde el margen actual (EBIT LTM / Ingresos LTM) hasta este objetivo en 5 años.</p>
+    </fieldset>
+
+    <fieldset>
+      <legend>Razones para proyectar los múltiplos (compartidas entre escenarios)</legend>
+      <div class="frow"><label for="daPctRevenue">D&amp;A, % de ingresos</label><input id="daPctRevenue" type="number" step="0.01" value="3.97"></div>
+      <div class="frow"><label for="capexPctRevenue">CapEx, % de ingresos (negativo)</label><input id="capexPctRevenue" type="number" step="0.01" value="-1.15"></div>
+      <div class="frow"><label for="nwcPctDeltaRevenue">Δ Capital de trabajo, % del Δ ingresos</label><input id="nwcPctDeltaRevenue" type="number" step="0.01" value="-25.13"></div>
+      <div class="frow"><label for="interestOtherPctEBIT">Intereses/otros, % del EBIT</label><input id="interestOtherPctEBIT" type="number" step="0.01" value="1.79"></div>
+      <div class="frow"><label for="netBorrowingPctRevenue">Endeudamiento neto, % de ingresos</label><input id="netBorrowingPctRevenue" type="number" step="0.01" value="2.93"></div>
+      <div class="frow"><label for="buybackRate">Recompra/dilución de acciones, % anual</label><input id="buybackRate" type="number" step="0.01" value="-2.84"></div>
+      <div class="frow"><label for="dividendPerShare">Dividendo anual por acción</label><input id="dividendPerShare" type="number" step="0.01" value="0"></div>
+      <p class="field-help">Todas en %, salvo el dividendo. Un valor negativo en CapEx o recompra es normal (salida de caja / reducción de acciones).</p>
+    </fieldset>
+
+    <fieldset>
+      <legend>Múltiplos relativos — múltiplo base (año actual)</legend>
+      <div class="frow"><label for="evEbitdaBase">EV/EBITDA</label><input id="evEbitdaBase" type="number" step="0.01" value="13.89"></div>
+      <div class="frow"><label for="evFcffBase">EV/FCFF</label><input id="evFcffBase" type="number" step="0.01" value="15.20"></div>
+      <div class="frow"><label for="peBase">P/E</label><input id="peBase" type="number" step="0.01" value="18.54"></div>
+      <div class="frow"><label for="pfcfeBase">P/FCFE</label><input id="pfcfeBase" type="number" step="0.01" value="14.34"></div>
+      <div class="frow"><label for="pocfBase">P/OCF</label><input id="pocfBase" type="number" step="0.01" value="14.85"></div>
+      <p class="field-help">El escenario Conservador usa 0.9× este múltiplo y el Optimista 1.1× — igual que en tu Excel. Un buen punto de partida es el múltiplo mínimo de los últimos años (más conservador que el promedio).</p>
+    </fieldset>
+
+    <button type="submit" class="calc-btn">Calcular valoración</button>
+  </form>
+
+  <div id="result">
+    <div class="head-card">
+      <div>
+        <h2 id="rTicker">—</h2>
+        <div class="meta" id="rMeta">Modelo JMR — DCF Damodaran + múltiplos</div>
+      </div>
+      <div class="price">
+        <div class="lbl">Precio actual</div>
+        <div id="rPrice">—</div>
+      </div>
+    </div>
+
+    <div class="grid3">
+      <div class="stat"><div class="lbl">Tipo de empresa</div><div class="big" id="rTipo" style="font-family:'Public Sans',sans-serif;font-size:15px;">—</div></div>
+      <div class="stat"><div class="lbl">Margen de seguridad (MOS)</div><div class="big" id="rMOS">—</div></div>
+      <div class="stat"><div class="lbl">Precio con MOS</div><div class="big" id="rPrecioMOS">—</div></div>
+    </div>
+
+    <p class="section-title">Precio objetivo ponderado (6 métodos)</p>
+    <table class="methods">
+      <thead><tr><th>Método</th><th>Peso</th><th>Conservador</th><th>Base</th><th>Optimista</th></tr></thead>
+      <tbody id="methodsBody"></tbody>
+    </table>
+
+    <div class="grid3" style="margin-top:18px;">
+      <div class="stat"><div class="lbl">CAGR a 3 años · Conservador</div><div class="big" id="cagrC">—</div></div>
+      <div class="stat"><div class="lbl">CAGR a 3 años · Base</div><div class="big" id="cagrB">—</div></div>
+      <div class="stat"><div class="lbl">CAGR a 3 años · Optimista</div><div class="big" id="cagrO">—</div></div>
+    </div>
+
+    <p class="section-title">Zonas de valor (escalonar entradas)</p>
+    <div class="grid4">
+      <div class="stat"><div class="lbl">Value</div><div class="rng" id="zValue">—</div></div>
+      <div class="stat"><div class="lbl">Deep Value</div><div class="rng" id="zDeep">—</div></div>
+      <div class="stat"><div class="lbl">Valoración histórica</div><div class="rng" id="zHist">—</div></div>
+      <div class="stat"><div class="lbl">Precio con MOS</div><div class="rng" id="zMOS">—</div></div>
+    </div>
+  </div>
+
+  <footer>
+    Motor DCF validado celda por celda contra la plantilla real "Modelo JMR" (caso ADBE). Para ver el resultado exacto
+    de tu propio Excel ya lleno (con el promedio móvil de 3 años y las hojas auxiliares completas), usa el
+    <a href="visor.html" style="color:inherit;">Visor Modelo JMR</a>. Contenido con fines educativos — no constituye asesoría financiera.
+  </footer>
+</div>
+
+<script src="jmr_engine.js"></script>
+<script>
+(function(){
+  var METHOD_LABELS = {evEbitda:'EV/EBITDA', evFcff:'EV/FCFF', pe:'P/E', pfcfe:'P/FCFE', pocf:'P/OCF'};
+
+  function num(id){ return parseFloat(document.getElementById(id).value) || 0; }
+  function pct(id){ return num(id)/100; }
+  function fmtMoney(v){
+    if(v===undefined||v===null||isNaN(v)) return '—';
+    return '$' + v.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+  }
+  function fmtPct(v){
+    if(v===undefined||v===null||isNaN(v)) return '—';
+    return (v*100).toFixed(1)+'%';
+  }
+
+  function readInputs(){
+    return {
+      precioActual: num('precioActual'),
+      tipoEmpresa: document.getElementById('tipoEmpresa').value,
+      mos: pct('mos'),
+      revenue0: num('revenue0'),
+      ebit0: num('ebit0'),
+      taxEffective: pct('taxEffective'),
+      taxMarginal: pct('taxMarginal'),
+      shares0: num('shares0'),
+      cash: num('cash'),
+      debt: num('debt'),
+      nonOperatingAssets: num('nonOperatingAssets'),
+      minorityInterests: num('minorityInterests'),
+      probFailure: pct('probFailure'),
+      recoveryPct: pct('recoveryPct'),
+      wacc: pct('wacc'),
+      riskFreeRate: pct('riskFreeRate'),
+      matureMarketERP: pct('matureMarketERP'),
+      salesToCapital: num('salesToCapital'),
+      growthCons: pct('growthCons'), marginCons: pct('marginCons'),
+      growthBase: pct('growthBase'), marginBase: pct('marginBase'),
+      growthOpt: pct('growthOpt'), marginOpt: pct('marginOpt'),
+      daPctRevenue: pct('daPctRevenue'),
+      capexPctRevenue: pct('capexPctRevenue'),
+      nwcPctDeltaRevenue: pct('nwcPctDeltaRevenue'),
+      interestOtherPctEBIT: pct('interestOtherPctEBIT'),
+      netBorrowingPctRevenue: pct('netBorrowingPctRevenue'),
+      buybackRate: pct('buybackRate'),
+      dividendPerShare: num('dividendPerShare'),
+      evEbitdaBase: num('evEbitdaBase'),
+      evFcffBase: num('evFcffBase'),
+      peBase: num('peBase'),
+      pfcfeBase: num('pfcfeBase'),
+      pocfBase: num('pocfBase')
+    };
+  }
+
+  function render(inp, r){
+    document.getElementById('rTicker').textContent = document.getElementById('ticker').value || 'Modelo JMR';
+    document.getElementById('rPrice').textContent = fmtMoney(inp.precioActual);
+    document.getElementById('rTipo').textContent = inp.tipoEmpresa;
+    document.getElementById('rMOS').textContent = fmtPct(inp.mos);
+    document.getElementById('rPrecioMOS').textContent = fmtMoney(r.precioConMOS.base);
+
+    var tbody = document.getElementById('methodsBody');
+    tbody.innerHTML = '';
+    var order = [['dcf','DCF Damodaran'], ['evEbitda','EV/EBITDA'], ['evFcff','EV/FCFF'], ['pe','P/E'], ['pfcfe','P/FCFE'], ['pocf','P/OCF']];
+    order.forEach(function(pair){
+      var key=pair[0], label=pair[1];
+      var peso = r.pesos[key];
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td>'+label+'</td><td>'+fmtPct(peso)+'</td><td>'+fmtMoney(r.precios[key].cons)+'</td><td>'+fmtMoney(r.precios[key].base)+'</td><td>'+fmtMoney(r.precios[key].opt)+'</td>';
+      tbody.appendChild(tr);
+    });
+    var totRow = document.createElement('tr');
+    totRow.className='total';
+    totRow.innerHTML = '<td>Precio Objetivo Ponderado</td><td>100%</td><td>'+fmtMoney(r.precioObjetivo.cons)+'</td><td>'+fmtMoney(r.precioObjetivo.base)+'</td><td>'+fmtMoney(r.precioObjetivo.opt)+'</td>';
+    tbody.appendChild(totRow);
+
+    document.getElementById('cagrC').textContent = fmtPct(r.cagr.cons);
+    document.getElementById('cagrB').textContent = fmtPct(r.cagr.base);
+    document.getElementById('cagrO').textContent = fmtPct(r.cagr.opt);
+
+    function zoneText(z){ return fmtMoney(z.min) + ' – ' + fmtMoney(z.max); }
+    document.getElementById('zValue').textContent = zoneText(r.zonas.value);
+    document.getElementById('zDeep').textContent = zoneText(r.zonas.deepValue);
+    document.getElementById('zHist').textContent = zoneText(r.zonas.historica);
+    document.getElementById('zMOS').textContent = fmtMoney(r.precioConMOS.cons) + ' – ' + fmtMoney(r.precioConMOS.base);
+
+    document.getElementById('result').classList.add('show');
+    document.getElementById('result').scrollIntoView({behavior:'smooth', block:'start'});
+  }
+
+  document.getElementById('calcForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    var inp = readInputs();
+    var r = calcularModeloJMR(inp);
+    render(inp, r);
+  });
+
+  var savedTheme = 'system';
+  try { savedTheme = localStorage.getItem('bitacora-theme') || 'system'; } catch(e){}
+  if(savedTheme !== 'system'){ document.documentElement.setAttribute('data-theme', savedTheme); }
+})();
+</script>
+
+</body>
+</html>
