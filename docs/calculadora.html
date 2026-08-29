@@ -163,18 +163,18 @@
   <p class="subtitle">Reimplementación web del motor de tu Excel (DCF estilo Damodaran + 5 múltiplos relativos, ponderados por tipo de empresa). Los valores de ejemplo son los de ADBE.</p>
   <div class="disclaimer">
     <b>Dos simplificaciones deliberadas frente al Excel original:</b> (1) usa un único ingreso/EBIT/acciones base para el DCF y para los múltiplos (tu Excel a veces trae dos cifras ligeramente distintas si actualizaste hojas en momentos distintos); (2) las razones D&amp;A, CapEx, ΔNWC, etc. se piden como un solo porcentaje fijo en vez del promedio móvil de 3 años que usa el Excel. El motor del DCF en sí está validado celda por celda contra la plantilla real.<br><br>
-    <b>Autocompletado desde datos públicos:</b> al buscar un ticker, el navegador consulta directamente la API de <b>Alpha Vantage</b> (alphavantage.co) — necesitas tu propia <b>API key gratuita</b> (se guarda solo en este navegador, en localStorage; nunca se envía a ningún servidor propio). El plan gratuito es limitado: <b>25 consultas al día, 5 por minuto</b> — cada búsqueda de ticker usa 5, así que rinde para unas 5 búsquedas diarias. El precio actual viene directo de la API, así que los 5 múltiplos base también se calculan cuando hay suficientes datos, y bajo la tabla de escenarios aparece una referencia histórica a 3/5/10 años de crecimiento de ingresos y margen EBIT — es referencia, no sustituye tu propio criterio. No incluye múltiplos históricos ni promedio de industria: no encontré una forma de traerlos sin agotar el límite diario de consultas. Todo campo llenado queda marcado en verde (dato reportado) o dorado (calculado a partir de esos datos) y se puede editar libremente — al escribir en un campo, la marca desaparece. El tipo de empresa, WACC, tasas de descuento, sales-to-capital y los escenarios Conservador/Optimista siguen siendo siempre tu criterio: no existen como "dato" en ningún reporte. Es un servicio de terceros fuera de nuestro control — puede fallar, cambiar sus términos o su cobertura. Contenido educativo — no es asesoría financiera.
+    <b>Autocompletado desde datos públicos:</b> al buscar un ticker, el navegador consulta directamente la API de <b>Financial Modeling Prep</b> (financialmodelingprep.com) — necesitas tu propia <b>API key gratuita</b> (se guarda solo en este navegador, en localStorage; nunca se envía a ningún servidor propio). El plan gratuito cubre miles de empresas listadas en EE.&nbsp;UU. y varios otros mercados. El precio actual viene directo de la API, así que los 5 múltiplos base también se calculan automáticamente cuando hay suficientes datos. Todo campo llenado queda marcado en verde (dato reportado) o dorado (calculado a partir de esos datos) y se puede editar libremente — al escribir en un campo, la marca desaparece. El tipo de empresa, WACC, tasas de descuento, sales-to-capital y los escenarios Conservador/Optimista siguen siendo siempre tu criterio: no existen como "dato" en ningún reporte. Es un servicio de terceros fuera de nuestro control — puede fallar, cambiar sus términos o su cobertura. Contenido educativo — no es asesoría financiera.
   </div>
 
   <form id="calcForm">
     <fieldset>
       <legend>Identificación</legend>
-      <div class="frow"><label for="fmpKey">API key de Alpha Vantage</label>
+      <div class="frow"><label for="fmpKey">API key de Financial Modeling Prep</label>
         <div class="lookup-row" style="grid-column:1/-1;">
           <input id="fmpKey" type="text" placeholder="pega aquí tu API key gratuita" autocomplete="off" spellcheck="false">
         </div>
       </div>
-      <p class="field-help" style="margin:2px 0 0;">Gratis en <a href="https://www.alphavantage.co/support/#api-key" target="_blank" rel="noopener" style="color:inherit;">alphavantage.co</a> (instantánea, sin tarjeta). Se guarda solo en este navegador. Límite: 25 consultas/día.</p>
+      <p class="field-help" style="margin:2px 0 0;">Gratis en <a href="https://site.financialmodelingprep.com/developer/docs" target="_blank" rel="noopener" style="color:inherit;">site.financialmodelingprep.com</a> (crea una cuenta → Dashboard → API Keys). Se guarda solo en este navegador.</p>
       <div class="frow"><label for="ticker">Ticker / empresa</label>
         <div class="lookup-row" style="grid-column:1/-1;">
           <input id="ticker" type="text" value="ADBE" autocomplete="off" spellcheck="false">
@@ -237,11 +237,6 @@
         </tbody>
       </table>
       <p class="field-help">Tasas en %. El margen converge linealmente desde el margen actual (EBIT LTM / Ingresos LTM) hasta este objetivo en 5 años.</p>
-      <table class="scen-table hist-ref" id="histGrowthMargin" style="display:none;">
-        <thead><tr><th>Referencia histórica</th><th>3 años</th><th>5 años</th><th>10 años</th></tr></thead>
-        <tbody id="histGrowthMarginBody"></tbody>
-      </table>
-      <p class="field-help hist-ref" id="histGrowthMarginHelp" style="display:none;">Promedio de los años fiscales disponibles al buscar el ticker (hasta 10). Es referencia, no una proyección — ajusta los escenarios de arriba con tu propio criterio.</p>
     </fieldset>
 
     <fieldset>
@@ -348,46 +343,27 @@
   fmpKeyInput.value = MarketData.getApiKey();
   fmpKeyInput.addEventListener('change', function(){ MarketData.setApiKey(fmpKeyInput.value); });
 
-  function fmtPctOrDash(v){ return v==null ? '—' : v.toFixed(2)+'%'; }
-
-  function renderHistorical(hist){
-    var gmTable = document.getElementById('histGrowthMargin');
-    var gmHelp = document.getElementById('histGrowthMarginHelp');
-    var gmBody = document.getElementById('histGrowthMarginBody');
-    var hasGM = hist && hist.growth && hist.margin && (hist.growth.y3!=null || hist.growth.y5!=null || hist.growth.y10!=null || hist.margin.y3!=null || hist.margin.y5!=null || hist.margin.y10!=null);
-    if(hasGM){
-      gmBody.innerHTML =
-        '<tr><td>Crecimiento ingresos</td><td>'+fmtPctOrDash(hist.growth.y3)+'</td><td>'+fmtPctOrDash(hist.growth.y5)+'</td><td>'+fmtPctOrDash(hist.growth.y10)+'</td></tr>'+
-        '<tr><td>Margen EBIT</td><td>'+fmtPctOrDash(hist.margin.y3)+'</td><td>'+fmtPctOrDash(hist.margin.y5)+'</td><td>'+fmtPctOrDash(hist.margin.y10)+'</td></tr>';
-      gmTable.style.display = ''; gmHelp.style.display = '';
-    } else {
-      gmTable.style.display = 'none'; gmHelp.style.display = 'none';
-    }
-  }
-
   function runLookup(){
     var ticker = document.getElementById('ticker').value.trim();
     if(!ticker){ setStatus('Escribe un ticker primero (ej. ADBE, AAPL, MSFT).', 'warn'); return; }
     MarketData.setApiKey(fmpKeyInput.value);
     if(!MarketData.getApiKey()){
-      setStatus('Pega tu API key gratuita de Alpha Vantage arriba antes de buscar (ver el enlace debajo del campo).', 'warn');
+      setStatus('Pega tu API key gratuita de Financial Modeling Prep arriba antes de buscar (ver el enlace debajo del campo).', 'warn');
       return;
     }
     var btn = document.getElementById('lookupBtn');
     btn.disabled = true; btn.textContent = 'Buscando…';
-    setStatus('Consultando Alpha Vantage…', 'warn');
+    setStatus('Consultando Financial Modeling Prep…', 'warn');
     clearSourceMarks();
 
     MarketData.buscar(ticker).then(function(r){
       if(!r.ok && r.notFound){
-        setStatus('No se encontró "' + ticker + '" en Alpha Vantage. Revisa el ticker o completa los campos manualmente.', 'warn');
-        renderHistorical(null);
+        setStatus('No se encontró "' + ticker + '" en Financial Modeling Prep. Revisa el ticker o completa los campos manualmente.', 'warn');
         return;
       }
       var autoCount = 0, derivedCount = 0;
       r.auto.forEach(function(f){ if(fillField(f, r.values[f], 'src-auto')) autoCount++; });
       r.derived.forEach(function(f){ if(fillField(f, r.values[f], 'src-derived')) derivedCount++; });
-      renderHistorical(r.historical);
 
       var parts = [];
       parts.push((r.companyName || r.ticker) + (r.fiscalYearEnd ? ', último año fiscal con cierre ' + r.fiscalYearEnd : ''));
@@ -395,7 +371,7 @@
       if(r.partial && r.partial.length){
         parts.push('Fallaron: ' + r.partial.join(' | ') + '.');
       } else if(r.noStatements){
-        parts.push('Alpha Vantage respondió sin error pero sin estados financieros (income/balance/cash flow) para este ticker — probablemente tu plan gratuito no los incluye para esta empresa, aunque sí te dio el perfil/precio.');
+        parts.push('Financial Modeling Prep respondió sin error pero sin estados financieros (income/balance/cash flow) para este ticker — probablemente tu plan gratuito no los incluye para esta empresa, aunque sí te dio el perfil/precio.');
       } else if(r.missing && r.missing.length){
         parts.push(r.missing.length + ' campo(s) no disponibles en el plan gratuito — quedaron con su valor anterior, complétalos a mano si los necesitas.');
       }
@@ -403,12 +379,11 @@
       setStatus(parts.join(' '), (r.partial || r.noStatements || (r.missing && r.missing.length > 5)) ? 'warn' : 'ok');
     }).catch(function(err){
       if(err && err.noApiKey){
-        setStatus('Pega tu API key gratuita de Alpha Vantage arriba antes de buscar.', 'warn');
+        setStatus('Pega tu API key gratuita de Financial Modeling Prep arriba antes de buscar.', 'warn');
         return;
       }
       var etapa = err && err.stage ? ' en ' + err.stage : '';
-      setStatus('No se pudo consultar Alpha Vantage' + etapa + ' (' + (err && err.message ? err.message : 'error de red') + '). Revisa que la API key sea correcta y la pestaña Red/Network (F12) si se repite. Completa los campos manualmente mientras tanto.', 'err');
-      renderHistorical(null);
+      setStatus('No se pudo consultar Financial Modeling Prep' + etapa + ' (' + (err && err.message ? err.message : 'error de red') + '). Revisa que la API key sea correcta y la pestaña Red/Network (F12) si se repite. Completa los campos manualmente mientras tanto.', 'err');
     }).finally(function(){
       btn.disabled = false; btn.textContent = 'Buscar datos';
     });
