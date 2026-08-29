@@ -342,6 +342,21 @@
     var c = ws[addr];
     return c ? c.v : undefined;
   }
+  // 'Input sheet'!A1 suele ser un tipo de dato vinculado "Acciones" de Excel
+  // (el ticker se busca ahí, no como texto plano) — se muestra como "NOMBRE
+  // (BOLSA:TICKER)", p. ej. "ADOBE INC. (XNAS:ADBE)". Ese texto sigue
+  // disponible como valor renderizado de la celda aunque la conexión en
+  // vivo de Excel (la que otras hojas usan vía fórmulas, y por eso a veces
+  // dan "#VALUE!" sin ella) no esté disponible.
+  function parseStockCell(ws, addr){
+    var c = ws && ws[addr];
+    if(!c) return null;
+    var text = (typeof c.w === 'string' && c.w) || (typeof c.v === 'string' ? c.v : null);
+    if(!text || text.indexOf('#') === 0) return null;
+    var m = text.match(/^(.*?)\s*\(([A-Za-z]+):([A-Za-z0-9.]+)\)\s*$/);
+    if(m) return { name: m[1].trim(), exchange: m[2], ticker: m[3].toUpperCase() };
+    return { name: text.trim(), exchange: null, ticker: null };
+  }
   function showError(msg){
     errorBox.textContent = msg;
     errorBox.classList.add('show');
@@ -360,15 +375,14 @@
     }
     clearError();
 
-    var ticker = cellVal(res, 'A1');
+    var inputSheet = wb.Sheets['Input sheet'];
+    var stockInfo = parseStockCell(inputSheet, 'A1');
+
+    var ticker = (stockInfo && stockInfo.ticker) || cellVal(res, 'A1');
     if(typeof ticker !== 'string' || ticker.indexOf('#') === 0 || !ticker){
       ticker = 'Modelo JMR';
     }
-    var inputSheet = wb.Sheets['Input sheet'];
-    var nombreActivo = inputSheet ? cellVal(inputSheet, 'A1') : undefined;
-    if(typeof nombreActivo !== 'string' || !nombreActivo.trim() || nombreActivo.indexOf('#') === 0){
-      nombreActivo = '';
-    }
+    var nombreActivo = (stockInfo && stockInfo.name) || '';
     var precio = cellVal(res, 'B3');
     var fecha = cellVal(res, 'B2');
     var tipo = cellVal(res, 'G3');
@@ -716,10 +730,15 @@
       status.textContent = '';
       return;
     }
-    if(typeof MarketData === 'undefined'){ status.textContent = 'No se pudo cargar market_data.js.'; return; }
+    if(typeof MarketData === 'undefined'){
+      note.textContent = 'Dato del Excel (no se pudo cargar market_data.js)';
+      status.textContent = 'No se pudo cargar market_data.js.';
+      return;
+    }
     var key = MarketData.getApiKey();
     if(!key){
       document.getElementById('liveKeyRow').hidden = false;
+      note.textContent = 'Dato del Excel (ingresa tu API key para ver el precio de hoy)';
       status.textContent = 'Ingresa tu API key de Financial Modeling Prep para ver el precio de hoy y el logo.';
       return;
     }
