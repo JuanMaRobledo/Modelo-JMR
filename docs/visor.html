@@ -104,6 +104,8 @@
   .stat{background:var(--surface); border:1px solid var(--border-soft); border-radius:12px; padding:14px 16px;}
   .stat .lbl{font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-faint); margin-bottom:6px;}
   .stat .big{font-family:"IBM Plex Mono", monospace; font-weight:600; font-size:18px; font-variant-numeric:tabular-nums;}
+  .stat .big.pos{color:var(--positive);}
+  .stat .big.neg{color:var(--negative);}
   .stat .rng{font-family:"IBM Plex Mono", monospace; font-size:12px; color:var(--ink-soft); margin-top:2px;}
 
   .section-title{font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint); margin:24px 0 10px;}
@@ -227,6 +229,13 @@
       <span class="gh-status" id="livePriceStatus" style="margin:0;"></span>
     </div>
 
+    <p class="section-title">Precio de hoy vs. precio al día del análisis</p>
+    <div class="grid3" style="margin-bottom:22px;">
+      <div class="stat"><div class="lbl">Precio al día del análisis</div><div class="big" id="rPrecioAnalisis">—</div></div>
+      <div class="stat"><div class="lbl">Precio de hoy</div><div class="big" id="rPrecioHoy">—</div></div>
+      <div class="stat"><div class="lbl">Cambio desde el análisis</div><div class="big" id="rCambio">—</div></div>
+    </div>
+
     <div class="tabs" id="mainTabs">
       <button type="button" data-tab="resumen" class="active">Resumen</button>
       <button type="button" data-tab="financieros">Estados Financieros</button>
@@ -320,6 +329,7 @@
   var currentWb = null;
   var currentResumen = null;
   var currentTicker = null;
+  var currentPrecioAnalisis = null;
 
   // Hojas de la plantilla "involucradas en la valoración" (informes
   // financieros, tablas de valoración y de análisis) — se excluyen a
@@ -341,6 +351,24 @@
   function fmtPct(v){
     if(v === undefined || v === null || typeof v !== 'number' || isNaN(v)) return '—';
     return (v*100).toFixed(1) + '%';
+  }
+  // Actualiza la mini-tabla "Precio de hoy vs. precio al día del análisis" —
+  // se llama al cargar el archivo y de nuevo cuando la consulta en vivo a
+  // FMP resuelve un precio de hoy más reciente que el de Excel.
+  function renderPriceCompare(precioAnalisis, precioHoy){
+    document.getElementById('rPrecioAnalisis').textContent = fmtMoney(precioAnalisis);
+    document.getElementById('rPrecioHoy').textContent = fmtMoney(precioHoy);
+    var cambioEl = document.getElementById('rCambio');
+    if(typeof precioAnalisis === 'number' && isFinite(precioAnalisis) && precioAnalisis !== 0 &&
+       typeof precioHoy === 'number' && isFinite(precioHoy)){
+      var delta = precioHoy - precioAnalisis;
+      var pct = (delta / precioAnalisis) * 100;
+      cambioEl.textContent = (delta >= 0 ? '+' : '') + fmtMoney(delta) + ' (' + (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%)';
+      cambioEl.className = 'big ' + (delta >= 0 ? 'pos' : 'neg');
+    } else {
+      cambioEl.textContent = '—';
+      cambioEl.className = 'big';
+    }
   }
   function cellVal(ws, addr){
     var c = ws && ws[addr];
@@ -392,7 +420,8 @@
     // más reciente que 'Resumen de Valoración'!B3, que es el precio fijo al
     // día del análisis, no el precio de hoy.
     var precioExcelD1 = cellVal(inputSheet, 'D1');
-    var precio = (typeof precioExcelD1 === 'number' && isFinite(precioExcelD1)) ? precioExcelD1 : cellVal(res, 'B3');
+    var precioAnalisis = cellVal(res, 'B3');
+    var precio = (typeof precioExcelD1 === 'number' && isFinite(precioExcelD1)) ? precioExcelD1 : precioAnalisis;
     var fecha = cellVal(res, 'B2');
     var tipo = cellVal(res, 'G3');
     var mos = cellVal(res, 'G4');
@@ -414,6 +443,8 @@
     document.getElementById('rMeta').textContent = fechaTxt || 'Modelo JMR — DCF Damodaran + múltiplos';
     document.getElementById('rPrice').textContent = fmtMoney(precio);
     document.getElementById('rPriceNote').textContent = (precio === precioExcelD1 ? 'Del Excel (Input sheet) — ' : 'Precio al día del análisis — ') + 'actualizando al precio de hoy…';
+    currentPrecioAnalisis = (typeof precioAnalisis === 'number' && isFinite(precioAnalisis)) ? precioAnalisis : null;
+    renderPriceCompare(currentPrecioAnalisis, precio);
     document.getElementById('rTipo').textContent = tipo || '—';
     document.getElementById('rMOS').textContent = fmtPct(mos);
     document.getElementById('rPrecioMOS').textContent = fmtMoney(cellVal(res,'C19'));
@@ -458,6 +489,7 @@
       nombreActivo: nombreActivo || null,
       fecha: fechaTxt || null,
       precio: precio,
+      precioAnalisis: (typeof precioAnalisis === 'number' && isFinite(precioAnalisis)) ? precioAnalisis : null,
       tipo: tipo || null,
       mos: mos,
       precioMOS: cellVal(res,'C19'),
@@ -613,6 +645,8 @@
     document.getElementById('rMeta').textContent = (rec.fecha || 'Modelo JMR — DCF Damodaran + múltiplos') + (rec.savedAt ? ' · guardada el ' + new Date(rec.savedAt).toLocaleDateString('es-CO') : '');
     document.getElementById('rPrice').textContent = fmtMoney(rec.precio);
     document.getElementById('rPriceNote').textContent = 'Dato guardado — actualizando al precio de hoy…';
+    currentPrecioAnalisis = (typeof rec.precioAnalisis === 'number' && isFinite(rec.precioAnalisis)) ? rec.precioAnalisis : null;
+    renderPriceCompare(currentPrecioAnalisis, rec.precio);
     document.getElementById('rTipo').textContent = rec.tipo || '—';
     document.getElementById('rMOS').textContent = fmtPct(rec.mos);
     document.getElementById('rPrecioMOS').textContent = fmtMoney(rec.precioMOS);
@@ -759,6 +793,8 @@
       if(q.price != null){
         document.getElementById('rPrice').textContent = fmtMoney(q.price);
         note.textContent = 'En vivo · ' + new Date().toLocaleTimeString();
+        renderPriceCompare(currentPrecioAnalisis, q.price);
+        if(currentResumen) currentResumen.precio = q.price;
       } else {
         note.textContent = 'Dato del Excel (FMP no reportó precio para este ticker)';
       }
