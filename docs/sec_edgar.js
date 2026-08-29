@@ -25,6 +25,28 @@ var SecEdgar = (function () {
       .finally(function () { clearTimeout(timer); });
   }
 
+  // www.sec.gov y data.sec.gov no envían cabeceras CORS, así que un
+  // navegador no puede leer su respuesta en una petición directa (confirmado
+  // con pruebas reales, no es una suposición). Se usan proxies CORS públicos
+  // como intermediario — el navegador solo ve la respuesta ya con las
+  // cabeceras añadidas por el proxy. Son servicios de terceros fuera de
+  // nuestro control (pueden fallar, tener límites o desaparecer), por eso se
+  // intentan varios en cadena antes de rendirse. Solo pasa por ellos el
+  // ticker/CIK que buscas, nunca tus valores del formulario.
+  var CORS_PROXIES = [
+    function (u) { return "https://api.allorigins.win/raw?url=" + encodeURIComponent(u); },
+    function (u) { return "https://corsproxy.io/?url=" + encodeURIComponent(u); },
+    function (u) { return "https://thingproxy.freeboard.io/fetch/" + u; }
+  ];
+
+  function fetchViaProxies(url, ms, asJSON) {
+    var chain = Promise.reject(new Error("sin proxies"));
+    CORS_PROXIES.forEach(function (makeUrl) {
+      chain = chain.catch(function () { return fetchWithTimeout(makeUrl(url), ms, asJSON); });
+    });
+    return chain;
+  }
+
   function loadTickerMap() {
     try {
       var cached = JSON.parse(localStorage.getItem(CIK_CACHE_KEY) || "null");
@@ -32,7 +54,7 @@ var SecEdgar = (function () {
         return Promise.resolve(cached.map);
       }
     } catch (e) {}
-    return fetchWithTimeout("https://www.sec.gov/files/company_tickers.json", 15000).then(function (data) {
+    return fetchViaProxies("https://www.sec.gov/files/company_tickers.json", 10000, true).then(function (data) {
       var map = {};
       Object.keys(data).forEach(function (k) {
         var row = data[k];
@@ -201,7 +223,9 @@ var SecEdgar = (function () {
 
   function fetchPrice(ticker) {
     var sym = ticker.indexOf(".") >= 0 ? ticker.toLowerCase() : ticker.toLowerCase() + ".us";
-    return fetchWithTimeout("https://stooq.com/q/l/?s=" + encodeURIComponent(sym) + "&f=sd2t2ohlcv&h&e=csv", 8000, false)
+    var target = "https://stooq.com/q/l/?s=" + encodeURIComponent(sym) + "&f=sd2t2ohlcv&h&e=csv";
+    return fetchWithTimeout(target, 6000, false)
+      .catch(function () { return fetchViaProxies(target, 8000, false); })
       .then(function (text) {
         var lines = text.trim().split("\n");
         if (lines.length < 2) return null;
@@ -234,7 +258,7 @@ var SecEdgar = (function () {
         return { ok: false, notFoundInSec: true, ticker: t };
       }
       var cik10 = pad10(hit.cik);
-      return fetchWithTimeout("https://data.sec.gov/api/xbrl/companyfacts/CIK" + cik10 + ".json", 15000).catch(function (err) {
+      return fetchViaProxies("https://data.sec.gov/api/xbrl/companyfacts/CIK" + cik10 + ".json", 10000, true).catch(function (err) {
         var e = new Error((err && err.message) || "error de red");
         e.stage = "companyfacts (data.sec.gov)";
         throw e;
