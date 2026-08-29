@@ -163,7 +163,7 @@
   <p class="subtitle">Reimplementación web del motor de tu Excel (DCF estilo Damodaran + 5 múltiplos relativos, ponderados por tipo de empresa). Los valores de ejemplo son los de ADBE.</p>
   <div class="disclaimer">
     <b>Dos simplificaciones deliberadas frente al Excel original:</b> (1) usa un único ingreso/EBIT/acciones base para el DCF y para los múltiplos (tu Excel a veces trae dos cifras ligeramente distintas si actualizaste hojas en momentos distintos); (2) las razones D&amp;A, CapEx, ΔNWC, etc. se piden como un solo porcentaje fijo en vez del promedio móvil de 3 años que usa el Excel. El motor del DCF en sí está validado celda por celda contra la plantilla real.<br><br>
-    <b>Autocompletado desde datos públicos:</b> al buscar un ticker, el navegador consulta directamente la API de <b>Financial Modeling Prep</b> (financialmodelingprep.com) — necesitas tu propia <b>API key gratuita</b> (se guarda solo en este navegador, en localStorage; nunca se envía a ningún servidor propio). El plan gratuito cubre miles de empresas listadas en EE.&nbsp;UU. y varios otros mercados. El precio actual viene directo de la API, así que los 5 múltiplos base también se calculan automáticamente cuando hay suficientes datos. Todo campo llenado queda marcado en verde (dato reportado) o dorado (calculado a partir de esos datos) y se puede editar libremente — al escribir en un campo, la marca desaparece. El tipo de empresa, WACC, tasas de descuento, sales-to-capital y los escenarios Conservador/Optimista siguen siendo siempre tu criterio: no existen como "dato" en ningún reporte. Es un servicio de terceros fuera de nuestro control — puede fallar, cambiar sus términos o su cobertura. Contenido educativo — no es asesoría financiera.
+    <b>Autocompletado desde datos públicos:</b> al buscar un ticker, el navegador consulta directamente la API de <b>Financial Modeling Prep</b> (financialmodelingprep.com) — necesitas tu propia <b>API key gratuita</b> (se guarda solo en este navegador, en localStorage; nunca se envía a ningún servidor propio). El plan gratuito cubre miles de empresas listadas en EE.&nbsp;UU. y varios otros mercados. El precio actual viene directo de la API, así que los 5 múltiplos base también se calculan automáticamente cuando hay suficientes datos, y bajo esas dos secciones aparece una tabla de referencia con el promedio histórico propio a 3/5/10 años (crecimiento de ingresos, margen EBIT y los 5 múltiplos, cuando la API los reporta) — es referencia, no sustituye tu propio criterio, y no incluye promedio de industria (no encontré una fuente gratuita confiable para eso). Todo campo llenado queda marcado en verde (dato reportado) o dorado (calculado a partir de esos datos) y se puede editar libremente — al escribir en un campo, la marca desaparece. El tipo de empresa, WACC, tasas de descuento, sales-to-capital y los escenarios Conservador/Optimista siguen siendo siempre tu criterio: no existen como "dato" en ningún reporte. Es un servicio de terceros fuera de nuestro control — puede fallar, cambiar sus términos o su cobertura. Contenido educativo — no es asesoría financiera.
   </div>
 
   <form id="calcForm">
@@ -237,6 +237,11 @@
         </tbody>
       </table>
       <p class="field-help">Tasas en %. El margen converge linealmente desde el margen actual (EBIT LTM / Ingresos LTM) hasta este objetivo en 5 años.</p>
+      <table class="scen-table hist-ref" id="histGrowthMargin" style="display:none;">
+        <thead><tr><th>Referencia histórica</th><th>3 años</th><th>5 años</th><th>10 años</th></tr></thead>
+        <tbody id="histGrowthMarginBody"></tbody>
+      </table>
+      <p class="field-help hist-ref" id="histGrowthMarginHelp" style="display:none;">Promedio de los años fiscales disponibles al buscar el ticker (hasta 10). Es referencia, no una proyección — ajusta los escenarios de arriba con tu propio criterio.</p>
     </fieldset>
 
     <fieldset>
@@ -259,6 +264,11 @@
       <div class="frow"><label for="pfcfeBase">P/FCFE</label><input id="pfcfeBase" type="number" step="0.01" value="14.34"></div>
       <div class="frow"><label for="pocfBase">P/OCF</label><input id="pocfBase" type="number" step="0.01" value="14.85"></div>
       <p class="field-help">El escenario Conservador usa 0.9× este múltiplo y el Optimista 1.1× — igual que en tu Excel. Un buen punto de partida es el múltiplo mínimo de los últimos años (más conservador que el promedio).</p>
+      <table class="scen-table hist-ref" id="histMultiples" style="display:none;">
+        <thead><tr><th>Referencia histórica</th><th>3 años</th><th>5 años</th><th>10 años</th></tr></thead>
+        <tbody id="histMultiplesBody"></tbody>
+      </table>
+      <p class="field-help hist-ref" id="histMultiplesHelp" style="display:none;">Promedio de los años fiscales disponibles (hasta 10), calculado a partir de las razones que reporta Financial Modeling Prep — no siempre están las 5 disponibles en el plan gratuito. No incluye promedio de industria: no encontré una fuente confiable y gratuita para eso; si conoces una API que lo ofrezca, dímelo y lo agrego.</p>
     </fieldset>
 
     <button type="submit" class="calc-btn">Calcular valoración</button>
@@ -343,6 +353,38 @@
   fmpKeyInput.value = MarketData.getApiKey();
   fmpKeyInput.addEventListener('change', function(){ MarketData.setApiKey(fmpKeyInput.value); });
 
+  function fmtPctOrDash(v){ return v==null ? '—' : v.toFixed(2)+'%'; }
+  function fmtMultOrDash(v){ return v==null ? '—' : v.toFixed(2)+'×'; }
+
+  function renderHistorical(hist){
+    var gmTable = document.getElementById('histGrowthMargin');
+    var gmHelp = document.getElementById('histGrowthMarginHelp');
+    var gmBody = document.getElementById('histGrowthMarginBody');
+    var hasGM = hist && hist.growth && hist.margin && (hist.growth.y3!=null || hist.growth.y5!=null || hist.growth.y10!=null || hist.margin.y3!=null || hist.margin.y5!=null || hist.margin.y10!=null);
+    if(hasGM){
+      gmBody.innerHTML =
+        '<tr><td>Crecimiento ingresos</td><td>'+fmtPctOrDash(hist.growth.y3)+'</td><td>'+fmtPctOrDash(hist.growth.y5)+'</td><td>'+fmtPctOrDash(hist.growth.y10)+'</td></tr>'+
+        '<tr><td>Margen EBIT</td><td>'+fmtPctOrDash(hist.margin.y3)+'</td><td>'+fmtPctOrDash(hist.margin.y5)+'</td><td>'+fmtPctOrDash(hist.margin.y10)+'</td></tr>';
+      gmTable.style.display = ''; gmHelp.style.display = '';
+    } else {
+      gmTable.style.display = 'none'; gmHelp.style.display = 'none';
+    }
+
+    var multTable = document.getElementById('histMultiples');
+    var multHelp = document.getElementById('histMultiplesHelp');
+    var multBody = document.getElementById('histMultiplesBody');
+    if(hist && hist.multiples){
+      var rows = [['EV/EBITDA','evEbitda'],['EV/FCFF','evFcff'],['P/E','pe'],['P/FCFE','pfcfe'],['P/OCF','pocf']];
+      multBody.innerHTML = rows.map(function(pair){
+        var m = hist.multiples[pair[1]] || {};
+        return '<tr><td>'+pair[0]+'</td><td>'+fmtMultOrDash(m.y3)+'</td><td>'+fmtMultOrDash(m.y5)+'</td><td>'+fmtMultOrDash(m.y10)+'</td></tr>';
+      }).join('');
+      multTable.style.display = ''; multHelp.style.display = '';
+    } else {
+      multTable.style.display = 'none'; multHelp.style.display = 'none';
+    }
+  }
+
   function runLookup(){
     var ticker = document.getElementById('ticker').value.trim();
     if(!ticker){ setStatus('Escribe un ticker primero (ej. ADBE, AAPL, MSFT).', 'warn'); return; }
@@ -359,11 +401,13 @@
     MarketData.buscar(ticker).then(function(r){
       if(!r.ok && r.notFound){
         setStatus('No se encontró "' + ticker + '" en Financial Modeling Prep. Revisa el ticker o completa los campos manualmente.', 'warn');
+        renderHistorical(null);
         return;
       }
       var autoCount = 0, derivedCount = 0;
       r.auto.forEach(function(f){ if(fillField(f, r.values[f], 'src-auto')) autoCount++; });
       r.derived.forEach(function(f){ if(fillField(f, r.values[f], 'src-derived')) derivedCount++; });
+      renderHistorical(r.historical);
 
       var parts = [];
       parts.push((r.companyName || r.ticker) + (r.fiscalYearEnd ? ', último año fiscal con cierre ' + r.fiscalYearEnd : ''));
@@ -380,6 +424,7 @@
       }
       var etapa = err && err.stage ? ' en ' + err.stage : '';
       setStatus('No se pudo consultar Financial Modeling Prep' + etapa + ' (' + (err && err.message ? err.message : 'error de red') + '). Revisa que la API key sea correcta y la pestaña Red/Network (F12) si se repite. Completa los campos manualmente mientras tanto.', 'err');
+      renderHistorical(null);
     }).finally(function(){
       btn.disabled = false; btn.textContent = 'Buscar datos';
     });
