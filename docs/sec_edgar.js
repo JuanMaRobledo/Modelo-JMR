@@ -216,12 +216,20 @@ var SecEdgar = (function () {
     var t = (ticker || "").trim().toUpperCase();
     if (!t) return Promise.reject(new Error("Ingresa un ticker."));
 
-    return loadTickerMap().catch(function (err) {
-      var e = new Error((err && err.message) || "error de red");
-      e.stage = "tickers (www.sec.gov/files/company_tickers.json)";
-      throw e;
-    }).then(function (map) {
-      var hit = map[t];
+    // Si el usuario escribe directamente el CIK numérico (ej. desde
+    // https://www.sec.gov/cgi-bin/browse-edgar buscado a mano), nos saltamos
+    // por completo la búsqueda ticker→CIK en www.sec.gov — útil si ese paso
+    // falla en tu navegador (algunos navegadores bloquean ese archivo por
+    // CORS aunque data.sec.gov sí lo permita).
+    var lookupPromise = /^\d{1,10}$/.test(t)
+      ? Promise.resolve({ cik: t, name: null })
+      : loadTickerMap().catch(function (err) {
+          var e = new Error((err && err.message) || "error de red");
+          e.stage = "tickers (www.sec.gov/files/company_tickers.json)";
+          throw e;
+        }).then(function (map) { return map[t] || null; });
+
+    return lookupPromise.then(function (hit) {
       if (!hit) {
         return { ok: false, notFoundInSec: true, ticker: t };
       }
@@ -244,7 +252,7 @@ var SecEdgar = (function () {
           return {
             ok: true,
             ticker: t,
-            companyName: hit.name,
+            companyName: hit.name || companyFacts.entityName || null,
             cik: cik10,
             fiscalYearEnd: d.meta.fiscalYearEnd,
             values: d.values,
