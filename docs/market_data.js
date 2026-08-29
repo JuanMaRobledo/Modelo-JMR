@@ -11,7 +11,7 @@
 
 var MarketData = (function () {
   var API_KEY_STORAGE = "jmr-fmp-apikey";
-  var BASE = "https://financialmodelingprep.com/api/v3/";
+  var BASE = "https://financialmodelingprep.com/stable/";
   var M = 1e6; // el formulario trabaja en millones
 
   function getApiKey() {
@@ -59,7 +59,7 @@ var MarketData = (function () {
     var pretax0 = inc0 && inc0.incomeBeforeTax;
     var taxExp0 = inc0 && inc0.incomeTaxExpense;
     var ni0 = inc0 && inc0.netIncome;
-    var epsDil0 = inc0 && inc0.epsdiluted;
+    var epsDil0 = inc0 && inc0.epsDiluted;
     var shares0 = inc0 && inc0.weightedAverageShsOutDil;
     var shares1 = inc1 && inc1.weightedAverageShsOutDil;
     var ebitda0 = inc0 && inc0.ebitda;
@@ -72,7 +72,8 @@ var MarketData = (function () {
     var da0 = cf0 && cf0.depreciationAndAmortization;
     var capex0 = cf0 && cf0.investmentsInPropertyPlantAndEquipment; // FMP ya lo reporta negativo
     var ocf0 = cf0 && cf0.netCashProvidedByOperatingActivities;
-    var divPaid0 = cf0 && cf0.dividendsPaid; // total $, negativo
+    var divPaid0 = cf0 && cf0.netDividendsPaid; // total $, negativo
+    var changeInWC0 = cf0 && cf0.changeInWorkingCapital; // negativo = capital de trabajo aumentó (usa caja)
 
     var price = profile && profile.price;
 
@@ -98,10 +99,16 @@ var MarketData = (function () {
     if (interestOther0 != null && ebit0) set(out, "interestOtherPctEBIT", (interestOther0 / ebit0) * 100, "derived");
     else out.missing.push("interestOtherPctEBIT");
 
-    // ΔNWC vía la misma identidad que usa el motor para el OCF (ocf = NI + D&A
-    // − nwc): solo necesita NI/D&A/OCF, tres cifras sin ambigüedad de signo —
-    // más robusto que interpretar el campo "changeInWorkingCapital" de la API.
-    var nwc0 = ni0 != null && da0 != null && ocf0 != null ? ni0 + da0 - ocf0 : null;
+    // ΔNWC: FMP reporta "changeInWorkingCapital" ya aislado de otros ajustes
+    // no monetarios (stock comp, impuesto diferido, etc.) — verificado que
+    // NI + D&A + stockBasedCompensation + deferredIncomeTax +
+    // changeInWorkingCapital + otherNonCashItems = OCF, exacto. Negativo =
+    // el capital de trabajo aumentó (usa caja); el motor espera "nwc"
+    // positivo en ese caso (se resta de FCFF/OCF), así que se invierte el
+    // signo. Si no está disponible, se cae a la identidad del propio motor
+    // (ocf = NI + D&A − nwc), menos precisa pero sin depender de ese campo.
+    var nwc0 = changeInWC0 != null ? -changeInWC0
+      : (ni0 != null && da0 != null && ocf0 != null ? ni0 + da0 - ocf0 : null);
     if (nwc0 != null && revenue0 && revenue1) {
       var deltaRev = revenue0 - revenue1;
       if (deltaRev) set(out, "nwcPctDeltaRevenue", (nwc0 / deltaRev) * 100, "derived");
@@ -170,13 +177,14 @@ var MarketData = (function () {
       e.noApiKey = true;
       return Promise.reject(e);
     }
+    var sym = "symbol=" + encodeURIComponent(t);
     var qs = "apikey=" + encodeURIComponent(key);
 
     return Promise.allSettled([
-      fetchJSON("profile/" + encodeURIComponent(t) + "?" + qs),
-      fetchJSON("income-statement/" + encodeURIComponent(t) + "?period=annual&limit=2&" + qs),
-      fetchJSON("balance-sheet-statement/" + encodeURIComponent(t) + "?period=annual&limit=2&" + qs),
-      fetchJSON("cash-flow-statement/" + encodeURIComponent(t) + "?period=annual&limit=2&" + qs)
+      fetchJSON("profile?" + sym + "&" + qs),
+      fetchJSON("income-statement?" + sym + "&period=annual&limit=2&" + qs),
+      fetchJSON("balance-sheet-statement?" + sym + "&period=annual&limit=2&" + qs),
+      fetchJSON("cash-flow-statement?" + sym + "&period=annual&limit=2&" + qs)
     ]).then(function (results) {
       var val = function (r) { return r.status === "fulfilled" ? r.value : null; };
       var failedStages = [];
