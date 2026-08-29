@@ -376,7 +376,7 @@
     clearError();
 
     var inputSheet = wb.Sheets['Input sheet'];
-    var stockInfo = parseStockCell(inputSheet, 'A1');
+    var stockInfo = parseStockCell(res, 'A1') || parseStockCell(inputSheet, 'A1');
 
     var ticker = (stockInfo && stockInfo.ticker) || cellVal(res, 'A1');
     if(typeof ticker !== 'string' || ticker.indexOf('#') === 0 || !ticker){
