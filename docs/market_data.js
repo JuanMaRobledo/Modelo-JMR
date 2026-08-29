@@ -297,6 +297,24 @@ var MarketData = (function () {
     return out;
   }
 
+  // Precio actual únicamente — usado por la Bitácora de Valoración para
+  // refrescar 50+ tickers sin pagar el costo de las 7 llamadas de buscar().
+  function fetchPrice(ticker) {
+    var t = (ticker || "").trim().toUpperCase();
+    if (!t) return Promise.reject(new Error("Ingresa un ticker."));
+    var key = getApiKey();
+    if (!key) {
+      var e = new Error("Falta la API key de Financial Modeling Prep.");
+      e.noApiKey = true;
+      return Promise.reject(e);
+    }
+    return fetchJSON("profile?symbol=" + encodeURIComponent(t) + "&apikey=" + encodeURIComponent(key))
+      .then(function (data) {
+        var p = data && data[0];
+        return p && isFinite(p.price) ? p.price : null;
+      });
+  }
+
   function buscar(ticker) {
     var t = (ticker || "").trim().toUpperCase();
     if (!t) return Promise.reject(new Error("Ingresa un ticker."));
@@ -360,5 +378,5 @@ var MarketData = (function () {
     });
   }
 
-  return { buscar: buscar, getApiKey: getApiKey, setApiKey: setApiKey };
+  return { buscar: buscar, fetchPrice: fetchPrice, getApiKey: getApiKey, setApiKey: setApiKey };
 })();
