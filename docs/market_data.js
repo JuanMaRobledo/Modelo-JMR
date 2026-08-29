@@ -8,6 +8,11 @@
 // Nada se auto-completa a ciegas: cada campo llenado queda marcado (verde =
 // dato reportado, dorado = calculado a partir de esos datos) y se puede
 // editar libremente; escribir en el campo quita la marca.
+//
+// El plan gratuito de FMP responde HTTP 402 (Payment Required) si se piden
+// demasiados años de historia o el endpoint "key-metrics" (múltiplos
+// históricos ya calculados) — por eso no se usa ese endpoint y el pedido de
+// income-statement se limita a 5 años en vez de 10.
 
 var MarketData = (function () {
   var API_KEY_STORAGE = "jmr-fmp-apikey";
@@ -45,17 +50,11 @@ var MarketData = (function () {
     return v.reduce(function (a, b) { return a + b; }, 0) / v.length;
   }
   function windowAvg(arr, n) { return avgOf(arr.slice(0, n)); }
-  function pickField(obj, candidates) {
-    for (var i = 0; i < candidates.length; i++) {
-      var v = obj[candidates[i]];
-      if (v != null && isFinite(v)) return v;
-    }
-    return null;
-  }
 
   // Promedios históricos de crecimiento de ingresos y margen EBIT — se
   // calculan con los mismos campos ya verificados de income-statement
   // (revenue, operatingIncome), sin depender de ningún endpoint nuevo.
+  // Puramente de referencia visual: no entra a ningún input ni al cálculo.
   function historicalGrowthMargin(income) {
     var growths = [];
     for (var i = 0; i < income.length - 1; i++) {
@@ -66,33 +65,9 @@ var MarketData = (function () {
       .map(function (y) { return y.operatingIncome != null && y.revenue ? (y.operatingIncome / y.revenue) * 100 : null; })
       .filter(function (x) { return x != null; });
     return {
-      growth: { y3: windowAvg(growths, 3), y5: windowAvg(growths, 5), y10: windowAvg(growths, 10) },
-      margin: { y3: windowAvg(margins, 3), y5: windowAvg(margins, 5), y10: windowAvg(margins, 10) }
+      growth: { y3: windowAvg(growths, 3), y5: windowAvg(growths, 5) },
+      margin: { y3: windowAvg(margins, 3), y5: windowAvg(margins, 5) }
     };
-  }
-
-  // Promedios históricos de los 5 múltiplos — intenta leerlos ya calculados
-  // del endpoint "key-metrics" (varios nombres de campo candidatos, por si
-  // el nombre exacto cambia). Si el endpoint no trae nada usable, se
-  // devuelve null y esa sección simplemente no se muestra — no es un dato
-  // garantizado como el resto de la calculadora.
-  function historicalMultiples(keyMetrics) {
-    if (!keyMetrics || !keyMetrics.length) return null;
-    var series = { evEbitda: [], evFcff: [], pe: [], pfcfe: [], pocf: [] };
-    keyMetrics.forEach(function (y) {
-      series.evEbitda.push(pickField(y, ["evToEBITDA", "evToEbitda", "enterpriseValueOverEBITDA", "evEbitda"]));
-      series.evFcff.push(pickField(y, ["evToFreeCashFlow", "evToFCF", "enterpriseValueOverFreeCashFlow", "evToOperatingCashFlow"]));
-      series.pe.push(pickField(y, ["peRatio", "priceToEarningsRatio", "priceEarningsRatio"]));
-      series.pfcfe.push(pickField(y, ["priceToFreeCashFlowRatio", "pfcfRatio", "priceToFreeCashFlowsRatio"]));
-      series.pocf.push(pickField(y, ["priceToOperatingCashFlowRatio", "pocfratio", "priceCashFlowRatio", "priceToOperatingCashFlowsRatio"]));
-    });
-    var hasAny = Object.keys(series).some(function (k) { return series[k].some(function (v) { return v != null; }); });
-    if (!hasAny) return null;
-    var out = {};
-    Object.keys(series).forEach(function (k) {
-      out[k] = { y3: windowAvg(series[k], 3), y5: windowAvg(series[k], 5), y10: windowAvg(series[k], 10) };
-    });
-    return out;
   }
 
   function set(out, field, val, bucket) {
@@ -238,14 +213,13 @@ var MarketData = (function () {
 
     return Promise.allSettled([
       fetchJSON("profile?" + sym + "&" + qs),
-      fetchJSON("income-statement?" + sym + "&period=annual&limit=10&" + qs),
+      fetchJSON("income-statement?" + sym + "&period=annual&limit=5&" + qs),
       fetchJSON("balance-sheet-statement?" + sym + "&period=annual&limit=2&" + qs),
-      fetchJSON("cash-flow-statement?" + sym + "&period=annual&limit=2&" + qs),
-      fetchJSON("key-metrics?" + sym + "&period=annual&limit=10&" + qs)
+      fetchJSON("cash-flow-statement?" + sym + "&period=annual&limit=2&" + qs)
     ]).then(function (results) {
       var val = function (r) { return r.status === "fulfilled" ? r.value : null; };
       var failedStages = [];
-      var stageNames = ["profile", "income-statement", "balance-sheet-statement", "cash-flow-statement", "key-metrics"];
+      var stageNames = ["profile", "income-statement", "balance-sheet-statement", "cash-flow-statement"];
       results.forEach(function (r, i) { if (r.status === "rejected") failedStages.push(stageNames[i] + ": " + (r.reason && r.reason.message)); });
 
       var profileArr = val(results[0]);
@@ -253,10 +227,9 @@ var MarketData = (function () {
       var income = val(results[1]) || [];
       var balance = val(results[2]) || [];
       var cashflow = val(results[3]) || [];
-      var keyMetrics = val(results[4]) || [];
 
       if ((!profile || !Object.keys(profile).length) && !income.length) {
-        if (failedStages.length === 5) {
+        if (failedStages.length === 4) {
           throw new Error(failedStages[0]);
         }
         return { ok: false, notFound: true, ticker: t };
@@ -275,7 +248,7 @@ var MarketData = (function () {
         missing: d.missing,
         partial: failedStages.length > 0 ? failedStages : null,
         noStatements: !income.length && !balance.length && !cashflow.length,
-        historical: { growth: gm.growth, margin: gm.margin, multiples: historicalMultiples(keyMetrics) }
+        historical: { growth: gm.growth, margin: gm.margin }
       };
     });
   }
