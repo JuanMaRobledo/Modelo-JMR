@@ -711,7 +711,11 @@
   function fetchLiveQuote(){
     var status = document.getElementById('livePriceStatus');
     var note = document.getElementById('rPriceNote');
-    if(!currentTicker || currentTicker === 'Modelo JMR'){ status.textContent = ''; return; }
+    if(!currentTicker || currentTicker === 'Modelo JMR'){
+      note.textContent = 'Dato del Excel (no identifiqué el ticker en este archivo)';
+      status.textContent = '';
+      return;
+    }
     if(typeof MarketData === 'undefined'){ status.textContent = 'No se pudo cargar market_data.js.'; return; }
     var key = MarketData.getApiKey();
     if(!key){
