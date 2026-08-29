@@ -61,6 +61,34 @@
   .disclaimer{font-size:12px; color:var(--ink-faint); background:var(--surface); border:1px solid var(--border-soft); border-radius:10px; padding:12px 14px; line-height:1.55; margin-bottom:22px;}
   .disclaimer b{color:var(--ink-soft);}
 
+  .lookup-row{display:flex; gap:8px; padding:6px 0;}
+  .lookup-row input{
+    font:inherit; font-size:13.5px; padding:9px 10px; border-radius:8px; border:1px solid var(--border);
+    background:var(--bg); color:var(--ink); font-family:"IBM Plex Mono",monospace; flex:1 1 auto; min-width:0;
+  }
+  .lookup-row input:focus-visible{outline:2px solid var(--focus); outline-offset:1px;}
+  .lookup-btn{
+    flex:0 0 auto; font:inherit; font-size:13px; font-weight:700; padding:9px 16px; border-radius:8px;
+    border:1px solid var(--accent); background:var(--accent); color:#fff; cursor:pointer; white-space:nowrap;
+  }
+  .lookup-btn:hover{opacity:0.92;}
+  .lookup-btn:disabled{opacity:0.55; cursor:progress;}
+  .lookup-status{font-size:12px; line-height:1.55; margin:8px 0 0; padding:9px 11px; border-radius:8px; display:none;}
+  .lookup-status.show{display:block;}
+  .lookup-status.ok{background:var(--positive-soft); color:var(--positive);}
+  .lookup-status.warn{background:var(--accent-soft); color:var(--accent-ink);}
+  .lookup-status.err{background:var(--negative-soft); color:var(--negative);}
+  .field-legend{font-size:11px; color:var(--ink-faint); display:flex; gap:14px; flex-wrap:wrap; margin:4px 0 0;}
+  .field-legend span{display:inline-flex; align-items:center; gap:5px;}
+  .field-legend i{width:9px; height:9px; border-radius:3px; display:inline-block;}
+  .field-legend i.auto{background:var(--positive);}
+  .field-legend i.derived{background:var(--accent);}
+
+  .frow input.src-auto, .frow input.src-derived,
+  .scen-table input.src-auto, .scen-table input.src-derived{box-shadow:none;}
+  input.src-auto{border-color:var(--positive) !important; box-shadow:inset 3px 0 0 var(--positive) !important;}
+  input.src-derived{border-color:var(--accent) !important; box-shadow:inset 3px 0 0 var(--accent) !important;}
+
   fieldset{border:1px solid var(--border-soft); border-radius:14px; background:var(--surface); padding:16px 18px 18px; margin:0 0 16px; box-shadow:var(--shadow);}
   legend{font-family:"Fraunces",Georgia,serif; font-weight:600; font-size:16px; padding:0 8px; color:var(--ink);}
   .field-help{font-size:11.5px; color:var(--ink-faint); margin:2px 0 12px; line-height:1.5;}
@@ -134,13 +162,25 @@
   <h1>Calculadora Modelo JMR</h1>
   <p class="subtitle">Reimplementación web del motor de tu Excel (DCF estilo Damodaran + 5 múltiplos relativos, ponderados por tipo de empresa). Los valores de ejemplo son los de ADBE.</p>
   <div class="disclaimer">
-    <b>Dos simplificaciones deliberadas frente al Excel original:</b> (1) usa un único ingreso/EBIT/acciones base para el DCF y para los múltiplos (tu Excel a veces trae dos cifras ligeramente distintas si actualizaste hojas en momentos distintos); (2) las razones D&amp;A, CapEx, ΔNWC, etc. se piden como un solo porcentaje fijo en vez del promedio móvil de 3 años que usa el Excel. El motor del DCF en sí está validado celda por celda contra la plantilla real. Contenido educativo — no es asesoría financiera.
+    <b>Dos simplificaciones deliberadas frente al Excel original:</b> (1) usa un único ingreso/EBIT/acciones base para el DCF y para los múltiplos (tu Excel a veces trae dos cifras ligeramente distintas si actualizaste hojas en momentos distintos); (2) las razones D&amp;A, CapEx, ΔNWC, etc. se piden como un solo porcentaje fijo en vez del promedio móvil de 3 años que usa el Excel. El motor del DCF en sí está validado celda por celda contra la plantilla real.<br><br>
+    <b>Autocompletado desde datos públicos:</b> al buscar un ticker, el navegador consulta directamente a <b>SEC EDGAR</b> (10-K más reciente) — solo funciona para empresas que reportan ante la SEC de EE.UU. El precio actual y los 5 múltiplos base son mejor esfuerzo desde una fuente secundaria (Stooq) y pueden no obtenerse siempre. Nada se sube a ningún servidor propio. Todo campo llenado automáticamente queda marcado en verde (dato reportado) o dorado (calculado a partir de esos datos) y se puede editar libremente — al escribir en un campo, la marca desaparece. El tipo de empresa, WACC, tasas de descuento, sales-to-capital y los escenarios Conservador/Optimista siguen siendo siempre tu criterio: no existen como "dato" en ningún reporte. Contenido educativo — no es asesoría financiera.
   </div>
 
   <form id="calcForm">
     <fieldset>
       <legend>Identificación</legend>
-      <div class="frow"><label for="ticker">Ticker / empresa</label><input id="ticker" type="text" value="ADBE"></div>
+      <div class="frow"><label for="ticker">Ticker / empresa</label>
+        <div class="lookup-row" style="grid-column:1/-1;">
+          <input id="ticker" type="text" value="ADBE" autocomplete="off" spellcheck="false">
+          <button type="button" id="lookupBtn" class="lookup-btn">Buscar datos</button>
+        </div>
+      </div>
+      <div id="lookupStatus" class="lookup-status"></div>
+      <div class="field-legend">
+        <span><i class="auto"></i> dato de SEC EDGAR / precio de mercado</span>
+        <span><i class="derived"></i> calculado a partir de esos datos</span>
+        <span>sin marca = tu criterio</span>
+      </div>
       <div class="frow"><label for="precioActual">Precio actual</label><input id="precioActual" type="number" step="0.01" value="273.47"></div>
       <div class="frow"><label for="tipoEmpresa">Tipo de empresa</label>
         <select id="tipoEmpresa">
@@ -265,8 +305,70 @@
 </div>
 
 <script src="jmr_engine.js"></script>
+<script src="sec_edgar.js"></script>
 <script>
 (function(){
+  function setStatus(msg, kind){
+    var el = document.getElementById('lookupStatus');
+    el.textContent = msg;
+    el.className = 'lookup-status show' + (kind ? ' ' + kind : '');
+  }
+
+  function clearSourceMarks(){
+    document.querySelectorAll('input.src-auto, input.src-derived').forEach(function(inp){
+      inp.classList.remove('src-auto', 'src-derived');
+    });
+  }
+
+  function fillField(id, val, cls){
+    var el = document.getElementById(id);
+    if(!el || val === undefined || val === null || isNaN(val)) return false;
+    el.value = Math.round(val * 100) / 100;
+    el.classList.remove('src-auto', 'src-derived');
+    el.classList.add(cls);
+    el.addEventListener('input', function once(){
+      el.classList.remove('src-auto', 'src-derived');
+      el.removeEventListener('input', once);
+    });
+    return true;
+  }
+
+  function runLookup(){
+    var ticker = document.getElementById('ticker').value.trim();
+    if(!ticker){ setStatus('Escribe un ticker primero (ej. ADBE, AAPL, MSFT).', 'warn'); return; }
+    var btn = document.getElementById('lookupBtn');
+    btn.disabled = true; btn.textContent = 'Buscando…';
+    setStatus('Consultando SEC EDGAR…', 'warn');
+    clearSourceMarks();
+
+    SecEdgar.buscar(ticker).then(function(r){
+      if(!r.ok && r.notFoundInSec){
+        setStatus('No se encontró "' + ticker + '" en SEC EDGAR. Es normal si la empresa no reporta ante la SEC de EE. UU. (solo cubre emisores de EE. UU. y algunos ADRs). Completa los campos manualmente.', 'warn');
+        return;
+      }
+      var autoCount = 0, derivedCount = 0;
+      r.auto.forEach(function(f){ if(fillField(f, r.values[f], 'src-auto')) autoCount++; });
+      r.derived.forEach(function(f){ if(fillField(f, r.values[f], 'src-derived')) derivedCount++; });
+
+      var parts = [];
+      parts.push((r.companyName || r.ticker) + ' (CIK ' + r.cik + ')' + (r.fiscalYearEnd ? ', 10-K con cierre ' + r.fiscalYearEnd : ''));
+      parts.push(autoCount + ' campos de SEC EDGAR, ' + derivedCount + ' calculados a partir de ellos.');
+      if(!r.priceOk){
+        parts.push('No se pudo obtener el precio de mercado automáticamente — completa "Precio actual" y los 5 múltiplos base a mano.');
+      }
+      parts.push('Revisa todo antes de calcular: puedes editar cualquier campo.');
+      setStatus(parts.join(' '), r.priceOk ? 'ok' : 'warn');
+    }).catch(function(err){
+      setStatus('No se pudo consultar SEC EDGAR desde este navegador (' + (err && err.message ? err.message : 'error de red') + '). Completa los campos manualmente.', 'err');
+    }).finally(function(){
+      btn.disabled = false; btn.textContent = 'Buscar datos';
+    });
+  }
+
+  document.getElementById('lookupBtn').addEventListener('click', runLookup);
+  document.getElementById('ticker').addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){ e.preventDefault(); runLookup(); }
+  });
   var METHOD_LABELS = {evEbitda:'EV/EBITDA', evFcff:'EV/FCFF', pe:'P/E', pfcfe:'P/FCFE', pocf:'P/OCF'};
 
   function num(id){ return parseFloat(document.getElementById(id).value) || 0; }
