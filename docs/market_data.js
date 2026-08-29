@@ -55,12 +55,19 @@ var MarketData = (function () {
     if (!v.length) return null;
     return v.reduce(function (a, b) { return a + b; }, 0) / v.length;
   }
-  // {avg, min, max} de una ventana de los primeros n valores (más recientes
-  // primero) — null si no hay ningún dato válido en esa ventana.
+  function medianOf(sortedArr) {
+    var n = sortedArr.length;
+    if (!n) return null;
+    var mid = Math.floor(n / 2);
+    return n % 2 ? sortedArr[mid] : (sortedArr[mid - 1] + sortedArr[mid]) / 2;
+  }
+  // {avg, median, min, max} de una ventana de los primeros n valores (más
+  // recientes primero) — null si no hay ningún dato válido en esa ventana.
   function windowStats(arr, n) {
     var v = arr.slice(0, n).filter(function (x) { return x != null && isFinite(x); });
-    if (!v.length) return { avg: null, min: null, max: null };
-    return { avg: avgOf(v), min: Math.min.apply(null, v), max: Math.max.apply(null, v) };
+    if (!v.length) return { avg: null, median: null, min: null, max: null };
+    var sorted = v.slice().sort(function (a, b) { return a - b; });
+    return { avg: avgOf(v), median: medianOf(sorted), min: sorted[0], max: sorted[sorted.length - 1] };
   }
 
   // Promedios históricos de crecimiento de ingresos y margen EBIT — se

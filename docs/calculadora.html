@@ -89,7 +89,7 @@
   input.src-auto{border-color:var(--positive) !important; box-shadow:inset 3px 0 0 var(--positive) !important;}
   input.src-derived{border-color:var(--accent) !important; box-shadow:inset 3px 0 0 var(--accent) !important;}
 
-  fieldset{border:1px solid var(--border-soft); border-radius:14px; background:var(--surface); padding:16px 18px 18px; margin:0 0 16px; box-shadow:var(--shadow);}
+  fieldset{border:1px solid var(--border-soft); border-radius:14px; background:var(--surface); padding:16px 18px 18px; margin:0 0 16px; box-shadow:var(--shadow); min-width:0;}
   legend{font-family:"Fraunces",Georgia,serif; font-weight:600; font-size:16px; padding:0 8px; color:var(--ink);}
   .field-help{font-size:11.5px; color:var(--ink-faint); margin:2px 0 12px; line-height:1.5;}
 
@@ -116,6 +116,8 @@
   .hist-stats td{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; text-align:right;}
   .hist-stats td:first-child{font-family:"Public Sans",sans-serif; font-weight:600; color:var(--ink-soft); text-align:left; font-size:13px;}
   .hist-stats .gstart{border-left:1px solid var(--border-soft);}
+  .hist-scroll{overflow-x:auto; -webkit-overflow-scrolling:touch;}
+  .hist-stats{min-width:540px;}
 
   details.advanced{margin-top:8px;}
   details.advanced summary{cursor:pointer; font-size:12.5px; font-weight:600; color:var(--accent); padding:4px 0;}
@@ -170,7 +172,7 @@
   <p class="subtitle">Reimplementación web del motor de tu Excel (DCF estilo Damodaran + 5 múltiplos relativos, ponderados por tipo de empresa). Los valores de ejemplo son los de ADBE.</p>
   <div class="disclaimer">
     <b>Dos simplificaciones deliberadas frente al Excel original:</b> (1) usa un único ingreso/EBIT/acciones base para el DCF y para los múltiplos (tu Excel a veces trae dos cifras ligeramente distintas si actualizaste hojas en momentos distintos); (2) las razones D&amp;A, CapEx, ΔNWC, etc. se piden como un solo porcentaje fijo en vez del promedio móvil de 3 años que usa el Excel. El motor del DCF en sí está validado celda por celda contra la plantilla real.<br><br>
-    <b>Autocompletado desde datos públicos:</b> al buscar un ticker, el navegador consulta directamente la API de <b>Financial Modeling Prep</b> (financialmodelingprep.com) — necesitas tu propia <b>API key gratuita</b> (se guarda solo en este navegador, en localStorage; nunca se envía a ningún servidor propio). El plan gratuito cubre miles de empresas listadas en EE.&nbsp;UU. y varios otros mercados, aunque limita cuántos años de historia se pueden pedir de una vez (por eso la referencia histórica llega hasta 5 años, no 10). El precio actual viene directo de la API, así que los 5 múltiplos base también se calculan automáticamente cuando hay suficientes datos, y bajo la tabla de escenarios y bajo los múltiplos base aparecen tablas de referencia (no entran al cálculo) con el promedio, mínimo y máximo históricos a 3 y 5 años de crecimiento de ingresos, margen EBIT y los 5 múltiplos — estos últimos calculados por cuenta propia combinando los estados financieros con precios de cierre históricos (también de FMP, endpoint "historical-price-eod"), ya que el endpoint que los trae ya calculados ("key-metrics") es de pago. No incluye promedio de industria: no encontré una fuente gratuita para eso. Todo campo llenado queda marcado en verde (dato reportado) o dorado (calculado a partir de esos datos) y se puede editar libremente — al escribir en un campo, la marca desaparece. El tipo de empresa, WACC, tasas de descuento, sales-to-capital y los escenarios Conservador/Optimista siguen siendo siempre tu criterio: no existen como "dato" en ningún reporte. Es un servicio de terceros fuera de nuestro control — puede fallar, cambiar sus términos o su cobertura. Contenido educativo — no es asesoría financiera.
+    <b>Autocompletado desde datos públicos:</b> al buscar un ticker, el navegador consulta directamente la API de <b>Financial Modeling Prep</b> (financialmodelingprep.com) — necesitas tu propia <b>API key gratuita</b> (se guarda solo en este navegador, en localStorage; nunca se envía a ningún servidor propio). El plan gratuito cubre miles de empresas listadas en EE.&nbsp;UU. y varios otros mercados, aunque limita cuántos años de historia se pueden pedir de una vez (por eso la referencia histórica llega hasta 5 años, no 10). El precio actual viene directo de la API, así que los 5 múltiplos base también se calculan automáticamente cuando hay suficientes datos, y bajo la tabla de escenarios y bajo los múltiplos base aparecen tablas de referencia (no entran al cálculo) con el promedio, mediana, mínimo y máximo históricos a 3 y 5 años de crecimiento de ingresos, margen EBIT y los 5 múltiplos — estos últimos calculados por cuenta propia combinando los estados financieros con precios de cierre históricos (también de FMP, endpoint "historical-price-eod"), ya que el endpoint que los trae ya calculados ("key-metrics") es de pago. No incluye promedio de industria: no encontré una fuente gratuita para eso. Todo campo llenado queda marcado en verde (dato reportado) o dorado (calculado a partir de esos datos) y se puede editar libremente — al escribir en un campo, la marca desaparece. El tipo de empresa, WACC, tasas de descuento, sales-to-capital y los escenarios Conservador/Optimista siguen siendo siempre tu criterio: no existen como "dato" en ningún reporte. Es un servicio de terceros fuera de nuestro control — puede fallar, cambiar sus términos o su cobertura. Contenido educativo — no es asesoría financiera.
   </div>
 
   <form id="calcForm">
@@ -244,14 +246,16 @@
         </tbody>
       </table>
       <p class="field-help">Tasas en %. El margen converge linealmente desde el margen actual (EBIT LTM / Ingresos LTM) hasta este objetivo en 5 años.</p>
+      <div class="hist-scroll">
       <table class="scen-table hist-ref hist-stats" id="histGrowthMargin" style="display:none;">
         <thead>
-          <tr><th rowspan="2">Referencia histórica</th><th colspan="3">3 años</th><th colspan="3" class="gstart">5 años</th></tr>
-          <tr><th>Prom</th><th>Mín</th><th>Máx</th><th class="gstart">Prom</th><th>Mín</th><th>Máx</th></tr>
+          <tr><th rowspan="2">Referencia histórica</th><th colspan="4">3 años</th><th colspan="4" class="gstart">5 años</th></tr>
+          <tr><th>Prom</th><th>Mediana</th><th>Mín</th><th>Máx</th><th class="gstart">Prom</th><th>Mediana</th><th>Mín</th><th>Máx</th></tr>
         </thead>
         <tbody id="histGrowthMarginBody"></tbody>
       </table>
-      <p class="field-help hist-ref" id="histGrowthMarginHelp" style="display:none;">Promedio, mínimo y máximo de los años fiscales disponibles al buscar el ticker (hasta 5 — el plan gratuito de la API no permite pedir más de una vez, así que no hay columna de 10 años). Es solo referencia, no entra al cálculo — ajusta los escenarios de arriba con tu propio criterio.</p>
+      </div>
+      <p class="field-help hist-ref" id="histGrowthMarginHelp" style="display:none;">Promedio, mediana, mínimo y máximo de los años fiscales disponibles al buscar el ticker (hasta 5 — el plan gratuito de la API no permite pedir más de una vez, así que no hay columna de 10 años). Es solo referencia, no entra al cálculo — ajusta los escenarios de arriba con tu propio criterio.</p>
     </fieldset>
 
     <fieldset>
@@ -274,13 +278,15 @@
       <div class="frow"><label for="pfcfeBase">P/FCFE</label><input id="pfcfeBase" type="number" step="0.01" value="14.34"></div>
       <div class="frow"><label for="pocfBase">P/OCF</label><input id="pocfBase" type="number" step="0.01" value="14.85"></div>
       <p class="field-help">El escenario Conservador usa 0.9× este múltiplo y el Optimista 1.1× — igual que en tu Excel. Un buen punto de partida es el múltiplo mínimo de los últimos años (más conservador que el promedio).</p>
+      <div class="hist-scroll">
       <table class="scen-table hist-ref hist-stats" id="histMultiples" style="display:none;">
         <thead>
-          <tr><th rowspan="2">Referencia histórica</th><th colspan="3">3 años</th><th colspan="3" class="gstart">5 años</th></tr>
-          <tr><th>Prom</th><th>Mín</th><th>Máx</th><th class="gstart">Prom</th><th>Mín</th><th>Máx</th></tr>
+          <tr><th rowspan="2">Referencia histórica</th><th colspan="4">3 años</th><th colspan="4" class="gstart">5 años</th></tr>
+          <tr><th>Prom</th><th>Mediana</th><th>Mín</th><th>Máx</th><th class="gstart">Prom</th><th>Mediana</th><th>Mín</th><th>Máx</th></tr>
         </thead>
         <tbody id="histMultiplesBody"></tbody>
       </table>
+      </div>
       <p class="field-help hist-ref" id="histMultiplesHelp" style="display:none;">Calculado por cuenta propia (no es un dato reportado): usa hasta 5 años de tus estados financieros + el precio de cierre más cercano a cada fin de año fiscal (histórico de FMP). No hay columna de 10 años: el plan gratuito no permite pedir esa cantidad de historia. Es solo referencia, no entra al cálculo.</p>
     </fieldset>
 
@@ -370,8 +376,8 @@
     stat = stat || {};
     var y3 = stat.y3 || {}, y5 = stat.y5 || {};
     return '<tr><td>'+label+'</td>'
-      +'<td>'+fmt(y3.avg)+'</td><td>'+fmt(y3.min)+'</td><td>'+fmt(y3.max)+'</td>'
-      +'<td class="gstart">'+fmt(y5.avg)+'</td><td>'+fmt(y5.min)+'</td><td>'+fmt(y5.max)+'</td></tr>';
+      +'<td>'+fmt(y3.avg)+'</td><td>'+fmt(y3.median)+'</td><td>'+fmt(y3.min)+'</td><td>'+fmt(y3.max)+'</td>'
+      +'<td class="gstart">'+fmt(y5.avg)+'</td><td>'+fmt(y5.median)+'</td><td>'+fmt(y5.min)+'</td><td>'+fmt(y5.max)+'</td></tr>';
   }
   function fmtPctOrDash(v){ return v==null ? '—' : v.toFixed(2)+'%'; }
   function fmtMultOrDash(v){ return v==null ? '—' : v.toFixed(2)+'×'; }
