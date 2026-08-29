@@ -359,7 +359,8 @@
       parts.push('Revisa todo antes de calcular: puedes editar cualquier campo.');
       setStatus(parts.join(' '), r.priceOk ? 'ok' : 'warn');
     }).catch(function(err){
-      setStatus('No se pudo consultar SEC EDGAR desde este navegador (' + (err && err.message ? err.message : 'error de red') + '). Completa los campos manualmente.', 'err');
+      var etapa = err && err.stage ? ' en ' + err.stage : '';
+      setStatus('No se pudo consultar SEC EDGAR desde este navegador' + etapa + ' (' + (err && err.message ? err.message : 'error de red') + '). Suele ser un bloqueo de CORS o de red del navegador — revisa la pestaña Red/Network de las herramientas de desarrollador (F12) si se repite. Completa los campos manualmente mientras tanto.', 'err');
     }).finally(function(){
       btn.disabled = false; btn.textContent = 'Buscar datos';
     });

@@ -216,13 +216,21 @@ var SecEdgar = (function () {
     var t = (ticker || "").trim().toUpperCase();
     if (!t) return Promise.reject(new Error("Ingresa un ticker."));
 
-    return loadTickerMap().then(function (map) {
+    return loadTickerMap().catch(function (err) {
+      var e = new Error((err && err.message) || "error de red");
+      e.stage = "tickers (www.sec.gov/files/company_tickers.json)";
+      throw e;
+    }).then(function (map) {
       var hit = map[t];
       if (!hit) {
         return { ok: false, notFoundInSec: true, ticker: t };
       }
       var cik10 = pad10(hit.cik);
-      return fetchWithTimeout("https://data.sec.gov/api/xbrl/companyfacts/CIK" + cik10 + ".json", 15000).then(function (companyFacts) {
+      return fetchWithTimeout("https://data.sec.gov/api/xbrl/companyfacts/CIK" + cik10 + ".json", 15000).catch(function (err) {
+        var e = new Error((err && err.message) || "error de red");
+        e.stage = "companyfacts (data.sec.gov)";
+        throw e;
+      }).then(function (companyFacts) {
         var d = deriveFields(companyFacts.facts || {});
         return fetchPrice(t).then(function (price) {
           if (price) {
