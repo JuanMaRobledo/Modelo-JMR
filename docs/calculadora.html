@@ -412,11 +412,15 @@
       var parts = [];
       parts.push((r.companyName || r.ticker) + (r.fiscalYearEnd ? ', último año fiscal con cierre ' + r.fiscalYearEnd : ''));
       parts.push(autoCount + ' campos reportados, ' + derivedCount + ' calculados a partir de ellos.');
-      if(r.missing && r.missing.length){
+      if(r.partial && r.partial.length){
+        parts.push('Fallaron: ' + r.partial.join(' | ') + '.');
+      } else if(r.noStatements){
+        parts.push('Financial Modeling Prep respondió sin error pero sin estados financieros (income/balance/cash flow) para este ticker — probablemente tu plan gratuito no los incluye para esta empresa, aunque sí te dio el perfil/precio.');
+      } else if(r.missing && r.missing.length){
         parts.push(r.missing.length + ' campo(s) no disponibles en el plan gratuito — quedaron con su valor anterior, complétalos a mano si los necesitas.');
       }
       parts.push('Revisa todo antes de calcular: puedes editar cualquier campo.');
-      setStatus(parts.join(' '), (r.missing && r.missing.length > 5) ? 'warn' : 'ok');
+      setStatus(parts.join(' '), (r.partial || r.noStatements || (r.missing && r.missing.length > 5)) ? 'warn' : 'ok');
     }).catch(function(err){
       if(err && err.noApiKey){
         setStatus('Pega tu API key gratuita de Financial Modeling Prep arriba antes de buscar.', 'warn');

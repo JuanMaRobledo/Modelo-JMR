@@ -274,6 +274,7 @@ var MarketData = (function () {
         derived: d.derived,
         missing: d.missing,
         partial: failedStages.length > 0 ? failedStages : null,
+        noStatements: !income.length && !balance.length && !cashflow.length,
         historical: { growth: gm.growth, margin: gm.margin, multiples: historicalMultiples(keyMetrics) }
       };
     });
