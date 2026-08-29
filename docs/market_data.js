@@ -12,7 +12,12 @@
 // El plan gratuito de FMP responde HTTP 402 (Payment Required) si se piden
 // demasiados años de historia o el endpoint "key-metrics" (múltiplos
 // históricos ya calculados) — por eso no se usa ese endpoint y el pedido de
-// income-statement se limita a 5 años en vez de 10.
+// income-statement se limita a 5 años en vez de 10. Los múltiplos
+// históricos se calculan por cuenta propia combinando esos 5 años de
+// fundamentales con el precio de cierre más cercano a cada fin de año
+// fiscal, obtenido de Stooq (gratis, sin key). Esas llamadas van aparte de
+// las que llenan el formulario — si fallan, la tabla de múltiplos
+// históricos simplemente no aparece, sin afectar el resto.
 
 var MarketData = (function () {
   var API_KEY_STORAGE = "jmr-fmp-apikey";
@@ -68,6 +73,95 @@ var MarketData = (function () {
       growth: { y3: windowAvg(growths, 3), y5: windowAvg(growths, 5) },
       margin: { y3: windowAvg(margins, 3), y5: windowAvg(margins, 5) }
     };
+  }
+
+  // Histórico diario de precios de cierre desde Stooq (sin key). Devuelve un
+  // mapa "YYYY-MM-DD" -> cierre. Es una fuente aparte y no verificada en
+  // vivo para esta consulta específica (CORS no confirmado) — cualquier
+  // fallo se captura donde se usa, sin afectar el resto de la búsqueda.
+  function fetchStooqHistory(ticker, ms) {
+    var sym = ticker.indexOf(".") >= 0 ? ticker.toLowerCase() : ticker.toLowerCase() + ".us";
+    var ctrl = new AbortController();
+    var timer = setTimeout(function () { ctrl.abort(); }, ms || 15000);
+    return fetch("https://stooq.com/q/d/l/?s=" + encodeURIComponent(sym) + "&i=d", { signal: ctrl.signal })
+      .then(function (res) {
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return res.text();
+      })
+      .then(function (text) {
+        var lines = text.trim().split("\n");
+        if (lines.length < 2) throw new Error("sin datos históricos");
+        var map = {};
+        for (var i = 1; i < lines.length; i++) {
+          var cols = lines[i].split(",");
+          var date = cols[0], close = parseFloat(cols[4]);
+          if (date && isFinite(close)) map[date] = close;
+        }
+        return map;
+      })
+      .finally(function () { clearTimeout(timer); });
+  }
+
+  // Busca el cierre más cercano (hacia atrás, hasta maxDaysBack) a una
+  // fecha — el fin de año fiscal casi nunca es día de bolsa.
+  function closestPrice(priceMap, targetDate, maxDaysBack) {
+    if (!priceMap || !targetDate) return null;
+    var d = new Date(targetDate + "T00:00:00Z");
+    if (isNaN(d.getTime())) return null;
+    for (var i = 0; i <= (maxDaysBack || 10); i++) {
+      var iso = d.toISOString().slice(0, 10);
+      if (priceMap[iso] != null) return priceMap[iso];
+      d.setUTCDate(d.getUTCDate() - 1);
+    }
+    return null;
+  }
+
+  // Múltiplos históricos calculados año por año (no pedidos ya resueltos,
+  // ya que ese endpoint de FMP es de pago): combina income/balance/cashflow
+  // de hasta 5 años con el precio de cierre de cada fin de año fiscal.
+  // Reutiliza exactamente las mismas fórmulas que el múltiplo base actual.
+  // Puramente de referencia visual: no entra a ningún input ni al cálculo.
+  function historicalMultiples(income, balance, cashflow, priceMap) {
+    if (!priceMap) return null;
+    var n = Math.min(income.length, balance.length, cashflow.length);
+    if (!n) return null;
+    var series = { evEbitda: [], evFcff: [], pe: [], pfcfe: [], pocf: [] };
+    for (var i = 0; i < n; i++) {
+      var inc = income[i], bal = balance[i], cf = cashflow[i];
+      var price = inc ? closestPrice(priceMap, inc.date, 10) : null;
+      var shares = inc && inc.weightedAverageShsOutDil;
+      if (!price || !shares || !inc || !bal || !cf) {
+        series.evEbitda.push(null); series.evFcff.push(null); series.pe.push(null); series.pfcfe.push(null); series.pocf.push(null);
+        continue;
+      }
+      var ebit = inc.operatingIncome, ebitda = inc.ebitda, epsDil = inc.epsDiluted;
+      var pretax = inc.incomeBeforeTax, taxExp = inc.incomeTaxExpense, ni = inc.netIncome;
+      var debt = bal.totalDebt, cash = bal.cashAndCashEquivalents;
+      var da = cf.depreciationAndAmortization, capex = cf.investmentsInPropertyPlantAndEquipment, ocf = cf.netCashProvidedByOperatingActivities;
+      var changeInWC = cf.changeInWorkingCapital;
+      var nwc = changeInWC != null ? -changeInWC : (ni != null && da != null && ocf != null ? ni + da - ocf : null);
+
+      var sharesM = shares / M;
+      var marketCap = price * sharesM;
+      var debtM = (debt || 0) / M, cashM = (cash || 0) / M;
+      var ev = marketCap + debtM - cashM;
+      var capexM = capex != null ? capex / M : null;
+      var nwcM = nwc != null ? nwc / M : null;
+      var taxFrac = pretax && taxExp != null ? taxExp / pretax : null;
+
+      series.evEbitda.push(ebitda ? ev / (ebitda / M) : null);
+      series.evFcff.push(ebit != null && capexM != null && nwcM != null && taxFrac != null
+        ? ev / ((ebit / M) * (1 - taxFrac) + (da || 0) / M + capexM - nwcM) : null);
+      series.pe.push(epsDil ? price / epsDil : null);
+      series.pfcfe.push(ni != null && capexM != null && nwcM != null
+        ? price / ((ni / M + (da || 0) / M + capexM - nwcM) / sharesM) : null);
+      series.pocf.push(ocf != null ? price / ((ocf / M) / sharesM) : null);
+    }
+    var hasAny = Object.keys(series).some(function (k) { return series[k].some(function (v) { return v != null; }); });
+    if (!hasAny) return null;
+    var out = {};
+    Object.keys(series).forEach(function (k) { out[k] = { y3: windowAvg(series[k], 3), y5: windowAvg(series[k], 5) }; });
+    return out;
   }
 
   function set(out, field, val, bucket) {
@@ -215,18 +309,27 @@ var MarketData = (function () {
       fetchJSON("profile?" + sym + "&" + qs),
       fetchJSON("income-statement?" + sym + "&period=annual&limit=5&" + qs),
       fetchJSON("balance-sheet-statement?" + sym + "&period=annual&limit=2&" + qs),
-      fetchJSON("cash-flow-statement?" + sym + "&period=annual&limit=2&" + qs)
+      fetchJSON("cash-flow-statement?" + sym + "&period=annual&limit=2&" + qs),
+      fetchJSON("balance-sheet-statement?" + sym + "&period=annual&limit=5&" + qs),
+      fetchJSON("cash-flow-statement?" + sym + "&period=annual&limit=5&" + qs),
+      fetchStooqHistory(t)
     ]).then(function (results) {
       var val = function (r) { return r.status === "fulfilled" ? r.value : null; };
       var failedStages = [];
       var stageNames = ["profile", "income-statement", "balance-sheet-statement", "cash-flow-statement"];
-      results.forEach(function (r, i) { if (r.status === "rejected") failedStages.push(stageNames[i] + ": " + (r.reason && r.reason.message)); });
+      results.slice(0, 4).forEach(function (r, i) { if (r.status === "rejected") failedStages.push(stageNames[i] + ": " + (r.reason && r.reason.message)); });
 
       var profileArr = val(results[0]);
       var profile = profileArr && profileArr[0];
       var income = val(results[1]) || [];
       var balance = val(results[2]) || [];
       var cashflow = val(results[3]) || [];
+      // Datos de la referencia histórica de múltiplos — aparte del flujo
+      // principal a propósito, para que un fallo aquí (Stooq o los 5 años
+      // extra de balance/cashflow) no afecte los campos garantizados de arriba.
+      var balance5 = val(results[4]) || [];
+      var cashflow5 = val(results[5]) || [];
+      var priceMap = results[6].status === "fulfilled" ? results[6].value : null;
 
       if ((!profile || !Object.keys(profile).length) && !income.length) {
         if (failedStages.length === 4) {
@@ -248,7 +351,7 @@ var MarketData = (function () {
         missing: d.missing,
         partial: failedStages.length > 0 ? failedStages : null,
         noStatements: !income.length && !balance.length && !cashflow.length,
-        historical: { growth: gm.growth, margin: gm.margin }
+        historical: { growth: gm.growth, margin: gm.margin, multiples: historicalMultiples(income, balance5, cashflow5, priceMap) }
       };
     });
   }

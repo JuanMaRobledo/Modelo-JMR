@@ -163,7 +163,7 @@
   <p class="subtitle">Reimplementación web del motor de tu Excel (DCF estilo Damodaran + 5 múltiplos relativos, ponderados por tipo de empresa). Los valores de ejemplo son los de ADBE.</p>
   <div class="disclaimer">
     <b>Dos simplificaciones deliberadas frente al Excel original:</b> (1) usa un único ingreso/EBIT/acciones base para el DCF y para los múltiplos (tu Excel a veces trae dos cifras ligeramente distintas si actualizaste hojas en momentos distintos); (2) las razones D&amp;A, CapEx, ΔNWC, etc. se piden como un solo porcentaje fijo en vez del promedio móvil de 3 años que usa el Excel. El motor del DCF en sí está validado celda por celda contra la plantilla real.<br><br>
-    <b>Autocompletado desde datos públicos:</b> al buscar un ticker, el navegador consulta directamente la API de <b>Financial Modeling Prep</b> (financialmodelingprep.com) — necesitas tu propia <b>API key gratuita</b> (se guarda solo en este navegador, en localStorage; nunca se envía a ningún servidor propio). El plan gratuito cubre miles de empresas listadas en EE.&nbsp;UU. y varios otros mercados, aunque limita cuántos años de historia se pueden pedir de una vez (por eso la referencia histórica llega hasta 5 años, no 10). El precio actual viene directo de la API, así que los 5 múltiplos base también se calculan automáticamente cuando hay suficientes datos, y bajo la tabla de escenarios aparece una tabla de referencia (no entra al cálculo) con el promedio histórico propio a 3 y 5 años de crecimiento de ingresos y margen EBIT. No hay múltiplos históricos de referencia ni promedio de industria: no encontré una fuente gratuita para eso vía FMP. Todo campo llenado queda marcado en verde (dato reportado) o dorado (calculado a partir de esos datos) y se puede editar libremente — al escribir en un campo, la marca desaparece. El tipo de empresa, WACC, tasas de descuento, sales-to-capital y los escenarios Conservador/Optimista siguen siendo siempre tu criterio: no existen como "dato" en ningún reporte. Es un servicio de terceros fuera de nuestro control — puede fallar, cambiar sus términos o su cobertura. Contenido educativo — no es asesoría financiera.
+    <b>Autocompletado desde datos públicos:</b> al buscar un ticker, el navegador consulta directamente la API de <b>Financial Modeling Prep</b> (financialmodelingprep.com) — necesitas tu propia <b>API key gratuita</b> (se guarda solo en este navegador, en localStorage; nunca se envía a ningún servidor propio). El plan gratuito cubre miles de empresas listadas en EE.&nbsp;UU. y varios otros mercados, aunque limita cuántos años de historia se pueden pedir de una vez (por eso la referencia histórica llega hasta 5 años, no 10). El precio actual viene directo de la API, así que los 5 múltiplos base también se calculan automáticamente cuando hay suficientes datos, y bajo la tabla de escenarios y bajo los múltiplos base aparecen tablas de referencia (no entran al cálculo) con el promedio histórico a 3 y 5 años de crecimiento de ingresos, margen EBIT y los 5 múltiplos — estos últimos calculados por cuenta propia combinando los estados financieros con precios de cierre históricos de <b>Stooq</b> (otra fuente gratuita, sin key), ya que el endpoint de FMP que los trae ya calculados es de pago. No incluye promedio de industria: no encontré una fuente gratuita para eso. Todo campo llenado queda marcado en verde (dato reportado) o dorado (calculado a partir de esos datos) y se puede editar libremente — al escribir en un campo, la marca desaparece. El tipo de empresa, WACC, tasas de descuento, sales-to-capital y los escenarios Conservador/Optimista siguen siendo siempre tu criterio: no existen como "dato" en ningún reporte. Es un servicio de terceros fuera de nuestro control — puede fallar, cambiar sus términos o su cobertura. Contenido educativo — no es asesoría financiera.
   </div>
 
   <form id="calcForm">
@@ -263,7 +263,12 @@
       <div class="frow"><label for="peBase">P/E</label><input id="peBase" type="number" step="0.01" value="18.54"></div>
       <div class="frow"><label for="pfcfeBase">P/FCFE</label><input id="pfcfeBase" type="number" step="0.01" value="14.34"></div>
       <div class="frow"><label for="pocfBase">P/OCF</label><input id="pocfBase" type="number" step="0.01" value="14.85"></div>
-      <p class="field-help">El escenario Conservador usa 0.9× este múltiplo y el Optimista 1.1× — igual que en tu Excel. Un buen punto de partida es el múltiplo mínimo de los últimos años (más conservador que el promedio). No hay múltiplos históricos de referencia aquí: el endpoint de FMP que los trae ya calculados ("key-metrics") es de pago, y calcularlos por cuenta propia necesitaría precios históricos año por año que tampoco están disponibles en el plan gratuito.</p>
+      <p class="field-help">El escenario Conservador usa 0.9× este múltiplo y el Optimista 1.1× — igual que en tu Excel. Un buen punto de partida es el múltiplo mínimo de los últimos años (más conservador que el promedio).</p>
+      <table class="scen-table hist-ref" id="histMultiples" style="display:none;">
+        <thead><tr><th>Referencia histórica</th><th>3 años</th><th>5 años</th></tr></thead>
+        <tbody id="histMultiplesBody"></tbody>
+      </table>
+      <p class="field-help hist-ref" id="histMultiplesHelp" style="display:none;">Calculado por cuenta propia (no es un dato reportado): usa hasta 5 años de tus estados financieros + el precio de cierre más cercano a cada fin de año fiscal (fuente: Stooq, no verificada — puede no aparecer). Es solo referencia, no entra al cálculo.</p>
     </fieldset>
 
     <button type="submit" class="calc-btn">Calcular valoración</button>
@@ -349,6 +354,7 @@
   fmpKeyInput.addEventListener('change', function(){ MarketData.setApiKey(fmpKeyInput.value); });
 
   function fmtPctOrDash(v){ return v==null ? '—' : v.toFixed(2)+'%'; }
+  function fmtMultOrDash(v){ return v==null ? '—' : v.toFixed(2)+'×'; }
 
   function renderHistorical(hist){
     var gmTable = document.getElementById('histGrowthMargin');
@@ -362,6 +368,20 @@
       gmTable.style.display = ''; gmHelp.style.display = '';
     } else {
       gmTable.style.display = 'none'; gmHelp.style.display = 'none';
+    }
+
+    var multTable = document.getElementById('histMultiples');
+    var multHelp = document.getElementById('histMultiplesHelp');
+    var multBody = document.getElementById('histMultiplesBody');
+    if(hist && hist.multiples){
+      var rows = [['EV/EBITDA','evEbitda'],['EV/FCFF','evFcff'],['P/E','pe'],['P/FCFE','pfcfe'],['P/OCF','pocf']];
+      multBody.innerHTML = rows.map(function(pair){
+        var m = hist.multiples[pair[1]] || {};
+        return '<tr><td>'+pair[0]+'</td><td>'+fmtMultOrDash(m.y3)+'</td><td>'+fmtMultOrDash(m.y5)+'</td></tr>';
+      }).join('');
+      multTable.style.display = ''; multHelp.style.display = '';
+    } else {
+      multTable.style.display = 'none'; multHelp.style.display = 'none';
     }
   }
 
