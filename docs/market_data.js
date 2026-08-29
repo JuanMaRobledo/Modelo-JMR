@@ -55,7 +55,13 @@ var MarketData = (function () {
     if (!v.length) return null;
     return v.reduce(function (a, b) { return a + b; }, 0) / v.length;
   }
-  function windowAvg(arr, n) { return avgOf(arr.slice(0, n)); }
+  // {avg, min, max} de una ventana de los primeros n valores (más recientes
+  // primero) — null si no hay ningún dato válido en esa ventana.
+  function windowStats(arr, n) {
+    var v = arr.slice(0, n).filter(function (x) { return x != null && isFinite(x); });
+    if (!v.length) return { avg: null, min: null, max: null };
+    return { avg: avgOf(v), min: Math.min.apply(null, v), max: Math.max.apply(null, v) };
+  }
 
   // Promedios históricos de crecimiento de ingresos y margen EBIT — se
   // calculan con los mismos campos ya verificados de income-statement
@@ -71,8 +77,8 @@ var MarketData = (function () {
       .map(function (y) { return y.operatingIncome != null && y.revenue ? (y.operatingIncome / y.revenue) * 100 : null; })
       .filter(function (x) { return x != null; });
     return {
-      growth: { y3: windowAvg(growths, 3), y5: windowAvg(growths, 5) },
-      margin: { y3: windowAvg(margins, 3), y5: windowAvg(margins, 5) }
+      growth: { y3: windowStats(growths, 3), y5: windowStats(growths, 5) },
+      margin: { y3: windowStats(margins, 3), y5: windowStats(margins, 5) }
     };
   }
 
@@ -151,7 +157,7 @@ var MarketData = (function () {
     var hasAny = Object.keys(series).some(function (k) { return series[k].some(function (v) { return v != null; }); });
     if (!hasAny) return null;
     var out = {};
-    Object.keys(series).forEach(function (k) { out[k] = { y3: windowAvg(series[k], 3), y5: windowAvg(series[k], 5) }; });
+    Object.keys(series).forEach(function (k) { out[k] = { y3: windowStats(series[k], 3), y5: windowStats(series[k], 5) }; });
     return out;
   }
 
