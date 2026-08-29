@@ -15,8 +15,9 @@
 // income-statement se limita a 5 años en vez de 10. Los múltiplos
 // históricos se calculan por cuenta propia combinando esos 5 años de
 // fundamentales con el precio de cierre más cercano a cada fin de año
-// fiscal, obtenido de Stooq (gratis, sin key). Esas llamadas van aparte de
-// las que llenan el formulario — si fallan, la tabla de múltiplos
+// fiscal, obtenido de "historical-price-eod" del propio FMP (confirmado
+// gratuito — un intento previo con Stooq falló por CORS). Esas llamadas
+// van aparte de las que llenan el formulario — si fallan, la tabla de múltiplos
 // históricos simplemente no aparece, sin afectar el resto.
 
 var MarketData = (function () {
@@ -75,31 +76,21 @@ var MarketData = (function () {
     };
   }
 
-  // Histórico diario de precios de cierre desde Stooq (sin key). Devuelve un
-  // mapa "YYYY-MM-DD" -> cierre. Es una fuente aparte y no verificada en
-  // vivo para esta consulta específica (CORS no confirmado) — cualquier
-  // fallo se captura donde se usa, sin afectar el resto de la búsqueda.
-  function fetchStooqHistory(ticker, ms) {
-    var sym = ticker.indexOf(".") >= 0 ? ticker.toLowerCase() : ticker.toLowerCase() + ".us";
-    var ctrl = new AbortController();
-    var timer = setTimeout(function () { ctrl.abort(); }, ms || 15000);
-    return fetch("https://stooq.com/q/d/l/?s=" + encodeURIComponent(sym) + "&i=d", { signal: ctrl.signal })
-      .then(function (res) {
-        if (!res.ok) throw new Error("HTTP " + res.status);
-        return res.text();
-      })
-      .then(function (text) {
-        var lines = text.trim().split("\n");
-        if (lines.length < 2) throw new Error("sin datos históricos");
+  // Histórico diario de precios desde el propio FMP (historical-price-eod) —
+  // confirmado gratuito y con CORS habilitado (a diferencia de Stooq, que
+  // bloqueó la petición). Devuelve un mapa "YYYY-MM-DD" -> precio.
+  function fetchPriceHistory(ticker, qs, ms) {
+    var to = new Date();
+    var from = new Date(to);
+    from.setUTCFullYear(from.getUTCFullYear() - 6); // margen sobre los 5 años que se usan
+    var fmt = function (d) { return d.toISOString().slice(0, 10); };
+    return fetchJSON("historical-price-eod/light?symbol=" + encodeURIComponent(ticker) + "&from=" + fmt(from) + "&to=" + fmt(to) + "&" + qs, ms)
+      .then(function (data) {
+        if (!Array.isArray(data) || !data.length) throw new Error("sin datos históricos");
         var map = {};
-        for (var i = 1; i < lines.length; i++) {
-          var cols = lines[i].split(",");
-          var date = cols[0], close = parseFloat(cols[4]);
-          if (date && isFinite(close)) map[date] = close;
-        }
+        data.forEach(function (row) { if (row.date && row.price != null) map[row.date] = row.price; });
         return map;
-      })
-      .finally(function () { clearTimeout(timer); });
+      });
   }
 
   // Busca el cierre más cercano (hacia atrás, hasta maxDaysBack) a una
@@ -312,7 +303,7 @@ var MarketData = (function () {
       fetchJSON("cash-flow-statement?" + sym + "&period=annual&limit=2&" + qs),
       fetchJSON("balance-sheet-statement?" + sym + "&period=annual&limit=5&" + qs),
       fetchJSON("cash-flow-statement?" + sym + "&period=annual&limit=5&" + qs),
-      fetchStooqHistory(t)
+      fetchPriceHistory(t, qs)
     ]).then(function (results) {
       var val = function (r) { return r.status === "fulfilled" ? r.value : null; };
       var failedStages = [];
