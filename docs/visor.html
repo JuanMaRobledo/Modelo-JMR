@@ -103,7 +103,8 @@
 
   .section-title{font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint); margin:24px 0 10px;}
 
-  table.methods{width:100%; border-collapse:collapse; background:var(--surface); border:1px solid var(--border-soft); border-radius:12px; overflow:hidden; box-shadow:var(--shadow);}
+  .methods-scroll{overflow-x:auto; border-radius:12px;}
+  table.methods{width:100%; min-width:460px; border-collapse:collapse; background:var(--surface); border:1px solid var(--border-soft); border-radius:12px; overflow:hidden; box-shadow:var(--shadow);}
   table.methods th, table.methods td{padding:10px 12px; text-align:right; font-size:13px; border-bottom:1px solid var(--border-soft);}
   table.methods th:first-child, table.methods td:first-child{text-align:left;}
   table.methods thead th{background:var(--surface-2); font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint); font-weight:700;}
@@ -114,6 +115,57 @@
 
   .error-box{background:var(--negative-soft); color:var(--negative); border:1px solid var(--negative); border-radius:10px; padding:14px 16px; font-size:13px; margin-top:16px; display:none;}
   .error-box.show{display:block;}
+
+  .tabs{display:flex; gap:4px; flex-wrap:wrap; border-bottom:1px solid var(--border); margin-bottom:18px;}
+  .tabs button{
+    all:unset; cursor:pointer; font:inherit; font-size:13.5px; font-weight:600; color:var(--ink-faint);
+    padding:9px 14px; border-bottom:2px solid transparent; margin-bottom:-1px;
+  }
+  .tabs button:hover{color:var(--ink);}
+  .tabs button.active{color:var(--accent); border-bottom-color:var(--accent);}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+
+  .sheet-pills{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px;}
+  .sheet-pills button{
+    all:unset; cursor:pointer; font:inherit; font-size:12.5px; font-weight:600;
+    padding:6px 12px; border-radius:999px; border:1px solid var(--border); background:var(--surface); color:var(--ink-soft);
+  }
+  .sheet-pills button:hover{border-color:var(--ink-faint);}
+  .sheet-pills button.active{background:var(--accent); border-color:var(--accent); color:#fff;}
+
+  .sheet-scroll{
+    overflow-x:auto; border:1px solid var(--border-soft); border-radius:12px; background:var(--surface); box-shadow:var(--shadow);
+    padding:2px;
+  }
+  .sheet-scroll table{border-collapse:collapse; font-size:12px; white-space:nowrap;}
+  .sheet-scroll table td{padding:4px 8px; border:1px solid var(--border-soft); color:var(--ink);}
+  .sheet-scroll .sheet-empty{padding:24px; text-align:center; color:var(--ink-faint); font-size:13px; white-space:normal;}
+
+  .gh-section{background:var(--surface); border:1px solid var(--border-soft); border-radius:14px; padding:18px 22px; box-shadow:var(--shadow); margin-top:24px;}
+  .gh-section h3{font-family:"Fraunces", Georgia, serif; font-size:19px; margin:0 0 4px; font-weight:700;}
+  .gh-section .sub{color:var(--ink-soft); font-size:12.5px; margin:0 0 14px; line-height:1.5;}
+  .gh-row{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:10px;}
+  .gh-row input{
+    font:inherit; font-size:12.5px; padding:7px 10px; border-radius:8px; border:1px solid var(--border);
+    background:var(--bg); color:var(--ink); min-width:220px; flex:1 1 220px;
+  }
+  .gh-btn{
+    font:inherit; font-size:12.5px; font-weight:600; padding:7px 13px; border-radius:8px; border:1px solid var(--border);
+    background:var(--surface-2); color:var(--ink); cursor:pointer;
+  }
+  .gh-btn:hover{border-color:var(--ink-faint);}
+  .gh-btn:disabled{opacity:.5; cursor:default;}
+  .gh-btn.primary{background:var(--accent); border-color:var(--accent); color:#fff;}
+  .gh-status{font-size:12px; color:var(--ink-faint); margin:6px 0 0;}
+  .saved-list{margin-top:12px; display:flex; flex-direction:column; gap:6px;}
+  .saved-item{
+    display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;
+    padding:9px 12px; border:1px solid var(--border-soft); border-radius:10px; background:var(--surface-2);
+    font-size:12.5px;
+  }
+  .saved-item .si-name{font-weight:600; font-family:"IBM Plex Mono", monospace;}
+  .saved-item .si-meta{color:var(--ink-faint); font-size:11.5px;}
 
   footer{margin-top:32px; font-size:12px; color:var(--ink-faint); line-height:1.6; border-top:1px solid var(--border-soft); padding-top:16px;}
 </style>
@@ -136,7 +188,7 @@
     <div class="main">Arrastra tu .xlsx aquí, o haz clic para elegir el archivo</div>
     <div class="sub">Se procesa en tu navegador — el archivo nunca se sube a ningún servidor</div>
   </label>
-  <p class="privacy-note">Lee las hojas "Presentación" y "Resumen de Valoración" del Modelo JMR. El archivo no se envía a ningún lado; el análisis ocurre localmente en tu teléfono o computador.</p>
+  <p class="privacy-note">Lee la hoja "Resumen de Valoración" para el resumen, y las demás hojas del Modelo JMR involucradas en la valoración para las pestañas de detalle. El archivo no se envía a ningún lado; el análisis ocurre localmente en tu teléfono o computador.</p>
 
   <div class="error-box" id="errorBox"></div>
 
@@ -152,35 +204,83 @@
       </div>
     </div>
 
-    <div class="grid3">
-      <div class="stat"><div class="lbl">Tipo de empresa</div><div class="big" id="rTipo" style="font-family:'Public Sans',sans-serif;font-size:15px;">—</div></div>
-      <div class="stat"><div class="lbl">Margen de seguridad (MOS)</div><div class="big" id="rMOS">—</div></div>
-      <div class="stat"><div class="lbl">Precio con MOS</div><div class="big" id="rPrecioMOS">—</div></div>
+    <div class="tabs" id="mainTabs">
+      <button type="button" data-tab="resumen" class="active">Resumen</button>
+      <button type="button" data-tab="financieros">Estados Financieros</button>
+      <button type="button" data-tab="valoracion">Valoración</button>
+      <button type="button" data-tab="analisis">Análisis</button>
     </div>
 
-    <p class="section-title">Precio objetivo ponderado (6 métodos)</p>
-    <table class="methods">
-      <thead><tr><th>Método</th><th>Peso</th><th>Conservador</th><th>Base</th><th>Optimista</th></tr></thead>
-      <tbody id="methodsBody"></tbody>
-    </table>
+    <div class="tab-panel active" data-panel="resumen">
+      <div class="grid3">
+        <div class="stat"><div class="lbl">Tipo de empresa</div><div class="big" id="rTipo" style="font-family:'Public Sans',sans-serif;font-size:15px;">—</div></div>
+        <div class="stat"><div class="lbl">Margen de seguridad (MOS)</div><div class="big" id="rMOS">—</div></div>
+        <div class="stat"><div class="lbl">Precio con MOS</div><div class="big" id="rPrecioMOS">—</div></div>
+      </div>
 
-    <div class="grid3" style="margin-top:18px;">
-      <div class="stat"><div class="lbl">CAGR a 3 años · Conservador</div><div class="big" id="cagrC">—</div></div>
-      <div class="stat"><div class="lbl">CAGR a 3 años · Base</div><div class="big" id="cagrB">—</div></div>
-      <div class="stat"><div class="lbl">CAGR a 3 años · Optimista</div><div class="big" id="cagrO">—</div></div>
+      <p class="section-title">Precio objetivo ponderado (6 métodos)</p>
+      <div class="methods-scroll">
+        <table class="methods">
+          <thead><tr><th>Método</th><th>Peso</th><th>Conservador</th><th>Base</th><th>Optimista</th></tr></thead>
+          <tbody id="methodsBody"></tbody>
+        </table>
+      </div>
+
+      <div class="grid3" style="margin-top:18px;">
+        <div class="stat"><div class="lbl">CAGR a 3 años · Conservador</div><div class="big" id="cagrC">—</div></div>
+        <div class="stat"><div class="lbl">CAGR a 3 años · Base</div><div class="big" id="cagrB">—</div></div>
+        <div class="stat"><div class="lbl">CAGR a 3 años · Optimista</div><div class="big" id="cagrO">—</div></div>
+      </div>
+
+      <p class="section-title">Zonas de valor (escalonar entradas)</p>
+      <div class="grid4">
+        <div class="stat"><div class="lbl">Value</div><div class="rng" id="zValue">—</div></div>
+        <div class="stat"><div class="lbl">Deep Value</div><div class="rng" id="zDeep">—</div></div>
+        <div class="stat"><div class="lbl">Valoración histórica</div><div class="rng" id="zHist">—</div></div>
+        <div class="stat"><div class="lbl">Precio con MOS</div><div class="rng" id="zMOS">—</div></div>
+      </div>
+
+      <div class="gh-section">
+        <h3>Guardar esta valoración</h3>
+        <p class="sub">Guarda un resumen de esta valoración en tu base de datos privada (repo <code>Modelo-JMR-datos</code>) para consultarla después sin volver a subir el Excel.</p>
+        <div id="saveBlock"></div>
+      </div>
     </div>
 
-    <p class="section-title">Zonas de valor (escalonar entradas)</p>
-    <div class="grid4">
-      <div class="stat"><div class="lbl">Value</div><div class="rng" id="zValue">—</div></div>
-      <div class="stat"><div class="lbl">Deep Value</div><div class="rng" id="zDeep">—</div></div>
-      <div class="stat"><div class="lbl">Valoración histórica</div><div class="rng" id="zHist">—</div></div>
-      <div class="stat"><div class="lbl">Precio con MOS</div><div class="rng" id="zMOS">—</div></div>
+    <div class="tab-panel" data-panel="financieros">
+      <div class="sheet-pills" id="pillsFinancieros"></div>
+      <div class="sheet-scroll" id="sheetFinancieros"><div class="sheet-empty">Elige una hoja.</div></div>
     </div>
+
+    <div class="tab-panel" data-panel="valoracion">
+      <div class="sheet-pills" id="pillsValoracion"></div>
+      <div class="sheet-scroll" id="sheetValoracion"><div class="sheet-empty">Elige una hoja.</div></div>
+    </div>
+
+    <div class="tab-panel" data-panel="analisis">
+      <div class="sheet-pills" id="pillsAnalisis"></div>
+      <div class="sheet-scroll" id="sheetAnalisis"><div class="sheet-empty">Elige una hoja.</div></div>
+    </div>
+  </div>
+
+  <div class="gh-section" id="savedSection">
+    <h3>Valoraciones guardadas</h3>
+    <p class="sub">Consulta valoraciones que hayas guardado antes desde este visor — no necesitas volver a subir el Excel. Requiere el mismo token de acceso de GitHub con permiso sobre el repo privado <code>Modelo-JMR-datos</code>, guardado solo en este navegador.</p>
+    <div class="gh-row" id="ghTokenRow">
+      <input id="ghToken" type="password" placeholder="Personal Access Token de GitHub (repo Modelo-JMR-datos)" autocomplete="off" spellcheck="false">
+      <button class="gh-btn" id="saveGhTokenBtn" type="button">Guardar token</button>
+    </div>
+    <div class="gh-row">
+      <button class="gh-btn" id="loadSavedBtn" type="button">Cargar lista</button>
+    </div>
+    <p class="gh-status" id="savedStatus"></p>
+    <div class="saved-list" id="savedList"></div>
   </div>
 
   <footer>
     Este visor lee los resultados ya calculados por tu Excel (Modelo JMR); no recalcula el DCF ni los múltiplos por sí mismo.
+    Las pestañas "Estados Financieros", "Valoración" y "Análisis" muestran, tal cual, las hojas de tu Excel involucradas en la valoración (no las tablas fijas de referencia de la plantilla — primas de riesgo país, promedios de industria, convertidores, etc. — que son iguales para cualquier empresa).
+    Guardar una valoración la sube como un archivo JSON a un repositorio privado tuyo en GitHub (<code>Modelo-JMR-datos</code>) usando un Personal Access Token que solo tú generas y que se guarda únicamente en este navegador — nunca se envía a ningún servidor propio.
     Para valorar una empresa nueva sin Excel, usa la <a href="calculadora.html" style="color:inherit;">Calculadora DCF</a>.
     Contenido con fines educativos y de organización personal — no constituye asesoría financiera.
   </footer>
@@ -192,6 +292,22 @@
   var input = document.getElementById('fileInput');
   var errorBox = document.getElementById('errorBox');
   var result = document.getElementById('result');
+
+  var currentWb = null;
+  var currentResumen = null;
+
+  // Hojas de la plantilla "involucradas en la valoración" (informes
+  // financieros, tablas de valoración y de análisis) — se excluyen a
+  // propósito las hojas de datos fijos que alimentan a las demás (Input
+  // sheet, convertidores de R&D/leasing, tablas de prima de riesgo país,
+  // promedios de industria, distribuciones estadísticas, rating sintético,
+  // etc.), que son insumos genéricos de la plantilla y no de esta empresa.
+  var SHEET_GROUPS = {
+    financieros: ['Income Statement', 'Balance Sheet', 'Cash Flow Statement'],
+    valoracion: ['Resumen de Valoración', 'Valuation output', 'Trailing Valuation', 'Forward Valuation', 'EVEBITDA', 'EVFCFF', 'PE', 'PFCFE', 'POCF', 'Financials Multiples'],
+    analisis: ['Márgenes', 'Eficiencia de capital', 'Salud Financiera', 'Por acción', 'Dividendos', 'Estadísticas', 'Cualitativo', 'Crecimiento y Márgenes', 'Diagnostics', 'Stories to Numbers', 'Valuation as picture', 'Option value']
+  };
+  var sheetHtmlCache = {};
 
   function fmtMoney(v){
     if(v === undefined || v === null || typeof v !== 'number' || isNaN(v)) return '—';
@@ -280,8 +396,78 @@
     document.getElementById('zHist').textContent = zoneText(18);
     document.getElementById('zMOS').textContent = fmtMoney(cellVal(res,'C19')) + ' – ' + fmtMoney(cellVal(res,'B19'));
 
+    currentWb = wb;
+    currentResumen = {
+      ticker: ticker,
+      fecha: fechaTxt || null,
+      precio: precio,
+      tipo: tipo || null,
+      mos: mos,
+      precioMOS: cellVal(res,'C19'),
+      metodos: methods.map(function(m){
+        var row = m[1];
+        return { nombre: m[0], peso: cellVal(res,'B'+row), conservador: cellVal(res,'C'+row), base: cellVal(res,'D'+row), optimista: cellVal(res,'E'+row) };
+      }),
+      objetivoPonderado: { conservador: cellVal(res,'C12'), base: cellVal(res,'D12'), optimista: cellVal(res,'E12') },
+      cagr: { conservador: cellVal(res,'C13'), base: cellVal(res,'D13'), optimista: cellVal(res,'E13') },
+      zonas: {
+        value: { max: cellVal(res,'B16'), min: cellVal(res,'C16') },
+        deepValue: { max: cellVal(res,'B17'), min: cellVal(res,'C17') },
+        historica: { max: cellVal(res,'B18'), min: cellVal(res,'C18') },
+        conMOS: { min: cellVal(res,'C19'), max: cellVal(res,'B19') }
+      }
+    };
+    sheetHtmlCache = {};
+    resetTabs();
+
     result.classList.add('show');
   }
+
+  function renderGenericSheet(name){
+    if(sheetHtmlCache[name] !== undefined) return sheetHtmlCache[name];
+    var ws = currentWb && currentWb.Sheets[name];
+    var html;
+    if(!ws){
+      html = '<div class="sheet-empty">Este archivo no tiene la hoja "' + name + '".</div>';
+    } else {
+      html = XLSX.utils.sheet_to_html(ws, {header:'', footer:'', editable:false});
+    }
+    sheetHtmlCache[name] = html;
+    return html;
+  }
+
+  function renderSheetGroup(groupKey){
+    var names = SHEET_GROUPS[groupKey];
+    var pillsEl = document.getElementById('pills' + groupKey.charAt(0).toUpperCase() + groupKey.slice(1));
+    var containerEl = document.getElementById('sheet' + groupKey.charAt(0).toUpperCase() + groupKey.slice(1));
+    pillsEl.innerHTML = names.map(function(n, i){
+      return '<button type="button" data-sheet="' + i + '"' + (i === 0 ? ' class="active"' : '') + '>' + n + '</button>';
+    }).join('');
+    function show(idx){
+      containerEl.innerHTML = renderGenericSheet(names[idx]);
+      pillsEl.querySelectorAll('button').forEach(function(b,i){ b.classList.toggle('active', i === idx); });
+    }
+    pillsEl.querySelectorAll('button').forEach(function(b){
+      b.addEventListener('click', function(){ show(Number(b.dataset.sheet)); });
+    });
+    show(0);
+  }
+
+  function resetTabs(){
+    document.querySelectorAll('#mainTabs button').forEach(function(b){ b.classList.toggle('active', b.dataset.tab === 'resumen'); });
+    document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.toggle('active', p.dataset.panel === 'resumen'); });
+    renderSheetGroup('financieros');
+    renderSheetGroup('valoracion');
+    renderSheetGroup('analisis');
+    renderSaveBlock();
+  }
+
+  document.getElementById('mainTabs').addEventListener('click', function(e){
+    var btn = e.target.closest('button[data-tab]');
+    if(!btn) return;
+    document.querySelectorAll('#mainTabs button').forEach(function(b){ b.classList.toggle('active', b === btn); });
+    document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.toggle('active', p.dataset.panel === btn.dataset.tab); });
+  });
 
   function handleFile(file){
     if(!file) return;
@@ -304,6 +490,171 @@
     };
     reader.readAsArrayBuffer(file);
   }
+
+  // Persistencia de valoraciones vía la API de contenidos de GitHub, sobre
+  // un repo privado aparte (Modelo-JMR-datos) — Modelo-JMR debe permanecer
+  // público porque GitHub Pages en el plan gratuito no sirve sitios desde
+  // repos privados. El token se guarda solo en este navegador (localStorage)
+  // y nunca se envía a ningún servidor propio.
+  var GH_TOKEN_KEY = 'jmr-gh-datastore-token';
+  var GH_OWNER = 'JuanMaRobledo';
+  var GH_REPO = 'Modelo-JMR-datos';
+  var GH_API = 'https://api.github.com/repos/' + GH_OWNER + '/' + GH_REPO + '/contents/';
+
+  function getGhToken(){ try { return (localStorage.getItem(GH_TOKEN_KEY) || '').trim(); } catch(e){ return ''; } }
+  function setGhToken(t){ try { localStorage.setItem(GH_TOKEN_KEY, (t||'').trim()); } catch(e){} }
+  function ghHeaders(token){ return { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github+json' }; }
+  function b64EncodeUnicode(str){ return btoa(unescape(encodeURIComponent(str))); }
+  function b64DecodeUnicode(str){ return decodeURIComponent(escape(atob(str))); }
+
+  function saveValoracion(record){
+    var token = getGhToken();
+    if(!token) return Promise.reject(new Error('Falta el token de GitHub.'));
+    var safeTicker = String(record.ticker || 'valoracion').replace(/[^A-Za-z0-9._-]/g, '_');
+    var path = 'valoraciones/' + safeTicker + '-' + Date.now() + '.json';
+    var body = { message: 'Guardar valoración ' + safeTicker, content: b64EncodeUnicode(JSON.stringify(record, null, 2)) };
+    return fetch(GH_API + path, {
+      method: 'PUT',
+      headers: Object.assign({ 'Content-Type': 'application/json' }, ghHeaders(token)),
+      body: JSON.stringify(body)
+    }).then(function(res){
+      if(!res.ok) return res.json().then(function(e){ throw new Error((e && e.message) || ('HTTP ' + res.status)); });
+      return res.json();
+    });
+  }
+
+  function listValoraciones(){
+    var token = getGhToken();
+    if(!token) return Promise.reject(new Error('Falta el token de GitHub.'));
+    return fetch(GH_API + 'valoraciones', { headers: ghHeaders(token) }).then(function(res){
+      if(res.status === 404) return [];
+      if(!res.ok) return res.json().then(function(e){ throw new Error((e && e.message) || ('HTTP ' + res.status)); });
+      return res.json();
+    }).then(function(list){
+      return (Array.isArray(list) ? list : []).filter(function(f){ return /\.json$/i.test(f.name); }).sort(function(a,b){ return b.name.localeCompare(a.name); });
+    });
+  }
+
+  function fetchValoracion(path){
+    var token = getGhToken();
+    return fetch(GH_API + path, { headers: ghHeaders(token) }).then(function(res){
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    }).then(function(data){
+      return JSON.parse(b64DecodeUnicode(data.content.replace(/\n/g, '')));
+    });
+  }
+
+  function displaySavedRecord(rec){
+    document.getElementById('rTicker').textContent = rec.ticker || '—';
+    document.getElementById('rMeta').textContent = (rec.fecha || 'Modelo JMR — DCF Damodaran + múltiplos') + (rec.savedAt ? ' · guardada el ' + new Date(rec.savedAt).toLocaleDateString('es-CO') : '');
+    document.getElementById('rPrice').textContent = fmtMoney(rec.precio);
+    document.getElementById('rTipo').textContent = rec.tipo || '—';
+    document.getElementById('rMOS').textContent = fmtPct(rec.mos);
+    document.getElementById('rPrecioMOS').textContent = fmtMoney(rec.precioMOS);
+    var tbody = document.getElementById('methodsBody');
+    tbody.innerHTML = '';
+    (rec.metodos || []).forEach(function(m){
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td>'+m.nombre+'</td><td>'+fmtPct(m.peso)+'</td><td>'+fmtMoney(m.conservador)+'</td><td>'+fmtMoney(m.base)+'</td><td>'+fmtMoney(m.optimista)+'</td>';
+      tbody.appendChild(tr);
+    });
+    var totRow = document.createElement('tr');
+    totRow.className = 'total';
+    var op = rec.objetivoPonderado || {};
+    totRow.innerHTML = '<td>Precio Objetivo Ponderado</td><td>100%</td><td>'+fmtMoney(op.conservador)+'</td><td>'+fmtMoney(op.base)+'</td><td>'+fmtMoney(op.optimista)+'</td>';
+    tbody.appendChild(totRow);
+    var cagr = rec.cagr || {};
+    document.getElementById('cagrC').textContent = fmtPct(cagr.conservador);
+    document.getElementById('cagrB').textContent = fmtPct(cagr.base);
+    document.getElementById('cagrO').textContent = fmtPct(cagr.optimista);
+    function zoneText(z){ if(!z) return '—'; return fmtMoney(z.min) + ' – ' + fmtMoney(z.max); }
+    var z = rec.zonas || {};
+    document.getElementById('zValue').textContent = zoneText(z.value);
+    document.getElementById('zDeep').textContent = zoneText(z.deepValue);
+    document.getElementById('zHist').textContent = zoneText(z.historica);
+    document.getElementById('zMOS').textContent = zoneText(z.conMOS);
+
+    // Una valoración cargada desde la base de datos no trae el Excel
+    // original, así que las pestañas de hojas crudas no aplican aquí.
+    currentWb = null;
+    currentResumen = rec;
+    document.querySelectorAll('#mainTabs button').forEach(function(b){ b.classList.toggle('active', b.dataset.tab === 'resumen'); });
+    document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.toggle('active', p.dataset.panel === 'resumen'); });
+    ['financieros','valoracion','analisis'].forEach(function(g){
+      document.getElementById('pills' + g.charAt(0).toUpperCase() + g.slice(1)).innerHTML = '';
+      document.getElementById('sheet' + g.charAt(0).toUpperCase() + g.slice(1)).innerHTML = '<div class="sheet-empty">Esta valoración se cargó desde la base de datos guardada, sin el Excel original — no hay hojas crudas disponibles.</div>';
+    });
+    renderSaveBlock();
+    clearError();
+    result.classList.add('show');
+    result.scrollIntoView({behavior:'smooth', block:'start'});
+  }
+
+  function renderSaveBlock(){
+    var el = document.getElementById('saveBlock');
+    if(!el) return;
+    if(!currentResumen){ el.innerHTML = ''; return; }
+    el.innerHTML =
+      '<div class="gh-row"><input id="saveGhToken" type="password" placeholder="Personal Access Token de GitHub" autocomplete="off" spellcheck="false" value="' + getGhToken().replace(/"/g,'&quot;') + '"></div>' +
+      '<div class="gh-row"><button class="gh-btn primary" id="saveValBtn" type="button">Guardar valoración</button></div>' +
+      '<p class="gh-status" id="saveStatus"></p>';
+    var tokenInput = document.getElementById('saveGhToken');
+    tokenInput.addEventListener('change', function(){ setGhToken(tokenInput.value); });
+    document.getElementById('saveValBtn').addEventListener('click', function(){
+      setGhToken(tokenInput.value);
+      var status = document.getElementById('saveStatus');
+      if(!getGhToken()){ status.textContent = 'Pega tu Personal Access Token de GitHub arriba primero.'; return; }
+      var btn = document.getElementById('saveValBtn');
+      btn.disabled = true;
+      status.textContent = 'Guardando…';
+      var record = Object.assign({}, currentResumen, { savedAt: new Date().toISOString() });
+      saveValoracion(record).then(function(){
+        status.textContent = 'Guardada ✓ · ' + new Date().toLocaleTimeString();
+        btn.disabled = false;
+      }).catch(function(err){
+        status.textContent = 'Error al guardar: ' + err.message;
+        btn.disabled = false;
+      });
+    });
+  }
+
+  var ghTokenInput = document.getElementById('ghToken');
+  ghTokenInput.value = getGhToken();
+  document.getElementById('saveGhTokenBtn').addEventListener('click', function(){
+    setGhToken(ghTokenInput.value);
+    document.getElementById('savedStatus').textContent = 'Token guardado en este navegador.';
+  });
+
+  document.getElementById('loadSavedBtn').addEventListener('click', function(){
+    var status = document.getElementById('savedStatus');
+    var listEl = document.getElementById('savedList');
+    if(!getGhToken()){ status.textContent = 'Pega tu Personal Access Token de GitHub arriba primero.'; return; }
+    status.textContent = 'Cargando…';
+    listEl.innerHTML = '';
+    listValoraciones().then(function(files){
+      if(!files.length){ status.textContent = 'No hay valoraciones guardadas todavía.'; return; }
+      status.textContent = files.length + ' valoración(es) guardada(s).';
+      listEl.innerHTML = files.map(function(f){
+        var label = f.name.replace(/\.json$/i, '');
+        return '<div class="saved-item"><span class="si-name">' + label + '</span><button class="gh-btn" data-path="' + f.path + '" type="button">Ver</button></div>';
+      }).join('');
+      listEl.querySelectorAll('button[data-path]').forEach(function(b){
+        b.addEventListener('click', function(){
+          b.disabled = true; b.textContent = 'Cargando…';
+          fetchValoracion(b.dataset.path).then(function(rec){
+            displaySavedRecord(rec);
+          }).catch(function(err){
+            status.textContent = 'Error al cargar: ' + err.message;
+          }).then(function(){
+            b.disabled = false; b.textContent = 'Ver';
+          });
+        });
+      });
+    }).catch(function(err){
+      status.textContent = 'Error: ' + err.message;
+    });
+  });
 
   input.addEventListener('change', function(e){ handleFile(e.target.files[0]); });
   dz.addEventListener('dragover', function(e){ e.preventDefault(); dz.classList.add('drag'); });
