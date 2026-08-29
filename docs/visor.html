@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Visor Modelo JMR</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --bg:#F5F6F2; --surface:#FFFFFF; --surface-2:#ECEFE9;
+    --ink:#16231F; --ink-soft:#51615A; --ink-faint:#8A968F;
+    --border:#DBE1D9; --border-soft:#E7EBE3;
+    --accent:#A6791F; --accent-soft:#F1E6CC; --accent-ink:#5C4212;
+    --positive:#1E7F52; --positive-soft:#E1F0E6;
+    --negative:#B0452F; --negative-soft:#F7E5DF;
+    --chip-std-bg:#E4F0E7; --chip-std-fg:#1E5C3C;
+    --shadow: 0 1px 2px rgba(22,35,31,0.06), 0 8px 24px -12px rgba(22,35,31,0.18);
+    --focus: #3B7CE0;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#10160F; --surface:#161F1B; --surface-2:#1D2822;
+      --ink:#ECEEE9; --ink-soft:#A9B6AF; --ink-faint:#6E7B75;
+      --border:#2B3833; --border-soft:#212C27;
+      --accent:#D9A64B; --accent-soft:#3B2E12; --accent-ink:#F2D9A0;
+      --positive:#4FBD82; --positive-soft:#173627;
+      --negative:#E07857; --negative-soft:#3B2016;
+      --chip-std-bg:#1E3A2A; --chip-std-fg:#8FDDB0;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 12px 28px -14px rgba(0,0,0,0.6);
+      --focus: #6FA8FF;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#10160F; --surface:#161F1B; --surface-2:#1D2822;
+    --ink:#ECEEE9; --ink-soft:#A9B6AF; --ink-faint:#6E7B75;
+    --border:#2B3833; --border-soft:#212C27;
+    --accent:#D9A64B; --accent-soft:#3B2E12; --accent-ink:#F2D9A0;
+    --positive:#4FBD82; --positive-soft:#173627;
+    --negative:#E07857; --negative-soft:#3B2016;
+    --chip-std-bg:#1E3A2A; --chip-std-fg:#8FDDB0;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 12px 28px -14px rgba(0,0,0,0.6);
+    --focus: #6FA8FF;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:"Public Sans", -apple-system, "Segoe UI", sans-serif;-webkit-font-smoothing:antialiased;}
+  @media (prefers-reduced-motion: reduce){*{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}}
+
+  nav.appnav{
+    display:flex; gap:4px; padding:14px 20px 0; max-width:1180px; margin:0 auto;
+    border-bottom:1px solid var(--border);
+  }
+  nav.appnav a{
+    font-size:13.5px; font-weight:600; text-decoration:none; color:var(--ink-faint);
+    padding:10px 14px; border-bottom:2px solid transparent; margin-bottom:-1px;
+  }
+  nav.appnav a:hover{color:var(--ink);}
+  nav.appnav a.active{color:var(--accent); border-bottom-color:var(--accent);}
+
+  .wrap{max-width:900px; margin:0 auto; padding:28px 20px 64px;}
+  h1{font-family:"Fraunces", Georgia, serif; font-weight:700; font-size:clamp(24px,4vw,32px); letter-spacing:-0.01em; margin:0 0 6px; text-wrap:balance;}
+  .subtitle{color:var(--ink-soft); font-size:14px; margin:0 0 24px; max-width:62ch;}
+
+  .dropzone{
+    border:2px dashed var(--border); border-radius:16px; background:var(--surface);
+    padding:44px 20px; text-align:center; cursor:pointer; transition:border-color .15s;
+  }
+  .dropzone:hover, .dropzone.drag{border-color:var(--accent);}
+  .dropzone svg{color:var(--ink-faint); margin-bottom:10px;}
+  .dropzone .main{font-weight:600; font-size:15px;}
+  .dropzone .sub{color:var(--ink-faint); font-size:12.5px; margin-top:4px;}
+  .dropzone input{display:none;}
+
+  .privacy-note{font-size:11.5px; color:var(--ink-faint); text-align:center; margin-top:10px; line-height:1.5;}
+
+  #result{display:none; margin-top:28px;}
+  #result.show{display:block;}
+
+  .head-card{
+    background:var(--surface); border:1px solid var(--border-soft); border-radius:14px;
+    padding:18px 22px; box-shadow:var(--shadow); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:18px;
+  }
+  .head-card h2{font-family:"Fraunces", Georgia, serif; font-size:26px; margin:0; font-weight:700;}
+  .head-card .meta{font-size:12.5px; color:var(--ink-faint); margin-top:2px;}
+  .head-card .price{font-family:"IBM Plex Mono", monospace; font-size:24px; font-weight:600; text-align:right;}
+  .head-card .price .lbl{font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-faint); font-family:"Public Sans",sans-serif; font-weight:600;}
+
+  .grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:18px;}
+  .grid4{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:18px;}
+  @media (max-width:640px){.grid3,.grid4{grid-template-columns:repeat(2,1fr);}}
+  .stat{background:var(--surface); border:1px solid var(--border-soft); border-radius:12px; padding:14px 16px;}
+  .stat .lbl{font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-faint); margin-bottom:6px;}
+  .stat .big{font-family:"IBM Plex Mono", monospace; font-weight:600; font-size:18px; font-variant-numeric:tabular-nums;}
+  .stat .rng{font-family:"IBM Plex Mono", monospace; font-size:12px; color:var(--ink-soft); margin-top:2px;}
+
+  .section-title{font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint); margin:24px 0 10px;}
+
+  table.methods{width:100%; border-collapse:collapse; background:var(--surface); border:1px solid var(--border-soft); border-radius:12px; overflow:hidden; box-shadow:var(--shadow);}
+  table.methods th, table.methods td{padding:10px 12px; text-align:right; font-size:13px; border-bottom:1px solid var(--border-soft);}
+  table.methods th:first-child, table.methods td:first-child{text-align:left;}
+  table.methods thead th{background:var(--surface-2); font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint); font-weight:700;}
+  table.methods td{font-family:"IBM Plex Mono", monospace; font-variant-numeric:tabular-nums;}
+  table.methods td:first-child{font-family:"Public Sans",sans-serif; font-weight:600;}
+  table.methods tr.total td{font-weight:700; background:var(--accent-soft); color:var(--accent-ink);}
+  table.methods tr:last-child td{border-bottom:none;}
+
+  .error-box{background:var(--negative-soft); color:var(--negative); border:1px solid var(--negative); border-radius:10px; padding:14px 16px; font-size:13px; margin-top:16px; display:none;}
+  .error-box.show{display:block;}
+
+  footer{margin-top:32px; font-size:12px; color:var(--ink-faint); line-height:1.6; border-top:1px solid var(--border-soft); padding-top:16px;}
+</style>
+</head>
+<body>
+
+<nav class="appnav">
+  <a href="index.html">Bitácora de Valoración</a>
+  <a href="visor.html" class="active">Visor Modelo JMR</a>
+  <a href="calculadora.html">Calculadora DCF</a>
+</nav>
+
+<div class="wrap">
+  <h1>Visor Modelo JMR</h1>
+  <p class="subtitle">Sube tu Excel del Modelo JMR (DCF Damodaran + 5 múltiplos) ya lleno para un ticker, y lo verás resumido aquí — sin abrir Excel.</p>
+
+  <label class="dropzone" id="dropzone">
+    <input type="file" id="fileInput" accept=".xlsx">
+    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+    <div class="main">Arrastra tu .xlsx aquí, o haz clic para elegir el archivo</div>
+    <div class="sub">Se procesa en tu navegador — el archivo nunca se sube a ningún servidor</div>
+  </label>
+  <p class="privacy-note">Lee las hojas "Presentación" y "Resumen de Valoración" del Modelo JMR. El archivo no se envía a ningún lado; el análisis ocurre localmente en tu teléfono o computador.</p>
+
+  <div class="error-box" id="errorBox"></div>
+
+  <div id="result">
+    <div class="head-card">
+      <div>
+        <h2 id="rTicker">—</h2>
+        <div class="meta" id="rMeta">—</div>
+      </div>
+      <div class="price">
+        <div class="lbl">Precio actual</div>
+        <div id="rPrice">—</div>
+      </div>
+    </div>
+
+    <div class="grid3">
+      <div class="stat"><div class="lbl">Tipo de empresa</div><div class="big" id="rTipo" style="font-family:'Public Sans',sans-serif;font-size:15px;">—</div></div>
+      <div class="stat"><div class="lbl">Margen de seguridad (MOS)</div><div class="big" id="rMOS">—</div></div>
+      <div class="stat"><div class="lbl">Precio con MOS</div><div class="big" id="rPrecioMOS">—</div></div>
+    </div>
+
+    <p class="section-title">Precio objetivo ponderado (6 métodos)</p>
+    <table class="methods">
+      <thead><tr><th>Método</th><th>Peso</th><th>Conservador</th><th>Base</th><th>Optimista</th></tr></thead>
+      <tbody id="methodsBody"></tbody>
+    </table>
+
+    <div class="grid3" style="margin-top:18px;">
+      <div class="stat"><div class="lbl">CAGR a 3 años · Conservador</div><div class="big" id="cagrC">—</div></div>
+      <div class="stat"><div class="lbl">CAGR a 3 años · Base</div><div class="big" id="cagrB">—</div></div>
+      <div class="stat"><div class="lbl">CAGR a 3 años · Optimista</div><div class="big" id="cagrO">—</div></div>
+    </div>
+
+    <p class="section-title">Zonas de valor (escalonar entradas)</p>
+    <div class="grid4">
+      <div class="stat"><div class="lbl">Value</div><div class="rng" id="zValue">—</div></div>
+      <div class="stat"><div class="lbl">Deep Value</div><div class="rng" id="zDeep">—</div></div>
+      <div class="stat"><div class="lbl">Valoración histórica</div><div class="rng" id="zHist">—</div></div>
+      <div class="stat"><div class="lbl">Precio con MOS</div><div class="rng" id="zMOS">—</div></div>
+    </div>
+  </div>
+
+  <footer>
+    Este visor lee los resultados ya calculados por tu Excel (Modelo JMR); no recalcula el DCF ni los múltiplos por sí mismo.
+    Para valorar una empresa nueva sin Excel, usa la <a href="calculadora.html" style="color:inherit;">Calculadora DCF</a>.
+    Contenido con fines educativos y de organización personal — no constituye asesoría financiera.
+  </footer>
+</div>
+
+<script>
+(function(){
+  var dz = document.getElementById('dropzone');
+  var input = document.getElementById('fileInput');
+  var errorBox = document.getElementById('errorBox');
+  var result = document.getElementById('result');
+
+  function fmtMoney(v){
+    if(v === undefined || v === null || typeof v !== 'number' || isNaN(v)) return '—';
+    return '$' + v.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+  }
+  function fmtPct(v){
+    if(v === undefined || v === null || typeof v !== 'number' || isNaN(v)) return '—';
+    return (v*100).toFixed(1) + '%';
+  }
+  function cellVal(ws, addr){
+    var c = ws[addr];
+    return c ? c.v : undefined;
+  }
+  function showError(msg){
+    errorBox.textContent = msg;
+    errorBox.classList.add('show');
+    result.classList.remove('show');
+  }
+  function clearError(){
+    errorBox.classList.remove('show');
+  }
+
+  function render(wb){
+    var pres = wb.Sheets['Presentación'];
+    var res = wb.Sheets['Resumen de Valoración'];
+    if(!res){
+      showError('No encontré la hoja "Resumen de Valoración" en este archivo. ¿Es un Excel exportado del Modelo JMR?');
+      return;
+    }
+    clearError();
+
+    var ticker = cellVal(res, 'A1');
+    if(typeof ticker !== 'string' || ticker.indexOf('#') === 0 || !ticker){
+      ticker = 'Modelo JMR';
+    }
+    var precio = cellVal(res, 'B3');
+    var fecha = cellVal(res, 'B2');
+    var tipo = cellVal(res, 'G3');
+    var mos = cellVal(res, 'G4');
+
+    document.getElementById('rTicker').textContent = ticker;
+    var fechaTxt = '';
+    if(fecha instanceof Date){
+      fechaTxt = 'Análisis del ' + fecha.toLocaleDateString('es-CO', {day:'2-digit', month:'short', year:'numeric'});
+    } else if(typeof fecha === 'number'){
+      var d0 = new Date(Date.UTC(1899,11,30));
+      var d = new Date(d0.getTime() + fecha*86400000);
+      fechaTxt = 'Análisis del ' + d.toLocaleDateString('es-CO', {day:'2-digit', month:'short', year:'numeric'});
+    }
+    document.getElementById('rMeta').textContent = fechaTxt || 'Modelo JMR — DCF Damodaran + múltiplos';
+    document.getElementById('rPrice').textContent = fmtMoney(precio);
+    document.getElementById('rTipo').textContent = tipo || '—';
+    document.getElementById('rMOS').textContent = fmtPct(mos);
+    document.getElementById('rPrecioMOS').textContent = fmtMoney(cellVal(res,'C19'));
+
+    var methods = [
+      ['DCF Damodaran', 6], ['EV/EBITDA', 7], ['EV/FCFF', 8], ['P/E', 9], ['P/FCFE', 10], ['P/OCF', 11]
+    ];
+    var tbody = document.getElementById('methodsBody');
+    tbody.innerHTML = '';
+    methods.forEach(function(m){
+      var row = m[1];
+      var peso = cellVal(res, 'B'+row);
+      var cons = cellVal(res, 'C'+row);
+      var base = cellVal(res, 'D'+row);
+      var opt = cellVal(res, 'E'+row);
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td>'+m[0]+'</td><td>'+fmtPct(peso)+'</td><td>'+fmtMoney(cons)+'</td><td>'+fmtMoney(base)+'</td><td>'+fmtMoney(opt)+'</td>';
+      tbody.appendChild(tr);
+    });
+    var totRow = document.createElement('tr');
+    totRow.className = 'total';
+    totRow.innerHTML = '<td>Precio Objetivo Ponderado</td><td>100%</td><td>'+fmtMoney(cellVal(res,'C12'))+'</td><td>'+fmtMoney(cellVal(res,'D12'))+'</td><td>'+fmtMoney(cellVal(res,'E12'))+'</td>';
+    tbody.appendChild(totRow);
+
+    document.getElementById('cagrC').textContent = fmtPct(cellVal(res,'C13'));
+    document.getElementById('cagrB').textContent = fmtPct(cellVal(res,'D13'));
+    document.getElementById('cagrO').textContent = fmtPct(cellVal(res,'E13'));
+
+    function zoneText(row){
+      var max = cellVal(res, 'B'+row), min = cellVal(res, 'C'+row);
+      return fmtMoney(min) + ' – ' + fmtMoney(max);
+    }
+    document.getElementById('zValue').textContent = zoneText(16);
+    document.getElementById('zDeep').textContent = zoneText(17);
+    document.getElementById('zHist').textContent = zoneText(18);
+    document.getElementById('zMOS').textContent = fmtMoney(cellVal(res,'C19')) + ' – ' + fmtMoney(cellVal(res,'B19'));
+
+    result.classList.add('show');
+  }
+
+  function handleFile(file){
+    if(!file) return;
+    if(!/\.xlsx$/i.test(file.name)){
+      showError('Ese archivo no parece un .xlsx. Sube el Excel del Modelo JMR directamente (no un .xls, .csv o Google Sheet exportado a otro formato).');
+      return;
+    }
+    var reader = new FileReader();
+    reader.onload = function(e){
+      try{
+        var data = new Uint8Array(e.target.result);
+        var wb = XLSX.read(data, {type:'array', cellDates:true});
+        render(wb);
+      }catch(err){
+        showError('No pude leer este archivo. Verifica que sea un .xlsx válido del Modelo JMR. Detalle técnico: ' + err.message);
+      }
+    };
+    reader.onerror = function(){
+      showError('No pude leer el archivo desde tu dispositivo. Intenta de nuevo.');
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  input.addEventListener('change', function(e){ handleFile(e.target.files[0]); });
+  dz.addEventListener('dragover', function(e){ e.preventDefault(); dz.classList.add('drag'); });
+  dz.addEventListener('dragleave', function(){ dz.classList.remove('drag'); });
+  dz.addEventListener('drop', function(e){
+    e.preventDefault(); dz.classList.remove('drag');
+    if(e.dataTransfer.files && e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+  });
+
+  var savedTheme = 'system';
+  try { savedTheme = localStorage.getItem('bitacora-theme') || 'system'; } catch(e){}
+  if(savedTheme !== 'system'){ document.documentElement.setAttribute('data-theme', savedTheme); }
+})();
+</script>
+
+</body>
+</html>

@@ -268,9 +268,26 @@
   footer code{font-family:"IBM Plex Mono", monospace; background:var(--surface-2); padding:1px 5px; border-radius:4px;}
 
   .empty{padding:40px 16px; text-align:center; color:var(--ink-faint); font-size:13.5px;}
+
+  nav.appnav{
+    display:flex; gap:4px; padding:14px 20px 0; max-width:1180px; margin:0 auto;
+    border-bottom:1px solid var(--border);
+  }
+  nav.appnav a{
+    font-size:13.5px; font-weight:600; text-decoration:none; color:var(--ink-faint);
+    padding:10px 14px; border-bottom:2px solid transparent; margin-bottom:-1px;
+  }
+  nav.appnav a:hover{color:var(--ink);}
+  nav.appnav a.active{color:var(--accent); border-bottom-color:var(--accent);}
 </style>
 </head>
 <body>
+
+<nav class="appnav">
+  <a href="index.html" class="active">Bitácora de Valoración</a>
+  <a href="visor.html">Visor Modelo JMR</a>
+  <a href="calculadora.html">Calculadora DCF</a>
+</nav>
 
 <header class="top">
   <div class="inner">
