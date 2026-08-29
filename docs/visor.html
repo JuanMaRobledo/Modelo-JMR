@@ -339,7 +339,7 @@
     return (v*100).toFixed(1) + '%';
   }
   function cellVal(ws, addr){
-    var c = ws[addr];
+    var c = ws && ws[addr];
     return c ? c.v : undefined;
   }
   // 'Input sheet'!A1 suele ser un tipo de dato vinculado "Acciones" de Excel
@@ -383,7 +383,12 @@
       ticker = 'Modelo JMR';
     }
     var nombreActivo = (stockInfo && stockInfo.name) || '';
-    var precio = cellVal(res, 'B3');
+    // 'Input sheet'!D1 es el precio que Excel refresca cada vez que abres el
+    // archivo con conexión (extraído del tipo de dato "Acciones" de A1) — es
+    // más reciente que 'Resumen de Valoración'!B3, que es el precio fijo al
+    // día del análisis, no el precio de hoy.
+    var precioExcelD1 = cellVal(inputSheet, 'D1');
+    var precio = (typeof precioExcelD1 === 'number' && isFinite(precioExcelD1)) ? precioExcelD1 : cellVal(res, 'B3');
     var fecha = cellVal(res, 'B2');
     var tipo = cellVal(res, 'G3');
     var mos = cellVal(res, 'G4');
@@ -403,7 +408,7 @@
     }
     document.getElementById('rMeta').textContent = fechaTxt || 'Modelo JMR — DCF Damodaran + múltiplos';
     document.getElementById('rPrice').textContent = fmtMoney(precio);
-    document.getElementById('rPriceNote').textContent = 'Dato del Excel — actualizando al precio de hoy…';
+    document.getElementById('rPriceNote').textContent = (precio === precioExcelD1 ? 'Del Excel (Input sheet) — ' : 'Precio al día del análisis — ') + 'actualizando al precio de hoy…';
     document.getElementById('rTipo').textContent = tipo || '—';
     document.getElementById('rMOS').textContent = fmtPct(mos);
     document.getElementById('rPrecioMOS').textContent = fmtMoney(cellVal(res,'C19'));
