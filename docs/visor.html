@@ -260,11 +260,12 @@
   .sheet-scroll.prose table td{
     white-space:pre-wrap; word-break:break-word; vertical-align:top; line-height:1.6;
     padding:11px 16px; border:none; border-bottom:1px solid var(--border-soft);
+    text-align:justify; text-align-last:left;
   }
   .sheet-scroll.prose table tr:last-child td{border-bottom:none;}
   .sheet-scroll.prose table td:first-child{
     font-weight:700; color:var(--ink-soft); background:var(--surface-2); width:220px; white-space:pre-wrap;
-    border-right:1px solid var(--border-soft);
+    border-right:1px solid var(--border-soft); text-align:left;
   }
   .sheet-scroll.prose table td:empty{padding:0; border-color:transparent;}
 
@@ -279,11 +280,25 @@
   .sheet-scroll.prose table td.gov-value:empty:before{content:"Haz clic para escribir…"; color:var(--ink-faint); font-style:italic;}
   .edit-hint{color:var(--accent-ink); background:var(--accent-soft); border-radius:8px; padding:8px 12px; margin:0 0 12px;}
 
+  /* Pestaña "Análisis Fundamental": lienzo libre (no viene de ninguna hoja
+     de Excel) donde se escribe y se pegan imágenes copiadas — se guarda
+     junto con la valoración como cualquier otra parte editable. */
+  .fundamental-editor{
+    background:var(--surface); border:1px solid var(--border-soft); border-radius:14px; box-shadow:var(--shadow);
+    padding:22px 24px; min-height:320px; font-size:14.5px; line-height:1.7; color:var(--ink);
+    text-align:justify; text-align-last:left; cursor:text;
+  }
+  .fundamental-editor:focus{outline:2px solid var(--accent); outline-offset:2px;}
+  .fundamental-editor.is-empty:before{content:attr(data-placeholder); color:var(--ink-faint); font-style:italic;}
+  .fundamental-editor img{max-width:100%; height:auto; border-radius:10px; margin:12px 0; display:block; box-shadow:var(--shadow); border:1px solid var(--border-soft);}
+  .fundamental-editor p{margin:0 0 12px;}
+  .fundamental-editor p:last-child{margin-bottom:0;}
+
   /* Título de sección: banda ancha con acento, funciona como separador de
      "capítulos" dentro de la hoja (Datos Generales, Bulls vs. Bears, etc.). */
   .sheet-scroll.prose table td.qual-title{
     font-family:"Fraunces", Georgia, serif; font-weight:700; font-size:15px; letter-spacing:.01em;
-    color:var(--accent-ink); background:var(--accent-soft);
+    color:var(--accent-ink); background:var(--accent-soft); text-align:left;
     padding:13px 16px; white-space:pre-wrap; border-bottom:1px solid var(--border);
   }
   /* Separador de aire (color del fondo de la página) entre el final de una
@@ -295,7 +310,7 @@
      "Industry Average | Most Recent year | Next year"): discreto, en
      mayúsculas pequeñas, no compite con el título de la sección. */
   .sheet-scroll.prose table tr.qual-subhead td{
-    font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; font-weight:700;
+    font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; font-weight:700; text-align:left;
     color:var(--ink-faint); background:var(--surface-2); padding:7px 16px;
   }
   .sheet-scroll.prose table tr.qual-subhead td:first-child{background:var(--surface-2);}
@@ -488,6 +503,8 @@
 
     <div class="tabs" id="mainTabs">
       <button type="button" data-tab="resumen" class="active">Resumen</button>
+      <button type="button" data-tab="cualitativo">Cualitativo</button>
+      <button type="button" data-tab="fundamental">Análisis Fundamental</button>
       <button type="button" data-tab="financieros">Estados Financieros</button>
       <button type="button" data-tab="valoracion">Valoración</button>
       <button type="button" data-tab="analisis">Análisis</button>
@@ -525,9 +542,19 @@
 
       <div class="gh-section">
         <h3>Guardar esta valoración</h3>
-        <p class="sub">Guarda esta valoración — el resumen y las hojas crudas de Estados Financieros, Valoración y Análisis — en tu base de datos privada (repo <code>Modelo-JMR-datos</code>) para consultarla después sin volver a subir el Excel. Si el archivo es muy grande, las hojas crudas se omiten y solo se guarda el resumen.</p>
+        <p class="sub">Guarda esta valoración — el resumen, el análisis cualitativo, el análisis fundamental y las hojas crudas de Estados Financieros, Valoración y Análisis — en tu base de datos privada (repo <code>Modelo-JMR-datos</code>) para consultarla después sin volver a subir el Excel. Si el archivo es muy grande, algunas partes se omiten para poder guardar el resto.</p>
         <div id="saveBlock"></div>
       </div>
+    </div>
+
+    <div class="tab-panel" data-panel="cualitativo">
+      <p class="field-help edit-hint">✏️ Puedes editar este texto directamente — haz clic dentro y escribe. Los cambios se guardan al guardar la valoración (o mientras no recargues la página).</p>
+      <div class="sheet-scroll" id="sheetCualitativo"><div class="sheet-empty">Sube un Excel para ver el análisis cualitativo.</div></div>
+    </div>
+
+    <div class="tab-panel" data-panel="fundamental">
+      <p class="field-help edit-hint">✏️ Escribe libremente tu análisis fundamental — tesis de inversión, catalizadores, notas de la llamada de resultados, lo que quieras. Puedes pegar imágenes copiadas (capturas, gráficos) directamente con Ctrl+V / Cmd+V.</p>
+      <div class="fundamental-editor is-empty" id="fundamentalEditor" contenteditable="true" data-placeholder="Escribe aquí tu análisis fundamental…"></div>
     </div>
 
     <div class="tab-panel" data-panel="financieros">
@@ -542,7 +569,6 @@
 
     <div class="tab-panel" data-panel="analisis">
       <div class="sheet-pills" id="pillsAnalisis"></div>
-      <p class="field-help edit-hint" id="analisisEditHint" hidden>✏️ Puedes editar este texto directamente — haz clic dentro y escribe. Los cambios se guardan solo al guardar la valoración (o mientras no recargues la página).</p>
       <div class="sheet-scroll" id="sheetAnalisis"><div class="sheet-empty">Elige una hoja.</div></div>
     </div>
 
@@ -731,25 +757,25 @@
   var SHEET_GROUPS = {
     financieros: ['Income Statement', 'Balance Sheet', 'Cash Flow Statement'],
     valoracion: ['Resumen de Valoración', 'Valuation output', 'Trailing Valuation', 'Forward Valuation', 'EVEBITDA', 'EVFCFF', 'PE', 'PFCFE', 'POCF', 'Financials Multiples'],
-    analisis: ['Márgenes', 'Eficiencia de capital', 'Salud Financiera', 'Por acción', 'Dividendos', 'Estadísticas', 'Cualitativo', 'Crecimiento y Márgenes', 'Diagnostics']
+    analisis: ['Márgenes', 'Eficiencia de capital', 'Salud Financiera', 'Por acción', 'Dividendos', 'Estadísticas', 'Crecimiento y Márgenes', 'Diagnostics']
   };
   var sheetHtmlCache = {};
-  // Hojas de texto narrativo (análisis cualitativo) — se muestran
-  // envolviendo el texto en vez de con el nowrap de las tablas numéricas.
-  // "Diagnostics" tiene su propio render dedicado (ver renderDiagnosticsSheet).
-  var PROSE_SHEETS = {'Cualitativo':1};
   // Hojas de múltiplos: cada una trae al final una "Matriz de
   // Sensibilidad" (múltiplo x métrica -> precio implícito) mezclada en la
   // misma grilla de Excel que el resto de la hoja — se detecta y colorea,
   // ver colorSensitivityMatrix().
   var MULTIPLE_SHEETS = {'EVEBITDA':1, 'EVFCFF':1, 'PE':1, 'PFCFE':1, 'POCF':1};
-  // Cualitativo es editable a mano (incluye la sección de Gobierno
-  // Corporativo, que no viene del Excel) — mientras esta variable no sea
-  // null, tiene prioridad sobre lo generado desde el Excel o la valoración
-  // guardada, para que los cambios sobrevivan a cambiar de pestaña/pill.
-  // Se reinicia al subir un Excel nuevo; se precarga al abrir una
-  // valoración guardada con lo que se guardó en su momento.
+  // Cualitativo (pestaña principal propia, ya no una pill de Análisis) es
+  // editable a mano (incluye la sección de Gobierno Corporativo, que no
+  // viene del Excel) — mientras esta variable no sea null, tiene prioridad
+  // sobre lo generado desde el Excel o la valoración guardada, para que los
+  // cambios sobrevivan a cambiar de pestaña. Se reinicia al subir un Excel
+  // nuevo; se precarga al abrir una valoración guardada con lo que se
+  // guardó en su momento.
   var cualitativoOverride = null;
+  // Análisis Fundamental: lienzo libre (texto + imágenes pegadas), no
+  // viene de ningún Excel — mismo patrón de persistencia que Cualitativo.
+  var fundamentalOverride = null;
 
   function fmtMoney(v){
     if(v === undefined || v === null || typeof v !== 'number' || isNaN(v)) return '—';
@@ -930,6 +956,7 @@
     };
     sheetHtmlCache = {};
     cualitativoOverride = null;
+    fundamentalOverride = null;
     resetTabs();
 
     result.classList.add('show');
@@ -1334,9 +1361,6 @@
       html = renderDiagnosticsSheet(ws);
     } else if(name === 'Resumen de Valoración'){
       html = renderResumenValoracionSheet(ws);
-    } else if(PROSE_SHEETS[name]){
-      html = XLSX.utils.sheet_to_html(trimSheetForProse(ws), {header:'', footer:'', editable:false});
-      html = widenTitleRows(html);
     } else if(MULTIPLE_SHEETS[name]){
       html = colorSensitivityMatrix(XLSX.utils.sheet_to_html(ws, {header:'', footer:'', editable:false}));
     } else {
@@ -1344,6 +1368,21 @@
     }
     sheetHtmlCache[name] = html;
     return html;
+  }
+
+  // Cualitativo es su propia pestaña principal (ya no una pill de
+  // Análisis) y siempre editable — no necesita el manejo de pills/mode de
+  // renderSheetGroup. cualitativoOverride (si ya se editó, o si se cargó
+  // desde una valoración guardada) manda sobre lo derivado del Excel.
+  var qualContainerEl = document.getElementById('sheetCualitativo');
+  function renderCualitativoTab(){
+    qualContainerEl.innerHTML = cualitativoOverride !== null ? cualitativoOverride : renderGenericSheet('Cualitativo');
+    qualContainerEl.classList.add('prose', 'editable');
+    qualContainerEl.setAttribute('contenteditable', 'true');
+    if(!qualContainerEl.dataset.editListenerAttached){
+      qualContainerEl.dataset.editListenerAttached = '1';
+      qualContainerEl.addEventListener('input', function(){ cualitativoOverride = qualContainerEl.innerHTML; });
+    }
   }
 
   // mode omitido -> lee en vivo del Excel subido (currentWb) vía
@@ -1354,44 +1393,96 @@
     var names = SHEET_GROUPS[groupKey];
     var pillsEl = document.getElementById('pills' + groupKey.charAt(0).toUpperCase() + groupKey.slice(1));
     var containerEl = document.getElementById('sheet' + groupKey.charAt(0).toUpperCase() + groupKey.slice(1));
-    var editHintEl = document.getElementById(groupKey + 'EditHint');
-    var activeIdx = 0;
     pillsEl.innerHTML = names.map(function(n, i){
       return '<button type="button" data-sheet="' + i + '"' + (i === 0 ? ' class="active"' : '') + '>' + n + '</button>';
     }).join('');
     function getHtml(name){
-      if(name === 'Cualitativo' && cualitativoOverride !== null) return cualitativoOverride;
       if(mode === null) return '<div class="sheet-empty">Esta valoración se guardó antes de incluir las hojas crudas — vuelve a subir el Excel y guarda de nuevo para incluirlas.</div>';
       if(mode) return mode[name] || '<div class="sheet-empty">Esta hoja no se guardó con la valoración.</div>';
       return renderGenericSheet(name);
     }
     function show(idx){
-      activeIdx = idx;
       containerEl.innerHTML = getHtml(names[idx]);
-      containerEl.classList.toggle('prose', !!PROSE_SHEETS[names[idx]]);
       containerEl.classList.toggle('diagnostics', names[idx] === 'Diagnostics');
       containerEl.classList.toggle('resumen-val', names[idx] === 'Resumen de Valoración');
-      var editable = names[idx] === 'Cualitativo';
-      if(editable){ containerEl.setAttribute('contenteditable', 'true'); } else { containerEl.removeAttribute('contenteditable'); }
-      containerEl.classList.toggle('editable', editable);
-      if(editHintEl) editHintEl.hidden = !editable;
       pillsEl.querySelectorAll('button').forEach(function(b,i){ b.classList.toggle('active', i === idx); });
-    }
-    // Los cambios que se escriban a mano en Cualitativo (incluida la
-    // sección de Gobierno Corporativo) se guardan en cualitativoOverride en
-    // cada tecla — si no, cambiar de pill y volver los perdería, porque
-    // show() reemplaza el innerHTML del contenedor desde cero.
-    if(!containerEl.dataset.editListenerAttached){
-      containerEl.dataset.editListenerAttached = '1';
-      containerEl.addEventListener('input', function(){
-        if(names[activeIdx] === 'Cualitativo') cualitativoOverride = containerEl.innerHTML;
-      });
     }
     pillsEl.querySelectorAll('button').forEach(function(b){
       b.addEventListener('click', function(){ show(Number(b.dataset.sheet)); });
     });
     show(0);
   }
+
+  // Análisis Fundamental: lienzo libre con texto e imágenes pegadas, sin
+  // relación con ninguna hoja de Excel — mismo patrón de persistencia que
+  // Cualitativo (fundamentalOverride manda mientras no sea null).
+  var fundamentalEl = document.getElementById('fundamentalEditor');
+  function fundamentalIsEmpty(){
+    return fundamentalEl.textContent.trim() === '' && !fundamentalEl.querySelector('img');
+  }
+  function refreshFundamentalEmptyState(){
+    fundamentalEl.classList.toggle('is-empty', fundamentalIsEmpty());
+  }
+  function renderFundamentalTab(){
+    fundamentalEl.innerHTML = fundamentalOverride || '';
+    refreshFundamentalEmptyState();
+  }
+  function insertHtmlAtCaret(html){
+    fundamentalEl.focus();
+    var sel = window.getSelection();
+    if(!sel || !sel.rangeCount || !fundamentalEl.contains(sel.anchorNode)){
+      fundamentalEl.insertAdjacentHTML('beforeend', html);
+      return;
+    }
+    var range = sel.getRangeAt(0);
+    range.deleteContents();
+    var wrapper = document.createElement('div');
+    wrapper.innerHTML = html;
+    var frag = document.createDocumentFragment(), node, lastNode;
+    while((node = wrapper.firstChild)){ lastNode = frag.appendChild(node); }
+    range.insertNode(frag);
+    if(lastNode){
+      range = range.cloneRange();
+      range.setStartAfter(lastNode);
+      range.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+  }
+  fundamentalEl.addEventListener('input', function(){
+    fundamentalOverride = fundamentalEl.innerHTML;
+    refreshFundamentalEmptyState();
+  });
+  // Se intercepta TODO el pegado (no solo imágenes) para no arrastrar
+  // estilos/HTML ajenos (de Word, un sitio de noticias, etc.) que
+  // desentonarían con el diseño — el texto se pega plano y las imágenes
+  // como <img> con el archivo embebido en base64 (data:), ya que no hay
+  // dónde subir el archivo aparte en esta app 100% estática.
+  fundamentalEl.addEventListener('paste', function(e){
+    var cd = e.clipboardData || window.clipboardData;
+    if(!cd) return;
+    var items = cd.items || [];
+    var imageItem = null;
+    for(var i = 0; i < items.length; i++){
+      if(items[i].type && items[i].type.indexOf('image') === 0){ imageItem = items[i]; break; }
+    }
+    e.preventDefault();
+    if(imageItem){
+      var file = imageItem.getAsFile();
+      var reader = new FileReader();
+      reader.onload = function(ev){
+        insertHtmlAtCaret('<img src="' + ev.target.result + '" alt="Imagen pegada">');
+        fundamentalOverride = fundamentalEl.innerHTML;
+        refreshFundamentalEmptyState();
+      };
+      reader.readAsDataURL(file);
+    } else {
+      var text = cd.getData('text/plain');
+      document.execCommand('insertText', false, text);
+      fundamentalOverride = fundamentalEl.innerHTML;
+      refreshFundamentalEmptyState();
+    }
+  });
 
   // Copia (sin las marcas data-t/data-v/id de SheetJS, que solo inflan el
   // tamaño) de las hojas crudas ya renderizadas, para guardarlas junto con
@@ -1404,17 +1495,22 @@
     Object.keys(SHEET_GROUPS).forEach(function(g){
       var map = {};
       SHEET_GROUPS[g].forEach(function(name){
-        var html = (name === 'Cualitativo' && cualitativoOverride !== null) ? cualitativoOverride : renderGenericSheet(name);
-        map[name] = stripSheetHtmlMeta(html);
+        map[name] = stripSheetHtmlMeta(renderGenericSheet(name));
       });
       out[g] = map;
     });
+    // Cualitativo ya no es una pill de "analisis", pero se sigue guardando
+    // en esa misma ubicación del JSON por compatibilidad con valoraciones
+    // guardadas antes de este cambio.
+    out.analisis['Cualitativo'] = stripSheetHtmlMeta(cualitativoOverride !== null ? cualitativoOverride : renderGenericSheet('Cualitativo'));
     return out;
   }
 
   function resetTabs(){
     document.querySelectorAll('#mainTabs button').forEach(function(b){ b.classList.toggle('active', b.dataset.tab === 'resumen'); });
     document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.toggle('active', p.dataset.panel === 'resumen'); });
+    renderCualitativoTab();
+    renderFundamentalTab();
     renderSheetGroup('financieros');
     renderSheetGroup('valoracion');
     renderSheetGroup('analisis');
@@ -1582,11 +1678,14 @@
     currentResumen = rec;
     currentTicker = rec.ticker || null;
     // Precarga lo que se haya escrito a mano en Cualitativo (incluida
-    // Gobierno Corporativo) la última vez que se guardó esta valoración,
-    // para poder seguir editándolo desde aquí.
+    // Gobierno Corporativo) y en Análisis Fundamental la última vez que se
+    // guardó esta valoración, para poder seguir editándolos desde aquí.
     cualitativoOverride = (rec.hojas && rec.hojas.analisis && rec.hojas.analisis['Cualitativo']) || null;
+    fundamentalOverride = rec.analisisFundamental || null;
     document.querySelectorAll('#mainTabs button').forEach(function(b){ b.classList.toggle('active', b.dataset.tab === 'resumen'); });
     document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.toggle('active', p.dataset.panel === 'resumen'); });
+    renderCualitativoTab();
+    renderFundamentalTab();
     ['financieros','valoracion','analisis'].forEach(function(g){
       renderSheetGroup(g, (rec.hojas && rec.hojas[g]) || null);
     });
@@ -1617,13 +1716,31 @@
       status.textContent = 'Guardando…';
       var record = Object.assign({}, currentResumen, { savedAt: new Date().toISOString() });
       record.hojas = currentWb ? collectRawSheets() : (currentResumen.hojas || null);
-      var hojasOmitidas = false;
+      // cualitativoOverride/fundamentalOverride son la fuente de verdad más
+      // reciente en cualquier modo (Excel recién subido o valoración
+      // guardada reabierta) — collectRawSheets() ya las usa cuando hay un
+      // Excel cargado, pero si se está viendo una valoración guardada
+      // (currentWb null) record.hojas viene tal cual estaba guardado y hay
+      // que pisarle encima cualquier edición hecha desde que se abrió.
+      if(cualitativoOverride !== null){
+        record.hojas = record.hojas || {};
+        record.hojas.analisis = Object.assign({}, record.hojas.analisis, { 'Cualitativo': stripSheetHtmlMeta(cualitativoOverride) });
+      }
+      record.analisisFundamental = fundamentalOverride !== null ? stripSheetHtmlMeta(fundamentalOverride) : (currentResumen.analisisFundamental || null);
+      var hojasOmitidas = false, fundamentalOmitido = false;
       if(record.hojas && JSON.stringify(record).length > 900000){
         delete record.hojas;
         hojasOmitidas = true;
       }
+      if(record.analisisFundamental && JSON.stringify(record).length > 900000){
+        delete record.analisisFundamental;
+        fundamentalOmitido = true;
+      }
       saveValoracion(record).then(function(){
-        status.textContent = 'Guardada ✓' + (hojasOmitidas ? ' (sin hojas crudas — el archivo era muy grande para guardarlas)' : '') + ' · ' + new Date().toLocaleTimeString();
+        var notas = [];
+        if(hojasOmitidas) notas.push('sin hojas crudas — el archivo era muy grande para guardarlas');
+        if(fundamentalOmitido) notas.push('sin el análisis fundamental — probablemente por imágenes muy pesadas; prueba con capturas más chicas o menos imágenes');
+        status.textContent = 'Guardada ✓' + (notas.length ? ' (' + notas.join('; ') + ')' : '') + ' · ' + new Date().toLocaleTimeString();
         btn.disabled = false;
       }).catch(function(err){
         status.textContent = 'Error al guardar: ' + err.message;
