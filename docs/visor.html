@@ -248,6 +248,17 @@
   }
   .sheet-scroll.prose table td:empty{padding:0; border-color:transparent;}
 
+  /* Cualitativo es editable a mano (incluida la sección de Gobierno
+     Corporativo, que empieza vacía) — cursor de texto, contorno sutil al
+     enfocar una celda, y un placeholder real en las celdas de gobierno que
+     todavía no se han llenado. */
+  .sheet-scroll.prose.editable{cursor:text;}
+  .sheet-scroll.prose.editable table td:not(.qual-title):not(.qual-subhead):hover{background:var(--accent-soft);}
+  .sheet-scroll.prose table td.gov-value{min-width:220px;}
+  .sheet-scroll.prose table td.gov-value:empty{padding:11px 16px; border-color:var(--border-soft);}
+  .sheet-scroll.prose table td.gov-value:empty:before{content:"Haz clic para escribir…"; color:var(--ink-faint); font-style:italic;}
+  .edit-hint{color:var(--accent-ink); background:var(--accent-soft); border-radius:8px; padding:8px 12px; margin:0 0 12px;}
+
   /* Título de sección: banda ancha con acento, funciona como separador de
      "capítulos" dentro de la hoja (Datos Generales, Bulls vs. Bears, etc.). */
   .sheet-scroll.prose table td.qual-title{
@@ -461,6 +472,7 @@
 
     <div class="tab-panel" data-panel="analisis">
       <div class="sheet-pills" id="pillsAnalisis"></div>
+      <p class="field-help edit-hint" id="analisisEditHint" hidden>✏️ Puedes editar este texto directamente — haz clic dentro y escribe. Los cambios se guardan solo al guardar la valoración (o mientras no recargues la página).</p>
       <div class="sheet-scroll" id="sheetAnalisis"><div class="sheet-empty">Elige una hoja.</div></div>
     </div>
 
@@ -656,6 +668,13 @@
   // envolviendo el texto en vez de con el nowrap de las tablas numéricas.
   // "Diagnostics" tiene su propio render dedicado (ver renderDiagnosticsSheet).
   var PROSE_SHEETS = {'Cualitativo':1};
+  // Cualitativo es editable a mano (incluye la sección de Gobierno
+  // Corporativo, que no viene del Excel) — mientras esta variable no sea
+  // null, tiene prioridad sobre lo generado desde el Excel o la valoración
+  // guardada, para que los cambios sobrevivan a cambiar de pestaña/pill.
+  // Se reinicia al subir un Excel nuevo; se precarga al abrir una
+  // valoración guardada con lo que se guardó en su momento.
+  var cualitativoOverride = null;
 
   function fmtMoney(v){
     if(v === undefined || v === null || typeof v !== 'number' || isNaN(v)) return '—';
@@ -835,11 +854,27 @@
       }
     };
     sheetHtmlCache = {};
+    cualitativoOverride = null;
     resetTabs();
 
     result.classList.add('show');
     maybeAutoFetchLive();
     rcPrefillFromExcel();
+  }
+
+  // Número real de columnas de una tabla ya renderizada (suma de colSpan de
+  // la fila con más columnas) — algunas filas de título ya vienen
+  // combinadas en Excel a solo 2-3 columnas (p. ej. A2:B2) mientras que
+  // otras filas de datos de la misma hoja usan 4 o más; hay que expandir al
+  // máximo real, no al tamaño de una fila en particular.
+  function tableTotalCols(table){
+    var totalCols = 0;
+    Array.prototype.forEach.call(table.rows, function(tr){
+      var cols = 0;
+      Array.prototype.forEach.call(tr.cells, function(td){ cols += td.colSpan || 1; });
+      if(cols > totalCols) totalCols = cols;
+    });
+    return totalCols;
   }
 
   // En hojas de texto (Cualitativo, etc.), las filas donde solo la primera
@@ -853,16 +888,7 @@
     var table = tmp.querySelector('table');
     if(!table) return html;
     var rows = Array.prototype.slice.call(table.rows);
-    // Número real de columnas de la tabla (algunas filas de título ya
-    // vienen combinadas en Excel a solo 2-3 columnas — p. ej. A2:B2 —
-    // mientras que otras filas de datos de la misma hoja usan 4 o más; hay
-    // que expandir al máximo real, no al tamaño de la fila del título).
-    var totalCols = 0;
-    rows.forEach(function(tr){
-      var cols = 0;
-      Array.prototype.forEach.call(tr.cells, function(td){ cols += td.colSpan || 1; });
-      if(cols > totalCols) totalCols = cols;
-    });
+    var totalCols = tableTotalCols(table);
     var firstTitleSeen = false;
     rows.forEach(function(tr, idx){
       var cells = Array.prototype.slice.call(tr.cells);
@@ -999,11 +1025,57 @@
     }).join('') + '</div>';
   }
 
+  // Sección de Gobierno Corporativo: no viene del Excel (la plantilla no
+  // trae esta información) — se agrega siempre al final de Cualitativo como
+  // un bloque más, con celdas vacías editables (el usuario la llena a mano
+  // con la pluma ✏️ del tab). Se inserta con el DOM (no con un string de
+  // HTML) y DESPUÉS de widenTitleRows(), no antes: sus filas etiqueta:valor
+  // arrancan con el valor vacío (para el placeholder ":empty"), y
+  // widenTitleRows interpretaría "solo una celda con texto" como un título
+  // de sección más — justo como el título de este bloque — y le borraría la
+  // celda de valor. Aquí el colspan del título se calcula con la misma
+  // tableTotalCols() ya con las filas reales de Excel puestas, así que
+  // ocupa el ancho real de la tabla sin ese falso positivo.
+  function appendGovernanceSection(table){
+    var totalCols = Math.max(2, tableTotalCols(table));
+    var titleTr = document.createElement('tr');
+    var titleTd = document.createElement('td');
+    titleTd.className = 'qual-title qual-title-sep';
+    titleTd.colSpan = totalCols;
+    titleTd.textContent = 'GOBIERNO CORPORATIVO';
+    titleTr.appendChild(titleTd);
+    table.appendChild(titleTr);
+    [
+      'Estructura del Directorio',
+      'Propiedad y Accionistas Principales',
+      'Remuneración e Incentivos Ejecutivos',
+      'Derechos de Accionistas / Estructura Dual de Acciones',
+      'Historial de Gobernanza y Controversias'
+    ].forEach(function(f){
+      var tr = document.createElement('tr');
+      var tdLabel = document.createElement('td');
+      tdLabel.textContent = f;
+      var tdValue = document.createElement('td');
+      tdValue.className = 'gov-value';
+      tr.appendChild(tdLabel);
+      tr.appendChild(tdValue);
+      table.appendChild(tr);
+    });
+  }
+
   function renderGenericSheet(name){
     if(sheetHtmlCache[name] !== undefined) return sheetHtmlCache[name];
     var ws = currentWb && currentWb.Sheets[name];
     var html;
-    if(!ws){
+    if(name === 'Cualitativo'){
+      var baseHtml = ws ? widenTitleRows(XLSX.utils.sheet_to_html(trimSheetForProse(ws), {header:'', footer:'', editable:false})) : '<table></table>';
+      var tmp = document.createElement('div');
+      tmp.innerHTML = baseHtml;
+      var table = tmp.querySelector('table');
+      if(!table){ tmp.innerHTML = '<table></table>'; table = tmp.querySelector('table'); }
+      appendGovernanceSection(table);
+      html = (ws ? '' : '<div class="sheet-empty">Este archivo no tiene la hoja "Cualitativo" — puedes agregar tus propias notas abajo.</div>') + tmp.innerHTML;
+    } else if(!ws){
       html = '<div class="sheet-empty">Este archivo no tiene la hoja "' + name + '".</div>';
     } else if(name === 'Diagnostics'){
       html = renderDiagnosticsSheet(ws);
@@ -1025,19 +1097,37 @@
     var names = SHEET_GROUPS[groupKey];
     var pillsEl = document.getElementById('pills' + groupKey.charAt(0).toUpperCase() + groupKey.slice(1));
     var containerEl = document.getElementById('sheet' + groupKey.charAt(0).toUpperCase() + groupKey.slice(1));
+    var editHintEl = document.getElementById(groupKey + 'EditHint');
+    var activeIdx = 0;
     pillsEl.innerHTML = names.map(function(n, i){
       return '<button type="button" data-sheet="' + i + '"' + (i === 0 ? ' class="active"' : '') + '>' + n + '</button>';
     }).join('');
     function getHtml(name){
+      if(name === 'Cualitativo' && cualitativoOverride !== null) return cualitativoOverride;
       if(mode === null) return '<div class="sheet-empty">Esta valoración se guardó antes de incluir las hojas crudas — vuelve a subir el Excel y guarda de nuevo para incluirlas.</div>';
       if(mode) return mode[name] || '<div class="sheet-empty">Esta hoja no se guardó con la valoración.</div>';
       return renderGenericSheet(name);
     }
     function show(idx){
+      activeIdx = idx;
       containerEl.innerHTML = getHtml(names[idx]);
       containerEl.classList.toggle('prose', !!PROSE_SHEETS[names[idx]]);
       containerEl.classList.toggle('diagnostics', names[idx] === 'Diagnostics');
+      var editable = names[idx] === 'Cualitativo';
+      if(editable){ containerEl.setAttribute('contenteditable', 'true'); } else { containerEl.removeAttribute('contenteditable'); }
+      containerEl.classList.toggle('editable', editable);
+      if(editHintEl) editHintEl.hidden = !editable;
       pillsEl.querySelectorAll('button').forEach(function(b,i){ b.classList.toggle('active', i === idx); });
+    }
+    // Los cambios que se escriban a mano en Cualitativo (incluida la
+    // sección de Gobierno Corporativo) se guardan en cualitativoOverride en
+    // cada tecla — si no, cambiar de pill y volver los perdería, porque
+    // show() reemplaza el innerHTML del contenedor desde cero.
+    if(!containerEl.dataset.editListenerAttached){
+      containerEl.dataset.editListenerAttached = '1';
+      containerEl.addEventListener('input', function(){
+        if(names[activeIdx] === 'Cualitativo') cualitativoOverride = containerEl.innerHTML;
+      });
     }
     pillsEl.querySelectorAll('button').forEach(function(b){
       b.addEventListener('click', function(){ show(Number(b.dataset.sheet)); });
@@ -1056,7 +1146,8 @@
     Object.keys(SHEET_GROUPS).forEach(function(g){
       var map = {};
       SHEET_GROUPS[g].forEach(function(name){
-        map[name] = stripSheetHtmlMeta(renderGenericSheet(name));
+        var html = (name === 'Cualitativo' && cualitativoOverride !== null) ? cualitativoOverride : renderGenericSheet(name);
+        map[name] = stripSheetHtmlMeta(html);
       });
       out[g] = map;
     });
@@ -1232,6 +1323,10 @@
     currentWb = null;
     currentResumen = rec;
     currentTicker = rec.ticker || null;
+    // Precarga lo que se haya escrito a mano en Cualitativo (incluida
+    // Gobierno Corporativo) la última vez que se guardó esta valoración,
+    // para poder seguir editándolo desde aquí.
+    cualitativoOverride = (rec.hojas && rec.hojas.analisis && rec.hojas.analisis['Cualitativo']) || null;
     document.querySelectorAll('#mainTabs button').forEach(function(b){ b.classList.toggle('active', b.dataset.tab === 'resumen'); });
     document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.toggle('active', p.dataset.panel === 'resumen'); });
     ['financieros','valoracion','analisis'].forEach(function(g){
