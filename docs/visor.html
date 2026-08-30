@@ -386,7 +386,7 @@
 
     <div class="tab-panel" data-panel="recalcular">
       <p class="field-help" style="margin-bottom:14px;">
-        Ajusta cualquier supuesto y recalcula con el mismo motor DCF Damodaran + 5 múltiplos de tu Excel (validado celda por celda). Esto <b>no reemplaza</b> el resumen de la pestaña "Resumen" (ese sigue siendo lo que dice tu Excel) — es una copia hipotética para explorar "¿y si cambio esto?". El precio actual, tipo de empresa y MOS se precargan de tu archivo; lo demás parte de valores de ejemplo — revísalo todo antes de confiar en el resultado.
+        Ajusta cualquier supuesto y recalcula con el mismo motor DCF Damodaran + 5 múltiplos de tu Excel (validado celda por celda). Esto <b>no reemplaza</b> el resumen de la pestaña "Resumen" (ese sigue siendo lo que dice tu Excel) — es una copia hipotética para explorar "¿y si cambio esto?". Todos los campos se precargan leyendo directo las hojas de tu Excel (Input sheet, Valuation output, Financials Multiples, EVEBITDA/EVFCFF/PE/PFCFE/POCF) — salvo las razones D&amp;A/CapEx/ΔNWC/etc., que el Excel varía año a año con un promedio móvil de 3 años y aquí se aproximan con un solo porcentaje (el del año FY+1). Revisa todo antes de confiar en el resultado; si algún campo no se pudo leer, queda con su valor de ejemplo.
       </p>
 
       <form id="rcForm">
@@ -439,7 +439,7 @@
           <div class="frow"><label for="rc_wacc">WACC (años 1-5)</label><input id="rc_wacc" type="number" step="0.01" value="9.38"></div>
           <div class="frow"><label for="rc_riskFreeRate">Tasa libre de riesgo (= crecimiento terminal)</label><input id="rc_riskFreeRate" type="number" step="0.01" value="4.62"></div>
           <div class="frow"><label for="rc_matureMarketERP">Prima de riesgo de mercado maduro</label><input id="rc_matureMarketERP" type="number" step="0.01" value="4.23"></div>
-          <div class="frow"><label for="rc_salesToCapital">Sales-to-capital ratio (reinversión)</label><input id="rc_salesToCapital" type="number" step="0.001" value="1.5432"></div>
+          <div class="frow"><label for="rc_salesToCapital">Sales-to-capital ratio (reinversión)</label><input id="rc_salesToCapital" type="number" step="any" value="1.5432"></div>
           <p class="field-help">WACC terminal = tasa libre de riesgo + prima de mercado maduro. Tasas en %.</p>
         </fieldset>
 
@@ -1274,6 +1274,87 @@
     rcRenderResult(inp, r);
   });
 
+  // Lee los supuestos reales del DCF/múltiplos directo de las hojas del
+  // Excel (verificado celda por celda contra un archivo real: 'Input
+  // sheet' para los datos base, 'Valuation output' para crecimiento/margen
+  // por escenario, 'Financials Multiples' para las razones que alimentan
+  // los múltiplos, y EVEBITDA/EVFCFF/PE/PFCFE/POCF para los múltiplos
+  // base). Si una hoja o celda no existe o no es un número, ese campo
+  // simplemente se deja con su valor de ejemplo — nunca rompe el resto.
+  function rcCellNum(ws, addr){
+    var v = ws && ws[addr] && ws[addr].v;
+    return (typeof v === 'number' && isFinite(v)) ? v : null;
+  }
+  function rcSetPct(id, frac){
+    if(frac == null) return;
+    // Redondeado a 2 decimales: coincide con el step="0.01" de estos campos
+    // (un valor con más decimales falla la validación HTML5 en silencio y
+    // bloquea el submit sin ningún error visible).
+    document.getElementById(id).value = Math.round(frac * 100 * 100) / 100;
+  }
+  function rcSetNum(id, v){
+    if(v == null) return;
+    document.getElementById(id).value = Math.round(v * 100) / 100;
+  }
+
+  function rcExtractFromExcel(wb){
+    var inputSheet = wb.Sheets['Input sheet'];
+    var valOut = wb.Sheets['Valuation output'];
+    var finMult = wb.Sheets['Financials Multiples'];
+
+    rcSetNum('rc_revenue0', rcCellNum(inputSheet, 'B12'));
+    rcSetNum('rc_ebit0', rcCellNum(valOut, 'B7'));
+    rcSetPct('rc_taxEffective', rcCellNum(inputSheet, 'B24'));
+    rcSetPct('rc_taxMarginal', rcCellNum(inputSheet, 'B25'));
+    rcSetNum('rc_shares0', rcCellNum(inputSheet, 'B22'));
+    rcSetNum('rc_cash', rcCellNum(inputSheet, 'B19'));
+    rcSetNum('rc_debt', rcCellNum(inputSheet, 'B16'));
+    rcSetNum('rc_nonOperatingAssets', rcCellNum(inputSheet, 'B20'));
+    rcSetNum('rc_minorityInterests', rcCellNum(inputSheet, 'B21'));
+
+    var overrideFailure = inputSheet && inputSheet['B52'] && inputSheet['B52'].v;
+    var probFailure = (overrideFailure === 'Yes' || overrideFailure === 'Sí') ? rcCellNum(inputSheet, 'B53') : 0;
+    rcSetPct('rc_probFailure', probFailure);
+    rcSetPct('rc_recoveryPct', rcCellNum(inputSheet, 'B55'));
+
+    rcSetPct('rc_wacc', rcCellNum(inputSheet, 'B36'));
+    var riskFree = rcCellNum(inputSheet, 'B35');
+    rcSetPct('rc_riskFreeRate', riskFree);
+    var terminalWacc = rcCellNum(valOut, 'M14');
+    if(riskFree != null && terminalWacc != null) rcSetPct('rc_matureMarketERP', terminalWacc - riskFree);
+    rcSetNum('rc_salesToCapital', rcCellNum(inputSheet, 'B32'));
+
+    rcSetPct('rc_growthCons', rcCellNum(valOut, 'C55'));
+    rcSetPct('rc_marginCons', rcCellNum(valOut, 'G57'));
+    rcSetPct('rc_growthBase', rcCellNum(valOut, 'C4'));
+    rcSetPct('rc_marginBase', rcCellNum(valOut, 'G6'));
+    rcSetPct('rc_growthOpt', rcCellNum(valOut, 'C106'));
+    rcSetPct('rc_marginOpt', rcCellNum(valOut, 'G108'));
+
+    // Razones para proyectar los múltiplos: el Excel las varía año a año
+    // (promedio móvil de 3 años); aquí se aproximan con el año FY+1 sobre
+    // ingresos/EBIT de ese mismo año — la Calculadora ya documenta esta
+    // simplificación frente al Excel original.
+    var e4 = rcCellNum(finMult, 'E4'), d4 = rcCellNum(finMult, 'D4');
+    var e6 = rcCellNum(finMult, 'E6');
+    if(e4){
+      rcSetPct('rc_daPctRevenue', rcCellNum(finMult, 'E20') / e4);
+      rcSetPct('rc_capexPctRevenue', rcCellNum(finMult, 'E21') / e4);
+      rcSetPct('rc_netBorrowingPctRevenue', rcCellNum(finMult, 'E28') / e4);
+      if(d4 != null) rcSetPct('rc_nwcPctDeltaRevenue', rcCellNum(finMult, 'E22') / (e4 - d4));
+    }
+    if(e6) rcSetPct('rc_interestOtherPctEBIT', rcCellNum(finMult, 'E10') / e6);
+    var e31 = rcCellNum(finMult, 'E31'), f31 = rcCellNum(finMult, 'F31');
+    if(e31 && f31 != null) rcSetPct('rc_buybackRate', (f31 / e31) - 1);
+    rcSetNum('rc_dividendPerShare', rcCellNum(finMult, 'E35'));
+
+    rcSetNum('rc_evEbitdaBase', rcCellNum(wb.Sheets['EVEBITDA'], 'E8'));
+    rcSetNum('rc_evFcffBase', rcCellNum(wb.Sheets['EVFCFF'], 'E8'));
+    rcSetNum('rc_peBase', rcCellNum(wb.Sheets['PE'], 'E8'));
+    rcSetNum('rc_pfcfeBase', rcCellNum(wb.Sheets['PFCFE'], 'E8'));
+    rcSetNum('rc_pocfBase', rcCellNum(wb.Sheets['POCF'], 'E8'));
+  }
+
   function rcPrefillFromExcel(){
     if(currentTicker && currentTicker !== 'Modelo JMR') document.getElementById('rc_ticker').value = currentTicker;
     if(currentResumen){
@@ -1285,6 +1366,7 @@
       }
       if(typeof currentResumen.mos === 'number' && isFinite(currentResumen.mos)) document.getElementById('rc_mos').value = (currentResumen.mos * 100).toFixed(2);
     }
+    if(currentWb) rcExtractFromExcel(currentWb);
   }
 
   input.addEventListener('change', function(e){ handleFile(e.target.files[0]); });
