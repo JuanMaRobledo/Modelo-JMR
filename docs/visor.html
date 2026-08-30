@@ -20,7 +20,7 @@
   :root{
     --bg:#F5F6F2; --surface:#FFFFFF; --surface-2:#ECEFE9;
     --ink:#16231F; --ink-soft:#51615A; --ink-faint:#8A968F;
-    --border:#DBE1D9; --border-soft:#E7EBE3;
+    --border:#DBE1D9; --border-soft:#E7EBE3; --grid:#A3AD9F;
     --accent:#A6791F; --accent-soft:#F1E6CC; --accent-ink:#5C4212;
     --positive:#1E7F52; --positive-soft:#E1F0E6;
     --negative:#B0452F; --negative-soft:#F7E5DF;
@@ -32,7 +32,7 @@
     :root:not([data-theme="light"]){
       --bg:#10160F; --surface:#161F1B; --surface-2:#1D2822;
       --ink:#ECEEE9; --ink-soft:#A9B6AF; --ink-faint:#6E7B75;
-      --border:#2B3833; --border-soft:#212C27;
+      --border:#2B3833; --border-soft:#212C27; --grid:#52655B;
       --accent:#D9A64B; --accent-soft:#3B2E12; --accent-ink:#F2D9A0;
       --positive:#4FBD82; --positive-soft:#173627;
       --negative:#E07857; --negative-soft:#3B2016;
@@ -119,8 +119,10 @@
   /* Gráficos del Resumen: precio objetivo por escenario y zonas de valor,
      como SVG inline (livianos, se adaptan solos a claro/oscuro vía
      var(--...) igual que el resto de la app, sin ninguna librería). */
-  .charts-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:18px;}
-  @media (max-width:720px){.charts-grid{grid-template-columns:1fr;}}
+  /* Una sola columna (no 2 lado a lado): la de zonas ahora trae varias
+     líneas de referencia (análisis, hoy, los 3 escenarios) además de las
+     barras de rango — necesita más ancho para no verse apretada. */
+  .charts-grid{display:grid; grid-template-columns:1fr; gap:16px; margin-bottom:18px;}
   .chart-card{background:var(--surface); border:1px solid var(--border-soft); border-radius:14px; padding:16px 18px; box-shadow:var(--shadow);}
   .chart-title{font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint); margin-bottom:10px;}
   .chart-svg{width:100%; height:auto; display:block; overflow:visible;}
@@ -131,6 +133,28 @@
   .chart-zone-bar{fill:color-mix(in oklab, var(--positive) 32%, var(--surface)); stroke:var(--positive); stroke-width:1;}
   .chart-zone-val{font-family:"IBM Plex Mono", monospace; font-size:10px; font-weight:600; fill:var(--positive);}
   .chart-empty{color:var(--ink-faint); font-size:12.5px; padding:20px; text-align:center;}
+
+  /* Líneas de referencia del gráfico de zonas: precio de hoy (sólida,
+     tono fuerte) vs. precio al día del análisis (punteada, tenue — ya
+     definida arriba como .chart-ref) cuando difieren, y los 3 precios
+     objetivo (Conservador/Base/Optimista) con la misma escala dorada
+     secuencial que ya usa el resto de la app para esos 3 escenarios —
+     así se ve de un vistazo cuánto recorrido hay de las zonas de compra a
+     cada objetivo. Un legend con muestras de color (no texto sobre cada
+     línea) evita que 5 etiquetas se encimen en un gráfico angosto.
+  */
+  .chart-ref-hoy{stroke:var(--ink); stroke-width:2;}
+  .chart-ref-cons{stroke:color-mix(in oklab, var(--accent) 45%, var(--surface)); stroke-width:1.5;}
+  .chart-ref-base{stroke:color-mix(in oklab, var(--accent) 70%, var(--surface)); stroke-width:1.5;}
+  .chart-ref-opt{stroke:var(--accent); stroke-width:1.5;}
+  .chart-legend{display:flex; flex-wrap:wrap; gap:7px 16px; margin-bottom:12px; font-size:11.5px; color:var(--ink-soft);}
+  .chart-legend-item{display:inline-flex; align-items:center; gap:6px; font-family:"IBM Plex Mono", monospace;}
+  .chart-legend-swatch{width:12px; height:3px; border-radius:2px; display:inline-block; flex:none;}
+  .chart-legend-swatch.chart-ref-sw{background:var(--ink-faint);}
+  .chart-legend-swatch.chart-ref-hoy-sw{background:var(--ink); height:2.5px;}
+  .chart-legend-swatch.chart-ref-cons-sw{background:color-mix(in oklab, var(--accent) 45%, var(--surface));}
+  .chart-legend-swatch.chart-ref-base-sw{background:color-mix(in oklab, var(--accent) 70%, var(--surface));}
+  .chart-legend-swatch.chart-ref-opt-sw{background:var(--accent);}
   .stat{background:var(--surface); border:1px solid var(--border-soft); border-radius:12px; padding:14px 16px;}
   .stat .lbl{font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-faint); margin-bottom:6px;}
   .stat .big{font-family:"IBM Plex Mono", monospace; font-weight:600; font-size:18px; font-variant-numeric:tabular-nums;}
@@ -290,7 +314,7 @@
     padding:2px;
   }
   .sheet-scroll table{border-collapse:collapse; font-size:12px; white-space:nowrap;}
-  .sheet-scroll table td{padding:4px 8px; border:1px solid var(--border-soft); color:var(--ink);}
+  .sheet-scroll table td{padding:4px 8px; border:1px solid var(--grid); color:var(--ink);}
   .sheet-scroll .sheet-empty{padding:24px; text-align:center; color:var(--ink-faint); font-size:13px; white-space:normal;}
 
   /* Hojas crudas sin render dedicado (Estados Financieros, Márgenes,
@@ -626,7 +650,7 @@
           <div id="chartScenarios"></div>
         </div>
         <div class="chart-card">
-          <div class="chart-title">Zonas de valor vs. precio actual</div>
+          <div class="chart-title">Zonas de valor vs. precio y objetivos</div>
           <div id="chartZones"></div>
         </div>
       </div>
@@ -940,11 +964,16 @@
     return '<svg viewBox="0 0 ' + W + ' ' + H + '" class="chart-svg" role="img" aria-label="Precio objetivo por escenario">' + bars + refLine + '</svg>';
   }
 
-  // Franjas horizontales de rango [min,max] para cada zona de valor, con
-  // una línea vertical marcando dónde cae el precio actual — se ve de un
-  // vistazo si ya está en zona de compra y en cuál. Color verde (--positive)
-  // a propósito: son zonas de entrada atractiva, no precios objetivo.
-  function buildZonesChart(precioActual, zonas){
+  // Franjas horizontales de rango [min,max] para cada zona de valor, más
+  // líneas verticales de referencia: precio al día del análisis y precio
+  // de hoy (si difieren — Excel puede quedar desactualizado apenas se
+  // consulta un precio en vivo) y los 3 precios objetivo
+  // (Conservador/Base/Optimista), para ver de un vistazo cuánto recorrido
+  // hay de las zonas de compra a cada objetivo. Un legend con muestras de
+  // color (no texto sobre cada línea) evita que 5 etiquetas se encimen.
+  // Color verde (--positive) en las barras a propósito: son zonas de
+  // entrada atractiva, no precios objetivo.
+  function buildZonesChart(precioAnalisis, precioHoy, zonas, objetivoPonderado){
     if(!zonas) return '<div class="chart-empty">Sin datos suficientes.</div>';
     var rows = [
       { label: 'Precio con MOS', z: zonas.conMOS },
@@ -953,11 +982,26 @@
       { label: 'Value', z: zonas.value }
     ].filter(function(r){ return r.z && typeof r.z.min === 'number' && typeof r.z.max === 'number' && isFinite(r.z.min) && isFinite(r.z.max); });
     if(!rows.length) return '<div class="chart-empty">Sin datos suficientes.</div>';
-    var W = 340, rowH = 42, padTop = 20, padBottom = 6, padLeft = 116, padRight = 12;
+
+    var refs = [];
+    var anaVal = (typeof precioAnalisis === 'number' && isFinite(precioAnalisis)) ? precioAnalisis : null;
+    var hoyVal = (typeof precioHoy === 'number' && isFinite(precioHoy)) ? precioHoy : null;
+    if(anaVal !== null && hoyVal !== null && Math.abs(anaVal - hoyVal) < 0.005){
+      refs.push({ value: hoyVal, label: 'Actual', cls: 'chart-ref-hoy' });
+    } else {
+      if(anaVal !== null) refs.push({ value: anaVal, label: 'Análisis', cls: 'chart-ref' });
+      if(hoyVal !== null) refs.push({ value: hoyVal, label: 'Hoy', cls: 'chart-ref-hoy' });
+    }
+    if(objetivoPonderado){
+      if(typeof objetivoPonderado.conservador === 'number' && isFinite(objetivoPonderado.conservador)) refs.push({ value: objetivoPonderado.conservador, label: 'Conservador', cls: 'chart-ref-cons' });
+      if(typeof objetivoPonderado.base === 'number' && isFinite(objetivoPonderado.base)) refs.push({ value: objetivoPonderado.base, label: 'Base', cls: 'chart-ref-base' });
+      if(typeof objetivoPonderado.optimista === 'number' && isFinite(objetivoPonderado.optimista)) refs.push({ value: objetivoPonderado.optimista, label: 'Optimista', cls: 'chart-ref-opt' });
+    }
+
+    var W = 640, rowH = 42, padTop = 22, padBottom = 6, padLeft = 140, padRight = 16;
     var H = padTop + padBottom + rows.length * rowH;
-    var allVals = rows.reduce(function(a, r){ return a.concat([r.z.min, r.z.max]); }, []);
-    if(typeof precioActual === 'number' && isFinite(precioActual)) allVals.push(precioActual);
-    var maxV = Math.max.apply(null, allVals) * 1.08;
+    var allVals = rows.reduce(function(a, r){ return a.concat([r.z.min, r.z.max]); }, []).concat(refs.map(function(r){ return r.value; }));
+    var maxV = Math.max.apply(null, allVals) * 1.06;
     var minV = Math.min(0, Math.min.apply(null, allVals) * 0.95);
     var plotW = W - padLeft - padRight;
     function x(v){ return padLeft + plotW * ((v - minV) / (maxV - minV)); }
@@ -972,13 +1016,14 @@
         '<rect x="' + x1 + '" y="' + (barY - 7) + '" width="' + Math.max(x2 - x1, 2) + '" height="14" rx="5" class="chart-zone-bar"><title>' + r.label + ': ' + fmtMoney(r.z.min) + ' – ' + fmtMoney(r.z.max) + '</title></rect>' +
         '<text x="' + ((x1 + x2) / 2) + '" y="' + (rowCenter - 9) + '" text-anchor="middle" class="chart-zone-val">' + fmtMoney(r.z.min) + '–' + fmtMoney(r.z.max) + '</text></g>';
     }).join('');
-    var marker = '';
-    if(typeof precioActual === 'number' && isFinite(precioActual)){
-      var mx = x(precioActual);
-      marker = '<line x1="' + mx + '" y1="' + (padTop - 4) + '" x2="' + mx + '" y2="' + H + '" class="chart-ref"/>' +
-        '<text x="' + mx + '" y="' + (padTop - 8) + '" text-anchor="middle" class="chart-ref-lbl">Actual ' + fmtMoney(precioActual) + '</text>';
-    }
-    return '<svg viewBox="0 0 ' + W + ' ' + H + '" class="chart-svg" role="img" aria-label="Zonas de valor vs. precio actual">' + bars + marker + '</svg>';
+    var lines = refs.map(function(r){
+      var rx = x(r.value);
+      return '<line x1="' + rx + '" y1="' + (padTop - 6) + '" x2="' + rx + '" y2="' + H + '" class="' + r.cls + '"><title>' + r.label + ': ' + fmtMoney(r.value) + '</title></line>';
+    }).join('');
+    var legend = refs.length ? ('<div class="chart-legend">' + refs.map(function(r){
+      return '<span class="chart-legend-item"><span class="chart-legend-swatch ' + r.cls + '-sw"></span>' + r.label + ' ' + fmtMoney(r.value) + '</span>';
+    }).join('') + '</div>') : '';
+    return legend + '<svg viewBox="0 0 ' + W + ' ' + H + '" class="chart-svg" role="img" aria-label="Zonas de valor vs. precios de referencia">' + bars + lines + '</svg>';
   }
 
   function renderCharts(){
@@ -986,7 +1031,7 @@
     var zEl = document.getElementById('chartZones');
     if(!scEl || !zEl || !currentResumen) return;
     scEl.innerHTML = buildScenarioChart(currentResumen.precio, currentResumen.objetivoPonderado);
-    zEl.innerHTML = buildZonesChart(currentResumen.precio, currentResumen.zonas);
+    zEl.innerHTML = buildZonesChart(currentResumen.precioAnalisis, currentResumen.precio, currentResumen.zonas, currentResumen.objetivoPonderado);
   }
 
   // Actualiza la mini-tabla "Precio de hoy vs. precio al día del análisis" —
@@ -2374,7 +2419,7 @@
         document.getElementById('rPrice').textContent = fmtMoney(q.price);
         note.textContent = 'En vivo · ' + new Date().toLocaleTimeString();
         renderPriceCompare(currentPrecioAnalisis, q.price);
-        if(currentResumen) currentResumen.precio = q.price;
+        if(currentResumen){ currentResumen.precio = q.price; renderCharts(); }
       } else {
         note.textContent = 'Dato del Excel (FMP no reportó precio para este ticker)';
       }
