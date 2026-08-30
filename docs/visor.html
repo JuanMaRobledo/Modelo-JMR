@@ -230,6 +230,24 @@
   .sheet-scroll table td{padding:4px 8px; border:1px solid var(--border-soft); color:var(--ink);}
   .sheet-scroll .sheet-empty{padding:24px; text-align:center; color:var(--ink-faint); font-size:13px; white-space:normal;}
 
+  /* Hojas de texto/análisis cualitativo (párrafos largos, no tablas
+     numéricas): el nowrap general de arriba las vuelve ilegibles — hay que
+     poder envolver el texto y darle aire para leerlo sin scroll horizontal. */
+  .sheet-scroll.prose{overflow-x:hidden;}
+  .sheet-scroll.prose table{table-layout:fixed; width:100%; font-size:13px;}
+  .sheet-scroll.prose table td{
+    white-space:pre-wrap; word-break:break-word; vertical-align:top; line-height:1.55;
+    padding:10px 14px;
+  }
+  .sheet-scroll.prose table td:first-child{
+    font-weight:700; color:var(--ink-soft); background:var(--surface-2); width:230px; white-space:pre-wrap;
+  }
+  .sheet-scroll.prose table td:empty{padding:0; border-color:transparent;}
+  .sheet-scroll.prose table td.qual-title{
+    font-weight:800; font-size:14px; color:var(--ink); background:var(--surface-2);
+    border-bottom:2px solid var(--border); white-space:pre-wrap;
+  }
+
   .gh-section{background:var(--surface); border:1px solid var(--border-soft); border-radius:14px; padding:18px 22px; box-shadow:var(--shadow); margin-top:24px;}
   .gh-section h3{font-family:"Fraunces", Georgia, serif; font-size:19px; margin:0 0 4px; font-weight:700;}
   .gh-section .sub{color:var(--ink-soft); font-size:12.5px; margin:0 0 14px; line-height:1.5;}
@@ -571,6 +589,10 @@
     analisis: ['Márgenes', 'Eficiencia de capital', 'Salud Financiera', 'Por acción', 'Dividendos', 'Estadísticas', 'Cualitativo', 'Crecimiento y Márgenes', 'Diagnostics', 'Stories to Numbers', 'Valuation as picture', 'Option value']
   };
   var sheetHtmlCache = {};
+  // Hojas de texto narrativo (análisis cualitativo, historia de la
+  // empresa, diagnóstico con preguntas largas) — se muestran envolviendo
+  // el texto en vez de con el nowrap de las tablas numéricas.
+  var PROSE_SHEETS = {'Cualitativo':1, 'Stories to Numbers':1, 'Diagnostics':1};
 
   function fmtMoney(v){
     if(v === undefined || v === null || typeof v !== 'number' || isNaN(v)) return '—';
@@ -757,6 +779,29 @@
     rcPrefillFromExcel();
   }
 
+  // En hojas de texto (Cualitativo, etc.), las filas donde solo la primera
+  // celda tiene contenido son títulos/encabezados de sección (el resto de
+  // la fila queda vacía por el rango cuadrado que arma sheet_to_html) — se
+  // extienden a todo el ancho en vez de quedar apretadas en la columna
+  // angosta de las filas etiqueta:valor.
+  function widenTitleRows(html){
+    var tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    var table = tmp.querySelector('table');
+    if(!table) return html;
+    Array.prototype.forEach.call(table.rows, function(tr){
+      var cells = Array.prototype.slice.call(tr.cells);
+      if(!cells.length) return;
+      var nonEmpty = cells.filter(function(td){ return td.textContent.trim() !== ''; });
+      if(nonEmpty.length === 1 && cells[0] === nonEmpty[0]){
+        cells[0].colSpan = cells.length;
+        cells[0].className = 'qual-title';
+        for(var i = cells.length - 1; i >= 1; i--) tr.removeChild(cells[i]);
+      }
+    });
+    return tmp.innerHTML;
+  }
+
   function renderGenericSheet(name){
     if(sheetHtmlCache[name] !== undefined) return sheetHtmlCache[name];
     var ws = currentWb && currentWb.Sheets[name];
@@ -765,6 +810,7 @@
       html = '<div class="sheet-empty">Este archivo no tiene la hoja "' + name + '".</div>';
     } else {
       html = XLSX.utils.sheet_to_html(ws, {header:'', footer:'', editable:false});
+      if(PROSE_SHEETS[name]) html = widenTitleRows(html);
     }
     sheetHtmlCache[name] = html;
     return html;
@@ -788,6 +834,7 @@
     }
     function show(idx){
       containerEl.innerHTML = getHtml(names[idx]);
+      containerEl.classList.toggle('prose', !!PROSE_SHEETS[names[idx]]);
       pillsEl.querySelectorAll('button').forEach(function(b,i){ b.classList.toggle('active', i === idx); });
     }
     pillsEl.querySelectorAll('button').forEach(function(b){
