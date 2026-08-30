@@ -88,8 +88,6 @@
 
   .upload-or{display:flex; align-items:center; gap:10px; margin:16px 0 10px; font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint);}
   .upload-or::before, .upload-or::after{content:''; flex:1; height:1px; background:var(--border-soft);}
-  .drive-setup{background:var(--surface-2); border:1px solid var(--border-soft); border-radius:10px; padding:12px 14px; margin-top:8px;}
-  .drive-setup .field-help{margin:0 0 10px;}
 
   /* "Cargar datos" agrupa subir-Excel-nuevo y valoraciones-guardadas lado a
      lado al final de la página, en vez de que el dropzone grande sea lo
@@ -816,27 +814,15 @@
         <div class="hint">Se procesa en tu navegador — el archivo nunca se sube a ningún servidor</div>
       </label>
 
-      <div class="upload-or"><span>o desde Google Drive</span></div>
+      <div class="upload-or"><span>o desde Google Sheets</span></div>
       <div class="gh-row">
-        <button class="gh-btn" id="drivePickerBtn" type="button">📁 Elegir archivo de Drive</button>
-      </div>
-      <div class="gh-row">
-        <input id="driveLinkInput" type="text" placeholder="…o pega un enlace de Google Drive" autocomplete="off" spellcheck="false">
-        <button class="gh-btn" id="driveLinkBtn" type="button">Cargar enlace</button>
+        <input id="driveLinkInput" type="url" inputmode="url" placeholder="Pega el enlace de una hoja de Google Sheets compartida" autocomplete="off" spellcheck="false">
+        <button class="gh-btn" id="driveLinkBtn" type="button">Importar hoja</button>
       </div>
       <p class="gh-status" id="driveStatus"></p>
-      <p class="field-help" style="margin:2px 0 0;"><a href="#" id="driveSetupToggle" style="color:inherit;">⚙️ Configurar acceso a Google Drive</a> (una sola vez — hace falta tanto para elegir como para pegar un enlace)</p>
-      <div id="driveSetupForm" class="drive-setup" hidden>
-        <p class="field-help">Google exige credenciales propias para conectar apps externas a Drive — se crean gratis, una sola vez, en <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener">Google Cloud Console</a>: un <b>Client ID de OAuth</b> (tipo "Aplicación web", con este dominio agregado en "Orígenes autorizados de JavaScript") y una <b>Clave de API</b>, con la API de Google Picker y la API de Google Drive habilitadas en el proyecto.</p>
-        <div class="gh-row"><input id="driveClientIdInput" type="text" placeholder="Client ID de OAuth (termina en .apps.googleusercontent.com)" autocomplete="off" spellcheck="false"></div>
-        <div class="gh-row"><input id="driveApiKeyInput" type="text" placeholder="Clave de API de Google" autocomplete="off" spellcheck="false"></div>
-        <div class="gh-row">
-          <button class="gh-btn primary" id="driveSaveCredsBtn" type="button">Guardar</button>
-          <button class="gh-btn" id="driveForgetCredsBtn" type="button">Olvidar</button>
-        </div>
-      </div>
+      <a href="#" id="driveDownloadLink" target="_blank" rel="noopener" class="field-help" style="display:none; margin:2px 0 0;">Descargar como Excel para subirlo manualmente arriba →</a>
 
-      <p class="privacy-note">Lee la hoja "Resumen de Valoración" para el resumen, y las demás hojas del Modelo JMR involucradas en la valoración para las pestañas de detalle. El archivo no se envía a ningún lado (ni siquiera el de Drive): se descarga directo a tu navegador y el análisis ocurre localmente. Con Drive, Google te pide autorización la primera vez; ese acceso y tus credenciales quedan guardados solo en este navegador.</p>
+      <p class="privacy-note">Lee la hoja "Resumen de Valoración" para el resumen, y las demás hojas del Modelo JMR involucradas en la valoración para las pestañas de detalle. El archivo no se envía a ningún lado. Para importar por enlace, la hoja de Google Sheets debe tener acceso "Cualquier persona con el enlace" — no se solicita ni se envía acceso a tu cuenta de Google, solo se pide a Google que la exporte como Excel.</p>
     </div>
 
     <div class="gh-section" id="savedSection">
@@ -2714,77 +2700,28 @@
     if(e.dataTransfer.files && e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
   });
 
-  // --- Cargar desde Google Drive (elegir con el picker, o pegar un
-  // enlace) — ambos caminos comparten una sola conexión OAuth. Google
-  // exige credenciales propias por app (Client ID + Clave de API, creadas
-  // gratis en Google Cloud Console); se guardan en este navegador
-  // (localStorage) igual que el token de GitHub. El token de ACCESO en sí
-  // (lo que autoriza a leer Drive, distinto de esas credenciales) vive
-  // solo en memoria — expira solo, no hace falta "cerrar sesión".
-  var DRIVE_CLIENT_ID_KEY = 'jmr-drive-client-id';
-  var DRIVE_API_KEY_KEY = 'jmr-drive-api-key';
-  var DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.readonly';
-  function getDriveClientId(){ try { return (localStorage.getItem(DRIVE_CLIENT_ID_KEY) || '').trim(); } catch(e){ return ''; } }
-  function setDriveClientId(v){ try { localStorage.setItem(DRIVE_CLIENT_ID_KEY, (v||'').trim()); } catch(e){} }
-  function getDriveApiKey(){ try { return (localStorage.getItem(DRIVE_API_KEY_KEY) || '').trim(); } catch(e){ return ''; } }
-  function setDriveApiKey(v){ try { localStorage.setItem(DRIVE_API_KEY_KEY, (v||'').trim()); } catch(e){} }
-  function hasDriveCreds(){ return !!(getDriveClientId() && getDriveApiKey()); }
-
-  var driveAccessToken = null;
-  var driveTokenClient = null;
-  var loadedScripts = {};
-  function loadScriptOnce(src){
-    if(!loadedScripts[src]){
-      loadedScripts[src] = new Promise(function(resolve, reject){
-        var s = document.createElement('script');
-        s.src = src;
-        s.async = true;
-        s.onload = function(){ resolve(); };
-        s.onerror = function(){ reject(new Error('No se pudo cargar ' + src + ' — revisa tu conexión.')); };
-        document.head.appendChild(s);
-      });
-    }
-    return loadedScripts[src];
+  // --- Importar desde Google Sheets (pegando un enlace) ------------------
+  // Nada de OAuth ni credenciales de Google Cloud: Google Sheets tiene su
+  // propio endpoint público de exportación (.../export?format=xlsx), que
+  // si sirve CORS para hojas compartidas "Cualquier persona con el
+  // enlace" — se puede pedir por fetch() directo desde el navegador, sin
+  // pedirle permiso a la cuenta de Google del usuario. (El intento previo
+  // con el picker de Drive + OAuth quedaba bloqueado por la pantalla de
+  // verificación de Google mientras la app no esté publicada — este
+  // camino la evita por completo. Mismo patrón ya probado en
+  // Modelo-JMR-desarrollo.) Solo cubre Google Sheets, no cualquier
+  // archivo de Drive — para un .xlsx/.csv ya guardado en Drive, se
+  // descarga y se sube con el dropzone de arriba.
+  function googleSheetId(value){
+    var raw = String(value || '').trim();
+    var m = raw.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
+    if(m) return m[1];
+    if(/^[a-zA-Z0-9_-]{20,}$/.test(raw)) return raw;
+    return '';
   }
-
-  function getDriveAccessToken(){
-    return loadScriptOnce('https://accounts.google.com/gsi/client').then(function(){
-      return new Promise(function(resolve, reject){
-        if(!driveTokenClient){
-          driveTokenClient = google.accounts.oauth2.initTokenClient({
-            client_id: getDriveClientId(),
-            scope: DRIVE_SCOPE,
-            callback: function(resp){
-              if(resp && resp.access_token){ driveAccessToken = resp.access_token; resolve(driveAccessToken); }
-              else reject(new Error('Google no devolvió acceso — ¿cancelaste el permiso?'));
-            },
-            error_callback: function(err){ reject(new Error((err && err.type) || 'Falló la autorización con Google.')); }
-          });
-        }
-        driveTokenClient.requestAccessToken();
-      });
-    });
+  function googleSheetExportUrl(id){
+    return 'https://docs.google.com/spreadsheets/d/' + encodeURIComponent(id) + '/export?format=xlsx';
   }
-
-  // Un Google Sheet nativo no tiene bytes propios de .xlsx (mimeType
-  // "application/vnd.google-apps.spreadsheet") — hay que pedirle a Drive
-  // que lo EXPORTE a .xlsx primero. Cualquier otro archivo (un .xlsx o
-  // .csv subido tal cual a Drive) se descarga directo con alt=media.
-  function downloadDriveFile(fileId, mimeType){
-    var url = /^application\/vnd\.google-apps\./.test(mimeType || '')
-      ? 'https://www.googleapis.com/drive/v3/files/' + fileId + '/export?mimeType=' + encodeURIComponent('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-      : 'https://www.googleapis.com/drive/v3/files/' + fileId + '?alt=media';
-    return fetch(url, { headers: { Authorization: 'Bearer ' + driveAccessToken } }).then(function(res){
-      if(!res.ok) throw new Error('Google Drive respondió ' + res.status + ' — revisa que el archivo exista y que tengas acceso a él.');
-      return res.arrayBuffer();
-    }).then(function(buf){ return new Uint8Array(buf); });
-  }
-
-  function extractDriveFileId(url){
-    var m = /\/d\/([a-zA-Z0-9_-]{10,})/.exec(url) || /[?&]id=([a-zA-Z0-9_-]{10,})/.exec(url);
-    return m ? m[1] : null;
-  }
-
   function setDriveStatus(msg, isError){
     var el = document.getElementById('driveStatus');
     if(!el) return;
@@ -2792,102 +2729,44 @@
     el.style.color = isError ? 'var(--negative)' : '';
   }
 
-  function loadFromDrive(fileId, mimeType, label){
-    setDriveStatus('Descargando ' + (label || 'archivo') + ' desde Drive…');
-    return downloadDriveFile(fileId, mimeType).then(function(bytes){
-      var wb = parseWorkbookFromBytes(bytes, label || '');
-      if(!wb.SheetNames || !wb.SheetNames.length) throw new Error('no se reconoció ninguna hoja en el archivo descargado');
-      render(wb);
-      setDriveStatus('Cargado ✓');
-    }).catch(function(err){
-      setDriveStatus('No se pudo cargar desde Drive: ' + err.message, true);
-    });
-  }
-
-  function needsDriveSetup(){
-    if(hasDriveCreds()) return false;
-    document.getElementById('driveSetupForm').hidden = false;
-    setDriveStatus('Configura tu Client ID y Clave de API primero (abajo).', true);
-    return true;
-  }
-
-  function openDrivePicker(){
-    if(needsDriveSetup()) return;
-    setDriveStatus('Conectando con Google…');
-    Promise.all([getDriveAccessToken(), loadScriptOnce('https://apis.google.com/js/api.js')])
-      .then(function(results){
-        var token = results[0];
-        return new Promise(function(resolve){ gapi.load('picker', resolve); }).then(function(){ return token; });
-      })
-      .then(function(token){
-        setDriveStatus('');
-        new google.picker.PickerBuilder()
-          .addView(new google.picker.DocsView()
-            .setMimeTypes('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv,application/vnd.google-apps.spreadsheet'))
-          .setOAuthToken(token)
-          .setDeveloperKey(getDriveApiKey())
-          .setCallback(function(data){
-            if(data.action === google.picker.Action.PICKED){
-              var doc = data.docs[0];
-              loadFromDrive(doc.id, doc.mimeType, doc.name);
-            }
-          })
-          .build()
-          .setVisible(true);
-      })
-      .catch(function(err){ setDriveStatus('No se pudo abrir el selector de Drive: ' + err.message, true); });
-  }
-
-  function loadFromDriveLink(){
+  function loadFromGoogleSheetLink(){
     var linkInput = document.getElementById('driveLinkInput');
     var url = (linkInput.value || '').trim();
-    if(!url){ setDriveStatus('Pega un enlace de Google Drive primero.', true); return; }
-    var fileId = extractDriveFileId(url);
-    if(!fileId){ setDriveStatus('No reconozco ese enlace de Drive — cópialo desde "Compartir → Copiar enlace".', true); return; }
-    if(needsDriveSetup()) return;
-    setDriveStatus('Conectando con Google…');
-    getDriveAccessToken().then(function(){
-      // El enlace no trae el nombre/mimeType del archivo — se piden antes
-      // de descargar para saber si es un Google Sheet nativo (necesita
-      // exportarse) o un archivo subido tal cual (se descarga directo).
-      return fetch('https://www.googleapis.com/drive/v3/files/' + fileId + '?fields=name,mimeType', {
-        headers: { Authorization: 'Bearer ' + driveAccessToken }
-      }).then(function(res){
-        if(!res.ok) throw new Error('Google Drive respondió ' + res.status + ' — revisa el enlace y que tengas acceso al archivo.');
-        return res.json();
-      });
-    }).then(function(meta){
-      return loadFromDrive(fileId, meta.mimeType, meta.name);
-    }).catch(function(err){
-      setDriveStatus('No se pudo cargar desde Drive: ' + err.message, true);
-    });
+    var id = googleSheetId(url);
+    var downloadLink = document.getElementById('driveDownloadLink');
+    if(!id){
+      setDriveStatus('No reconozco ese enlace — copia la URL completa desde Google Sheets.', true);
+      linkInput.focus();
+      return;
+    }
+    var exportUrl = googleSheetExportUrl(id);
+    downloadLink.href = exportUrl;
+    downloadLink.style.display = 'none';
+    var btn = document.getElementById('driveLinkBtn');
+    btn.disabled = true;
+    setDriveStatus('Solicitando la hoja a Google…');
+    fetch(exportUrl, { method: 'GET', mode: 'cors', credentials: 'omit', redirect: 'follow' })
+      .then(function(res){
+        if(!res.ok) throw new Error('Google respondió ' + res.status);
+        return res.arrayBuffer();
+      })
+      .then(function(buf){
+        if(!buf || buf.byteLength < 100) throw new Error('la exportación llegó vacía');
+        var wb = parseWorkbookFromBytes(new Uint8Array(buf), 'sheet.xlsx');
+        if(!wb.SheetNames || !wb.SheetNames.length) throw new Error('no se reconoció ninguna hoja');
+        render(wb);
+        setDriveStatus('Importado ✓');
+      })
+      .catch(function(){
+        setDriveStatus('Google no permitió la importación directa. Comprueba que la hoja tenga acceso "Cualquier persona con el enlace", o descárgala como Excel y súbela con el dropzone de arriba.', true);
+        downloadLink.style.display = 'inline';
+      })
+      .finally(function(){ btn.disabled = false; });
   }
 
-  document.getElementById('drivePickerBtn').addEventListener('click', openDrivePicker);
-  document.getElementById('driveLinkBtn').addEventListener('click', loadFromDriveLink);
-  document.getElementById('driveSetupToggle').addEventListener('click', function(e){
-    e.preventDefault();
-    var form = document.getElementById('driveSetupForm');
-    form.hidden = !form.hidden;
-    if(!form.hidden){
-      document.getElementById('driveClientIdInput').value = getDriveClientId();
-      document.getElementById('driveApiKeyInput').value = getDriveApiKey();
-    }
-  });
-  document.getElementById('driveSaveCredsBtn').addEventListener('click', function(){
-    setDriveClientId(document.getElementById('driveClientIdInput').value);
-    setDriveApiKey(document.getElementById('driveApiKeyInput').value);
-    driveTokenClient = null;
-    driveAccessToken = null;
-    setDriveStatus(hasDriveCreds() ? 'Credenciales guardadas ✓' : 'Credenciales borradas.');
-    document.getElementById('driveSetupForm').hidden = true;
-  });
-  document.getElementById('driveForgetCredsBtn').addEventListener('click', function(){
-    setDriveClientId(''); setDriveApiKey('');
-    driveTokenClient = null; driveAccessToken = null;
-    document.getElementById('driveClientIdInput').value = '';
-    document.getElementById('driveApiKeyInput').value = '';
-    setDriveStatus('Credenciales de Drive olvidadas.');
+  document.getElementById('driveLinkBtn').addEventListener('click', loadFromGoogleSheetLink);
+  document.getElementById('driveLinkInput').addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){ e.preventDefault(); loadFromGoogleSheetLink(); }
   });
 
   var savedTheme = 'system';
