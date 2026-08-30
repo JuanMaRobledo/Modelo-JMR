@@ -454,6 +454,10 @@
   .saved-item .si-actions{display:flex; gap:6px; flex-wrap:wrap;}
   .gh-btn.danger{border-color:var(--negative); color:var(--negative);}
   .gh-btn.danger:hover{background:var(--negative-soft);}
+  .gh-status-badge{
+    display:inline-flex; align-items:center; gap:6px; font-size:12.5px; font-weight:600;
+    background:var(--positive-soft); color:var(--positive); padding:6px 12px; border-radius:999px;
+  }
 
   footer{margin-top:32px; font-size:12px; color:var(--ink-faint); line-height:1.6; border-top:1px solid var(--border-soft); padding-top:16px;}
 </style>
@@ -737,11 +741,8 @@
 
   <div class="gh-section" id="savedSection">
     <h3>Valoraciones guardadas</h3>
-    <p class="sub">Consulta valoraciones que hayas guardado antes desde este visor — no necesitas volver a subir el Excel. Requiere el mismo token de acceso de GitHub con permiso sobre el repo privado <code>Modelo-JMR-datos</code>, guardado solo en este navegador.</p>
-    <div class="gh-row" id="ghTokenRow">
-      <input id="ghToken" type="password" placeholder="Personal Access Token de GitHub (repo Modelo-JMR-datos)" autocomplete="off" spellcheck="false">
-      <button class="gh-btn" id="saveGhTokenBtn" type="button">Guardar token</button>
-    </div>
+    <p class="sub">Consulta valoraciones que hayas guardado antes desde este visor — no necesitas volver a subir el Excel. Se conecta una sola vez a tu repo privado de GitHub (<code>Modelo-JMR-datos</code>); el navegador recuerda la conexión después, no hace falta volver a escribir nada.</p>
+    <div id="ghConnect"></div>
     <div class="gh-row">
       <button class="gh-btn" id="loadSavedBtn" type="button">Cargar lista</button>
       <button class="gh-btn" id="toggleArchiveBtn" type="button" hidden>Ver archivadas</button>
@@ -1747,20 +1748,25 @@
     rcPrefillFromExcel();
   }
 
+  // El token de GitHub se conecta una sola vez, desde "Valoraciones
+  // guardadas" (ver renderGhConnect) — este bloque de guardado ya no pide
+  // su propia copia del token; solo lo usa si ya está conectado, y si no,
+  // manda a la sección donde sí se conecta (en vez de duplicar el campo).
   function renderSaveBlock(){
     var el = document.getElementById('saveBlock');
     if(!el) return;
     if(!currentResumen){ el.innerHTML = ''; return; }
+    if(!getGhToken()){
+      el.innerHTML = '<p class="gh-status">Conecta tu GitHub una vez en "Valoraciones guardadas" (más abajo) para poder guardar — después no hace falta repetirlo.</p>';
+      return;
+    }
     el.innerHTML =
-      '<div class="gh-row"><input id="saveGhToken" type="password" placeholder="Personal Access Token de GitHub" autocomplete="off" spellcheck="false" value="' + getGhToken().replace(/"/g,'&quot;') + '"></div>' +
+      '<div class="gh-row"><span class="gh-status-badge">✓ GitHub conectado</span></div>' +
       '<div class="gh-row"><button class="gh-btn primary" id="saveValBtn" type="button">Guardar valoración</button></div>' +
       '<p class="gh-status" id="saveStatus"></p>';
-    var tokenInput = document.getElementById('saveGhToken');
-    tokenInput.addEventListener('change', function(){ setGhToken(tokenInput.value); });
     document.getElementById('saveValBtn').addEventListener('click', function(){
-      setGhToken(tokenInput.value);
       var status = document.getElementById('saveStatus');
-      if(!getGhToken()){ status.textContent = 'Pega tu Personal Access Token de GitHub arriba primero.'; return; }
+      if(!getGhToken()){ status.textContent = 'Conecta tu GitHub en "Valoraciones guardadas" primero.'; return; }
       var btn = document.getElementById('saveValBtn');
       btn.disabled = true;
       status.textContent = 'Guardando…';
@@ -1799,12 +1805,48 @@
     });
   }
 
-  var ghTokenInput = document.getElementById('ghToken');
-  ghTokenInput.value = getGhToken();
-  document.getElementById('saveGhTokenBtn').addEventListener('click', function(){
-    setGhToken(ghTokenInput.value);
-    document.getElementById('savedStatus').textContent = 'Token guardado en este navegador.';
-  });
+  // Único punto de conexión con GitHub de toda la página: mientras no haya
+  // token guardado, muestra el campo para pegarlo; una vez guardado
+  // (localStorage, solo en este navegador), muestra un estado "conectado"
+  // en vez del campo — así no hay que volver a escribirlo ni verlo de
+  // nuevo cada vez que se quiere guardar o cargar una valoración.
+  function renderGhConnect(){
+    var el = document.getElementById('ghConnect');
+    if(!el) return;
+    var token = getGhToken();
+    if(token){
+      el.innerHTML =
+        '<div class="gh-row"><span class="gh-status-badge">✓ GitHub conectado</span>' +
+        '<button class="gh-btn" id="ghChangeBtn" type="button">Cambiar</button>' +
+        '<button class="gh-btn" id="ghForgetBtn" type="button">Olvidar</button></div>';
+      document.getElementById('ghChangeBtn').addEventListener('click', showGhConnectForm);
+      document.getElementById('ghForgetBtn').addEventListener('click', function(){
+        setGhToken('');
+        renderGhConnect();
+        renderSaveBlock();
+        document.getElementById('savedStatus').textContent = 'Token olvidado en este navegador.';
+      });
+    } else {
+      showGhConnectForm();
+    }
+  }
+  function showGhConnectForm(){
+    var el = document.getElementById('ghConnect');
+    el.innerHTML =
+      '<div class="gh-row"><input id="ghTokenInput" type="password" placeholder="Personal Access Token de GitHub (repo Modelo-JMR-datos)" autocomplete="off" spellcheck="false" value="' + getGhToken().replace(/"/g,'&quot;') + '">' +
+      '<button class="gh-btn primary" id="ghConnectBtn" type="button">Conectar</button></div>';
+    var tokenInput = document.getElementById('ghTokenInput');
+    document.getElementById('ghConnectBtn').addEventListener('click', function(){
+      setGhToken(tokenInput.value);
+      renderGhConnect();
+      renderSaveBlock();
+      document.getElementById('savedStatus').textContent = getGhToken() ? 'Conectado — este navegador lo recuerda de ahora en adelante.' : '';
+    });
+    tokenInput.addEventListener('keydown', function(e){
+      if(e.key === 'Enter') document.getElementById('ghConnectBtn').click();
+    });
+  }
+  renderGhConnect();
 
   var viewingArchive = false;
 
