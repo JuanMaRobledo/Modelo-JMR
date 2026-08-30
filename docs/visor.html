@@ -86,6 +86,11 @@
 
   .privacy-note{font-size:11.5px; color:var(--ink-faint); margin-top:10px; line-height:1.5;}
 
+  .upload-or{display:flex; align-items:center; gap:10px; margin:16px 0 10px; font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint);}
+  .upload-or::before, .upload-or::after{content:''; flex:1; height:1px; background:var(--border-soft);}
+  .drive-setup{background:var(--surface-2); border:1px solid var(--border-soft); border-radius:10px; padding:12px 14px; margin-top:8px;}
+  .drive-setup .field-help{margin:0 0 10px;}
+
   /* "Cargar datos" agrupa subir-Excel-nuevo y valoraciones-guardadas lado a
      lado al final de la página, en vez de que el dropzone grande sea lo
      primero que ocupa la pantalla en cada visita. */
@@ -803,14 +808,35 @@
   <div class="data-grid">
     <div class="gh-section">
       <h3>Subir un Excel nuevo</h3>
-      <p class="sub">Sube tu Excel del Modelo JMR (DCF Damodaran + 5 múltiplos) ya lleno para un ticker, y lo verás resumido arriba — sin abrir Excel.</p>
+      <p class="sub">Sube tu Excel del Modelo JMR (DCF Damodaran + 5 múltiplos) ya lleno para un ticker, o un CSV exportado desde este mismo visor — y lo verás resumido arriba, sin abrir Excel.</p>
       <label class="dropzone" id="dropzone">
-        <input type="file" id="fileInput" accept=".xlsx">
+        <input type="file" id="fileInput" accept=".xlsx,.csv">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
-        <div class="main">Arrastra tu .xlsx aquí, o haz clic para elegir el archivo</div>
+        <div class="main">Arrastra tu .xlsx o .csv aquí, o haz clic para elegir el archivo</div>
         <div class="hint">Se procesa en tu navegador — el archivo nunca se sube a ningún servidor</div>
       </label>
-      <p class="privacy-note">Lee la hoja "Resumen de Valoración" para el resumen, y las demás hojas del Modelo JMR involucradas en la valoración para las pestañas de detalle. El archivo no se envía a ningún lado; el análisis ocurre localmente en tu teléfono o computador.</p>
+
+      <div class="upload-or"><span>o desde Google Drive</span></div>
+      <div class="gh-row">
+        <button class="gh-btn" id="drivePickerBtn" type="button">📁 Elegir archivo de Drive</button>
+      </div>
+      <div class="gh-row">
+        <input id="driveLinkInput" type="text" placeholder="…o pega un enlace de Google Drive" autocomplete="off" spellcheck="false">
+        <button class="gh-btn" id="driveLinkBtn" type="button">Cargar enlace</button>
+      </div>
+      <p class="gh-status" id="driveStatus"></p>
+      <p class="field-help" style="margin:2px 0 0;"><a href="#" id="driveSetupToggle" style="color:inherit;">⚙️ Configurar acceso a Google Drive</a> (una sola vez — hace falta tanto para elegir como para pegar un enlace)</p>
+      <div id="driveSetupForm" class="drive-setup" hidden>
+        <p class="field-help">Google exige credenciales propias para conectar apps externas a Drive — se crean gratis, una sola vez, en <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener">Google Cloud Console</a>: un <b>Client ID de OAuth</b> (tipo "Aplicación web", con este dominio agregado en "Orígenes autorizados de JavaScript") y una <b>Clave de API</b>, con la API de Google Picker y la API de Google Drive habilitadas en el proyecto.</p>
+        <div class="gh-row"><input id="driveClientIdInput" type="text" placeholder="Client ID de OAuth (termina en .apps.googleusercontent.com)" autocomplete="off" spellcheck="false"></div>
+        <div class="gh-row"><input id="driveApiKeyInput" type="text" placeholder="Clave de API de Google" autocomplete="off" spellcheck="false"></div>
+        <div class="gh-row">
+          <button class="gh-btn primary" id="driveSaveCredsBtn" type="button">Guardar</button>
+          <button class="gh-btn" id="driveForgetCredsBtn" type="button">Olvidar</button>
+        </div>
+      </div>
+
+      <p class="privacy-note">Lee la hoja "Resumen de Valoración" para el resumen, y las demás hojas del Modelo JMR involucradas en la valoración para las pestañas de detalle. El archivo no se envía a ningún lado (ni siquiera el de Drive): se descarga directo a tu navegador y el análisis ocurre localmente. Con Drive, Google te pide autorización la primera vez; ese acceso y tus credenciales quedan guardados solo en este navegador.</p>
     </div>
 
     <div class="gh-section" id="savedSection">
@@ -1179,6 +1205,12 @@
   // de la última con texto) — un hueco intermedio no se toca, para no
   // desalinear las columnas reales de una mini-tabla (p. ej. si faltara el
   // "Impacto Estimado" de una noticia pero sí hay "Detalle Corto" después).
+  // El ancho de las celdas quitadas se le suma a la última celda real (vía
+  // colSpan) en vez de perderse: si no, con table-layout:fixed esa fila
+  // queda más corta que las demás y se ve como una columna vacía "de más"
+  // al final (sin borde ni fondo, se nota sobre todo en filas con un color
+  // de fondo destacado, como Bulls/Bears) en vez de que el contenido real
+  // ocupe todo el ancho disponible.
   function removeEmptyCells(html){
     var tmp = document.createElement('div');
     tmp.innerHTML = html;
@@ -1189,9 +1221,16 @@
       if(!cells.length) return;
       var allEmpty = cells.every(function(td){ return td.textContent.trim() === ''; });
       if(allEmpty){ tr.parentNode.removeChild(tr); return; }
+      var removedSpan = 0;
       for(var i = cells.length - 1; i >= 0; i--){
-        if(cells[i].textContent.trim() === '') tr.removeChild(cells[i]);
-        else break;
+        if(cells[i].textContent.trim() === ''){
+          removedSpan += cells[i].colSpan || 1;
+          tr.removeChild(cells[i]);
+        } else break;
+      }
+      if(removedSpan > 0 && tr.cells.length){
+        var lastCell = tr.cells[tr.cells.length - 1];
+        lastCell.colSpan = (lastCell.colSpan || 1) + removedSpan;
       }
     });
     return tmp.innerHTML;
@@ -1377,6 +1416,7 @@
       tdLabel.textContent = f;
       var tdValue = document.createElement('td');
       tdValue.className = 'gov-value';
+      tdValue.colSpan = Math.max(1, totalCols - 1);
       tr.appendChild(tdLabel);
       tr.appendChild(tdValue);
       table.appendChild(tr);
@@ -1844,20 +1884,93 @@
     document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.toggle('active', p.dataset.panel === btn.dataset.tab); });
   });
 
+  // Formato del CSV "todo en uno" que exporta este visor (ver
+  // downloadCsvBundle): cada hoja del Excel es una sección propia,
+  // encabezada por su nombre entre corchetes en su propia línea, seguida
+  // del CSV normal de esa hoja (delega el detalle de comillas/comas en el
+  // propio CSV de SheetJS, tanto para escribir como para leer cada
+  // sección) — así una sola descarga trae TODAS las hojas que el visor
+  // necesita (Input sheet, Cualitativo, Financieros, Valoración, los 5
+  // múltiplos…), no solo una tabla suelta.
+  function buildCsvBundle(wb){
+    var parts = [];
+    (wb.SheetNames || []).forEach(function(name){
+      var ws = wb.Sheets[name];
+      if(!ws || !ws['!ref']) return;
+      parts.push('[' + name + ']\n' + XLSX.utils.sheet_to_csv(ws));
+    });
+    return parts.join('\n\n');
+  }
+  function parseCsvBundle(text){
+    var lines = text.split(/\r\n|\r|\n/);
+    var sections = [], current = null;
+    lines.forEach(function(line){
+      var m = /^\[(.+)\]\s*$/.exec(line);
+      if(m){
+        current = { name: m[1].trim(), lines: [] };
+        sections.push(current);
+      } else if(current){
+        current.lines.push(line);
+      }
+    });
+    var sheets = {}, names = [];
+    sections.forEach(function(sec){
+      var csvText = sec.lines.join('\n').replace(/\n+$/, '');
+      if(!sec.name || !csvText.trim()) return;
+      var subWb = XLSX.read(csvText, {type:'string'});
+      var ws = subWb.Sheets[subWb.SheetNames[0]];
+      if(!ws) return;
+      sheets[sec.name] = ws;
+      names.push(sec.name);
+    });
+    return { SheetNames: names, Sheets: sheets };
+  }
+  function downloadCsvBundle(wb, filenameBase){
+    var text = buildCsvBundle(wb);
+    var blob = new Blob([text], {type:'text/csv;charset=utf-8'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = (filenameBase || 'modelo-jmr').replace(/[^a-z0-9._-]+/gi, '_') + '.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+  }
+  function bytesToText(bytes){
+    try { return new TextDecoder('utf-8').decode(bytes); } catch(e){ return ''; }
+  }
+  // Punto único para convertir bytes crudos (de un <input type=file>, un
+  // drag&drop, o una descarga desde Google Drive) en un workbook — decide
+  // entre el CSV de este visor y un .xlsx real. Con un nombre de archivo
+  // confiable se usa su extensión; un enlace de Drive no siempre trae una,
+  // así que ahí se olfatea el contenido (si el texto tiene una línea
+  // "[Nombre de Hoja]" se asume el CSV de este visor).
+  function parseWorkbookFromBytes(bytes, filenameHint){
+    var name = filenameHint || '';
+    if(/\.csv$/i.test(name)) return parseCsvBundle(bytesToText(bytes));
+    if(/\.xlsx$/i.test(name)) return XLSX.read(bytes, {type:'array', cellDates:true});
+    var text = bytesToText(bytes);
+    if(/^\[.+\]\s*$/m.test(text)) return parseCsvBundle(text);
+    return XLSX.read(bytes, {type:'array', cellDates:true});
+  }
+
   function handleFile(file){
     if(!file) return;
-    if(!/\.xlsx$/i.test(file.name)){
-      showError('Ese archivo no parece un .xlsx. Sube el Excel del Modelo JMR directamente (no un .xls, .csv o Google Sheet exportado a otro formato).');
+    if(!/\.(xlsx|csv)$/i.test(file.name)){
+      showError('Ese archivo no parece un .xlsx o .csv del Modelo JMR. Sube el Excel directamente, o un CSV exportado con el botón "Descargar como CSV" de este visor.');
       return;
     }
     var reader = new FileReader();
     reader.onload = function(e){
       try{
-        var data = new Uint8Array(e.target.result);
-        var wb = XLSX.read(data, {type:'array', cellDates:true});
+        var wb = parseWorkbookFromBytes(new Uint8Array(e.target.result), file.name);
+        if(!wb.SheetNames || !wb.SheetNames.length){
+          throw new Error('no se reconoció ninguna hoja (¿le faltan los encabezados "[Nombre de Hoja]" al CSV?)');
+        }
         render(wb);
       }catch(err){
-        showError('No pude leer este archivo. Verifica que sea un .xlsx válido del Modelo JMR. Detalle técnico: ' + err.message);
+        showError('No pude leer este archivo. Verifica que sea un .xlsx válido del Modelo JMR, o un CSV exportado desde este visor. Detalle técnico: ' + err.message);
       }
     };
     reader.onerror = function(){
@@ -2026,15 +2139,30 @@
     var el = document.getElementById('saveBlock');
     if(!el) return;
     if(!currentResumen){ el.innerHTML = ''; return; }
+    // Descargar como CSV solo tiene sentido con un Excel recién subido en
+    // memoria (currentWb): una valoración guardada reabierta solo trae el
+    // HTML ya renderizado de cada hoja, no la hoja original para volver a
+    // exportarla como CSV.
+    var csvRow = currentWb
+      ? '<div class="gh-row"><button class="gh-btn" id="exportCsvBtn" type="button">Descargar como CSV</button></div>' +
+        '<p class="gh-status" style="margin:0 0 10px;">Edítalo y vuelve a subirlo desde el dropzone de arriba — no necesitas Excel para actualizar valores.</p>'
+      : '';
     if(!getGhToken()){
-      el.innerHTML = '<p class="gh-status">Conecta tu GitHub una vez en "Valoraciones guardadas" (más abajo) para poder guardar — después no hace falta repetirlo.</p>';
-      return;
+      el.innerHTML = csvRow + '<p class="gh-status">Conecta tu GitHub una vez en "Valoraciones guardadas" (más abajo) para poder guardar — después no hace falta repetirlo.</p>';
+    } else {
+      el.innerHTML = csvRow +
+        '<div class="gh-row"><span class="gh-status-badge">✓ GitHub conectado</span></div>' +
+        '<div class="gh-row"><button class="gh-btn primary" id="saveValBtn" type="button">Guardar valoración</button></div>' +
+        '<p class="gh-status" id="saveStatus"></p>';
+      document.getElementById('saveValBtn').addEventListener('click', saveValBtnHandler);
     }
-    el.innerHTML =
-      '<div class="gh-row"><span class="gh-status-badge">✓ GitHub conectado</span></div>' +
-      '<div class="gh-row"><button class="gh-btn primary" id="saveValBtn" type="button">Guardar valoración</button></div>' +
-      '<p class="gh-status" id="saveStatus"></p>';
-    document.getElementById('saveValBtn').addEventListener('click', function(){
+    if(currentWb){
+      document.getElementById('exportCsvBtn').addEventListener('click', function(){
+        downloadCsvBundle(currentWb, currentTicker || 'modelo-jmr');
+      });
+    }
+  }
+  function saveValBtnHandler(){
       var status = document.getElementById('saveStatus');
       if(!getGhToken()){ status.textContent = 'Conecta tu GitHub en "Valoraciones guardadas" primero.'; return; }
       var btn = document.getElementById('saveValBtn');
@@ -2072,7 +2200,6 @@
         status.textContent = 'Error al guardar: ' + err.message;
         btn.disabled = false;
       });
-    });
   }
 
   // Único punto de conexión con GitHub de toda la página: mientras no haya
@@ -2585,6 +2712,182 @@
   dz.addEventListener('drop', function(e){
     e.preventDefault(); dz.classList.remove('drag');
     if(e.dataTransfer.files && e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+  });
+
+  // --- Cargar desde Google Drive (elegir con el picker, o pegar un
+  // enlace) — ambos caminos comparten una sola conexión OAuth. Google
+  // exige credenciales propias por app (Client ID + Clave de API, creadas
+  // gratis en Google Cloud Console); se guardan en este navegador
+  // (localStorage) igual que el token de GitHub. El token de ACCESO en sí
+  // (lo que autoriza a leer Drive, distinto de esas credenciales) vive
+  // solo en memoria — expira solo, no hace falta "cerrar sesión".
+  var DRIVE_CLIENT_ID_KEY = 'jmr-drive-client-id';
+  var DRIVE_API_KEY_KEY = 'jmr-drive-api-key';
+  var DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.readonly';
+  function getDriveClientId(){ try { return (localStorage.getItem(DRIVE_CLIENT_ID_KEY) || '').trim(); } catch(e){ return ''; } }
+  function setDriveClientId(v){ try { localStorage.setItem(DRIVE_CLIENT_ID_KEY, (v||'').trim()); } catch(e){} }
+  function getDriveApiKey(){ try { return (localStorage.getItem(DRIVE_API_KEY_KEY) || '').trim(); } catch(e){ return ''; } }
+  function setDriveApiKey(v){ try { localStorage.setItem(DRIVE_API_KEY_KEY, (v||'').trim()); } catch(e){} }
+  function hasDriveCreds(){ return !!(getDriveClientId() && getDriveApiKey()); }
+
+  var driveAccessToken = null;
+  var driveTokenClient = null;
+  var loadedScripts = {};
+  function loadScriptOnce(src){
+    if(!loadedScripts[src]){
+      loadedScripts[src] = new Promise(function(resolve, reject){
+        var s = document.createElement('script');
+        s.src = src;
+        s.async = true;
+        s.onload = function(){ resolve(); };
+        s.onerror = function(){ reject(new Error('No se pudo cargar ' + src + ' — revisa tu conexión.')); };
+        document.head.appendChild(s);
+      });
+    }
+    return loadedScripts[src];
+  }
+
+  function getDriveAccessToken(){
+    return loadScriptOnce('https://accounts.google.com/gsi/client').then(function(){
+      return new Promise(function(resolve, reject){
+        if(!driveTokenClient){
+          driveTokenClient = google.accounts.oauth2.initTokenClient({
+            client_id: getDriveClientId(),
+            scope: DRIVE_SCOPE,
+            callback: function(resp){
+              if(resp && resp.access_token){ driveAccessToken = resp.access_token; resolve(driveAccessToken); }
+              else reject(new Error('Google no devolvió acceso — ¿cancelaste el permiso?'));
+            },
+            error_callback: function(err){ reject(new Error((err && err.type) || 'Falló la autorización con Google.')); }
+          });
+        }
+        driveTokenClient.requestAccessToken();
+      });
+    });
+  }
+
+  // Un Google Sheet nativo no tiene bytes propios de .xlsx (mimeType
+  // "application/vnd.google-apps.spreadsheet") — hay que pedirle a Drive
+  // que lo EXPORTE a .xlsx primero. Cualquier otro archivo (un .xlsx o
+  // .csv subido tal cual a Drive) se descarga directo con alt=media.
+  function downloadDriveFile(fileId, mimeType){
+    var url = /^application\/vnd\.google-apps\./.test(mimeType || '')
+      ? 'https://www.googleapis.com/drive/v3/files/' + fileId + '/export?mimeType=' + encodeURIComponent('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+      : 'https://www.googleapis.com/drive/v3/files/' + fileId + '?alt=media';
+    return fetch(url, { headers: { Authorization: 'Bearer ' + driveAccessToken } }).then(function(res){
+      if(!res.ok) throw new Error('Google Drive respondió ' + res.status + ' — revisa que el archivo exista y que tengas acceso a él.');
+      return res.arrayBuffer();
+    }).then(function(buf){ return new Uint8Array(buf); });
+  }
+
+  function extractDriveFileId(url){
+    var m = /\/d\/([a-zA-Z0-9_-]{10,})/.exec(url) || /[?&]id=([a-zA-Z0-9_-]{10,})/.exec(url);
+    return m ? m[1] : null;
+  }
+
+  function setDriveStatus(msg, isError){
+    var el = document.getElementById('driveStatus');
+    if(!el) return;
+    el.textContent = msg || '';
+    el.style.color = isError ? 'var(--negative)' : '';
+  }
+
+  function loadFromDrive(fileId, mimeType, label){
+    setDriveStatus('Descargando ' + (label || 'archivo') + ' desde Drive…');
+    return downloadDriveFile(fileId, mimeType).then(function(bytes){
+      var wb = parseWorkbookFromBytes(bytes, label || '');
+      if(!wb.SheetNames || !wb.SheetNames.length) throw new Error('no se reconoció ninguna hoja en el archivo descargado');
+      render(wb);
+      setDriveStatus('Cargado ✓');
+    }).catch(function(err){
+      setDriveStatus('No se pudo cargar desde Drive: ' + err.message, true);
+    });
+  }
+
+  function needsDriveSetup(){
+    if(hasDriveCreds()) return false;
+    document.getElementById('driveSetupForm').hidden = false;
+    setDriveStatus('Configura tu Client ID y Clave de API primero (abajo).', true);
+    return true;
+  }
+
+  function openDrivePicker(){
+    if(needsDriveSetup()) return;
+    setDriveStatus('Conectando con Google…');
+    Promise.all([getDriveAccessToken(), loadScriptOnce('https://apis.google.com/js/api.js')])
+      .then(function(results){
+        var token = results[0];
+        return new Promise(function(resolve){ gapi.load('picker', resolve); }).then(function(){ return token; });
+      })
+      .then(function(token){
+        setDriveStatus('');
+        new google.picker.PickerBuilder()
+          .addView(new google.picker.DocsView()
+            .setMimeTypes('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv,application/vnd.google-apps.spreadsheet'))
+          .setOAuthToken(token)
+          .setDeveloperKey(getDriveApiKey())
+          .setCallback(function(data){
+            if(data.action === google.picker.Action.PICKED){
+              var doc = data.docs[0];
+              loadFromDrive(doc.id, doc.mimeType, doc.name);
+            }
+          })
+          .build()
+          .setVisible(true);
+      })
+      .catch(function(err){ setDriveStatus('No se pudo abrir el selector de Drive: ' + err.message, true); });
+  }
+
+  function loadFromDriveLink(){
+    var linkInput = document.getElementById('driveLinkInput');
+    var url = (linkInput.value || '').trim();
+    if(!url){ setDriveStatus('Pega un enlace de Google Drive primero.', true); return; }
+    var fileId = extractDriveFileId(url);
+    if(!fileId){ setDriveStatus('No reconozco ese enlace de Drive — cópialo desde "Compartir → Copiar enlace".', true); return; }
+    if(needsDriveSetup()) return;
+    setDriveStatus('Conectando con Google…');
+    getDriveAccessToken().then(function(){
+      // El enlace no trae el nombre/mimeType del archivo — se piden antes
+      // de descargar para saber si es un Google Sheet nativo (necesita
+      // exportarse) o un archivo subido tal cual (se descarga directo).
+      return fetch('https://www.googleapis.com/drive/v3/files/' + fileId + '?fields=name,mimeType', {
+        headers: { Authorization: 'Bearer ' + driveAccessToken }
+      }).then(function(res){
+        if(!res.ok) throw new Error('Google Drive respondió ' + res.status + ' — revisa el enlace y que tengas acceso al archivo.');
+        return res.json();
+      });
+    }).then(function(meta){
+      return loadFromDrive(fileId, meta.mimeType, meta.name);
+    }).catch(function(err){
+      setDriveStatus('No se pudo cargar desde Drive: ' + err.message, true);
+    });
+  }
+
+  document.getElementById('drivePickerBtn').addEventListener('click', openDrivePicker);
+  document.getElementById('driveLinkBtn').addEventListener('click', loadFromDriveLink);
+  document.getElementById('driveSetupToggle').addEventListener('click', function(e){
+    e.preventDefault();
+    var form = document.getElementById('driveSetupForm');
+    form.hidden = !form.hidden;
+    if(!form.hidden){
+      document.getElementById('driveClientIdInput').value = getDriveClientId();
+      document.getElementById('driveApiKeyInput').value = getDriveApiKey();
+    }
+  });
+  document.getElementById('driveSaveCredsBtn').addEventListener('click', function(){
+    setDriveClientId(document.getElementById('driveClientIdInput').value);
+    setDriveApiKey(document.getElementById('driveApiKeyInput').value);
+    driveTokenClient = null;
+    driveAccessToken = null;
+    setDriveStatus(hasDriveCreds() ? 'Credenciales guardadas ✓' : 'Credenciales borradas.');
+    document.getElementById('driveSetupForm').hidden = true;
+  });
+  document.getElementById('driveForgetCredsBtn').addEventListener('click', function(){
+    setDriveClientId(''); setDriveApiKey('');
+    driveTokenClient = null; driveAccessToken = null;
+    document.getElementById('driveClientIdInput').value = '';
+    document.getElementById('driveApiKeyInput').value = '';
+    setDriveStatus('Credenciales de Drive olvidadas.');
   });
 
   var savedTheme = 'system';
