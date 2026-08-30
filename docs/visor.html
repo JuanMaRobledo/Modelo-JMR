@@ -480,7 +480,7 @@
     renderPriceCompare(currentPrecioAnalisis, precio);
     document.getElementById('rTipo').textContent = tipo || '—';
     document.getElementById('rMOS').textContent = fmtPct(mos);
-    document.getElementById('rPrecioMOS').textContent = fmtMoney(cellVal(res,'C19'));
+    document.getElementById('rPrecioMOS').textContent = fmtMoney(cellVal(res,'C19')) + ' – ' + fmtMoney(cellVal(res,'B19'));
 
     var methods = [
       ['DCF Damodaran', 6], ['EV/EBITDA', 7], ['EV/FCFF', 8], ['P/E', 9], ['P/FCFE', 10], ['P/OCF', 11]
@@ -526,6 +526,7 @@
       tipo: tipo || null,
       mos: mos,
       precioMOS: cellVal(res,'C19'),
+      precioMOSMax: cellVal(res,'B19'),
       metodos: methods.map(function(m){
         var row = m[1];
         return { nombre: m[0], peso: cellVal(res,'B'+row), conservador: cellVal(res,'C'+row), base: cellVal(res,'D'+row), optimista: cellVal(res,'E'+row) };
@@ -680,7 +681,7 @@
     renderPriceCompare(currentPrecioAnalisis, rec.precio);
     document.getElementById('rTipo').textContent = rec.tipo || '—';
     document.getElementById('rMOS').textContent = fmtPct(rec.mos);
-    document.getElementById('rPrecioMOS').textContent = fmtMoney(rec.precioMOS);
+    document.getElementById('rPrecioMOS').textContent = fmtMoney(rec.precioMOS) + (rec.precioMOSMax != null ? ' – ' + fmtMoney(rec.precioMOSMax) : '');
     var tbody = document.getElementById('methodsBody');
     tbody.innerHTML = '';
     (rec.metodos || []).forEach(function(m){
