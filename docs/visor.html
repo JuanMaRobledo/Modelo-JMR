@@ -318,6 +318,26 @@
   .diag-questions ul{margin:0; padding-left:18px; display:flex; flex-direction:column; gap:6px;}
   .diag-questions li{font-size:13px; color:var(--ink-soft); line-height:1.5;}
 
+  /* "Resumen de Valoración": tres tarjetas (precio por método/escenario,
+     zonas de valor, matriz de pesos) en vez de la grilla de Excel con
+     línea alrededor de cada celda — sin bordes verticales, solo una
+     separación horizontal muy suave entre filas, y las celdas de precio y
+     CAGR con un tinte de color (ver heatSeq/heatDiv) para leerlas de un
+     vistazo en vez de cifra por cifra. */
+  .sheet-scroll.resumen-val{overflow-x:hidden; padding:0; border:none; box-shadow:none; background:transparent;}
+  .rv-wrap{display:flex; flex-direction:column; gap:16px;}
+  .rv-section{background:var(--surface); border:1px solid var(--border-soft); border-radius:12px; box-shadow:var(--shadow); padding:16px 18px 18px;}
+  .rv-title{font-family:"Fraunces", Georgia, serif; font-weight:700; font-size:15px; color:var(--ink); margin-bottom:12px;}
+  .rv-table{width:100%; border-collapse:collapse; font-size:13px;}
+  .rv-table th{text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint); font-weight:700; padding:0 10px 8px;}
+  .rv-table td{padding:9px 10px; border-top:1px solid var(--border-soft); border-radius:6px; white-space:nowrap;}
+  .rv-table tr:first-child td{border-top:none;}
+  .rv-table td.rv-label{font-weight:600; color:var(--ink-soft); border-radius:0; white-space:normal;}
+  .rv-table tr.rv-total td{font-weight:700; border-top:2px solid var(--border);}
+  .rv-scroll{overflow-x:auto;}
+  .rv-matrix th, .rv-matrix td{text-align:center;}
+  .rv-matrix td.rv-label{text-align:left;}
+
   .gh-section{background:var(--surface); border:1px solid var(--border-soft); border-radius:14px; padding:18px 22px; box-shadow:var(--shadow); margin-top:24px;}
   .gh-section h3{font-family:"Fraunces", Georgia, serif; font-size:19px; margin:0 0 4px; font-weight:700;}
   .gh-section .sub{color:var(--ink-soft); font-size:12.5px; margin:0 0 14px; line-height:1.5;}
@@ -1063,6 +1083,124 @@
     });
   }
 
+  function cellPairAt(ws, r, c){
+    var cell = ws[XLSX.utils.encode_cell({r:r, c:c})];
+    if(!cell) return {v: undefined, w: ''};
+    return {
+      v: (typeof cell.v === 'number' ? cell.v : undefined),
+      w: (cell.w != null ? String(cell.w) : (cell.v != null ? String(cell.v) : ''))
+    };
+  }
+  // Tinte secuencial (una sola escala, claro→oscuro) para celdas de
+  // magnitud (precio objetivo, peso) — mezclado con el propio fondo del
+  // tema (funciona igual en claro/oscuro sin definir colores nuevos).
+  function heatSeq(value, max){
+    if(typeof value !== 'number' || !isFinite(value) || !(max > 0)) return '';
+    var pct = Math.max(0, Math.min(1, value / max)) * 85;
+    return 'background:color-mix(in oklab, var(--accent) ' + pct.toFixed(0) + '%, var(--surface)); color:var(--accent-ink);';
+  }
+  // Tinte divergente (positivo/negativo desde un punto medio neutro) para
+  // celdas de retorno (CAGR) — mismo mecanismo, pero elige el matiz según
+  // el signo del valor.
+  function heatDiv(value, maxAbs){
+    if(typeof value !== 'number' || !isFinite(value) || !(maxAbs > 0)) return '';
+    var pct = Math.min(1, Math.abs(value) / maxAbs) * 80;
+    var tone = value >= 0 ? '--positive' : '--negative';
+    return 'background:color-mix(in oklab, var(' + tone + ') ' + pct.toFixed(0) + '%, var(--surface)); color:var(' + tone + ');';
+  }
+  // "Resumen de Valoración" no es prosa ni una tabla numérica uniforme: es
+  // tres bloques distintos apretados en una sola grilla de Excel (precio
+  // objetivo por método/escenario, zonas de valor con su CAGR, y la matriz
+  // de pesos por tipo de empresa a la derecha) — se separan en tres
+  // tarjetas propias, sin las líneas de grilla de sheet_to_html, con las
+  // celdas de magnitud/retorno coloreadas para verlas de un vistazo en vez
+  // de tener que leer cada número.
+  function renderResumenValoracionSheet(ws){
+    var metodos = [];
+    for(var r = 5; r <= 10; r++){
+      var nombre = cellTextAt(ws, r, 0);
+      if(!nombre) continue;
+      metodos.push({ row: r, nombre: nombre, peso: cellPairAt(ws,r,1), cons: cellPairAt(ws,r,2), base: cellPairAt(ws,r,3), opt: cellPairAt(ws,r,4) });
+    }
+    if(!metodos.length) return '<div class="sheet-empty">No se reconoció la estructura de esta hoja.</div>';
+    var total = { nombre: cellTextAt(ws, 11, 0) || 'Precio Objetivo Ponderado', cons: cellPairAt(ws,11,2), base: cellPairAt(ws,11,3), opt: cellPairAt(ws,11,4) };
+    var cagr3 = { cons: cellPairAt(ws,12,2), base: cellPairAt(ws,12,3), opt: cellPairAt(ws,12,4) };
+    var mosVs = { cons: cellPairAt(ws,13,2), base: cellPairAt(ws,13,3), opt: cellPairAt(ws,13,4) };
+
+    var zonas = [];
+    for(var zr = 15; zr <= 17; zr++){
+      var zn = cellTextAt(ws, zr, 0);
+      if(!zn) continue;
+      zonas.push({ nombre: zn, max: cellPairAt(ws,zr,1), min: cellPairAt(ws,zr,2), cagrMax: cellPairAt(ws,zr,3), cagrMin: cellPairAt(ws,zr,4) });
+    }
+    var precioMOSNombre = cellTextAt(ws, 18, 0);
+    var precioMOS = precioMOSNombre ? { nombre: precioMOSNombre, max: cellPairAt(ws,18,1), min: cellPairAt(ws,18,2) } : null;
+
+    // Matriz de pesos por tipo de empresa: columna de etiqueta en I (idx 8,
+    // repite el nombre del método), tipos de empresa de J en adelante (idx 9+).
+    var tipoCols = [];
+    for(var c = 9; c <= 30; c++){
+      var t = cellTextAt(ws, 4, c);
+      if(!t) break;
+      tipoCols.push(c);
+    }
+
+    function escOrDash(w){ return w ? escapeHtml(w) : '—'; }
+    var maxObjetivo = 0;
+    metodos.concat([total]).forEach(function(m){
+      [m.cons.v, m.base.v, m.opt.v].forEach(function(v){ if(typeof v === 'number' && v > maxObjetivo) maxObjetivo = v; });
+    });
+    if(!maxObjetivo) maxObjetivo = 1;
+    function priceCell(pair){ return '<td style="' + heatSeq(pair.v, maxObjetivo) + '">' + escOrDash(pair.w) + '</td>'; }
+    var metodosRows = metodos.map(function(m){
+      return '<tr><td class="rv-label">' + escapeHtml(m.nombre) + '</td><td>' + escOrDash(m.peso.w) + '</td>' +
+        priceCell(m.cons) + priceCell(m.base) + priceCell(m.opt) + '</tr>';
+    }).join('');
+    var totalRow = '<tr class="rv-total"><td class="rv-label">' + escapeHtml(total.nombre) + '</td><td></td>' +
+      priceCell(total.cons) + priceCell(total.base) + priceCell(total.opt) + '</tr>';
+    var maxAbsCagr = Math.max(Math.abs(cagr3.cons.v||0), Math.abs(cagr3.base.v||0), Math.abs(cagr3.opt.v||0), 0.01);
+    function divCell(pair, maxAbs){ return '<td style="' + heatDiv(pair.v, maxAbs) + '">' + escOrDash(pair.w) + '</td>'; }
+    var cagrRow = '<tr><td class="rv-label">CAGR a 3 años</td><td></td>' + divCell(cagr3.cons, maxAbsCagr) + divCell(cagr3.base, maxAbsCagr) + divCell(cagr3.opt, maxAbsCagr) + '</tr>';
+    var maxAbsMos = Math.max(Math.abs(mosVs.cons.v||0), Math.abs(mosVs.base.v||0), Math.abs(mosVs.opt.v||0), 0.01);
+    var mosRow = '<tr><td class="rv-label">MOS vs. Precio Actual</td><td></td>' + divCell(mosVs.cons, maxAbsMos) + divCell(mosVs.base, maxAbsMos) + divCell(mosVs.opt, maxAbsMos) + '</tr>';
+    var metodosTable =
+      '<div class="rv-section"><div class="rv-title">Precio objetivo por método y escenario</div>' +
+      '<table class="rv-table"><thead><tr><th>Método</th><th>Peso</th><th>Conservador</th><th>Base</th><th>Optimista</th></tr></thead>' +
+      '<tbody>' + metodosRows + totalRow + cagrRow + mosRow + '</tbody></table></div>';
+
+    var zonasTable = '';
+    if(zonas.length){
+      var zonasRows = zonas.map(function(z){
+        var maxAbsZ = Math.max(Math.abs(z.cagrMax.v||0), Math.abs(z.cagrMin.v||0), 0.01);
+        return '<tr><td class="rv-label">' + escapeHtml(z.nombre) + '</td><td>' + escOrDash(z.min.w) + ' – ' + escOrDash(z.max.w) + '</td>' +
+          divCell(z.cagrMin, maxAbsZ) + divCell(z.cagrMax, maxAbsZ) + '</tr>';
+      }).join('') + (precioMOS ? '<tr><td class="rv-label">' + escapeHtml(precioMOS.nombre) + '</td><td>' + escOrDash(precioMOS.min.w) + ' – ' + escOrDash(precioMOS.max.w) + '</td><td></td><td></td></tr>' : '');
+      zonasTable =
+        '<div class="rv-section"><div class="rv-title">Zonas de valor (rango de entrada y CAGR a 3 años)</div>' +
+        '<table class="rv-table"><thead><tr><th>Zona</th><th>Rango de precio</th><th>CAGR mínimo</th><th>CAGR máximo</th></tr></thead>' +
+        '<tbody>' + zonasRows + '</tbody></table></div>';
+    }
+
+    var pesosTable = '';
+    if(tipoCols.length){
+      var tipoLabels = tipoCols.map(function(c){ return cellTextAt(ws, 4, c); });
+      var maxPeso = 0;
+      metodos.forEach(function(m){ tipoCols.forEach(function(c){ var p = cellPairAt(ws, m.row, c); if(typeof p.v === 'number' && p.v > maxPeso) maxPeso = p.v; }); });
+      var pesosRows = metodos.map(function(m){
+        return '<tr><td class="rv-label">' + escapeHtml(m.nombre) + '</td>' +
+          tipoCols.map(function(c){ var p = cellPairAt(ws, m.row, c); return '<td style="' + heatSeq(p.v, maxPeso) + '">' + escOrDash(p.w) + '</td>'; }).join('') +
+          '</tr>';
+      }).join('');
+      pesosTable =
+        '<div class="rv-section"><div class="rv-title">Peso de cada método según el tipo de empresa</div>' +
+        '<div class="rv-scroll"><table class="rv-table rv-matrix"><thead><tr><th>Método</th>' +
+        tipoLabels.map(function(t){ return '<th>' + escapeHtml(t) + '</th>'; }).join('') + '</tr></thead><tbody>' +
+        pesosRows + '</tbody></table></div></div>';
+    }
+
+    return '<div class="rv-wrap">' + metodosTable + zonasTable + pesosTable + '</div>';
+  }
+
   function renderGenericSheet(name){
     if(sheetHtmlCache[name] !== undefined) return sheetHtmlCache[name];
     var ws = currentWb && currentWb.Sheets[name];
@@ -1079,6 +1217,8 @@
       html = '<div class="sheet-empty">Este archivo no tiene la hoja "' + name + '".</div>';
     } else if(name === 'Diagnostics'){
       html = renderDiagnosticsSheet(ws);
+    } else if(name === 'Resumen de Valoración'){
+      html = renderResumenValoracionSheet(ws);
     } else if(PROSE_SHEETS[name]){
       html = XLSX.utils.sheet_to_html(trimSheetForProse(ws), {header:'', footer:'', editable:false});
       html = widenTitleRows(html);
@@ -1113,6 +1253,7 @@
       containerEl.innerHTML = getHtml(names[idx]);
       containerEl.classList.toggle('prose', !!PROSE_SHEETS[names[idx]]);
       containerEl.classList.toggle('diagnostics', names[idx] === 'Diagnostics');
+      containerEl.classList.toggle('resumen-val', names[idx] === 'Resumen de Valoración');
       var editable = names[idx] === 'Cualitativo';
       if(editable){ containerEl.setAttribute('contenteditable', 'true'); } else { containerEl.removeAttribute('contenteditable'); }
       containerEl.classList.toggle('editable', editable);
