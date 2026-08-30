@@ -346,6 +346,12 @@
   }
   nav.appnav a:hover{color:var(--ink);}
   nav.appnav a.active{color:var(--accent); border-bottom-color:var(--accent);}
+
+  .disclaimer{
+    background:var(--negative-soft); border:1px solid var(--negative); border-radius:12px;
+    padding:14px 18px; margin:20px 0; font-size:12.5px; line-height:1.6; color:var(--ink);
+  }
+  .disclaimer strong{color:var(--negative);}
 </style>
 </head>
 <body>
@@ -388,6 +394,9 @@
 </header>
 
 <div class="wrap">
+  <div class="disclaimer">
+    <strong>Aviso de riesgo:</strong> este contenido tiene fines educativos y de organización personal — no es asesoría financiera ni una recomendación de compra o venta. Toda inversión en acciones implica riesgo, incluida la posible pérdida total del capital; los resultados pasados (los "cierres parciales" y retornos que aparecen aquí) no garantizan resultados futuros. Los precios objetivo y las zonas de valor son estimaciones basadas en supuestos propios, no en certezas. Investiga por tu cuenta y considera tu propia situación financiera y tolerancia al riesgo antes de invertir.
+  </div>
   <div class="stats" id="stats"></div>
   <p class="result-line" id="resultLine"></p>
 

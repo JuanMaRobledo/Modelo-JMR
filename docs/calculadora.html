@@ -160,6 +160,9 @@
   table.methods td{font-family:"IBM Plex Mono", monospace; font-variant-numeric:tabular-nums;}
   table.methods td:first-child{font-family:"Public Sans",sans-serif; font-weight:600;}
   table.methods tr.total td{font-weight:700; background:var(--accent-soft); color:var(--accent-ink);}
+  table.methods tr.total td.total-cons{background:color-mix(in oklab, var(--accent) 22%, var(--surface));}
+  table.methods tr.total td.total-base{background:color-mix(in oklab, var(--accent) 52%, var(--surface)); font-weight:800;}
+  table.methods tr.total td.total-opt{background:color-mix(in oklab, var(--accent) 85%, var(--surface));}
   table.methods tr:last-child td{border-bottom:none;}
   table.methods th:first-child, table.methods td:first-child{position:sticky; left:0; z-index:1; background:var(--surface);}
   table.methods thead th:first-child{background:var(--surface-2);}
@@ -333,9 +336,9 @@
     </div>
 
     <div class="grid3" style="margin-top:18px;">
-      <div class="stat"><div class="lbl">CAGR a 3 años · Conservador</div><div class="big" id="cagrC">—</div></div>
-      <div class="stat"><div class="lbl">CAGR a 3 años · Base</div><div class="big" id="cagrB">—</div></div>
-      <div class="stat"><div class="lbl">CAGR a 3 años · Optimista</div><div class="big" id="cagrO">—</div></div>
+      <div class="stat"><div class="lbl">CAGR mínimo (Conservador)</div><div class="big" id="cagrC">—</div></div>
+      <div class="stat"><div class="lbl">CAGR promedio (Base)</div><div class="big" id="cagrB">—</div></div>
+      <div class="stat"><div class="lbl">CAGR máximo (Optimista)</div><div class="big" id="cagrO">—</div></div>
     </div>
 
     <p class="section-title">Zonas de valor (escalonar entradas)</p>
@@ -549,7 +552,7 @@
     });
     var totRow = document.createElement('tr');
     totRow.className='total';
-    totRow.innerHTML = '<td>Precio Objetivo Ponderado</td><td>100%</td><td>'+fmtMoney(r.precioObjetivo.cons)+'</td><td>'+fmtMoney(r.precioObjetivo.base)+'</td><td>'+fmtMoney(r.precioObjetivo.opt)+'</td>';
+    totRow.innerHTML = '<td>Precio Objetivo Ponderado</td><td>100%</td><td class="total-cons">'+fmtMoney(r.precioObjetivo.cons)+'</td><td class="total-base">'+fmtMoney(r.precioObjetivo.base)+'</td><td class="total-opt">'+fmtMoney(r.precioObjetivo.opt)+'</td>';
     tbody.appendChild(totRow);
 
     document.getElementById('cagrC').textContent = fmtPct(r.cagr.cons);

@@ -209,6 +209,13 @@
   table.methods td{font-family:"IBM Plex Mono", monospace; font-variant-numeric:tabular-nums;}
   table.methods td:first-child{font-family:"Public Sans",sans-serif; font-weight:600;}
   table.methods tr.total td{font-weight:700; background:var(--accent-soft); color:var(--accent-ink);}
+  /* Las 3 celdas de escenario de la fila "Precio Objetivo Ponderado" con
+     una intensidad de color creciente (Conservador < Base < Optimista) en
+     vez de un solo tono plano para las tres — así se ve de un vistazo que
+     no es un solo número sino un rango que crece con el escenario. */
+  table.methods tr.total td.total-cons{background:color-mix(in oklab, var(--accent) 22%, var(--surface));}
+  table.methods tr.total td.total-base{background:color-mix(in oklab, var(--accent) 52%, var(--surface)); font-weight:800;}
+  table.methods tr.total td.total-opt{background:color-mix(in oklab, var(--accent) 85%, var(--surface));}
   table.methods tr:last-child td{border-bottom:none;}
   /* Columna "Método" fija al hacer scroll lateral en celular — sin esto,
      apenas se desliza el dedo para ver Base/Optimista se pierde de vista a
@@ -249,6 +256,23 @@
   .sheet-scroll table{border-collapse:collapse; font-size:12px; white-space:nowrap;}
   .sheet-scroll table td{padding:4px 8px; border:1px solid var(--border-soft); color:var(--ink);}
   .sheet-scroll .sheet-empty{padding:24px; text-align:center; color:var(--ink-faint); font-size:13px; white-space:normal;}
+
+  /* Hojas crudas sin render dedicado (Estados Financieros, Márgenes,
+     Eficiencia de capital, etc.): antes la primera fila/columna (los
+     títulos de fila y columna de la plantilla) no se distinguían en nada
+     del resto de la grilla — se les da fondo propio y negrita, y se
+     alternan las filas de datos. No se aplica a las hojas con su propio
+     diseño (prose/diagnostics/resumen-val) ni a las celdas ya coloreadas
+     de la matriz de sensibilidad de las hojas de múltiplos. */
+  .sheet-scroll:not(.prose):not(.diagnostics):not(.resumen-val) table tr:first-child td:not(.sens-title):not(.sens-head):not(.sens-rowhead):not(.sens-cell){
+    background:var(--surface-2); font-weight:700; color:var(--ink-soft);
+  }
+  .sheet-scroll:not(.prose):not(.diagnostics):not(.resumen-val) table td:first-child:not(.sens-title):not(.sens-head):not(.sens-rowhead):not(.sens-cell){
+    font-weight:700; background:var(--surface-2); color:var(--ink-soft);
+  }
+  .sheet-scroll:not(.prose):not(.diagnostics):not(.resumen-val) table tr:nth-child(even) td:not(.sens-title):not(.sens-head):not(.sens-rowhead):not(.sens-cell){
+    background:var(--surface-2);
+  }
 
   /* Hojas de texto/análisis cualitativo (párrafos largos, no tablas
      numéricas): el nowrap general de arriba las vuelve ilegibles — hay que
@@ -527,9 +551,9 @@
       </div>
 
       <div class="grid3" style="margin-top:18px;">
-        <div class="stat"><div class="lbl">CAGR a 3 años · Conservador</div><div class="big" id="cagrC">—</div></div>
-        <div class="stat"><div class="lbl">CAGR a 3 años · Base</div><div class="big" id="cagrB">—</div></div>
-        <div class="stat"><div class="lbl">CAGR a 3 años · Optimista</div><div class="big" id="cagrO">—</div></div>
+        <div class="stat"><div class="lbl">CAGR mínimo (Conservador)</div><div class="big" id="cagrC">—</div></div>
+        <div class="stat"><div class="lbl">CAGR promedio (Base)</div><div class="big" id="cagrB">—</div></div>
+        <div class="stat"><div class="lbl">CAGR máximo (Optimista)</div><div class="big" id="cagrO">—</div></div>
       </div>
 
       <p class="section-title">Zonas de valor (escalonar entradas)</p>
@@ -692,7 +716,7 @@
         <div class="grid3">
           <div class="stat"><div class="lbl">Precio con este supuesto</div><div class="big" id="rcPrice">—</div></div>
           <div class="stat"><div class="lbl">Precio con MOS</div><div class="big" id="rcPrecioMOS">—</div></div>
-          <div class="stat"><div class="lbl">CAGR a 3 años · Base</div><div class="big" id="rcCagrB">—</div></div>
+          <div class="stat"><div class="lbl">CAGR promedio (Base)</div><div class="big" id="rcCagrB">—</div></div>
         </div>
         <div class="methods-scroll">
           <table class="methods">
@@ -913,7 +937,7 @@
     });
     var totRow = document.createElement('tr');
     totRow.className = 'total';
-    totRow.innerHTML = '<td>Precio Objetivo Ponderado</td><td>100%</td><td>'+fmtMoney(cellVal(res,'C12'))+'</td><td>'+fmtMoney(cellVal(res,'D12'))+'</td><td>'+fmtMoney(cellVal(res,'E12'))+'</td>';
+    totRow.innerHTML = '<td>Precio Objetivo Ponderado</td><td>100%</td><td class="total-cons">'+fmtMoney(cellVal(res,'C12'))+'</td><td class="total-base">'+fmtMoney(cellVal(res,'D12'))+'</td><td class="total-opt">'+fmtMoney(cellVal(res,'E12'))+'</td>';
     tbody.appendChild(totRow);
 
     document.getElementById('cagrC').textContent = fmtPct(cellVal(res,'C13'));
@@ -977,6 +1001,32 @@
       if(cols > totalCols) totalCols = cols;
     });
     return totalCols;
+  }
+
+  // El rango cuadrado que arma sheet_to_html deja muchas celdas y filas
+  // completamente vacías (separadores entre secciones, columnas que no
+  // aplican a esta fila) — se quitan para no desperdiciar espacio vertical
+  // en tiras en blanco. Una fila 100% vacía se borra entera; dentro de una
+  // fila con contenido solo se recortan las celdas vacías AL FINAL (después
+  // de la última con texto) — un hueco intermedio no se toca, para no
+  // desalinear las columnas reales de una mini-tabla (p. ej. si faltara el
+  // "Impacto Estimado" de una noticia pero sí hay "Detalle Corto" después).
+  function removeEmptyCells(html){
+    var tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    var table = tmp.querySelector('table');
+    if(!table) return html;
+    Array.prototype.forEach.call(Array.prototype.slice.call(table.rows), function(tr){
+      var cells = Array.prototype.slice.call(tr.cells);
+      if(!cells.length) return;
+      var allEmpty = cells.every(function(td){ return td.textContent.trim() === ''; });
+      if(allEmpty){ tr.parentNode.removeChild(tr); return; }
+      for(var i = cells.length - 1; i >= 0; i--){
+        if(cells[i].textContent.trim() === '') tr.removeChild(cells[i]);
+        else break;
+      }
+    });
+    return tmp.innerHTML;
   }
 
   // En hojas de texto (Cualitativo, etc.), las filas donde solo la primera
@@ -1348,7 +1398,7 @@
     var ws = currentWb && currentWb.Sheets[name];
     var html;
     if(name === 'Cualitativo'){
-      var baseHtml = ws ? widenTitleRows(XLSX.utils.sheet_to_html(trimSheetForProse(ws), {header:'', footer:'', editable:false})) : '<table></table>';
+      var baseHtml = ws ? widenTitleRows(removeEmptyCells(XLSX.utils.sheet_to_html(trimSheetForProse(ws), {header:'', footer:'', editable:false}))) : '<table></table>';
       var tmp = document.createElement('div');
       tmp.innerHTML = baseHtml;
       var table = tmp.querySelector('table');
@@ -1658,7 +1708,7 @@
     var totRow = document.createElement('tr');
     totRow.className = 'total';
     var op = rec.objetivoPonderado || {};
-    totRow.innerHTML = '<td>Precio Objetivo Ponderado</td><td>100%</td><td>'+fmtMoney(op.conservador)+'</td><td>'+fmtMoney(op.base)+'</td><td>'+fmtMoney(op.optimista)+'</td>';
+    totRow.innerHTML = '<td>Precio Objetivo Ponderado</td><td>100%</td><td class="total-cons">'+fmtMoney(op.conservador)+'</td><td class="total-base">'+fmtMoney(op.base)+'</td><td class="total-opt">'+fmtMoney(op.optimista)+'</td>';
     tbody.appendChild(totRow);
     var cagr = rec.cagr || {};
     document.getElementById('cagrC').textContent = fmtPct(cagr.conservador);
@@ -2102,7 +2152,7 @@
     });
     var totRow = document.createElement('tr');
     totRow.className = 'total';
-    totRow.innerHTML = '<td>Precio Objetivo Ponderado</td><td>100%</td><td>' + fmtMoney(r.precioObjetivo.cons) + '</td><td>' + fmtMoney(r.precioObjetivo.base) + '</td><td>' + fmtMoney(r.precioObjetivo.opt) + '</td>';
+    totRow.innerHTML = '<td>Precio Objetivo Ponderado</td><td>100%</td><td class="total-cons">' + fmtMoney(r.precioObjetivo.cons) + '</td><td class="total-base">' + fmtMoney(r.precioObjetivo.base) + '</td><td class="total-opt">' + fmtMoney(r.precioObjetivo.opt) + '</td>';
     tbody.appendChild(totRow);
 
     function zoneText(z){ return fmtMoney(z.min) + ' – ' + fmtMoney(z.max); }
