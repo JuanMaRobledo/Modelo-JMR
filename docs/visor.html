@@ -364,7 +364,7 @@
 
       <div class="gh-section">
         <h3>Guardar esta valoración</h3>
-        <p class="sub">Guarda un resumen de esta valoración en tu base de datos privada (repo <code>Modelo-JMR-datos</code>) para consultarla después sin volver a subir el Excel.</p>
+        <p class="sub">Guarda esta valoración — el resumen y las hojas crudas de Estados Financieros, Valoración y Análisis — en tu base de datos privada (repo <code>Modelo-JMR-datos</code>) para consultarla después sin volver a subir el Excel. Si el archivo es muy grande, las hojas crudas se omiten y solo se guarda el resumen.</p>
         <div id="saveBlock"></div>
       </div>
     </div>
@@ -770,21 +770,48 @@
     return html;
   }
 
-  function renderSheetGroup(groupKey){
+  // mode omitido -> lee en vivo del Excel subido (currentWb) vía
+  // renderGenericSheet. mode = objeto {nombreHoja: html} -> hojas guardadas
+  // de una valoración (sin el Excel original). mode = null -> valoración
+  // guardada antes de que existieran las hojas crudas, no hay nada que mostrar.
+  function renderSheetGroup(groupKey, mode){
     var names = SHEET_GROUPS[groupKey];
     var pillsEl = document.getElementById('pills' + groupKey.charAt(0).toUpperCase() + groupKey.slice(1));
     var containerEl = document.getElementById('sheet' + groupKey.charAt(0).toUpperCase() + groupKey.slice(1));
     pillsEl.innerHTML = names.map(function(n, i){
       return '<button type="button" data-sheet="' + i + '"' + (i === 0 ? ' class="active"' : '') + '>' + n + '</button>';
     }).join('');
+    function getHtml(name){
+      if(mode === null) return '<div class="sheet-empty">Esta valoración se guardó antes de incluir las hojas crudas — vuelve a subir el Excel y guarda de nuevo para incluirlas.</div>';
+      if(mode) return mode[name] || '<div class="sheet-empty">Esta hoja no se guardó con la valoración.</div>';
+      return renderGenericSheet(name);
+    }
     function show(idx){
-      containerEl.innerHTML = renderGenericSheet(names[idx]);
+      containerEl.innerHTML = getHtml(names[idx]);
       pillsEl.querySelectorAll('button').forEach(function(b,i){ b.classList.toggle('active', i === idx); });
     }
     pillsEl.querySelectorAll('button').forEach(function(b){
       b.addEventListener('click', function(){ show(Number(b.dataset.sheet)); });
     });
     show(0);
+  }
+
+  // Copia (sin las marcas data-t/data-v/id de SheetJS, que solo inflan el
+  // tamaño) de las hojas crudas ya renderizadas, para guardarlas junto con
+  // la valoración — así se pueden consultar después sin el Excel original.
+  function stripSheetHtmlMeta(html){
+    return html.replace(/\s+(data-t|data-v|id)="[^"]*"/g, '');
+  }
+  function collectRawSheets(){
+    var out = {};
+    Object.keys(SHEET_GROUPS).forEach(function(g){
+      var map = {};
+      SHEET_GROUPS[g].forEach(function(name){
+        map[name] = stripSheetHtmlMeta(renderGenericSheet(name));
+      });
+      out[g] = map;
+    });
+    return out;
   }
 
   function resetTabs(){
@@ -916,15 +943,15 @@
     document.getElementById('zMOS').textContent = zoneText(z.conMOS);
 
     // Una valoración cargada desde la base de datos no trae el Excel
-    // original, así que las pestañas de hojas crudas no aplican aquí.
+    // original — las hojas crudas se muestran desde lo que se guardó junto
+    // con la valoración (rec.hojas), si lo hay.
     currentWb = null;
     currentResumen = rec;
     currentTicker = rec.ticker || null;
     document.querySelectorAll('#mainTabs button').forEach(function(b){ b.classList.toggle('active', b.dataset.tab === 'resumen'); });
     document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.toggle('active', p.dataset.panel === 'resumen'); });
     ['financieros','valoracion','analisis'].forEach(function(g){
-      document.getElementById('pills' + g.charAt(0).toUpperCase() + g.slice(1)).innerHTML = '';
-      document.getElementById('sheet' + g.charAt(0).toUpperCase() + g.slice(1)).innerHTML = '<div class="sheet-empty">Esta valoración se cargó desde la base de datos guardada, sin el Excel original — no hay hojas crudas disponibles.</div>';
+      renderSheetGroup(g, (rec.hojas && rec.hojas[g]) || null);
     });
     renderSaveBlock();
     clearError();
@@ -952,8 +979,14 @@
       btn.disabled = true;
       status.textContent = 'Guardando…';
       var record = Object.assign({}, currentResumen, { savedAt: new Date().toISOString() });
+      record.hojas = currentWb ? collectRawSheets() : (currentResumen.hojas || null);
+      var hojasOmitidas = false;
+      if(record.hojas && JSON.stringify(record).length > 900000){
+        delete record.hojas;
+        hojasOmitidas = true;
+      }
       saveValoracion(record).then(function(){
-        status.textContent = 'Guardada ✓ · ' + new Date().toLocaleTimeString();
+        status.textContent = 'Guardada ✓' + (hojasOmitidas ? ' (sin hojas crudas — el archivo era muy grande para guardarlas)' : '') + ' · ' + new Date().toLocaleTimeString();
         btn.disabled = false;
       }).catch(function(err){
         status.textContent = 'Error al guardar: ' + err.message;
