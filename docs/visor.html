@@ -102,6 +102,22 @@
   .grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:18px;}
   .grid4{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:18px;}
   @media (max-width:640px){.grid3,.grid4{grid-template-columns:repeat(2,1fr);}}
+
+  /* Gráficos del Resumen: precio objetivo por escenario y zonas de valor,
+     como SVG inline (livianos, se adaptan solos a claro/oscuro vía
+     var(--...) igual que el resto de la app, sin ninguna librería). */
+  .charts-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:18px;}
+  @media (max-width:720px){.charts-grid{grid-template-columns:1fr;}}
+  .chart-card{background:var(--surface); border:1px solid var(--border-soft); border-radius:14px; padding:16px 18px; box-shadow:var(--shadow);}
+  .chart-title{font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint); margin-bottom:10px;}
+  .chart-svg{width:100%; height:auto; display:block; overflow:visible;}
+  .chart-val{font-family:"IBM Plex Mono", monospace; font-size:11px; font-weight:600; fill:var(--ink);}
+  .chart-lbl{font-size:11px; fill:var(--ink-soft); font-family:"Public Sans",sans-serif;}
+  .chart-ref{stroke:var(--ink-faint); stroke-width:1.5; stroke-dasharray:4 3;}
+  .chart-ref-lbl{font-size:10px; fill:var(--ink-faint); font-family:"Public Sans",sans-serif; font-weight:700;}
+  .chart-zone-bar{fill:color-mix(in oklab, var(--positive) 32%, var(--surface)); stroke:var(--positive); stroke-width:1;}
+  .chart-zone-val{font-family:"IBM Plex Mono", monospace; font-size:10px; font-weight:600; fill:var(--positive);}
+  .chart-empty{color:var(--ink-faint); font-size:12.5px; padding:20px; text-align:center;}
   .stat{background:var(--surface); border:1px solid var(--border-soft); border-radius:12px; padding:14px 16px;}
   .stat .lbl{font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-faint); margin-bottom:6px;}
   .stat .big{font-family:"IBM Plex Mono", monospace; font-weight:600; font-size:18px; font-variant-numeric:tabular-nums;}
@@ -568,6 +584,18 @@
         <div class="stat"><div class="lbl">Precio con MOS</div><div class="rng" id="zMOS">—</div></div>
       </div>
 
+      <p class="section-title">Gráficos</p>
+      <div class="charts-grid">
+        <div class="chart-card">
+          <div class="chart-title">Precio objetivo por escenario</div>
+          <div id="chartScenarios"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Zonas de valor vs. precio actual</div>
+          <div id="chartZones"></div>
+        </div>
+      </div>
+
       <div class="gh-section">
         <h3>Guardar esta valoración</h3>
         <p class="sub">Guarda esta valoración — el resumen, el análisis cualitativo, el análisis fundamental y las hojas crudas de Estados Financieros, Valoración y Análisis — en tu base de datos privada (repo <code>Modelo-JMR-datos</code>) para consultarla después sin volver a subir el Excel. Si el archivo es muy grande, algunas partes se omiten para poder guardar el resto.</p>
@@ -810,6 +838,98 @@
     if(v === undefined || v === null || typeof v !== 'number' || isNaN(v)) return '—';
     return (v*100).toFixed(1) + '%';
   }
+
+  // Barras verticales Conservador/Base/Optimista con el mismo tinte
+  // secuencial dorado (claro->oscuro) que ya usa la fila "Precio Objetivo
+  // Ponderado" de la tabla — misma escala visual, ahora como gráfico. Una
+  // línea punteada marca el precio actual para ver de un vistazo cuánto
+  // recorrido implica cada escenario.
+  function buildScenarioChart(precioActual, obj){
+    if(!obj || typeof obj.conservador !== 'number' || typeof obj.base !== 'number' || typeof obj.optimista !== 'number'){
+      return '<div class="chart-empty">Sin datos suficientes.</div>';
+    }
+    var W = 320, H = 220, padTop = 30, padBottom = 34, padSide = 14;
+    var plotBottom = H - padBottom, plotH = plotBottom - padTop;
+    var vals = [obj.conservador, obj.base, obj.optimista];
+    var refs = vals.concat(typeof precioActual === 'number' && isFinite(precioActual) ? [precioActual] : []);
+    var maxV = Math.max.apply(null, refs) * 1.15;
+    if(!isFinite(maxV) || maxV <= 0) return '<div class="chart-empty">Sin datos suficientes.</div>';
+    function y(v){ return plotBottom - plotH * (v / maxV); }
+    var barW = 62, gap = 24;
+    var totalW = barW * 3 + gap * 2;
+    var startX = (W - totalW) / 2;
+    var labels = ['Conservador', 'Base', 'Optimista'];
+    var fills = [
+      'color-mix(in oklab, var(--accent) 28%, var(--surface))',
+      'color-mix(in oklab, var(--accent) 58%, var(--surface))',
+      'color-mix(in oklab, var(--accent) 90%, var(--surface))'
+    ];
+    var bars = vals.map(function(v, i){
+      var x = startX + i * (barW + gap);
+      var yTop = y(v);
+      var h = Math.max(plotBottom - yTop, 0);
+      return '<g><rect x="' + x + '" y="' + yTop + '" width="' + barW + '" height="' + h + '" rx="6" style="fill:' + fills[i] + '"><title>' + labels[i] + ': ' + fmtMoney(v) + '</title></rect>' +
+        '<text x="' + (x + barW / 2) + '" y="' + (yTop - 8) + '" text-anchor="middle" class="chart-val">' + fmtMoney(v) + '</text>' +
+        '<text x="' + (x + barW / 2) + '" y="' + (H - padBottom + 18) + '" text-anchor="middle" class="chart-lbl">' + labels[i] + '</text></g>';
+    }).join('');
+    var refLine = '';
+    if(typeof precioActual === 'number' && isFinite(precioActual) && precioActual > 0){
+      var ry = y(precioActual);
+      refLine = '<line x1="' + padSide + '" y1="' + ry + '" x2="' + (W - padSide) + '" y2="' + ry + '" class="chart-ref"/>' +
+        '<text x="' + (W - padSide) + '" y="' + (ry - 6) + '" text-anchor="end" class="chart-ref-lbl">Actual ' + fmtMoney(precioActual) + '</text>';
+    }
+    return '<svg viewBox="0 0 ' + W + ' ' + H + '" class="chart-svg" role="img" aria-label="Precio objetivo por escenario">' + bars + refLine + '</svg>';
+  }
+
+  // Franjas horizontales de rango [min,max] para cada zona de valor, con
+  // una línea vertical marcando dónde cae el precio actual — se ve de un
+  // vistazo si ya está en zona de compra y en cuál. Color verde (--positive)
+  // a propósito: son zonas de entrada atractiva, no precios objetivo.
+  function buildZonesChart(precioActual, zonas){
+    if(!zonas) return '<div class="chart-empty">Sin datos suficientes.</div>';
+    var rows = [
+      { label: 'Precio con MOS', z: zonas.conMOS },
+      { label: 'Valoración histórica', z: zonas.historica },
+      { label: 'Deep Value', z: zonas.deepValue },
+      { label: 'Value', z: zonas.value }
+    ].filter(function(r){ return r.z && typeof r.z.min === 'number' && typeof r.z.max === 'number' && isFinite(r.z.min) && isFinite(r.z.max); });
+    if(!rows.length) return '<div class="chart-empty">Sin datos suficientes.</div>';
+    var W = 340, rowH = 42, padTop = 20, padBottom = 6, padLeft = 116, padRight = 12;
+    var H = padTop + padBottom + rows.length * rowH;
+    var allVals = rows.reduce(function(a, r){ return a.concat([r.z.min, r.z.max]); }, []);
+    if(typeof precioActual === 'number' && isFinite(precioActual)) allVals.push(precioActual);
+    var maxV = Math.max.apply(null, allVals) * 1.08;
+    var minV = Math.min(0, Math.min.apply(null, allVals) * 0.95);
+    var plotW = W - padLeft - padRight;
+    function x(v){ return padLeft + plotW * ((v - minV) / (maxV - minV)); }
+    // El valor va ARRIBA de la barra (no centrado adentro) — con barras
+    // angostas (rangos chicos) el texto centrado quedaba tapado por las
+    // puntas redondeadas de la propia barra.
+    var bars = rows.map(function(r, i){
+      var rowCenter = padTop + i * rowH + rowH / 2;
+      var barY = rowCenter + 7;
+      var x1 = x(r.z.min), x2 = x(r.z.max);
+      return '<g><text x="' + (padLeft - 12) + '" y="' + (barY + 4) + '" text-anchor="end" class="chart-lbl">' + r.label + '</text>' +
+        '<rect x="' + x1 + '" y="' + (barY - 7) + '" width="' + Math.max(x2 - x1, 2) + '" height="14" rx="5" class="chart-zone-bar"><title>' + r.label + ': ' + fmtMoney(r.z.min) + ' – ' + fmtMoney(r.z.max) + '</title></rect>' +
+        '<text x="' + ((x1 + x2) / 2) + '" y="' + (rowCenter - 9) + '" text-anchor="middle" class="chart-zone-val">' + fmtMoney(r.z.min) + '–' + fmtMoney(r.z.max) + '</text></g>';
+    }).join('');
+    var marker = '';
+    if(typeof precioActual === 'number' && isFinite(precioActual)){
+      var mx = x(precioActual);
+      marker = '<line x1="' + mx + '" y1="' + (padTop - 4) + '" x2="' + mx + '" y2="' + H + '" class="chart-ref"/>' +
+        '<text x="' + mx + '" y="' + (padTop - 8) + '" text-anchor="middle" class="chart-ref-lbl">Actual ' + fmtMoney(precioActual) + '</text>';
+    }
+    return '<svg viewBox="0 0 ' + W + ' ' + H + '" class="chart-svg" role="img" aria-label="Zonas de valor vs. precio actual">' + bars + marker + '</svg>';
+  }
+
+  function renderCharts(){
+    var scEl = document.getElementById('chartScenarios');
+    var zEl = document.getElementById('chartZones');
+    if(!scEl || !zEl || !currentResumen) return;
+    scEl.innerHTML = buildScenarioChart(currentResumen.precio, currentResumen.objetivoPonderado);
+    zEl.innerHTML = buildZonesChart(currentResumen.precio, currentResumen.zonas);
+  }
+
   // Actualiza la mini-tabla "Precio de hoy vs. precio al día del análisis" —
   // se llama al cargar el archivo y de nuevo cuando la consulta en vivo a
   // FMP resuelve un precio de hoy más reciente que el de Excel.
@@ -1241,6 +1361,35 @@
     var tone = value >= 0 ? '--positive' : '--negative';
     return 'background:color-mix(in oklab, var(' + tone + ') ' + pct.toFixed(0) + '%, var(--surface)); color:var(' + tone + ');';
   }
+  // En las hojas crudas sin diseño propio, las celdas con un valor
+  // porcentual (crecimiento, márgenes, variaciones, retorno) se colorean en
+  // verde/rojo según el signo — sheet_to_html ya trae el valor numérico
+  // crudo en data-v, así que no hace falta releer el Excel. Escala contra
+  // el máximo absoluto de porcentajes de la propia hoja (cada hoja tiene su
+  // propio contraste, no se compara entre hojas). No toca las celdas que ya
+  // tienen su propio color (la matriz de sensibilidad de las hojas de
+  // múltiplos).
+  function colorPercentCells(html){
+    var tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    var table = tmp.querySelector('table');
+    if(!table) return html;
+    var percentCells = Array.prototype.slice.call(table.querySelectorAll('td[data-t="n"]')).filter(function(td){
+      return !td.className && /%\s*$/.test(td.textContent.trim());
+    });
+    if(!percentCells.length) return html;
+    var maxAbs = 0;
+    percentCells.forEach(function(td){
+      var v = parseFloat(td.getAttribute('data-v'));
+      if(isFinite(v) && Math.abs(v) > maxAbs) maxAbs = Math.abs(v);
+    });
+    if(!(maxAbs > 0)) return html;
+    percentCells.forEach(function(td){
+      var style = heatDiv(parseFloat(td.getAttribute('data-v')), maxAbs);
+      if(style) td.setAttribute('style', style);
+    });
+    return tmp.innerHTML;
+  }
   // "Resumen de Valoración" no es prosa ni una tabla numérica uniforme: es
   // tres bloques distintos apretados en una sola grilla de Excel (precio
   // objetivo por método/escenario, zonas de valor con su CAGR, y la matriz
@@ -1413,9 +1562,9 @@
     } else if(name === 'Resumen de Valoración'){
       html = renderResumenValoracionSheet(ws);
     } else if(MULTIPLE_SHEETS[name]){
-      html = colorSensitivityMatrix(XLSX.utils.sheet_to_html(ws, {header:'', footer:'', editable:false}));
+      html = colorSensitivityMatrix(colorPercentCells(XLSX.utils.sheet_to_html(ws, {header:'', footer:'', editable:false})));
     } else {
-      html = XLSX.utils.sheet_to_html(ws, {header:'', footer:'', editable:false});
+      html = colorPercentCells(XLSX.utils.sheet_to_html(ws, {header:'', footer:'', editable:false}));
     }
     sheetHtmlCache[name] = html;
     return html;
@@ -1566,6 +1715,7 @@
     renderSheetGroup('valoracion');
     renderSheetGroup('analisis');
     renderSaveBlock();
+    renderCharts();
   }
 
   document.getElementById('mainTabs').addEventListener('click', function(e){
@@ -1741,6 +1891,7 @@
       renderSheetGroup(g, (rec.hojas && rec.hojas[g]) || null);
     });
     renderSaveBlock();
+    renderCharts();
     clearError();
     result.classList.add('show');
     result.scrollIntoView({behavior:'smooth', block:'start'});
