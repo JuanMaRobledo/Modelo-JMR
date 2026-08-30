@@ -14,6 +14,7 @@
 <meta name="apple-mobile-web-app-title" content="Modelo JMR">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="market_data.js"></script>
+<script src="jmr_engine.js"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
   :root{
@@ -118,6 +119,75 @@
     table.price-compare td{font-size:19px;}
   }
   .stat .rng{font-family:"IBM Plex Mono", monospace; font-size:12px; color:var(--ink-soft); margin-top:2px;}
+
+  /* Formulario "Recalcular" — mismos estilos que la Calculadora DCF */
+  .lookup-row{display:flex; gap:8px; padding:6px 0;}
+  .lookup-row input{
+    font:inherit; font-size:13.5px; padding:9px 10px; border-radius:8px; border:1px solid var(--border);
+    background:var(--bg); color:var(--ink); font-family:"IBM Plex Mono",monospace; flex:1 1 auto; min-width:0;
+  }
+  .lookup-row input:focus-visible{outline:2px solid var(--focus); outline-offset:1px;}
+  .lookup-btn{
+    flex:0 0 auto; font:inherit; font-size:13px; font-weight:700; padding:9px 16px; border-radius:8px;
+    border:1px solid var(--accent); background:var(--accent); color:#fff; cursor:pointer; white-space:nowrap;
+  }
+  .lookup-btn:hover{opacity:0.92;}
+  .lookup-btn:disabled{opacity:0.55; cursor:progress;}
+  .lookup-status{font-size:12px; line-height:1.55; margin:8px 0 0; padding:9px 11px; border-radius:8px; display:none;}
+  .lookup-status.show{display:block;}
+  .lookup-status.ok{background:var(--positive-soft); color:var(--positive);}
+  .lookup-status.warn{background:var(--accent-soft); color:var(--accent-ink);}
+  .lookup-status.err{background:var(--negative-soft); color:var(--negative);}
+  .field-legend{font-size:11px; color:var(--ink-faint); display:flex; gap:14px; flex-wrap:wrap; margin:4px 0 0;}
+  .field-legend span{display:inline-flex; align-items:center; gap:5px;}
+  .field-legend i{width:9px; height:9px; border-radius:3px; display:inline-block;}
+  .field-legend i.auto{background:var(--positive);}
+  .field-legend i.derived{background:var(--accent);}
+  .frow input.src-auto, .frow input.src-derived, .scen-table input.src-auto, .scen-table input.src-derived{box-shadow:none;}
+  input.src-auto{border-color:var(--positive) !important; box-shadow:inset 3px 0 0 var(--positive) !important;}
+  input.src-derived{border-color:var(--accent) !important; box-shadow:inset 3px 0 0 var(--accent) !important;}
+
+  fieldset{border:1px solid var(--border-soft); border-radius:14px; background:var(--surface); padding:16px 18px 18px; margin:0 0 16px; box-shadow:var(--shadow); min-width:0;}
+  legend{font-family:"Fraunces",Georgia,serif; font-weight:600; font-size:16px; padding:0 8px; color:var(--ink);}
+  .field-help{font-size:11.5px; color:var(--ink-faint); margin:2px 0 12px; line-height:1.5;}
+
+  .frow{display:grid; grid-template-columns:1fr 130px; gap:10px; align-items:center; padding:6px 0;}
+  .frow label{font-size:13px; color:var(--ink-soft);}
+  .frow input, .frow select{
+    font:inherit; font-size:13px; padding:7px 9px; border-radius:8px; border:1px solid var(--border);
+    background:var(--bg); color:var(--ink); text-align:right; font-family:"IBM Plex Mono",monospace;
+    width:100%;
+  }
+  .frow select{text-align:left; font-family:"Public Sans",sans-serif;}
+  .frow input:focus-visible, .frow select:focus-visible{outline:2px solid var(--focus); outline-offset:1px;}
+
+  .scen-table{width:100%; border-collapse:collapse; margin-top:4px;}
+  .scen-table th{font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint); text-align:right; padding:4px 6px; font-weight:600;}
+  .scen-table th:first-child{text-align:left;}
+  .scen-table td{padding:4px 6px;}
+  .scen-table td:first-child{font-size:13px; color:var(--ink-soft); font-weight:600;}
+  .scen-table input{width:100%; font:inherit; font-size:13px; padding:6px 8px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--ink); text-align:right; font-family:"IBM Plex Mono",monospace;}
+
+  details.advanced{margin-top:8px;}
+  details.advanced summary{cursor:pointer; font-size:12.5px; font-weight:600; color:var(--accent); padding:4px 0;}
+
+  .calc-btn{
+    display:block; width:100%; padding:14px; border-radius:12px; border:none;
+    background:var(--accent); color:#fff; font:inherit; font-weight:700; font-size:14.5px; cursor:pointer;
+    margin:8px 0 24px; box-shadow:var(--shadow);
+  }
+  .calc-btn:hover{opacity:0.92;}
+  .calc-btn:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+  @media (max-width:640px){.frow{grid-template-columns:1fr 100px;}}
+
+  .hist-stats thead tr:first-child th{text-align:center; padding-bottom:2px;}
+  .hist-stats thead tr:first-child th:first-child{text-align:left;}
+  .hist-stats thead tr:last-child th{font-size:9px; padding-top:2px; font-weight:500;}
+  .hist-stats td{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; text-align:right;}
+  .hist-stats td:first-child{font-family:"Public Sans",sans-serif; font-weight:600; color:var(--ink-soft); text-align:left; font-size:13px;}
+  .hist-stats .gstart{border-left:1px solid var(--border-soft);}
+  .hist-scroll{overflow-x:auto; -webkit-overflow-scrolling:touch;}
+  .hist-stats{min-width:540px;}
 
   .section-title{font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint); margin:24px 0 10px;}
 
@@ -260,6 +330,7 @@
       <button type="button" data-tab="financieros">Estados Financieros</button>
       <button type="button" data-tab="valoracion">Valoración</button>
       <button type="button" data-tab="analisis">Análisis</button>
+      <button type="button" data-tab="recalcular">Recalcular</button>
     </div>
 
     <div class="tab-panel active" data-panel="resumen">
@@ -311,6 +382,144 @@
     <div class="tab-panel" data-panel="analisis">
       <div class="sheet-pills" id="pillsAnalisis"></div>
       <div class="sheet-scroll" id="sheetAnalisis"><div class="sheet-empty">Elige una hoja.</div></div>
+    </div>
+
+    <div class="tab-panel" data-panel="recalcular">
+      <p class="field-help" style="margin-bottom:14px;">
+        Ajusta cualquier supuesto y recalcula con el mismo motor DCF Damodaran + 5 múltiplos de tu Excel (validado celda por celda). Esto <b>no reemplaza</b> el resumen de la pestaña "Resumen" (ese sigue siendo lo que dice tu Excel) — es una copia hipotética para explorar "¿y si cambio esto?". El precio actual, tipo de empresa y MOS se precargan de tu archivo; lo demás parte de valores de ejemplo — revísalo todo antes de confiar en el resultado.
+      </p>
+
+      <form id="rcForm">
+        <fieldset>
+          <legend>Identificación</legend>
+          <div class="frow"><label for="rc_ticker">Ticker / empresa</label>
+            <div class="lookup-row" style="grid-column:1/-1;">
+              <input id="rc_ticker" type="text" autocomplete="off" spellcheck="false">
+              <button type="button" id="rcLookupBtn" class="lookup-btn">Buscar datos</button>
+            </div>
+          </div>
+          <div id="rcLookupStatus" class="lookup-status"></div>
+          <div class="field-legend">
+            <span><i class="auto"></i> dato reportado / precio de mercado</span>
+            <span><i class="derived"></i> calculado a partir de esos datos</span>
+            <span>sin marca = tu criterio</span>
+          </div>
+          <div class="frow"><label for="rc_precioActual">Precio actual</label><input id="rc_precioActual" type="number" step="0.01" value="273.47"></div>
+          <div class="frow"><label for="rc_tipoEmpresa">Tipo de empresa</label>
+            <select id="rc_tipoEmpresa">
+              <option>Crecimiento</option><option>Madura</option><option selected>Genérico</option>
+              <option>Defensiva</option><option>Cíclica/Commodity</option><option>Intensiva en Capital</option>
+              <option>Financiera</option><option>Infraestructura</option><option>REIT/Inmobiliaria</option><option>Software</option>
+            </select>
+          </div>
+          <div class="frow"><label for="rc_mos">Margen de Seguridad (MOS)</label><input id="rc_mos" type="number" step="0.01" value="35"></div>
+          <p class="field-help">El MOS se expresa en %.</p>
+        </fieldset>
+
+        <fieldset>
+          <legend>DCF — datos base (últimos 12 meses)</legend>
+          <div class="frow"><label for="rc_revenue0">Ingresos LTM</label><input id="rc_revenue0" type="number" step="0.01" value="25198"></div>
+          <div class="frow"><label for="rc_ebit0">EBIT LTM (ajustado si capitalizas R&amp;D/leases)</label><input id="rc_ebit0" type="number" step="0.01" value="9680.33"></div>
+          <div class="frow"><label for="rc_taxEffective">Tasa de impuesto efectiva</label><input id="rc_taxEffective" type="number" step="0.01" value="20.2"></div>
+          <div class="frow"><label for="rc_taxMarginal">Tasa de impuesto marginal (terminal)</label><input id="rc_taxMarginal" type="number" step="0.01" value="25"></div>
+          <div class="frow"><label for="rc_shares0">Acciones en circulación (diluidas)</label><input id="rc_shares0" type="number" step="0.01" value="399"></div>
+          <div class="frow"><label for="rc_cash">Caja y equivalentes</label><input id="rc_cash" type="number" step="0.01" value="5626"></div>
+          <div class="frow"><label for="rc_debt">Deuda total</label><input id="rc_debt" type="number" step="0.01" value="7065"></div>
+          <details class="advanced"><summary>Ajustes avanzados (opcional)</summary>
+            <div class="frow"><label for="rc_nonOperatingAssets">Activos no operativos / participaciones</label><input id="rc_nonOperatingAssets" type="number" step="0.01" value="3643"></div>
+            <div class="frow"><label for="rc_minorityInterests">Intereses minoritarios</label><input id="rc_minorityInterests" type="number" step="0.01" value="0"></div>
+            <div class="frow"><label for="rc_probFailure">Probabilidad de fracaso</label><input id="rc_probFailure" type="number" step="0.01" value="0"></div>
+            <div class="frow"><label for="rc_recoveryPct">Recuperación si fracasa (% del valor)</label><input id="rc_recoveryPct" type="number" step="0.01" value="50"></div>
+          </details>
+          <p class="field-help">Tasas en %.</p>
+        </fieldset>
+
+        <fieldset>
+          <legend>DCF — costo de capital</legend>
+          <div class="frow"><label for="rc_wacc">WACC (años 1-5)</label><input id="rc_wacc" type="number" step="0.01" value="9.38"></div>
+          <div class="frow"><label for="rc_riskFreeRate">Tasa libre de riesgo (= crecimiento terminal)</label><input id="rc_riskFreeRate" type="number" step="0.01" value="4.62"></div>
+          <div class="frow"><label for="rc_matureMarketERP">Prima de riesgo de mercado maduro</label><input id="rc_matureMarketERP" type="number" step="0.01" value="4.23"></div>
+          <div class="frow"><label for="rc_salesToCapital">Sales-to-capital ratio (reinversión)</label><input id="rc_salesToCapital" type="number" step="0.001" value="1.5432"></div>
+          <p class="field-help">WACC terminal = tasa libre de riesgo + prima de mercado maduro. Tasas en %.</p>
+        </fieldset>
+
+        <fieldset>
+          <legend>Crecimiento y margen EBIT objetivo por escenario</legend>
+          <table class="scen-table">
+            <thead><tr><th>Escenario</th><th>Crecimiento ingresos (años 1-5)</th><th>Margen EBIT objetivo</th></tr></thead>
+            <tbody>
+              <tr><td>Conservador</td><td><input id="rc_growthCons" type="number" step="0.01" value="6.99"></td><td><input id="rc_marginCons" type="number" step="0.01" value="32.25"></td></tr>
+              <tr><td>Base</td><td><input id="rc_growthBase" type="number" step="0.01" value="11.5"></td><td><input id="rc_marginBase" type="number" step="0.01" value="36.1"></td></tr>
+              <tr><td>Optimista</td><td><input id="rc_growthOpt" type="number" step="0.01" value="15.04"></td><td><input id="rc_marginOpt" type="number" step="0.01" value="38.42"></td></tr>
+            </tbody>
+          </table>
+          <p class="field-help">Tasas en %. El margen converge linealmente desde el margen actual (EBIT LTM / Ingresos LTM) hasta este objetivo en 5 años.</p>
+          <div class="hist-scroll">
+          <table class="scen-table hist-ref hist-stats" id="rcHistGrowthMargin" style="display:none;">
+            <thead>
+              <tr><th rowspan="2">Referencia histórica</th><th colspan="4">3 años</th><th colspan="4" class="gstart">5 años</th></tr>
+              <tr><th>Prom</th><th>Mediana</th><th>Mín</th><th>Máx</th><th class="gstart">Prom</th><th>Mediana</th><th>Mín</th><th>Máx</th></tr>
+            </thead>
+            <tbody id="rcHistGrowthMarginBody"></tbody>
+          </table>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Razones para proyectar los múltiplos (compartidas entre escenarios)</legend>
+          <div class="frow"><label for="rc_daPctRevenue">D&amp;A, % de ingresos</label><input id="rc_daPctRevenue" type="number" step="0.01" value="3.97"></div>
+          <div class="frow"><label for="rc_capexPctRevenue">CapEx, % de ingresos (negativo)</label><input id="rc_capexPctRevenue" type="number" step="0.01" value="-1.15"></div>
+          <div class="frow"><label for="rc_nwcPctDeltaRevenue">Δ Capital de trabajo, % del Δ ingresos</label><input id="rc_nwcPctDeltaRevenue" type="number" step="0.01" value="-25.13"></div>
+          <div class="frow"><label for="rc_interestOtherPctEBIT">Intereses/otros, % del EBIT</label><input id="rc_interestOtherPctEBIT" type="number" step="0.01" value="1.79"></div>
+          <div class="frow"><label for="rc_netBorrowingPctRevenue">Endeudamiento neto, % de ingresos</label><input id="rc_netBorrowingPctRevenue" type="number" step="0.01" value="2.93"></div>
+          <div class="frow"><label for="rc_buybackRate">Recompra/dilución de acciones, % anual</label><input id="rc_buybackRate" type="number" step="0.01" value="-2.84"></div>
+          <div class="frow"><label for="rc_dividendPerShare">Dividendo anual por acción</label><input id="rc_dividendPerShare" type="number" step="0.01" value="0"></div>
+          <p class="field-help">Todas en %, salvo el dividendo.</p>
+        </fieldset>
+
+        <fieldset>
+          <legend>Múltiplos relativos — múltiplo base (año actual)</legend>
+          <div class="frow"><label for="rc_evEbitdaBase">EV/EBITDA</label><input id="rc_evEbitdaBase" type="number" step="0.01" value="13.89"></div>
+          <div class="frow"><label for="rc_evFcffBase">EV/FCFF</label><input id="rc_evFcffBase" type="number" step="0.01" value="15.20"></div>
+          <div class="frow"><label for="rc_peBase">P/E</label><input id="rc_peBase" type="number" step="0.01" value="18.54"></div>
+          <div class="frow"><label for="rc_pfcfeBase">P/FCFE</label><input id="rc_pfcfeBase" type="number" step="0.01" value="14.34"></div>
+          <div class="frow"><label for="rc_pocfBase">P/OCF</label><input id="rc_pocfBase" type="number" step="0.01" value="14.85"></div>
+          <p class="field-help">El escenario Conservador usa 0.9× este múltiplo y el Optimista 1.1×.</p>
+          <div class="hist-scroll">
+          <table class="scen-table hist-ref hist-stats" id="rcHistMultiples" style="display:none;">
+            <thead>
+              <tr><th rowspan="2">Referencia histórica</th><th colspan="4">3 años</th><th colspan="4" class="gstart">5 años</th></tr>
+              <tr><th>Prom</th><th>Mediana</th><th>Mín</th><th>Máx</th><th class="gstart">Prom</th><th>Mediana</th><th>Mín</th><th>Máx</th></tr>
+            </thead>
+            <tbody id="rcHistMultiplesBody"></tbody>
+          </table>
+          </div>
+        </fieldset>
+
+        <button type="submit" class="calc-btn">Recalcular valoración</button>
+      </form>
+
+      <div id="rcResult" style="display:none;">
+        <p class="section-title">Resultado recalculado (hipotético — no es lo que dice tu Excel)</p>
+        <div class="grid3">
+          <div class="stat"><div class="lbl">Precio con este supuesto</div><div class="big" id="rcPrice">—</div></div>
+          <div class="stat"><div class="lbl">Precio con MOS</div><div class="big" id="rcPrecioMOS">—</div></div>
+          <div class="stat"><div class="lbl">CAGR a 3 años · Base</div><div class="big" id="rcCagrB">—</div></div>
+        </div>
+        <div class="methods-scroll">
+          <table class="methods">
+            <thead><tr><th>Método</th><th>Peso</th><th>Conservador</th><th>Base</th><th>Optimista</th></tr></thead>
+            <tbody id="rcMethodsBody"></tbody>
+          </table>
+        </div>
+        <p class="section-title">Zonas de valor (escalonar entradas)</p>
+        <div class="grid4">
+          <div class="stat"><div class="lbl">Value</div><div class="rng" id="rcZValue">—</div></div>
+          <div class="stat"><div class="lbl">Deep Value</div><div class="rng" id="rcZDeep">—</div></div>
+          <div class="stat"><div class="lbl">Valoración histórica</div><div class="rng" id="rcZHist">—</div></div>
+          <div class="stat"><div class="lbl">Precio con MOS</div><div class="rng" id="rcZMOS">—</div></div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -545,6 +754,7 @@
 
     result.classList.add('show');
     maybeAutoFetchLive();
+    rcPrefillFromExcel();
   }
 
   function renderGenericSheet(name){
@@ -721,6 +931,7 @@
     result.classList.add('show');
     result.scrollIntoView({behavior:'smooth', block:'start'});
     maybeAutoFetchLive();
+    rcPrefillFromExcel();
   }
 
   function renderSaveBlock(){
@@ -880,11 +1091,201 @@
     if(currentResumen) currentResumen.ticker = val;
     showLogo(val);
     maybeAutoFetchLive();
+    document.getElementById('rc_ticker').value = val;
   }
   document.getElementById('tickerOverrideBtn').addEventListener('click', applyTickerOverride);
   document.getElementById('tickerOverride').addEventListener('keydown', function(e){
     if(e.key === 'Enter'){ e.preventDefault(); applyTickerOverride(); }
   });
+
+  // --- Recalcular: mismo motor DCF+múltiplos de la Calculadora (jmr_engine.js),
+  // con supuestos editables — resultado hipotético, separado del resumen que
+  // lee tu Excel. Precio actual/tipo de empresa/MOS se precargan del Excel;
+  // el resto parte de valores de ejemplo (los mismos que la Calculadora).
+  function rcNum(id){ return parseFloat(document.getElementById(id).value) || 0; }
+  function rcPct(id){ return rcNum(id) / 100; }
+
+  function rcFillField(id, val, cls){
+    var el = document.getElementById(id);
+    if(!el || val === undefined || val === null || isNaN(val)) return false;
+    el.value = Math.round(val * 100) / 100;
+    el.classList.remove('src-auto', 'src-derived');
+    el.classList.add(cls);
+    el.addEventListener('input', function once(){
+      el.classList.remove('src-auto', 'src-derived');
+      el.removeEventListener('input', once);
+    });
+    return true;
+  }
+
+  function rcSetStatus(msg, kind){
+    var el = document.getElementById('rcLookupStatus');
+    el.textContent = msg;
+    el.className = 'lookup-status show' + (kind ? ' ' + kind : '');
+  }
+
+  function rcStatRow(label, stat, fmt){
+    stat = stat || {};
+    var y3 = stat.y3 || {}, y5 = stat.y5 || {};
+    return '<tr><td>' + label + '</td>' +
+      '<td>' + fmt(y3.avg) + '</td><td>' + fmt(y3.median) + '</td><td>' + fmt(y3.min) + '</td><td>' + fmt(y3.max) + '</td>' +
+      '<td class="gstart">' + fmt(y5.avg) + '</td><td>' + fmt(y5.median) + '</td><td>' + fmt(y5.min) + '</td><td>' + fmt(y5.max) + '</td></tr>';
+  }
+  function rcFmtPctOrDash(v){ return v == null ? '—' : v.toFixed(2) + '%'; }
+  function rcFmtMultOrDash(v){ return v == null ? '—' : v.toFixed(2) + '×'; }
+  function rcHasStat(stat){ return stat && ((stat.y3 && stat.y3.avg != null) || (stat.y5 && stat.y5.avg != null)); }
+
+  function rcRenderHistorical(hist){
+    var gmTable = document.getElementById('rcHistGrowthMargin');
+    var gmBody = document.getElementById('rcHistGrowthMarginBody');
+    var hasGM = hist && (rcHasStat(hist.growth) || rcHasStat(hist.margin));
+    if(hasGM){
+      gmBody.innerHTML = rcStatRow('Crecimiento ingresos', hist.growth, rcFmtPctOrDash) + rcStatRow('Margen EBIT', hist.margin, rcFmtPctOrDash);
+      gmTable.style.display = '';
+    } else { gmTable.style.display = 'none'; }
+
+    var multTable = document.getElementById('rcHistMultiples');
+    var multBody = document.getElementById('rcHistMultiplesBody');
+    if(hist && hist.multiples){
+      var rows = [['EV/EBITDA','evEbitda'],['EV/FCFF','evFcff'],['P/E','pe'],['P/FCFE','pfcfe'],['P/OCF','pocf']];
+      multBody.innerHTML = rows.map(function(pair){ return rcStatRow(pair[0], hist.multiples[pair[1]], rcFmtMultOrDash); }).join('');
+      multTable.style.display = '';
+    } else { multTable.style.display = 'none'; }
+  }
+
+  function rcClearSourceMarks(){
+    document.querySelectorAll('#rcForm input.src-auto, #rcForm input.src-derived').forEach(function(inp){
+      inp.classList.remove('src-auto', 'src-derived');
+    });
+  }
+
+  function rcRunLookup(){
+    var ticker = document.getElementById('rc_ticker').value.trim();
+    if(!ticker){ rcSetStatus('Escribe un ticker primero (ej. ADBE, AAPL, MSFT).', 'warn'); return; }
+    if(typeof MarketData === 'undefined' || !MarketData.getApiKey()){
+      rcSetStatus('Falta tu API key de Financial Modeling Prep — pégala en "Resumen", en la sección de precio en vivo, y vuelve aquí.', 'warn');
+      return;
+    }
+    var btn = document.getElementById('rcLookupBtn');
+    btn.disabled = true; btn.textContent = 'Buscando…';
+    rcSetStatus('Consultando Financial Modeling Prep…', 'warn');
+    rcClearSourceMarks();
+
+    MarketData.buscar(ticker).then(function(r){
+      if(!r.ok && r.notFound){
+        rcSetStatus('No se encontró "' + ticker + '" en Financial Modeling Prep. Completa los campos manualmente.', 'warn');
+        rcRenderHistorical(null);
+        return;
+      }
+      var autoCount = 0, derivedCount = 0;
+      r.auto.forEach(function(f){ if(rcFillField('rc_' + f, r.values[f], 'src-auto')) autoCount++; });
+      r.derived.forEach(function(f){ if(rcFillField('rc_' + f, r.values[f], 'src-derived')) derivedCount++; });
+      rcRenderHistorical(r.historical);
+      var parts = [];
+      parts.push((r.companyName || r.ticker) + (r.fiscalYearEnd ? ', último año fiscal con cierre ' + r.fiscalYearEnd : ''));
+      parts.push(autoCount + ' campos reportados, ' + derivedCount + ' calculados a partir de ellos.');
+      if(r.partial && r.partial.length){ parts.push('Fallaron: ' + r.partial.join(' | ') + '.'); }
+      else if(r.noStatements){ parts.push('FMP no tiene estados financieros para este ticker en el plan gratuito.'); }
+      else if(r.missing && r.missing.length){ parts.push(r.missing.length + ' campo(s) no disponibles — revísalos.'); }
+      rcSetStatus(parts.join(' '), (r.partial || r.noStatements) ? 'warn' : 'ok');
+    }).catch(function(err){
+      rcSetStatus('No se pudo consultar Financial Modeling Prep (' + (err && err.message ? err.message : 'error de red') + ').', 'err');
+      rcRenderHistorical(null);
+    }).finally(function(){
+      btn.disabled = false; btn.textContent = 'Buscar datos';
+    });
+  }
+  document.getElementById('rcLookupBtn').addEventListener('click', rcRunLookup);
+  document.getElementById('rc_ticker').addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){ e.preventDefault(); rcRunLookup(); }
+  });
+
+  function rcReadInputs(){
+    return {
+      precioActual: rcNum('rc_precioActual'),
+      tipoEmpresa: document.getElementById('rc_tipoEmpresa').value,
+      mos: rcPct('rc_mos'),
+      revenue0: rcNum('rc_revenue0'),
+      ebit0: rcNum('rc_ebit0'),
+      taxEffective: rcPct('rc_taxEffective'),
+      taxMarginal: rcPct('rc_taxMarginal'),
+      shares0: rcNum('rc_shares0'),
+      cash: rcNum('rc_cash'),
+      debt: rcNum('rc_debt'),
+      nonOperatingAssets: rcNum('rc_nonOperatingAssets'),
+      minorityInterests: rcNum('rc_minorityInterests'),
+      probFailure: rcPct('rc_probFailure'),
+      recoveryPct: rcPct('rc_recoveryPct'),
+      wacc: rcPct('rc_wacc'),
+      riskFreeRate: rcPct('rc_riskFreeRate'),
+      matureMarketERP: rcPct('rc_matureMarketERP'),
+      salesToCapital: rcNum('rc_salesToCapital'),
+      growthCons: rcPct('rc_growthCons'), marginCons: rcPct('rc_marginCons'),
+      growthBase: rcPct('rc_growthBase'), marginBase: rcPct('rc_marginBase'),
+      growthOpt: rcPct('rc_growthOpt'), marginOpt: rcPct('rc_marginOpt'),
+      daPctRevenue: rcPct('rc_daPctRevenue'),
+      capexPctRevenue: rcPct('rc_capexPctRevenue'),
+      nwcPctDeltaRevenue: rcPct('rc_nwcPctDeltaRevenue'),
+      interestOtherPctEBIT: rcPct('rc_interestOtherPctEBIT'),
+      netBorrowingPctRevenue: rcPct('rc_netBorrowingPctRevenue'),
+      buybackRate: rcPct('rc_buybackRate'),
+      dividendPerShare: rcNum('rc_dividendPerShare'),
+      evEbitdaBase: rcNum('rc_evEbitdaBase'),
+      evFcffBase: rcNum('rc_evFcffBase'),
+      peBase: rcNum('rc_peBase'),
+      pfcfeBase: rcNum('rc_pfcfeBase'),
+      pocfBase: rcNum('rc_pocfBase')
+    };
+  }
+
+  function rcRenderResult(inp, r){
+    document.getElementById('rcPrice').textContent = fmtMoney(inp.precioActual);
+    document.getElementById('rcPrecioMOS').textContent = fmtMoney(r.precioConMOS.cons) + ' – ' + fmtMoney(r.precioConMOS.base);
+    document.getElementById('rcCagrB').textContent = fmtPct(r.cagr.base);
+
+    var tbody = document.getElementById('rcMethodsBody');
+    tbody.innerHTML = '';
+    var order = [['dcf','DCF Damodaran'], ['evEbitda','EV/EBITDA'], ['evFcff','EV/FCFF'], ['pe','P/E'], ['pfcfe','P/FCFE'], ['pocf','P/OCF']];
+    order.forEach(function(pair){
+      var key = pair[0], label = pair[1];
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td>' + label + '</td><td>' + fmtPct(r.pesos[key]) + '</td><td>' + fmtMoney(r.precios[key].cons) + '</td><td>' + fmtMoney(r.precios[key].base) + '</td><td>' + fmtMoney(r.precios[key].opt) + '</td>';
+      tbody.appendChild(tr);
+    });
+    var totRow = document.createElement('tr');
+    totRow.className = 'total';
+    totRow.innerHTML = '<td>Precio Objetivo Ponderado</td><td>100%</td><td>' + fmtMoney(r.precioObjetivo.cons) + '</td><td>' + fmtMoney(r.precioObjetivo.base) + '</td><td>' + fmtMoney(r.precioObjetivo.opt) + '</td>';
+    tbody.appendChild(totRow);
+
+    function zoneText(z){ return fmtMoney(z.min) + ' – ' + fmtMoney(z.max); }
+    document.getElementById('rcZValue').textContent = zoneText(r.zonas.value);
+    document.getElementById('rcZDeep').textContent = zoneText(r.zonas.deepValue);
+    document.getElementById('rcZHist').textContent = zoneText(r.zonas.historica);
+    document.getElementById('rcZMOS').textContent = fmtMoney(r.precioConMOS.cons) + ' – ' + fmtMoney(r.precioConMOS.base);
+
+    document.getElementById('rcResult').style.display = 'block';
+    document.getElementById('rcResult').scrollIntoView({behavior:'smooth', block:'start'});
+  }
+
+  document.getElementById('rcForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    var inp = rcReadInputs();
+    var r = calcularModeloJMR(inp);
+    rcRenderResult(inp, r);
+  });
+
+  function rcPrefillFromExcel(){
+    if(currentTicker && currentTicker !== 'Modelo JMR') document.getElementById('rc_ticker').value = currentTicker;
+    if(currentResumen){
+      if(typeof currentResumen.precio === 'number' && isFinite(currentResumen.precio)) document.getElementById('rc_precioActual').value = currentResumen.precio;
+      if(currentResumen.tipo){
+        var sel = document.getElementById('rc_tipoEmpresa');
+        var match = Array.prototype.some.call(sel.options, function(o){ return o.value === currentResumen.tipo; });
+        if(match) sel.value = currentResumen.tipo;
+      }
+      if(typeof currentResumen.mos === 'number' && isFinite(currentResumen.mos)) document.getElementById('rc_mos').value = (currentResumen.mos * 100).toFixed(2);
+    }
+  }
 
   input.addEventListener('change', function(e){ handleFile(e.target.files[0]); });
   dz.addEventListener('dragover', function(e){ e.preventDefault(); dz.classList.add('drag'); });
