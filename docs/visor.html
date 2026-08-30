@@ -67,21 +67,31 @@
   nav.appnav a:hover{color:var(--ink);}
   nav.appnav a.active{color:var(--accent); border-bottom-color:var(--accent);}
 
-  .wrap{max-width:900px; margin:0 auto; padding:28px 20px 64px;}
+  .wrap{max-width:1180px; margin:0 auto; padding:28px 20px 64px;}
   h1{font-family:"Fraunces", Georgia, serif; font-weight:700; font-size:clamp(24px,4vw,32px); letter-spacing:-0.01em; margin:0 0 6px; text-wrap:balance;}
   .subtitle{color:var(--ink-soft); font-size:14px; margin:0 0 24px; max-width:62ch;}
 
+  /* Compacta (no es lo primero que se ve al abrir la página, vive junto a
+     "Valoraciones guardadas" al final) — mismo trato visual que antes, con
+     menos aire vertical. */
   .dropzone{
-    border:2px dashed var(--border); border-radius:16px; background:var(--surface);
-    padding:44px 20px; text-align:center; cursor:pointer; transition:border-color .15s;
+    display:block; border:2px dashed var(--border); border-radius:12px; background:var(--surface-2);
+    padding:22px 16px; text-align:center; cursor:pointer; transition:border-color .15s;
   }
   .dropzone:hover, .dropzone.drag{border-color:var(--accent);}
-  .dropzone svg{color:var(--ink-faint); margin-bottom:10px;}
-  .dropzone .main{font-weight:600; font-size:15px;}
-  .dropzone .sub{color:var(--ink-faint); font-size:12.5px; margin-top:4px;}
+  .dropzone svg{width:22px; height:22px; color:var(--ink-faint); margin-bottom:6px;}
+  .dropzone .main{font-weight:600; font-size:13.5px;}
+  .dropzone .hint{color:var(--ink-faint); font-size:12px; margin-top:4px;}
   .dropzone input{display:none;}
 
-  .privacy-note{font-size:11.5px; color:var(--ink-faint); text-align:center; margin-top:10px; line-height:1.5;}
+  .privacy-note{font-size:11.5px; color:var(--ink-faint); margin-top:10px; line-height:1.5;}
+
+  /* "Cargar datos" agrupa subir-Excel-nuevo y valoraciones-guardadas lado a
+     lado al final de la página, en vez de que el dropzone grande sea lo
+     primero que ocupa la pantalla en cada visita. */
+  .data-grid{display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:22px;}
+  .data-grid .gh-section{margin-top:0;}
+  @media (max-width:820px){.data-grid{grid-template-columns:1fr;}}
 
   #result{display:none; margin-top:28px;}
   #result.show{display:block;}
@@ -163,6 +173,11 @@
   input.src-auto{border-color:var(--positive) !important; box-shadow:inset 3px 0 0 var(--positive) !important;}
   input.src-derived{border-color:var(--accent) !important; box-shadow:inset 3px 0 0 var(--accent) !important;}
 
+  /* El formulario de Recalcular es de una sola columna (etiqueta + campo
+     angosto) — a todo el ancho de .wrap la etiqueta queda muy lejos del
+     campo; se limita a un ancho de lectura cómodo aunque .wrap sea más
+     ancho (pensado para las tablas de datos, no para este formulario). */
+  #rcForm{max-width:720px;}
   fieldset{border:1px solid var(--border-soft); border-radius:14px; background:var(--surface); padding:16px 18px 18px; margin:0 0 16px; box-shadow:var(--shadow); min-width:0;}
   legend{font-family:"Fraunces",Georgia,serif; font-weight:600; font-size:16px; padding:0 8px; color:var(--ink);}
   .field-help{font-size:11.5px; color:var(--ink-faint); margin:2px 0 12px; line-height:1.5;}
@@ -228,10 +243,12 @@
   /* Las 3 celdas de escenario de la fila "Precio Objetivo Ponderado" con
      una intensidad de color creciente (Conservador < Base < Optimista) en
      vez de un solo tono plano para las tres — así se ve de un vistazo que
-     no es un solo número sino un rango que crece con el escenario. */
-  table.methods tr.total td.total-cons{background:color-mix(in oklab, var(--accent) 22%, var(--surface));}
-  table.methods tr.total td.total-base{background:color-mix(in oklab, var(--accent) 52%, var(--surface)); font-weight:800;}
-  table.methods tr.total td.total-opt{background:color-mix(in oklab, var(--accent) 85%, var(--surface));}
+     no es un solo número sino un rango que crece con el escenario. Tope en
+     52% (no 85%): con el texto en --accent-ink, pasado ese punto el
+     contraste real caía por debajo de 3:1 (casi ilegible en tema oscuro). */
+  table.methods tr.total td.total-cons{background:color-mix(in oklab, var(--accent) 18%, var(--surface));}
+  table.methods tr.total td.total-base{background:color-mix(in oklab, var(--accent) 38%, var(--surface)); font-weight:800;}
+  table.methods tr.total td.total-opt{background:color-mix(in oklab, var(--accent) 52%, var(--surface));}
   table.methods tr:last-child td{border-bottom:none;}
   /* Columna "Método" fija al hacer scroll lateral en celular — sin esto,
      apenas se desliza el dedo para ver Base/Optimista se pierde de vista a
@@ -315,7 +332,10 @@
      poder envolver el texto, darle aire para leerlo sin scroll horizontal, y
      una jerarquía visual clara entre títulos de sección, encabezados de
      mini-tabla y filas etiqueta:valor (en vez de una grilla de datos plana). */
-  .sheet-scroll.prose{overflow-x:hidden; padding:0;}
+  /* max-width propio (no el ancho completo de .wrap, que ahora es más
+     ancho para las tablas de datos): un párrafo justificado a más de
+     ~980px de ancho se vuelve incómodo de leer. */
+  .sheet-scroll.prose{overflow-x:hidden; padding:0; max-width:980px;}
   .sheet-scroll.prose table{border-collapse:separate; border-spacing:0; table-layout:fixed; width:100%; font-size:13.5px;}
   .sheet-scroll.prose table td{
     white-space:pre-wrap; word-break:break-word; vertical-align:top; line-height:1.6;
@@ -345,7 +365,7 @@
      junto con la valoración como cualquier otra parte editable. */
   .fundamental-editor{
     background:var(--surface); border:1px solid var(--border-soft); border-radius:14px; box-shadow:var(--shadow);
-    padding:22px 24px; min-height:320px; font-size:14.5px; line-height:1.7; color:var(--ink);
+    padding:22px 24px; min-height:320px; font-size:14.5px; line-height:1.7; color:var(--ink); max-width:980px;
     text-align:justify; text-align-last:left; cursor:text;
   }
   .fundamental-editor:focus{outline:2px solid var(--accent); outline-offset:2px;}
@@ -509,14 +529,6 @@
 <div class="wrap">
   <h1>Visor Modelo JMR</h1>
   <p class="subtitle">Sube tu Excel del Modelo JMR (DCF Damodaran + 5 múltiplos) ya lleno para un ticker, y lo verás resumido aquí — sin abrir Excel.</p>
-
-  <label class="dropzone" id="dropzone">
-    <input type="file" id="fileInput" accept=".xlsx">
-    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
-    <div class="main">Arrastra tu .xlsx aquí, o haz clic para elegir el archivo</div>
-    <div class="sub">Se procesa en tu navegador — el archivo nunca se sube a ningún servidor</div>
-  </label>
-  <p class="privacy-note">Lee la hoja "Resumen de Valoración" para el resumen, y las demás hojas del Modelo JMR involucradas en la valoración para las pestañas de detalle. El archivo no se envía a ningún lado; el análisis ocurre localmente en tu teléfono o computador.</p>
 
   <div class="error-box" id="errorBox"></div>
 
@@ -787,16 +799,31 @@
     </div>
   </div>
 
-  <div class="gh-section" id="savedSection">
-    <h3>Valoraciones guardadas</h3>
-    <p class="sub">Consulta valoraciones que hayas guardado antes desde este visor — no necesitas volver a subir el Excel. Se conecta una sola vez a tu repo privado de GitHub (<code>Modelo-JMR-datos</code>); el navegador recuerda la conexión después, no hace falta volver a escribir nada.</p>
-    <div id="ghConnect"></div>
-    <div class="gh-row">
-      <button class="gh-btn" id="loadSavedBtn" type="button">Cargar lista</button>
-      <button class="gh-btn" id="toggleArchiveBtn" type="button" hidden>Ver archivadas</button>
+  <p class="section-title">Cargar datos</p>
+  <div class="data-grid">
+    <div class="gh-section">
+      <h3>Subir un Excel nuevo</h3>
+      <p class="sub">Sube tu Excel del Modelo JMR (DCF Damodaran + 5 múltiplos) ya lleno para un ticker, y lo verás resumido arriba — sin abrir Excel.</p>
+      <label class="dropzone" id="dropzone">
+        <input type="file" id="fileInput" accept=".xlsx">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+        <div class="main">Arrastra tu .xlsx aquí, o haz clic para elegir el archivo</div>
+        <div class="hint">Se procesa en tu navegador — el archivo nunca se sube a ningún servidor</div>
+      </label>
+      <p class="privacy-note">Lee la hoja "Resumen de Valoración" para el resumen, y las demás hojas del Modelo JMR involucradas en la valoración para las pestañas de detalle. El archivo no se envía a ningún lado; el análisis ocurre localmente en tu teléfono o computador.</p>
     </div>
-    <p class="gh-status" id="savedStatus"></p>
-    <div class="saved-list" id="savedList"></div>
+
+    <div class="gh-section" id="savedSection">
+      <h3>Valoraciones guardadas</h3>
+      <p class="sub">Consulta valoraciones que hayas guardado antes desde este visor — no necesitas volver a subir el Excel. Se conecta una sola vez a tu repo privado de GitHub (<code>Modelo-JMR-datos</code>); el navegador recuerda la conexión después, no hace falta volver a escribir nada.</p>
+      <div id="ghConnect"></div>
+      <div class="gh-row">
+        <button class="gh-btn" id="loadSavedBtn" type="button">Cargar lista</button>
+        <button class="gh-btn" id="toggleArchiveBtn" type="button" hidden>Ver archivadas</button>
+      </div>
+      <p class="gh-status" id="savedStatus"></p>
+      <div class="saved-list" id="savedList"></div>
+    </div>
   </div>
 
   <footer>
@@ -1367,19 +1394,23 @@
   // Tinte secuencial (una sola escala, claro→oscuro) para celdas de
   // magnitud (precio objetivo, peso) — mezclado con el propio fondo del
   // tema (funciona igual en claro/oscuro sin definir colores nuevos).
+  // El texto usa --ink (no el mismo tono del fondo): a intensidad alta,
+  // texto y fondo del mismo color se vuelven casi ilegibles (medido con
+  // contraste real: ~1.4:1 con el tono, ~4.5:1+ con --ink) — se limita
+  // además el máximo de la mezcla a 55% para mantener ese contraste.
   function heatSeq(value, max){
     if(typeof value !== 'number' || !isFinite(value) || !(max > 0)) return '';
-    var pct = Math.max(0, Math.min(1, value / max)) * 85;
-    return 'background:color-mix(in oklab, var(--accent) ' + pct.toFixed(0) + '%, var(--surface)); color:var(--accent-ink);';
+    var pct = Math.max(0, Math.min(1, value / max)) * 55;
+    return 'background:color-mix(in oklab, var(--accent) ' + pct.toFixed(0) + '%, var(--surface)); color:var(--ink); font-weight:700;';
   }
   // Tinte divergente (positivo/negativo desde un punto medio neutro) para
   // celdas de retorno (CAGR) — mismo mecanismo, pero elige el matiz según
   // el signo del valor.
   function heatDiv(value, maxAbs){
     if(typeof value !== 'number' || !isFinite(value) || !(maxAbs > 0)) return '';
-    var pct = Math.min(1, Math.abs(value) / maxAbs) * 80;
+    var pct = Math.min(1, Math.abs(value) / maxAbs) * 55;
     var tone = value >= 0 ? '--positive' : '--negative';
-    return 'background:color-mix(in oklab, var(' + tone + ') ' + pct.toFixed(0) + '%, var(--surface)); color:var(' + tone + ');';
+    return 'background:color-mix(in oklab, var(' + tone + ') ' + pct.toFixed(0) + '%, var(--surface)); color:var(--ink); font-weight:700;';
   }
   // En las hojas crudas sin diseño propio, las celdas con un valor
   // porcentual (crecimiento, márgenes, variaciones, retorno) se colorean en
@@ -1437,8 +1468,12 @@
           var v = parseFloat(td.getAttribute('data-v'));
           if(!isFinite(v)) return;
           var frac = maxV > minV ? (v - minV) / (maxV - minV) : 0.5;
-          var pct = 15 + frac * 65;
-          td.setAttribute('style', 'background:color-mix(in oklab, var(' + tone + ') ' + pct.toFixed(0) + '%, var(--surface)); color:var(' + tone + ');');
+          // Texto en --ink (no el mismo tono del fondo) y tope de mezcla en
+          // 55%: con texto y fondo del mismo color, la celda más intensa
+          // medía ~1.4:1 de contraste real (casi ilegible) — con --ink sube
+          // a ~4.5:1+ en ambos temas.
+          var pct = 15 + frac * 40;
+          td.setAttribute('style', 'background:color-mix(in oklab, var(' + tone + ') ' + pct.toFixed(0) + '%, var(--surface)); color:var(--ink); font-weight:700;');
         });
       }
     });
