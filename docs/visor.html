@@ -305,6 +305,22 @@
   .sheet-scroll.prose table tr:nth-of-type(even):not(:has(td.qual-title)):not(.qual-subhead) td{background:var(--surface-2);}
   .sheet-scroll.prose table tr:nth-of-type(even):not(:has(td.qual-title)):not(.qual-subhead) td:first-child{background:var(--border-soft);}
 
+  /* Celular: la columna de etiqueta fija en 220px (pensada para pantallas
+     anchas) deja muy pocos píxeles para el resto en un teléfono — el texto
+     terminaba envuelto letra por letra. Debajo de 640px se apilan las
+     celdas de cada fila verticalmente (etiqueta arriba, valor debajo) en
+     vez de mostrarlas lado a lado; funciona igual para filas de 2 columnas
+     y para las pocas mini-tablas con 3-4 (se les agrega una separación
+     punteada entre valores para que no se lean como un solo párrafo). */
+  @media (max-width:640px){
+    .sheet-scroll.prose table, .sheet-scroll.prose table tbody{display:block; width:100%;}
+    .sheet-scroll.prose table tr{display:flex; flex-direction:column;}
+    .sheet-scroll.prose table td{display:block; width:auto; border-right:none;}
+    .sheet-scroll.prose table td:first-child{width:auto; border-bottom:1px solid var(--border-soft);}
+    .sheet-scroll.prose table td.gov-value{min-width:0;}
+    .sheet-scroll.prose table td:nth-child(n+3){border-top:1px dashed var(--border-soft); padding-top:8px;}
+  }
+
   /* "Diagnostics": varios bloques "Step N" con una mini-tabla de métricas y
      una lista de preguntas de revisión aparte (ver renderDiagnosticsSheet) —
      cada bloque se muestra como su propia tarjeta en vez de una sola grilla. */
