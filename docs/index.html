@@ -274,9 +274,57 @@
   .dfield .dval{font-size:13.5px; line-height:1.5; color:var(--ink);}
   .dfield .dval.mono{font-family:"IBM Plex Mono", monospace; font-size:12.5px;}
 
+  /* Lista en tarjetas para celular — la tabla de 10 columnas es ilegible
+     en una pantalla angosta (aunque el "table-scroll" evita que desborde
+     la página, solo alcanzan a verse 2-3 columnas a la vez sin scroll
+     lateral). Debajo de 720px se oculta la tabla y se muestra esta lista
+     en su lugar, con la misma info reorganizada verticalmente. */
+  .card-list{display:none; flex-direction:column; gap:10px;}
+  .s-card{
+    background:var(--surface); border:1px solid var(--border-soft); border-radius:14px;
+    padding:14px 16px; box-shadow:var(--shadow); cursor:pointer;
+  }
+  .s-card:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+  .sc-head{display:flex; justify-content:space-between; align-items:center; gap:10px;}
+  .sc-id{display:flex; align-items:center; gap:8px; min-width:0;}
+  .sc-id .c-ticker{font-size:15px;}
+  .sc-empresa{font-size:13px; color:var(--ink-soft); margin-top:2px;}
+  .sc-row{display:flex; gap:18px; margin-top:12px; flex-wrap:wrap;}
+  .sc-kv{display:flex; flex-direction:column; gap:2px;}
+  .sc-kv .k{font-size:10px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint);}
+  .sc-kv .v{font-size:13.5px; font-weight:600; font-family:"IBM Plex Mono", monospace;}
+  .sc-kv .v.stale{color:var(--ink-faint); font-weight:400;}
+  .sc-zones, .sc-scen{
+    display:flex; gap:14px; flex-wrap:wrap; font-family:"IBM Plex Mono", monospace;
+    font-size:11.5px; color:var(--ink-soft); margin-top:10px;
+  }
+  .sc-zones span, .sc-scen span{display:flex; gap:4px;}
+  .sc-zones b, .sc-scen b{color:var(--ink-faint); font-weight:600;}
+  .sc-toggle{
+    display:flex; align-items:center; gap:4px; font-size:12px; font-weight:600; color:var(--accent);
+    margin-top:12px; padding-top:12px; border-top:1px solid var(--border-soft);
+  }
+  .sc-toggle .chev{transition:transform 0.15s ease; font-size:11px;}
+  .s-card[aria-expanded="true"] .sc-toggle .chev{transform:rotate(90deg);}
+  .sc-detail{
+    margin-top:2px; display:grid; grid-template-columns:1fr; gap:12px;
+    grid-column:unset; padding:0; background:transparent; border-bottom:none;
+  }
+  .sc-detail .dfield .dlbl{margin-bottom:3px;}
+
+  .mobile-sort{display:none; align-items:center; gap:8px; margin-bottom:14px;}
+  .mobile-sort label{font-size:12px; color:var(--ink-faint); font-weight:600; flex:none;}
+  .mobile-sort select{
+    flex:1 1 auto; min-width:0; font:inherit; font-size:13px; padding:8px 10px; border-radius:9px;
+    border:1px solid var(--border); background:var(--surface); color:var(--ink);
+  }
+
   @media (max-width: 720px){
     .detail{grid-template-columns:1fr; padding-left:18px;}
     .stats{grid-template-columns:repeat(2, 1fr);}
+    .table-scroll{display:none;}
+    .card-list{display:flex;}
+    .mobile-sort{display:flex;}
   }
 
   footer{
@@ -343,6 +391,19 @@
   <div class="stats" id="stats"></div>
   <p class="result-line" id="resultLine"></p>
 
+  <div class="mobile-sort">
+    <label for="mobileSortSelect">Ordenar por</label>
+    <select id="mobileSortSelect">
+      <option value="n:1">Orden original</option>
+      <option value="cagr:-1">CAGR base: mayor a menor</option>
+      <option value="cagr:1">CAGR base: menor a mayor</option>
+      <option value="precioActual:-1">Precio actual: mayor a menor</option>
+      <option value="precioActual:1">Precio actual: menor a mayor</option>
+      <option value="ticker:1">Ticker A-Z</option>
+      <option value="empresa:1">Empresa A-Z</option>
+    </select>
+  </div>
+
   <div class="table-scroll">
     <div class="grid" id="grid">
       <div class="row head">
@@ -361,6 +422,8 @@
     </div>
   </div>
 
+  <div class="card-list" id="cardList"></div>
+
   <footer>
     Contenido con fines educativos y de organización personal de información — no constituye asesoría financiera ni recomendación de inversión.
     Detalle narrativo completo de cada caso en <code>casos_de_estudio/CASOS_DE_ESTUDIO.md</code>, metodología replicable en <code>modelo/METODOLOGIA.md</code>, y calculadora interactiva en <code>modelo/Modelo_Valoracion.xlsx</code>.<br><br>
@@ -376,6 +439,7 @@
   var state = { q: "", cat: "all", sortKey: "n", sortDir: 1, expanded: null };
 
   var rowsEl = document.getElementById("rows");
+  var cardsEl = document.getElementById("cardList");
   var resultLine = document.getElementById("resultLine");
   var statsEl = document.getElementById("stats");
 
@@ -413,6 +477,17 @@
     });
   }
 
+  function detailFieldsHtml(d){
+    var html = '';
+    html += '<div class="dfield"><div class="dlbl">Múltiplo (' + escapeHtml(d.multP) + ')</div><div class="dval mono">Actual ' + escapeHtml(d.multA) + ' · Promedio histórico ' + escapeHtml(d.multH) + '</div></div>';
+    html += '<div class="dfield"><div class="dlbl">Fecha de análisis</div><div class="dval mono">' + escapeHtml(d.fecha) + '</div></div>';
+    html += '<div class="dfield full"><div class="dlbl">Moat</div><div class="dval">' + escapeHtml(d.moat) + '</div></div>';
+    html += '<div class="dfield full"><div class="dlbl">Riesgos clave</div><div class="dval">' + escapeHtml(d.riesgos) + '</div></div>';
+    html += '<div class="dfield full"><div class="dlbl">Conclusión / acción</div><div class="dval">' + escapeHtml(d.conclusion) + '</div></div>';
+    html += '<div class="dfield full"><div class="dlbl">Última actualización / retorno</div><div class="dval">' + escapeHtml(d.actualizacion) + '</div></div>';
+    return html;
+  }
+
   function rowHtml(d, idx){
     var cagrNum = parseNum(d.cagr);
     var cagrClass = cagrNum === null ? "" : (cagrNum >= 0 ? "pos" : "neg");
@@ -431,15 +506,37 @@
     html += '<span class="chev">▸</span>';
     html += '</div>';
     if(expanded){
-      html += '<div class="detail">';
-      html += '<div class="dfield"><div class="dlbl">Múltiplo (' + escapeHtml(d.multP) + ')</div><div class="dval mono">Actual ' + escapeHtml(d.multA) + ' · Promedio histórico ' + escapeHtml(d.multH) + '</div></div>';
-      html += '<div class="dfield"><div class="dlbl">Fecha de análisis</div><div class="dval mono">' + escapeHtml(d.fecha) + '</div></div>';
-      html += '<div class="dfield full"><div class="dlbl">Moat</div><div class="dval">' + escapeHtml(d.moat) + '</div></div>';
-      html += '<div class="dfield full"><div class="dlbl">Riesgos clave</div><div class="dval">' + escapeHtml(d.riesgos) + '</div></div>';
-      html += '<div class="dfield full"><div class="dlbl">Conclusión / acción</div><div class="dval">' + escapeHtml(d.conclusion) + '</div></div>';
-      html += '<div class="dfield full"><div class="dlbl">Última actualización / retorno</div><div class="dval">' + escapeHtml(d.actualizacion) + '</div></div>';
-      html += '</div>';
+      html += '<div class="detail">' + detailFieldsHtml(d) + '</div>';
     }
+    return html;
+  }
+
+  // Misma información que rowHtml, reorganizada como tarjeta vertical para
+  // celular — la tabla de 10 columnas solo alcanza a mostrar 2-3 sin
+  // scroll lateral en una pantalla angosta.
+  function cardHtml(d){
+    var cagrNum = parseNum(d.cagr);
+    var cagrClass = cagrNum === null ? "" : (cagrNum >= 0 ? "pos" : "neg");
+    var expanded = state.expanded === d.n;
+    var html = '';
+    html += '<div class="s-card" tabindex="0" role="button" aria-expanded="' + expanded + '" data-n="' + d.n + '">';
+    html += '  <div class="sc-head">';
+    html += '    <div class="sc-id"><span class="c-ticker">' + escapeHtml(d.ticker) + '</span><span class="chip ' + catClass(d.cat) + '">' + escapeHtml(d.cat) + '</span></div>';
+    html += '    <span class="c-cagr ' + cagrClass + '">' + escapeHtml(d.cagr) + '</span>';
+    html += '  </div>';
+    html += '  <div class="sc-empresa">' + escapeHtml(d.empresa) + '</div>';
+    html += '  <div class="sc-row">';
+    html += '    <div class="sc-kv"><span class="k">Entrada</span><span class="v">' + escapeHtml(d.precio) + '</span></div>';
+    html += '    <div class="sc-kv"><span class="k">Actual</span><span class="v' + (d.precioActual != null ? '' : ' stale') + '">' + (d.precioActual != null ? formatPrecioActual(d.precioActual) : '—') + '</span></div>';
+    html += '    <div class="sc-kv"><span class="k">Año</span><span class="v">' + escapeHtml(d.anio) + '</span></div>';
+    html += '  </div>';
+    html += '  <div class="sc-zones"><span><b>Value</b>' + escapeHtml(d.zV) + '</span><span><b>Deep</b>' + escapeHtml(d.zD) + '</span><span><b>Hist</b>' + escapeHtml(d.zH) + '</span></div>';
+    html += '  <div class="sc-scen"><span><b>Neg</b>' + escapeHtml(d.oNeg) + '</span><span><b>Base</b>' + escapeHtml(d.oBase) + '</span><span><b>Opt</b>' + escapeHtml(d.oOpt) + '</span></div>';
+    html += '  <div class="sc-toggle">' + (expanded ? 'Ocultar detalle' : 'Ver detalle') + ' <span class="chev">▸</span></div>';
+    if(expanded){
+      html += '  <div class="detail sc-detail">' + detailFieldsHtml(d) + '</div>';
+    }
+    html += '</div>';
     return html;
   }
 
@@ -472,11 +569,13 @@
 
     if(!list.length){
       rowsEl.innerHTML = '<div class="empty">Ningún caso coincide con la búsqueda.</div>';
+      cardsEl.innerHTML = '<div class="empty">Ningún caso coincide con la búsqueda.</div>';
       return;
     }
     rowsEl.innerHTML = list.map(rowHtml).join("");
+    cardsEl.innerHTML = list.map(cardHtml).join("");
 
-    document.querySelectorAll("#rows .row.data").forEach(function(el){
+    document.querySelectorAll("#rows .row.data, #cardList .s-card").forEach(function(el){
       el.addEventListener("click", function(){ toggleExpand(Number(el.dataset.n)); });
       el.addEventListener("keydown", function(e){
         if(e.key === "Enter" || e.key === " "){ e.preventDefault(); toggleExpand(Number(el.dataset.n)); }
@@ -487,6 +586,12 @@
       var k = el.dataset.arrow;
       el.textContent = state.sortKey === k ? (state.sortDir === 1 ? "▲" : "▼") : "";
     });
+
+    var sortSelectEl = document.getElementById("mobileSortSelect");
+    var sortValue = state.sortKey + ":" + state.sortDir;
+    if(sortSelectEl.value !== sortValue && [].slice.call(sortSelectEl.options).some(function(o){ return o.value === sortValue; })){
+      sortSelectEl.value = sortValue;
+    }
   }
 
   function toggleExpand(n){
@@ -515,6 +620,13 @@
       else { state.sortKey = k; state.sortDir = 1; }
       render();
     });
+  });
+
+  document.getElementById("mobileSortSelect").addEventListener("change", function(e){
+    var parts = e.target.value.split(":");
+    state.sortKey = parts[0];
+    state.sortDir = Number(parts[1]);
+    render();
   });
 
   var themeBtn = document.getElementById("themeToggle");
