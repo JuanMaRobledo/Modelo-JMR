@@ -276,19 +276,39 @@
   /* Hojas crudas sin render dedicado (Estados Financieros, Márgenes,
      Eficiencia de capital, etc.): antes la primera fila/columna (los
      títulos de fila y columna de la plantilla) no se distinguían en nada
-     del resto de la grilla — se les da fondo propio y negrita, y se
-     alternan las filas de datos. No se aplica a las hojas con su propio
+     del resto de la grilla. Ahora llevan tratamientos DISTINTOS a
+     propósito — la fila de encabezado (arriba, los períodos/columnas) en
+     tono dorado, la columna de etiquetas (izquierda, los renglones) en
+     gris — para que no se confundan entre sí ni con los datos, y las
+     filas de datos se alternan. No se aplica a las hojas con su propio
      diseño (prose/diagnostics/resumen-val) ni a las celdas ya coloreadas
-     de la matriz de sensibilidad de las hojas de múltiplos. */
-  .sheet-scroll:not(.prose):not(.diagnostics):not(.resumen-val) table tr:first-child td:not(.sens-title):not(.sens-head):not(.sens-rowhead):not(.sens-cell){
-    background:var(--surface-2); font-weight:700; color:var(--ink-soft);
+     de la matriz de sensibilidad o los títulos de sección de las hojas de
+     múltiplos. */
+  .sheet-scroll:not(.prose):not(.diagnostics):not(.resumen-val) table tr:first-child td:not(.sens-title):not(.sens-head):not(.sens-rowhead):not(.sens-cell):not(.section-title-row){
+    background:var(--accent-soft); color:var(--accent-ink); font-weight:700; border-bottom:2px solid var(--accent);
   }
-  .sheet-scroll:not(.prose):not(.diagnostics):not(.resumen-val) table td:first-child:not(.sens-title):not(.sens-head):not(.sens-rowhead):not(.sens-cell){
-    font-weight:700; background:var(--surface-2); color:var(--ink-soft);
+  .sheet-scroll:not(.prose):not(.diagnostics):not(.resumen-val) table td:first-child:not(.sens-title):not(.sens-head):not(.sens-rowhead):not(.sens-cell):not(.section-title-row){
+    font-weight:700; background:var(--surface-2); color:var(--ink-soft); border-right:2px solid var(--border);
   }
-  .sheet-scroll:not(.prose):not(.diagnostics):not(.resumen-val) table tr:nth-child(even) td:not(.sens-title):not(.sens-head):not(.sens-rowhead):not(.sens-cell){
+  .sheet-scroll:not(.prose):not(.diagnostics):not(.resumen-val) table tr:first-child td:first-child:not(.section-title-row){
+    background:var(--accent-soft); color:var(--accent-ink); border-right:2px solid var(--accent);
+  }
+  .sheet-scroll:not(.prose):not(.diagnostics):not(.resumen-val) table tr:nth-child(even) td:not(.sens-title):not(.sens-head):not(.sens-rowhead):not(.sens-cell):not(.section-title-row){
     background:var(--surface-2);
   }
+
+  /* Filas "--- TÍTULO ---" (p. ej. "--- FORECASTED SUMMARY --- |
+     CONSERVADOR" en las hojas de múltiplos): son separadores de sección
+     dentro de la MISMA tabla — se destacan como una banda de ancho
+     completo, con aire antes de cada una (salvo la primera), para que las
+     secciones (Conservador/Base/Optimista) no se lean como una sola
+     grilla continua. Ver styleSectionRows(). */
+  .sheet-scroll table td.section-title-row{
+    background:var(--accent-soft); color:var(--accent-ink); font-weight:800; text-align:left;
+    padding:10px 14px; text-transform:uppercase; letter-spacing:.04em; font-size:11px; white-space:normal;
+    border-bottom:2px solid var(--accent);
+  }
+  .sheet-scroll table td.section-title-sep{border-top:14px solid var(--bg);}
 
   /* Hojas de texto/análisis cualitativo (párrafos largos, no tablas
      numéricas): el nowrap general de arriba las vuelve ilegibles — hay que
@@ -1378,18 +1398,82 @@
       return !td.className && /%\s*$/.test(td.textContent.trim());
     });
     if(!percentCells.length) return html;
-    var maxAbs = 0;
+    // La escala se calcula POR FILA, no contra el máximo de toda la hoja:
+    // una fila de márgenes (p. ej. Gross Profit Margin, ~86-89%) y una fila
+    // de crecimiento (~11-23%) conviven en la misma hoja pero no son
+    // comparables entre sí — escalar contra el máximo de toda la hoja
+    // dejaba la fila de mayor magnitud siempre al tope (sin distinguir sus
+    // propios años entre sí) y la de menor magnitud casi sin color.
+    var byRow = new Map();
     percentCells.forEach(function(td){
-      var v = parseFloat(td.getAttribute('data-v'));
-      if(isFinite(v) && Math.abs(v) > maxAbs) maxAbs = Math.abs(v);
+      var tr = td.parentNode;
+      if(!byRow.has(tr)) byRow.set(tr, []);
+      byRow.get(tr).push(td);
     });
-    if(!(maxAbs > 0)) return html;
-    percentCells.forEach(function(td){
-      var style = heatDiv(parseFloat(td.getAttribute('data-v')), maxAbs);
-      if(style) td.setAttribute('style', style);
+    byRow.forEach(function(cells){
+      var values = cells.map(function(td){ return parseFloat(td.getAttribute('data-v')); }).filter(isFinite);
+      if(!values.length) return;
+      var hasPos = values.some(function(v){ return v > 0; });
+      var hasNeg = values.some(function(v){ return v < 0; });
+      if(hasPos && hasNeg){
+        // Fila con signo mixto (p. ej. una variación que fue negativa
+        // algún año): divergente por signo, según magnitud absoluta —
+        // rojo/verde es la señal más clara ahí.
+        var maxAbs = Math.max.apply(null, values.map(Math.abs));
+        cells.forEach(function(td){
+          var style = heatDiv(parseFloat(td.getAttribute('data-v')), maxAbs);
+          if(style) td.setAttribute('style', style);
+        });
+      } else {
+        // Fila de un solo signo (p. ej. Gross Profit Margin, siempre
+        // positivo, ~85-89%): comparar contra cero deja TODA la fila casi
+        // con el mismo tono oscuro (86% y 89% son casi igual de "lejos de
+        // cero"), sin distinguir el año bueno del flojo. Se normaliza
+        // contra el propio rango [mín,máx] de la fila en vez de contra
+        // cero, para que la variación real dentro de esa métrica se note.
+        var minV = Math.min.apply(null, values), maxV = Math.max.apply(null, values);
+        var tone = values[0] >= 0 ? '--positive' : '--negative';
+        cells.forEach(function(td){
+          var v = parseFloat(td.getAttribute('data-v'));
+          if(!isFinite(v)) return;
+          var frac = maxV > minV ? (v - minV) / (maxV - minV) : 0.5;
+          var pct = 15 + frac * 65;
+          td.setAttribute('style', 'background:color-mix(in oklab, var(' + tone + ') ' + pct.toFixed(0) + '%, var(--surface)); color:var(' + tone + ');');
+        });
+      }
     });
     return tmp.innerHTML;
   }
+
+  // Filas "--- TÍTULO ---" (p. ej. "--- FORECASTED SUMMARY --- |
+  // CONSERVADOR" en las hojas de múltiplos) son separadores de sección
+  // dentro de la MISMA tabla — sin esto, las 3 secciones (Conservador/
+  // Base/Optimista) se leen como una sola grilla continua. Se destacan
+  // como una banda de ancho completo, con aire antes de cada una salvo la
+  // primera (mismo patrón que los títulos de Cualitativo).
+  function styleSectionRows(html){
+    var tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    var table = tmp.querySelector('table');
+    if(!table) return html;
+    var rows = Array.prototype.slice.call(table.rows);
+    var totalCols = tableTotalCols(table);
+    var seen = false;
+    rows.forEach(function(tr){
+      var cells = Array.prototype.slice.call(tr.cells);
+      if(!cells.length) return;
+      var m = cells[0].textContent.trim().match(/^-{2,}\s*(.+?)\s*-{2,}$/);
+      if(!m) return;
+      var extra = cells.slice(1).map(function(td){ return td.textContent.trim(); }).filter(Boolean).join(' — ');
+      cells[0].textContent = m[1] + (extra ? ' — ' + extra : '');
+      cells[0].className = 'section-title-row' + (seen ? ' section-title-sep' : '');
+      cells[0].colSpan = totalCols || cells.length;
+      for(var i = cells.length - 1; i >= 1; i--) tr.removeChild(cells[i]);
+      seen = true;
+    });
+    return tmp.innerHTML;
+  }
+
   // "Resumen de Valoración" no es prosa ni una tabla numérica uniforme: es
   // tres bloques distintos apretados en una sola grilla de Excel (precio
   // objetivo por método/escenario, zonas de valor con su CAGR, y la matriz
@@ -1562,9 +1646,9 @@
     } else if(name === 'Resumen de Valoración'){
       html = renderResumenValoracionSheet(ws);
     } else if(MULTIPLE_SHEETS[name]){
-      html = colorSensitivityMatrix(colorPercentCells(XLSX.utils.sheet_to_html(ws, {header:'', footer:'', editable:false})));
+      html = colorSensitivityMatrix(colorPercentCells(styleSectionRows(XLSX.utils.sheet_to_html(ws, {header:'', footer:'', editable:false}))));
     } else {
-      html = colorPercentCells(XLSX.utils.sheet_to_html(ws, {header:'', footer:'', editable:false}));
+      html = colorPercentCells(styleSectionRows(XLSX.utils.sheet_to_html(ws, {header:'', footer:'', editable:false})));
     }
     sheetHtmlCache[name] = html;
     return html;
