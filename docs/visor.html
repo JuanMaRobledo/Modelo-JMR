@@ -272,6 +272,9 @@
   }
   .saved-item .si-name{font-weight:600; font-family:"IBM Plex Mono", monospace;}
   .saved-item .si-meta{color:var(--ink-faint); font-size:11.5px;}
+  .saved-item .si-actions{display:flex; gap:6px; flex-wrap:wrap;}
+  .gh-btn.danger{border-color:var(--negative); color:var(--negative);}
+  .gh-btn.danger:hover{background:var(--negative-soft);}
 
   footer{margin-top:32px; font-size:12px; color:var(--ink-faint); line-height:1.6; border-top:1px solid var(--border-soft); padding-top:16px;}
 </style>
@@ -550,6 +553,7 @@
     </div>
     <div class="gh-row">
       <button class="gh-btn" id="loadSavedBtn" type="button">Cargar lista</button>
+      <button class="gh-btn" id="toggleArchiveBtn" type="button" hidden>Ver archivadas</button>
     </div>
     <p class="gh-status" id="savedStatus"></p>
     <div class="saved-list" id="savedList"></div>
@@ -802,15 +806,50 @@
     return tmp.innerHTML;
   }
 
+  // El rango de una hoja (!ref) suele incluir columnas totalmente vacías al
+  // final (formato heredado de la plantilla) — con table-layout:fixed esas
+  // columnas fantasma se reparten el ancho igual que las que sí tienen
+  // texto, dejando el contenido real apretado. sheet_to_html no acepta un
+  // "range" como opción (se probó y no tiene efecto en esta build de
+  // SheetJS) — hay que recortar el propio !ref del objeto, y también los
+  // !merges que se salgan de ese recorte (si no, un combinar de celdas
+  // vacío que llegue más lejos vuelve a estirar la tabla igual).
+  function trimSheetForProse(ws){
+    var ref = ws['!ref'];
+    if(!ref) return ws;
+    var full = XLSX.utils.decode_range(ref);
+    var maxC = full.s.c, maxR = full.s.r;
+    Object.keys(ws).forEach(function(addr){
+      if(addr[0] === '!') return;
+      var cell = ws[addr];
+      if(cell && cell.v !== undefined && cell.v !== null && cell.v !== ''){
+        var pos = XLSX.utils.decode_cell(addr);
+        if(pos.c > maxC) maxC = pos.c;
+        if(pos.r > maxR) maxR = pos.r;
+      }
+    });
+    var clone = {};
+    Object.keys(ws).forEach(function(k){ clone[k] = ws[k]; });
+    clone['!ref'] = XLSX.utils.encode_range({ s: { r: full.s.r, c: full.s.c }, e: { r: maxR, c: maxC } });
+    if(ws['!merges']){
+      clone['!merges'] = ws['!merges']
+        .filter(function(m){ return m.s.c <= maxC && m.s.r <= maxR; })
+        .map(function(m){ return { s: { r: m.s.r, c: m.s.c }, e: { r: Math.min(m.e.r, maxR), c: Math.min(m.e.c, maxC) } }; });
+    }
+    return clone;
+  }
+
   function renderGenericSheet(name){
     if(sheetHtmlCache[name] !== undefined) return sheetHtmlCache[name];
     var ws = currentWb && currentWb.Sheets[name];
     var html;
     if(!ws){
       html = '<div class="sheet-empty">Este archivo no tiene la hoja "' + name + '".</div>';
+    } else if(PROSE_SHEETS[name]){
+      html = XLSX.utils.sheet_to_html(trimSheetForProse(ws), {header:'', footer:'', editable:false});
+      html = widenTitleRows(html);
     } else {
       html = XLSX.utils.sheet_to_html(ws, {header:'', footer:'', editable:false});
-      if(PROSE_SHEETS[name]) html = widenTitleRows(html);
     }
     sheetHtmlCache[name] = html;
     return html;
@@ -931,10 +970,12 @@
     });
   }
 
-  function listValoraciones(){
+  var ARCHIVE_FOLDER = 'valoraciones/archivadas';
+
+  function listValoraciones(folder){
     var token = getGhToken();
     if(!token) return Promise.reject(new Error('Falta el token de GitHub.'));
-    return fetch(GH_API + 'valoraciones', { headers: ghHeaders(token) }).then(function(res){
+    return fetch(GH_API + (folder || 'valoraciones'), { headers: ghHeaders(token) }).then(function(res){
       if(res.status === 404) return [];
       if(!res.ok) return res.json().then(function(e){ throw new Error((e && e.message) || ('HTTP ' + res.status)); });
       return res.json();
@@ -949,7 +990,40 @@
       if(!res.ok) throw new Error('HTTP ' + res.status);
       return res.json();
     }).then(function(data){
-      return JSON.parse(b64DecodeUnicode(data.content.replace(/\n/g, '')));
+      return { record: JSON.parse(b64DecodeUnicode(data.content.replace(/\n/g, ''))), sha: data.sha };
+    });
+  }
+
+  function deleteValoracionFile(path, sha, name){
+    var token = getGhToken();
+    if(!token) return Promise.reject(new Error('Falta el token de GitHub.'));
+    return fetch(GH_API + path, {
+      method: 'DELETE',
+      headers: Object.assign({ 'Content-Type': 'application/json' }, ghHeaders(token)),
+      body: JSON.stringify({ message: 'Borrar valoración ' + name, sha: sha })
+    }).then(function(res){
+      if(!res.ok) return res.json().then(function(e){ throw new Error((e && e.message) || ('HTTP ' + res.status)); });
+      return res.json();
+    });
+  }
+
+  // Mover = subir una copia en la carpeta destino y borrar el original —
+  // la API de contenidos de GitHub no tiene un "mover" directo.
+  function moveValoracionFile(fromPath, toPath, sha, name){
+    var token = getGhToken();
+    if(!token) return Promise.reject(new Error('Falta el token de GitHub.'));
+    return fetch(GH_API + fromPath, { headers: ghHeaders(token) }).then(function(res){
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    }).then(function(data){
+      return fetch(GH_API + toPath, {
+        method: 'PUT',
+        headers: Object.assign({ 'Content-Type': 'application/json' }, ghHeaders(token)),
+        body: JSON.stringify({ message: 'Mover valoración ' + name, content: data.content })
+      });
+    }).then(function(res){
+      if(!res.ok) return res.json().then(function(e){ throw new Error((e && e.message) || ('HTTP ' + res.status)); });
+      return deleteValoracionFile(fromPath, sha, name);
     });
   }
 
@@ -1049,34 +1123,95 @@
     document.getElementById('savedStatus').textContent = 'Token guardado en este navegador.';
   });
 
-  document.getElementById('loadSavedBtn').addEventListener('click', function(){
-    var status = document.getElementById('savedStatus');
+  var viewingArchive = false;
+
+  function renderSavedList(files){
     var listEl = document.getElementById('savedList');
-    if(!getGhToken()){ status.textContent = 'Pega tu Personal Access Token de GitHub arriba primero.'; return; }
-    status.textContent = 'Cargando…';
-    listEl.innerHTML = '';
-    listValoraciones().then(function(files){
-      if(!files.length){ status.textContent = 'No hay valoraciones guardadas todavía.'; return; }
-      status.textContent = files.length + ' valoración(es) guardada(s).';
-      listEl.innerHTML = files.map(function(f){
-        var label = f.name.replace(/\.json$/i, '');
-        return '<div class="saved-item"><span class="si-name">' + label + '</span><button class="gh-btn" data-path="' + f.path + '" type="button">Ver</button></div>';
-      }).join('');
-      listEl.querySelectorAll('button[data-path]').forEach(function(b){
-        b.addEventListener('click', function(){
-          b.disabled = true; b.textContent = 'Cargando…';
-          fetchValoracion(b.dataset.path).then(function(rec){
-            displaySavedRecord(rec);
-          }).catch(function(err){
-            status.textContent = 'Error al cargar: ' + err.message;
-          }).then(function(){
-            b.disabled = false; b.textContent = 'Ver';
-          });
+    var status = document.getElementById('savedStatus');
+    if(!files.length){
+      status.textContent = viewingArchive ? 'No hay valoraciones archivadas.' : 'No hay valoraciones guardadas todavía.';
+      listEl.innerHTML = '';
+      return;
+    }
+    status.textContent = files.length + ' valoración(es) ' + (viewingArchive ? 'archivada(s).' : 'guardada(s).');
+    listEl.innerHTML = files.map(function(f){
+      var label = f.name.replace(/\.json$/i, '');
+      var moveLabel = viewingArchive ? 'Restaurar' : 'Archivar';
+      return '<div class="saved-item">' +
+        '<span class="si-name">' + label + '</span>' +
+        '<span class="si-actions">' +
+          '<button class="gh-btn" data-act="ver" data-path="' + f.path + '" data-sha="' + f.sha + '" data-name="' + f.name + '" type="button">Ver</button>' +
+          '<button class="gh-btn" data-act="mover" data-path="' + f.path + '" data-sha="' + f.sha + '" data-name="' + f.name + '" type="button">' + moveLabel + '</button>' +
+          '<button class="gh-btn danger" data-act="borrar" data-path="' + f.path + '" data-sha="' + f.sha + '" data-name="' + f.name + '" type="button">Borrar</button>' +
+        '</span>' +
+      '</div>';
+    }).join('');
+
+    listEl.querySelectorAll('button[data-act="ver"]').forEach(function(b){
+      b.addEventListener('click', function(){
+        b.disabled = true; b.textContent = 'Cargando…';
+        fetchValoracion(b.dataset.path).then(function(res){
+          displaySavedRecord(res.record);
+        }).catch(function(err){
+          status.textContent = 'Error al cargar: ' + err.message;
+        }).then(function(){
+          b.disabled = false; b.textContent = 'Ver';
         });
       });
-    }).catch(function(err){
+    });
+    listEl.querySelectorAll('button[data-act="mover"]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var destFolder = viewingArchive ? 'valoraciones' : ARCHIVE_FOLDER;
+        var toPath = destFolder + '/' + b.dataset.name;
+        b.disabled = true;
+        status.textContent = (viewingArchive ? 'Restaurando' : 'Archivando') + ' ' + b.dataset.name + '…';
+        moveValoracionFile(b.dataset.path, toPath, b.dataset.sha, b.dataset.name).then(function(){
+          status.textContent = (viewingArchive ? 'Restaurada' : 'Archivada') + ' ✓ · ' + b.dataset.name.replace(/\.json$/i,'');
+          b.closest('.saved-item').remove();
+          if(!listEl.children.length) status.textContent += ' — ' + (viewingArchive ? 'no quedan archivadas.' : 'no quedan guardadas.');
+        }).catch(function(err){
+          status.textContent = 'Error: ' + err.message;
+          b.disabled = false;
+        });
+      });
+    });
+    listEl.querySelectorAll('button[data-act="borrar"]').forEach(function(b){
+      b.addEventListener('click', function(){
+        if(!window.confirm('¿Borrar definitivamente "' + b.dataset.name.replace(/\.json$/i,'') + '"? Esto no se puede deshacer.')) return;
+        b.disabled = true;
+        status.textContent = 'Borrando ' + b.dataset.name + '…';
+        deleteValoracionFile(b.dataset.path, b.dataset.sha, b.dataset.name).then(function(){
+          status.textContent = 'Borrada ✓ · ' + b.dataset.name.replace(/\.json$/i,'');
+          b.closest('.saved-item').remove();
+          if(!listEl.children.length) status.textContent += ' — no quedan ' + (viewingArchive ? 'archivadas.' : 'guardadas.');
+        }).catch(function(err){
+          status.textContent = 'Error al borrar: ' + err.message;
+          b.disabled = false;
+        });
+      });
+    });
+  }
+
+  function reloadSavedList(){
+    var status = document.getElementById('savedStatus');
+    status.textContent = 'Cargando…';
+    listValoraciones(viewingArchive ? ARCHIVE_FOLDER : 'valoraciones').then(renderSavedList).catch(function(err){
       status.textContent = 'Error: ' + err.message;
     });
+  }
+
+  document.getElementById('loadSavedBtn').addEventListener('click', function(){
+    if(!getGhToken()){ document.getElementById('savedStatus').textContent = 'Pega tu Personal Access Token de GitHub arriba primero.'; return; }
+    viewingArchive = false;
+    document.getElementById('toggleArchiveBtn').hidden = false;
+    document.getElementById('toggleArchiveBtn').textContent = 'Ver archivadas';
+    reloadSavedList();
+  });
+
+  document.getElementById('toggleArchiveBtn').addEventListener('click', function(){
+    viewingArchive = !viewingArchive;
+    this.textContent = viewingArchive ? 'Ver guardadas' : 'Ver archivadas';
+    reloadSavedList();
   });
 
   // Precio en vivo (día de hoy) desde Financial Modeling Prep — opcional:
