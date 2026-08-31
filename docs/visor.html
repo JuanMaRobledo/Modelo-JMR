@@ -321,19 +321,38 @@
      filas de datos se alternan. No se aplica a las hojas con su propio
      diseño (prose/diagnostics/resumen-val) ni a las celdas ya coloreadas
      de la matriz de sensibilidad o los títulos de sección de las hojas de
-     múltiplos. */
-  .sheet-scroll:not(.prose):not(.diagnostics):not(.resumen-val) table tr:first-child td:not(.sens-title):not(.sens-head):not(.sens-rowhead):not(.sens-cell):not(.section-title-row){
+     múltiplos. tr.tbl-header-row (no tr:first-child): varias hojas
+     (Balance Sheet, Cash Flow Statement) repiten la fila de
+     años/columnas varias veces —una por bloque (Assets/Liabilities/
+     Equity, Operating/Investing/Financing Activities)— y todas deben
+     verse igual de "encabezado", no solo la primera. Ver
+     markRepeatedHeaderRows(). */
+  .sheet-scroll:not(.prose):not(.diagnostics):not(.resumen-val) table tr.tbl-header-row td:not(.sens-title):not(.sens-head):not(.sens-rowhead):not(.sens-cell):not(.section-title-row){
     background:var(--accent-soft); color:var(--accent-ink); font-weight:700; border-bottom:2px solid var(--accent);
   }
   .sheet-scroll:not(.prose):not(.diagnostics):not(.resumen-val) table td:first-child:not(.sens-title):not(.sens-head):not(.sens-rowhead):not(.sens-cell):not(.section-title-row){
     font-weight:700; background:var(--surface-2); color:var(--ink-soft); border-right:2px solid var(--border);
   }
-  .sheet-scroll:not(.prose):not(.diagnostics):not(.resumen-val) table tr:first-child td:first-child:not(.section-title-row){
+  .sheet-scroll:not(.prose):not(.diagnostics):not(.resumen-val) table tr.tbl-header-row td:first-child:not(.section-title-row){
     background:var(--accent-soft); color:var(--accent-ink); border-right:2px solid var(--accent);
   }
-  .sheet-scroll:not(.prose):not(.diagnostics):not(.resumen-val) table tr:nth-child(even) td:not(.sens-title):not(.sens-head):not(.sens-rowhead):not(.sens-cell):not(.section-title-row){
+  .sheet-scroll:not(.prose):not(.diagnostics):not(.resumen-val) table tr:nth-child(even):not(.tbl-header-row) td:not(.sens-title):not(.sens-head):not(.sens-rowhead):not(.sens-cell):not(.section-title-row){
     background:var(--surface-2);
   }
+
+  /* Filas resaltadas por contenido (no por posición): subtotales del
+     estado de resultados/balance/flujo de caja (Gross Profit, Total
+     Assets, Free Cash Flow…) en negrita como en la hoja original —
+     SheetJS no trae el negrita real de Excel por esta vía, así que se
+     detecta por el nombre de la fila (ver ROW_EMPHASIS). El valor
+     "Estimated value /share" de cada bloque de Valuation output
+     (Conservador/Base/Optimista) se resalta más fuerte — es el número que
+     de verdad importa entre ~50 filas de cálculos intermedios. Celdas muy
+     largas (una nota/advertencia suelta) no deben forzar el ancho de toda
+     la columna — se envuelven en vez de una sola línea larguísima. */
+  .sheet-scroll table tr.tbl-subtotal-row td{font-weight:700;}
+  .sheet-scroll table tr.tbl-highlight-row td{font-weight:800; background:var(--accent-soft); color:var(--accent-ink);}
+  .sheet-scroll table td.cell-wrap{white-space:normal; max-width:340px; line-height:1.4;}
 
   /* Filas "--- TÍTULO ---" (p. ej. "--- FORECASTED SUMMARY --- |
      CONSERVADOR" en las hojas de múltiplos): son separadores de sección
@@ -683,7 +702,7 @@
 
     <div class="tab-panel" data-panel="recalcular">
       <p class="field-help" style="margin-bottom:14px;">
-        Ajusta cualquier supuesto y recalcula con el mismo motor DCF Damodaran + 5 múltiplos de tu Excel (validado celda por celda). Esto <b>no reemplaza</b> el resumen de la pestaña "Resumen" (ese sigue siendo lo que dice tu Excel) — es una copia hipotética para explorar "¿y si cambio esto?". Todos los campos se precargan leyendo directo las hojas de tu Excel (Input sheet, Valuation output, Financials Multiples, EVEBITDA/EVFCFF/PE/PFCFE/POCF) — salvo las razones D&amp;A/CapEx/ΔNWC/etc., que el Excel varía año a año con un promedio móvil de 3 años y aquí se aproximan con un solo porcentaje (el del año FY+1). Revisa todo antes de confiar en el resultado; si algún campo no se pudo leer, queda con su valor de ejemplo.
+        Ajusta cualquier supuesto y recalcula con el mismo motor DCF Damodaran + 5 múltiplos de tu Excel (validado celda por celda). Esto <b>no reemplaza</b> el resumen de la pestaña "Resumen" (ese sigue siendo lo que dice tu Excel) — es una copia hipotética para explorar "¿y si cambio esto?". Todos los campos se precargan leyendo directo las hojas de tu Excel (Input sheet, Valuation output, Financials Multiples, EV/EBITDA, EV/FCFF, P/E, P/FCFE, P/OCF) — salvo las razones D&amp;A/CapEx/ΔNWC/etc., que el Excel varía año a año con un promedio móvil de 3 años y aquí se aproximan con un solo porcentaje (el del año FY+1). Revisa todo antes de confiar en el resultado; si algún campo no se pudo leer, queda con su valor de ejemplo.
       </p>
 
       <form id="rcForm">
@@ -895,6 +914,10 @@
   // misma grilla de Excel que el resto de la hoja — se detecta y colorea,
   // ver colorSensitivityMatrix().
   var MULTIPLE_SHEETS = {'EVEBITDA':1, 'EVFCFF':1, 'PE':1, 'PFCFE':1, 'POCF':1};
+  // El nombre de la hoja en Excel (sin barra, por compatibilidad con
+  // nombres de hoja) sigue siendo la llave real para leer datos — esto
+  // solo cambia el texto que se muestra en la pestaña/pill.
+  var SHEET_DISPLAY_NAMES = {'EVEBITDA':'EV/EBITDA', 'EVFCFF':'EV/FCFF', 'PE':'P/E', 'PFCFE':'P/FCFE', 'POCF':'P/OCF'};
   // Cualitativo (pestaña principal propia, ya no una pill de Análisis) es
   // editable a mano (incluye la sección de Gobierno Corporativo, que no
   // viene del Excel) — mientras esta variable no sea null, tiene prioridad
@@ -1749,6 +1772,140 @@
     return tmp.innerHTML;
   }
 
+  // El !ref cuadrado de sheet_to_html suele traer filas y columnas
+  // completamente vacías que no aportan nada (separadores en blanco,
+  // columnas "por si acaso" heredadas de la plantilla) — se quitan del
+  // todo. Una columna solo se quita si NINGUNA celda de esa posición, en
+  // ninguna fila, tiene colSpan>1 — así no se corta un título combinado a
+  // lo ancho (p. ej. las bandas "--- FORECASTED SUMMARY ---").
+  function stripEmptyRowsAndCols(html){
+    var tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    var table = tmp.querySelector('table');
+    if(!table || !table.rows.length) return html;
+    Array.prototype.forEach.call(Array.prototype.slice.call(table.rows), function(tr){
+      var allEmpty = tr.cells.length > 0 && Array.prototype.every.call(tr.cells, function(td){ return td.textContent.trim() === ''; });
+      if(allEmpty) tr.parentNode.removeChild(tr);
+    });
+    var rows = Array.prototype.slice.call(table.rows);
+    if(!rows.length) return tmp.innerHTML;
+    var maxCols = 0;
+    rows.forEach(function(tr){
+      var c = 0;
+      Array.prototype.forEach.call(tr.cells, function(td){ c += td.colSpan || 1; });
+      if(c > maxCols) maxCols = c;
+    });
+    var colEmpty = [], colHasSpan = [];
+    for(var c = 0; c < maxCols; c++){ colEmpty.push(true); colHasSpan.push(false); }
+    rows.forEach(function(tr){
+      var col = 0;
+      Array.prototype.forEach.call(tr.cells, function(td){
+        var span = td.colSpan || 1;
+        if(span > 1){
+          for(var k = 0; k < span && col + k < maxCols; k++) colHasSpan[col + k] = true;
+        } else if(col < maxCols && td.textContent.trim() !== ''){
+          colEmpty[col] = false;
+        }
+        col += span;
+      });
+    });
+    var removable = colEmpty.map(function(empty, i){ return empty && !colHasSpan[i]; });
+    if(removable.some(Boolean)){
+      rows.forEach(function(tr){
+        var col = 0;
+        var toRemove = [];
+        Array.prototype.forEach.call(tr.cells, function(td){
+          var span = td.colSpan || 1;
+          if(span === 1 && removable[col]) toRemove.push(td);
+          col += span;
+        });
+        toRemove.forEach(function(td){ tr.removeChild(td); });
+      });
+    }
+    return tmp.innerHTML;
+  }
+
+  // Una nota/advertencia suelta metida en una celda (una sola frase larga
+  // sin salto de línea) fuerza con nowrap el ancho de TODA su columna —
+  // y de paso, el de toda la tabla (Valuation output trae una así). Se
+  // envuelve para que no distorsione el tamaño del resto de las celdas.
+  function wrapLongCells(html){
+    var tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    Array.prototype.forEach.call(tmp.querySelectorAll('table td'), function(td){
+      if(td.textContent.trim().length > 80) td.classList.add('cell-wrap');
+    });
+    return tmp.innerHTML;
+  }
+
+  // Varias hojas (Balance Sheet: Assets/Liabilities/Equity; Cash Flow
+  // Statement: Operating/Investing/Financing Activities) repiten la fila
+  // de encabezado (años/columnas) una vez por bloque, no solo al
+  // principio de la hoja — antes solo la primera aparición se veía como
+  // encabezado. Se detecta comparando el resto de cada fila contra la
+  // "firma" de la primera fila (ya sin el banner de ticker/precio): si
+  // coincide y no está vacía, es otro encabezado repetido.
+  function markRepeatedHeaderRows(html){
+    var tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    var table = tmp.querySelector('table');
+    if(!table || !table.rows.length) return html;
+    var rows = Array.prototype.slice.call(table.rows);
+    // El año de cierre fiscal de una empresa a veces cambia de mes con el
+    // tiempo (p. ej. "Nov '18" en un bloque, "Dec '18" en otro para el
+    // mismo período) — comparar el texto tal cual haría que un
+    // encabezado repetido no calzara con el primero por un detalle de
+    // mes. Se normaliza a solo el año (+ el marcador "(E)" de estimado si
+    // lo trae), ignorando el mes.
+    function normalizeHeaderCell(text){
+      var m = text.match(/'(\d{2,4})/);
+      if(m) return m[1] + (/\(E\)/i.test(text) ? '(E)' : '');
+      return text;
+    }
+    function sig(tr){
+      return Array.prototype.slice.call(tr.cells, 1).map(function(td){ return normalizeHeaderCell(td.textContent.trim()); }).join('|');
+    }
+    var headerSig = sig(rows[0]);
+    if(!headerSig.replace(/\|/g, '')) return html;
+    rows[0].classList.add('tbl-header-row');
+    for(var i = 1; i < rows.length; i++){
+      if(sig(rows[i]) === headerSig) rows[i].classList.add('tbl-header-row');
+    }
+    return tmp.innerHTML;
+  }
+
+  // Filas que se resaltan por lo que DICEN (no por su posición): SheetJS
+  // no trae el negrita real de Excel vía sheet_to_html, así que los
+  // subtotales del estado de resultados/balance/flujo de caja (Gross
+  // Profit, Total Assets, Free Cash Flow…) se detectan por su nombre —
+  // son los mismos en todas las valoraciones porque vienen de la misma
+  // plantilla fija. "Estimated value /share" (el resultado de cada
+  // bloque de Valuation output: Conservador/Base/Optimista) se resalta
+  // más fuerte, para que no se pierda entre ~50 filas de cálculos.
+  var ROW_EMPHASIS = {
+    'Gross Profit': 'subtotal', 'Operating Profit': 'subtotal', 'Interest and Investment Income': 'subtotal',
+    'Consolidated Net Income': 'subtotal', 'EBITDA': 'subtotal',
+    'Total Cash and Cash Equivalents': 'subtotal', 'Total Trade Receivables': 'subtotal', 'Total Current Assets': 'subtotal',
+    'Total Assets': 'subtotal', 'Total Current Liabilities': 'subtotal', 'Total Long-Term Liabilities': 'subtotal',
+    'Total Liabilities': 'subtotal', "Total Common Shareholders' Equity": 'subtotal', "Total Shareholders' Equity": 'subtotal',
+    "Total Liabilities and Shareholders' Equity": 'subtotal',
+    'Cash from Operating Activities': 'subtotal', 'Cash from Investing Activities': 'subtotal', 'Cash from Financing Activities': 'subtotal',
+    'Free Cash Flow': 'subtotal', 'NOPAT': 'subtotal', 'Levered Free Cash Flow': 'subtotal', 'Unlevered Free Cash Flow': 'subtotal', 'Net Change in Cash': 'subtotal',
+    'Estimated value /share': 'highlight'
+  };
+  function emphasizeRows(html){
+    var tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    var table = tmp.querySelector('table');
+    if(!table) return html;
+    Array.prototype.forEach.call(table.rows, function(tr){
+      var label = tr.cells[0] && tr.cells[0].textContent.trim();
+      var level = label && ROW_EMPHASIS[label];
+      if(level) tr.classList.add('tbl-' + level + '-row');
+    });
+    return tmp.innerHTML;
+  }
+
   function renderGenericSheet(name){
     if(sheetHtmlCache[name] !== undefined) return sheetHtmlCache[name];
     var ws = currentWb && currentWb.Sheets[name];
@@ -1768,9 +1925,9 @@
     } else if(name === 'Resumen de Valoración'){
       html = renderResumenValoracionSheet(ws);
     } else if(MULTIPLE_SHEETS[name]){
-      html = colorSensitivityMatrix(colorPercentCells(styleSectionRows(stripTickerBannerRow(XLSX.utils.sheet_to_html(ws, {header:'', footer:'', editable:false})))));
+      html = colorSensitivityMatrix(colorPercentCells(styleSectionRows(stripEmptyRowsAndCols(stripTickerBannerRow(XLSX.utils.sheet_to_html(ws, {header:'', footer:'', editable:false}))))));
     } else {
-      html = colorPercentCells(styleSectionRows(stripTickerBannerRow(XLSX.utils.sheet_to_html(ws, {header:'', footer:'', editable:false}))));
+      html = colorPercentCells(styleSectionRows(emphasizeRows(markRepeatedHeaderRows(wrapLongCells(stripEmptyRowsAndCols(stripTickerBannerRow(XLSX.utils.sheet_to_html(ws, {header:'', footer:'', editable:false}))))))));
     }
     sheetHtmlCache[name] = html;
     return html;
@@ -1800,7 +1957,7 @@
     var pillsEl = document.getElementById('pills' + groupKey.charAt(0).toUpperCase() + groupKey.slice(1));
     var containerEl = document.getElementById('sheet' + groupKey.charAt(0).toUpperCase() + groupKey.slice(1));
     pillsEl.innerHTML = names.map(function(n, i){
-      return '<button type="button" data-sheet="' + i + '"' + (i === 0 ? ' class="active"' : '') + '>' + n + '</button>';
+      return '<button type="button" data-sheet="' + i + '"' + (i === 0 ? ' class="active"' : '') + '>' + (SHEET_DISPLAY_NAMES[n] || n) + '</button>';
     }).join('');
     function getHtml(name){
       if(mode === null) return '<div class="sheet-empty">Esta valoración se guardó antes de incluir las hojas crudas — vuelve a subir el Excel y guarda de nuevo para incluirlas.</div>';
