@@ -128,7 +128,7 @@
   .chart-svg{width:100%; height:auto; display:block; overflow:visible;}
   .chart-val{font-family:"IBM Plex Mono", monospace; font-size:10.5px; font-weight:600; fill:var(--ink);}
   .chart-lbl{font-size:10.5px; fill:var(--ink-soft); font-family:"Public Sans",sans-serif;}
-  .chart-ref{stroke:var(--ink-faint); stroke-width:1.5; stroke-dasharray:4 3;}
+  .chart-ref{stroke:var(--ink-soft); stroke-width:2; stroke-dasharray:5 4;}
   /* Halo (stroke del color de fondo de la tarjeta, dibujado detrás del
      relleno vía paint-order) en vez de solo un gris tenue: así la etiqueta
      "Actual $X" queda legible sin importar si cae encima de una barra
@@ -140,13 +140,17 @@
 
   /* Los 3 precios objetivo (Conservador/Base/Optimista) como líneas
      verticales en el gráfico de zonas, con la misma escala dorada
-     secuencial que ya usa el resto de la app para esos 3 escenarios. Solo
+     secuencial que ya usa el resto de la app para esos 3 escenarios. Van
+     punteadas y más finas/translúcidas que la línea de "Actual" a
+     propósito: son guías secundarias (su valor ya está en la leyenda de
+     arriba), no deben competir con ella ni con las franjas de zona —
+     así el gráfico no se ve "amurallado" de líneas verticales. Solo
      "Actual" mantiene su etiqueta en línea (como en el diseño original);
      los 3 objetivos van en un renglón de leyenda compacto (una sola
      línea, letra chica) para no agrandar el gráfico ni encimar texto. */
-  .chart-ref-cons{stroke:color-mix(in oklab, var(--accent) 45%, var(--surface)); stroke-width:1.5;}
-  .chart-ref-base{stroke:color-mix(in oklab, var(--accent) 70%, var(--surface)); stroke-width:1.5;}
-  .chart-ref-opt{stroke:var(--accent); stroke-width:1.5;}
+  .chart-ref-cons{stroke:color-mix(in oklab, var(--accent) 45%, var(--surface)); stroke-width:1; stroke-dasharray:2 2; opacity:.6;}
+  .chart-ref-base{stroke:color-mix(in oklab, var(--accent) 70%, var(--surface)); stroke-width:1; stroke-dasharray:2 2; opacity:.6;}
+  .chart-ref-opt{stroke:var(--accent); stroke-width:1; stroke-dasharray:2 2; opacity:.6;}
   .chart-legend{display:flex; flex-wrap:wrap; gap:4px 10px; margin-bottom:6px; font-size:10px; color:var(--ink-soft);}
   .chart-legend-item{display:inline-flex; align-items:center; gap:5px; font-family:"IBM Plex Mono", monospace;}
   .chart-legend-swatch{width:10px; height:3px; border-radius:2px; display:inline-block; flex:none;}
