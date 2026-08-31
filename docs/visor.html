@@ -123,15 +123,19 @@
      objetivos al gráfico de zonas. */
   .charts-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:18px;}
   @media (max-width:720px){.charts-grid{grid-template-columns:1fr;}}
-  .chart-card{background:var(--surface); border:1px solid var(--border-soft); border-radius:14px; padding:16px 18px; box-shadow:var(--shadow);}
-  .chart-title{font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint); margin-bottom:10px;}
+  .chart-card{background:var(--surface); border:1px solid var(--border-soft); border-radius:14px; padding:13px 16px; box-shadow:var(--shadow);}
+  .chart-title{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint); margin-bottom:8px;}
   .chart-svg{width:100%; height:auto; display:block; overflow:visible;}
-  .chart-val{font-family:"IBM Plex Mono", monospace; font-size:11px; font-weight:600; fill:var(--ink);}
-  .chart-lbl{font-size:11px; fill:var(--ink-soft); font-family:"Public Sans",sans-serif;}
+  .chart-val{font-family:"IBM Plex Mono", monospace; font-size:10.5px; font-weight:600; fill:var(--ink);}
+  .chart-lbl{font-size:10.5px; fill:var(--ink-soft); font-family:"Public Sans",sans-serif;}
   .chart-ref{stroke:var(--ink-faint); stroke-width:1.5; stroke-dasharray:4 3;}
-  .chart-ref-lbl{font-size:10px; fill:var(--ink-faint); font-family:"Public Sans",sans-serif; font-weight:700;}
+  /* Halo (stroke del color de fondo de la tarjeta, dibujado detrás del
+     relleno vía paint-order) en vez de solo un gris tenue: así la etiqueta
+     "Actual $X" queda legible sin importar si cae encima de una barra
+     dorada, una línea de objetivo o una franja verde de zona. */
+  .chart-ref-lbl{font-size:10px; fill:var(--ink); font-family:"Public Sans",sans-serif; font-weight:700; stroke:var(--surface); stroke-width:3px; paint-order:stroke; stroke-linejoin:round;}
   .chart-zone-bar{fill:color-mix(in oklab, var(--positive) 32%, var(--surface)); stroke:var(--positive); stroke-width:1;}
-  .chart-zone-val{font-family:"IBM Plex Mono", monospace; font-size:10px; font-weight:600; fill:var(--positive);}
+  .chart-zone-val{font-family:"IBM Plex Mono", monospace; font-size:9.5px; font-weight:600; fill:var(--positive); stroke:var(--surface); stroke-width:3px; paint-order:stroke; stroke-linejoin:round;}
   .chart-empty{color:var(--ink-faint); font-size:12.5px; padding:20px; text-align:center;}
 
   /* Los 3 precios objetivo (Conservador/Base/Optimista) como líneas
@@ -143,7 +147,7 @@
   .chart-ref-cons{stroke:color-mix(in oklab, var(--accent) 45%, var(--surface)); stroke-width:1.5;}
   .chart-ref-base{stroke:color-mix(in oklab, var(--accent) 70%, var(--surface)); stroke-width:1.5;}
   .chart-ref-opt{stroke:var(--accent); stroke-width:1.5;}
-  .chart-legend{display:flex; flex-wrap:wrap; gap:5px 12px; margin-bottom:8px; font-size:10.5px; color:var(--ink-soft);}
+  .chart-legend{display:flex; flex-wrap:wrap; gap:4px 10px; margin-bottom:6px; font-size:10px; color:var(--ink-soft);}
   .chart-legend-item{display:inline-flex; align-items:center; gap:5px; font-family:"IBM Plex Mono", monospace;}
   .chart-legend-swatch{width:10px; height:3px; border-radius:2px; display:inline-block; flex:none;}
   .chart-legend-swatch.chart-ref-cons-sw{background:color-mix(in oklab, var(--accent) 45%, var(--surface));}
@@ -948,14 +952,14 @@
     if(!obj || typeof obj.conservador !== 'number' || typeof obj.base !== 'number' || typeof obj.optimista !== 'number'){
       return '<div class="chart-empty">Sin datos suficientes.</div>';
     }
-    var W = 320, H = 220, padTop = 30, padBottom = 34, padSide = 14;
+    var W = 300, H = 188, padTop = 26, padBottom = 28, padSide = 14;
     var plotBottom = H - padBottom, plotH = plotBottom - padTop;
     var vals = [obj.conservador, obj.base, obj.optimista];
     var refs = vals.concat(typeof precioActual === 'number' && isFinite(precioActual) ? [precioActual] : []);
     var maxV = Math.max.apply(null, refs) * 1.15;
     if(!isFinite(maxV) || maxV <= 0) return '<div class="chart-empty">Sin datos suficientes.</div>';
     function y(v){ return plotBottom - plotH * (v / maxV); }
-    var barW = 62, gap = 24;
+    var barW = 54, gap = 18;
     var totalW = barW * 3 + gap * 2;
     var startX = (W - totalW) / 2;
     var labels = ['Conservador', 'Base', 'Optimista'];
@@ -1008,7 +1012,7 @@
       if(typeof objetivoPonderado.optimista === 'number' && isFinite(objetivoPonderado.optimista)) targets.push({ value: objetivoPonderado.optimista, label: 'Optimista', cls: 'chart-ref-opt' });
     }
 
-    var W = 340, rowH = 42, padTop = 20, padBottom = 6, padLeft = 116, padRight = 12;
+    var W = 320, rowH = 36, padTop = 16, padBottom = 6, padLeft = 108, padRight = 12;
     var H = padTop + padBottom + rows.length * rowH;
     var allVals = rows.reduce(function(a, r){ return a.concat([r.z.min, r.z.max]); }, []).concat(targets.map(function(r){ return r.value; }));
     if(typeof precioActual === 'number' && isFinite(precioActual)) allVals.push(precioActual);
