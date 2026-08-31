@@ -597,20 +597,6 @@
       </div>
     </div>
 
-    <div class="gh-row" style="margin:0 0 8px;">
-      <input id="tickerOverride" type="text" placeholder="Ticker (ej. ADBE) — corrígelo si no se detectó bien" autocomplete="off" spellcheck="false">
-      <button class="gh-btn" id="tickerOverrideBtn" type="button">Usar este ticker</button>
-    </div>
-    <div class="gh-row" id="liveKeyRow" hidden style="margin:0 0 8px;">
-      <input id="visorApiKey" type="password" placeholder="API key de Financial Modeling Prep" autocomplete="off" spellcheck="false">
-      <button class="gh-btn" id="visorSaveKeyBtn" type="button">Guardar y actualizar</button>
-    </div>
-    <div class="gh-row" style="margin:0 0 18px; align-items:baseline;">
-      <button class="gh-btn" id="refreshLiveBtn" type="button" hidden>Actualizar a precio en vivo</button>
-      <a href="#" id="toggleKeyLink" style="font-size:12px; color:var(--ink-faint);">¿Precio más reciente que el de tu Excel? Configura una API key gratis de FMP (opcional — el logo y el precio de "Input sheet" ya funcionan sin ella)</a>
-      <span class="gh-status" id="livePriceStatus" style="margin:0;"></span>
-    </div>
-
     <p class="section-title">Precio de hoy vs. precio al día del análisis</p>
     <div class="methods-scroll" style="margin-bottom:22px;">
       <table class="price-compare">
@@ -844,6 +830,21 @@
           <div class="stat"><div class="lbl">Precio con MOS</div><div class="rng" id="rcZMOS">—</div></div>
         </div>
       </div>
+    </div>
+
+    <p class="section-title">Ticker y precio en vivo</p>
+    <div class="gh-row" style="margin:0 0 8px;">
+      <input id="tickerOverride" type="text" placeholder="Ticker (ej. ADBE) — corrígelo si no se detectó bien" autocomplete="off" spellcheck="false">
+      <button class="gh-btn" id="tickerOverrideBtn" type="button">Usar este ticker</button>
+    </div>
+    <div class="gh-row" id="liveKeyRow" hidden style="margin:0 0 8px;">
+      <input id="visorApiKey" type="password" placeholder="API key de Financial Modeling Prep" autocomplete="off" spellcheck="false">
+      <button class="gh-btn" id="visorSaveKeyBtn" type="button">Guardar y actualizar</button>
+    </div>
+    <div class="gh-row" style="margin:0; align-items:baseline;">
+      <button class="gh-btn" id="refreshLiveBtn" type="button" hidden>Actualizar a precio en vivo</button>
+      <a href="#" id="toggleKeyLink" style="font-size:12px; color:var(--ink-faint);">¿Precio más reciente que el de tu Excel? Configura una API key gratis de FMP (opcional — el logo y el precio de "Input sheet" ya funcionan sin ella)</a>
+      <span class="gh-status" id="livePriceStatus" style="margin:0;"></span>
     </div>
   </div>
 
