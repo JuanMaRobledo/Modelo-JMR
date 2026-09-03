@@ -2461,6 +2461,21 @@
 
   var viewingArchive = false;
 
+  // El nombre del archivo es "TICKER-<timestamp>.json" (así se guarda en
+  // saveValoracion, con el timestamp solo para que el nombre sea único) —
+  // acá se muestra como "TICKER · fecha y hora guardada" en vez del
+  // timestamp crudo, sin tener que abrir cada archivo para leer su fecha.
+  function parseSavedFileLabel(name){
+    var base = name.replace(/\.json$/i, '');
+    var m = base.match(/^(.+)-(\d{10,})$/);
+    if(!m) return base;
+    var d = new Date(parseInt(m[2], 10));
+    if(isNaN(d.getTime())) return base;
+    var fecha = d.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
+    var hora = d.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+    return m[1] + ' · ' + fecha + ', ' + hora;
+  }
+
   function renderSavedList(files){
     var listEl = document.getElementById('savedList');
     var status = document.getElementById('savedStatus');
@@ -2471,7 +2486,7 @@
     }
     status.textContent = files.length + ' valoración(es) ' + (viewingArchive ? 'archivada(s).' : 'guardada(s).');
     listEl.innerHTML = files.map(function(f){
-      var label = f.name.replace(/\.json$/i, '');
+      var label = parseSavedFileLabel(f.name);
       var moveLabel = viewingArchive ? 'Restaurar' : 'Archivar';
       return '<div class="saved-item">' +
         '<span class="si-name">' + label + '</span>' +
@@ -2500,9 +2515,9 @@
         var destFolder = viewingArchive ? 'valoraciones' : ARCHIVE_FOLDER;
         var toPath = destFolder + '/' + b.dataset.name;
         b.disabled = true;
-        status.textContent = (viewingArchive ? 'Restaurando' : 'Archivando') + ' ' + b.dataset.name + '…';
+        status.textContent = (viewingArchive ? 'Restaurando' : 'Archivando') + ' ' + parseSavedFileLabel(b.dataset.name) + '…';
         moveValoracionFile(b.dataset.path, toPath, b.dataset.sha, b.dataset.name).then(function(){
-          status.textContent = (viewingArchive ? 'Restaurada' : 'Archivada') + ' ✓ · ' + b.dataset.name.replace(/\.json$/i,'');
+          status.textContent = (viewingArchive ? 'Restaurada' : 'Archivada') + ' ✓ · ' + parseSavedFileLabel(b.dataset.name);
           b.closest('.saved-item').remove();
           if(!listEl.children.length) status.textContent += ' — ' + (viewingArchive ? 'no quedan archivadas.' : 'no quedan guardadas.');
         }).catch(function(err){
@@ -2513,11 +2528,11 @@
     });
     listEl.querySelectorAll('button[data-act="borrar"]').forEach(function(b){
       b.addEventListener('click', function(){
-        if(!window.confirm('¿Borrar definitivamente "' + b.dataset.name.replace(/\.json$/i,'') + '"? Esto no se puede deshacer.')) return;
+        if(!window.confirm('¿Borrar definitivamente "' + parseSavedFileLabel(b.dataset.name) + '"? Esto no se puede deshacer.')) return;
         b.disabled = true;
-        status.textContent = 'Borrando ' + b.dataset.name + '…';
+        status.textContent = 'Borrando ' + parseSavedFileLabel(b.dataset.name) + '…';
         deleteValoracionFile(b.dataset.path, b.dataset.sha, b.dataset.name).then(function(){
-          status.textContent = 'Borrada ✓ · ' + b.dataset.name.replace(/\.json$/i,'');
+          status.textContent = 'Borrada ✓ · ' + parseSavedFileLabel(b.dataset.name);
           b.closest('.saved-item').remove();
           if(!listEl.children.length) status.textContent += ' — no quedan ' + (viewingArchive ? 'archivadas.' : 'guardadas.');
         }).catch(function(err){
