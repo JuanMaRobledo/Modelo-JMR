@@ -352,6 +352,89 @@
     padding:14px 18px; margin:20px 0; font-size:12.5px; line-height:1.6; color:var(--ink);
   }
   .disclaimer strong{color:var(--negative);}
+
+  /* "Agregar hipótesis nueva" — subir PDF/DOCX y extraer valores, más el
+     gráfico comparativo por caso (ver detalle de cada fila). Reutiliza el
+     mismo lenguaje visual (gh-section/gh-row/gh-btn, dropzone, gráficos
+     SVG inline) ya usado en el Visor, para que las 3 páginas se sientan
+     como una sola app. */
+  .gh-section{background:var(--surface); border:1px solid var(--border-soft); border-radius:14px; padding:18px 22px; box-shadow:var(--shadow); margin:20px 0;}
+  .gh-section > summary{font-family:"Fraunces", Georgia, serif; font-size:17px; font-weight:700; cursor:pointer; list-style:none;}
+  .gh-section > summary::-webkit-details-marker{display:none;}
+  .gh-section > summary::before{content:"+ "; color:var(--accent);}
+  .gh-section[open] > summary::before{content:"– ";}
+  .gh-section .sub{color:var(--ink-soft); font-size:12.5px; margin:10px 0 14px; line-height:1.5;}
+  .gh-row{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:10px;}
+  .gh-row input{
+    font:inherit; font-size:12.5px; padding:7px 10px; border-radius:8px; border:1px solid var(--border);
+    background:var(--bg); color:var(--ink); min-width:220px; flex:1 1 220px;
+  }
+  .gh-btn{
+    font:inherit; font-size:12.5px; font-weight:600; padding:7px 13px; border-radius:8px; border:1px solid var(--border);
+    background:var(--surface-2); color:var(--ink); cursor:pointer;
+  }
+  .gh-btn:hover{border-color:var(--ink-faint);}
+  .gh-btn:disabled{opacity:.5; cursor:default;}
+  .gh-btn.primary{background:var(--accent); border-color:var(--accent); color:#fff;}
+  .gh-btn.danger{border-color:var(--negative); color:var(--negative);}
+  .gh-btn.danger:hover{background:var(--negative-soft);}
+  .gh-status{font-size:12px; color:var(--ink-faint); margin:6px 0 0;}
+  .gh-status-badge{
+    display:inline-flex; align-items:center; gap:6px; font-size:12.5px; font-weight:600;
+    background:var(--positive-soft); color:var(--positive); padding:6px 12px; border-radius:999px;
+  }
+
+  .dropzone{
+    display:block; border:2px dashed var(--border); border-radius:12px; background:var(--surface-2);
+    padding:22px 16px; text-align:center; cursor:pointer; transition:border-color .15s;
+  }
+  .dropzone:hover, .dropzone.drag{border-color:var(--accent);}
+  .dropzone svg{width:22px; height:22px; color:var(--ink-faint); margin-bottom:6px;}
+  .dropzone .main{font-weight:600; font-size:13.5px;}
+  .dropzone .hint{color:var(--ink-faint); font-size:12px; margin-top:4px;}
+  .dropzone input{display:none;}
+  .field-help{font-size:11.5px; color:var(--ink-faint); margin:8px 0 0; line-height:1.5;}
+
+  .hgrid{display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px 14px; margin-top:16px;}
+  .hrow{display:flex; flex-direction:column; gap:4px;}
+  .hrow.full{grid-column:1/-1;}
+  .hrow label{font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint); font-weight:600;}
+  .hrow input, .hrow select, .hrow textarea{
+    font:inherit; font-size:13px; padding:8px 10px; border-radius:8px; border:1px solid var(--border);
+    background:var(--bg); color:var(--ink); width:100%;
+  }
+  .hrow textarea{resize:vertical; min-height:44px; font-family:inherit;}
+  .hrow input:focus-visible, .hrow select:focus-visible, .hrow textarea:focus-visible{outline:2px solid var(--focus); outline-offset:1px;}
+  @media (max-width:720px){.hgrid{grid-template-columns:1fr 1fr;}}
+  @media (max-width:480px){.hgrid{grid-template-columns:1fr;}}
+  .raw-text-preview{
+    margin-top:14px; font-family:"IBM Plex Mono", monospace; font-size:11px; line-height:1.5;
+    max-height:160px; overflow:auto; background:var(--surface-2); border:1px solid var(--border-soft);
+    border-radius:10px; padding:10px 12px; white-space:pre-wrap; color:var(--ink-soft);
+  }
+  .chip.custom{background:var(--accent-soft); color:var(--accent-ink); margin-left:6px;}
+
+  /* Gráfico comparativo por caso (precio vs. escenarios vs. zonas de
+     valor), inline SVG liviano igual que en el Visor — vive dentro del
+     detalle expandido de cada fila. */
+  .chart-card{background:var(--surface); border:1px solid var(--border-soft); border-radius:12px; padding:12px 14px; margin-top:4px; box-shadow:var(--shadow);}
+  .chart-title{font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint); margin-bottom:8px;}
+  .chart-svg{width:100%; height:auto; display:block; overflow:visible;}
+  .chart-lbl{font-size:10.5px; fill:var(--ink-soft); font-family:"Public Sans",sans-serif;}
+  .chart-ref{stroke:var(--ink-soft); stroke-width:2; stroke-dasharray:5 4;}
+  .chart-ref-lbl{font-size:10px; fill:var(--ink); font-family:"Public Sans",sans-serif; font-weight:700; stroke:var(--surface); stroke-width:3px; paint-order:stroke; stroke-linejoin:round;}
+  .chart-zone-bar{fill:color-mix(in oklab, var(--positive) 32%, var(--surface)); stroke:var(--positive); stroke-width:1;}
+  .chart-zone-val{font-family:"IBM Plex Mono", monospace; font-size:9.5px; font-weight:600; fill:var(--positive); stroke:var(--surface); stroke-width:3px; paint-order:stroke; stroke-linejoin:round;}
+  .chart-empty{color:var(--ink-faint); font-size:12.5px; padding:10px 0;}
+  .chart-ref-cons{stroke:color-mix(in oklab, var(--accent) 45%, var(--surface)); stroke-width:1; stroke-dasharray:2 2; opacity:.6;}
+  .chart-ref-base{stroke:color-mix(in oklab, var(--accent) 70%, var(--surface)); stroke-width:1; stroke-dasharray:2 2; opacity:.6;}
+  .chart-ref-opt{stroke:var(--accent); stroke-width:1; stroke-dasharray:2 2; opacity:.6;}
+  .chart-legend{display:flex; flex-wrap:wrap; gap:4px 10px; margin-bottom:6px; font-size:10px; color:var(--ink-soft);}
+  .chart-legend-item{display:inline-flex; align-items:center; gap:5px; font-family:"IBM Plex Mono", monospace;}
+  .chart-legend-swatch{width:10px; height:3px; border-radius:2px; display:inline-block; flex:none;}
+  .chart-legend-swatch.chart-ref-cons-sw{background:color-mix(in oklab, var(--accent) 45%, var(--surface));}
+  .chart-legend-swatch.chart-ref-base-sw{background:color-mix(in oklab, var(--accent) 70%, var(--surface));}
+  .chart-legend-swatch.chart-ref-opt-sw{background:var(--accent);}
 </style>
 </head>
 <body>
@@ -398,6 +481,55 @@
   <div class="disclaimer">
     <strong>Aviso de riesgo:</strong> este contenido tiene fines educativos y de organización personal — no es asesoría financiera ni una recomendación de compra o venta. Toda inversión en acciones implica riesgo, incluida la posible pérdida total del capital; los resultados pasados (los "cierres parciales" y retornos que aparecen aquí) no garantizan resultados futuros. Los precios objetivo y las zonas de valor son estimaciones basadas en supuestos propios, no en certezas. Investiga por tu cuenta y considera tu propia situación financiera y tolerancia al riesgo antes de invertir.
   </div>
+  <details class="gh-section" id="hypothesisSection">
+    <summary>Agregar hipótesis nueva</summary>
+    <p class="sub">Sube tu tesis de inversión en PDF o Word (.docx) y se completa automáticamente lo que se pueda reconocer — revisa y corrige el formulario antes de guardar, nada se agrega a ciegas. El formato .doc antiguo no se puede leer en el navegador; guárdalo como .docx o PDF.</p>
+    <div id="hypGhConnect"></div>
+    <label class="dropzone" id="hypDropzone">
+      <input type="file" id="hypFileInput" accept=".pdf,.doc,.docx">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+      <div class="main">Arrastra tu PDF o .docx aquí, o haz clic para elegir el archivo</div>
+      <div class="hint">Se procesa en tu navegador — el archivo nunca se sube a ningún servidor</div>
+    </label>
+    <p class="gh-status" id="hypParseStatus"></p>
+
+    <form id="hypForm" hidden>
+      <div class="hgrid">
+        <div class="hrow"><label for="hypTicker">Ticker</label><input id="hypTicker" type="text" autocomplete="off" spellcheck="false"></div>
+        <div class="hrow"><label for="hypEmpresa">Empresa</label><input id="hypEmpresa" type="text" autocomplete="off"></div>
+        <div class="hrow"><label for="hypCat">Categoría</label>
+          <select id="hypCat"><option value="Estándar">Estándar</option><option value="Especulativa">Especulativa</option></select>
+        </div>
+        <div class="hrow"><label for="hypFecha">Fecha de análisis</label><input id="hypFecha" type="text" placeholder="2026-09-03" autocomplete="off"></div>
+        <div class="hrow"><label for="hypPrecio">Precio de entrada</label><input id="hypPrecio" type="text" placeholder="120 USD" autocomplete="off"></div>
+        <div class="hrow"><label for="hypAnio">Año objetivo</label><input id="hypAnio" type="text" placeholder="2029" autocomplete="off"></div>
+        <div class="hrow"><label for="hypMultP">Múltiplo usado</label><input id="hypMultP" type="text" placeholder="P/E" autocomplete="off"></div>
+        <div class="hrow"><label for="hypMultA">Múltiplo actual</label><input id="hypMultA" type="text" placeholder="15x" autocomplete="off"></div>
+        <div class="hrow"><label for="hypMultH">Múltiplo histórico</label><input id="hypMultH" type="text" placeholder="20x" autocomplete="off"></div>
+        <div class="hrow"><label for="hypONeg">Escenario negativo</label><input id="hypONeg" type="text" placeholder="140" autocomplete="off"></div>
+        <div class="hrow"><label for="hypOBase">Escenario base</label><input id="hypOBase" type="text" placeholder="180" autocomplete="off"></div>
+        <div class="hrow"><label for="hypOOpt">Escenario optimista</label><input id="hypOOpt" type="text" placeholder="220" autocomplete="off"></div>
+        <div class="hrow"><label for="hypZV">Zona Value</label><input id="hypZV" type="text" placeholder="115-125" autocomplete="off"></div>
+        <div class="hrow"><label for="hypZD">Zona Deep Value</label><input id="hypZD" type="text" placeholder="95-105" autocomplete="off"></div>
+        <div class="hrow"><label for="hypZH">Zona valoración histórica</label><input id="hypZH" type="text" placeholder="80-90" autocomplete="off"></div>
+        <div class="hrow"><label for="hypCagr">CAGR objetivo</label><input id="hypCagr" type="text" placeholder="12.5%" autocomplete="off"></div>
+        <div class="hrow full"><label for="hypMoat">Moat</label><textarea id="hypMoat" rows="2"></textarea></div>
+        <div class="hrow full"><label for="hypRiesgos">Riesgos clave</label><textarea id="hypRiesgos" rows="2"></textarea></div>
+        <div class="hrow full"><label for="hypConclusion">Conclusión / acción</label><textarea id="hypConclusion" rows="2"></textarea></div>
+        <div class="hrow full"><label for="hypActualizacion">Última actualización</label><textarea id="hypActualizacion" rows="2">Posición abierta</textarea></div>
+      </div>
+      <p class="field-help">Los campos vienen precompletados con lo que se pudo reconocer del documento — revísalos y corrígelos antes de guardar. Ticker y Empresa son obligatorios.</p>
+      <div class="gh-row" style="margin-top:6px;">
+        <button type="submit" class="gh-btn primary">Agregar caso</button>
+        <span class="gh-status" id="hypSaveStatus"></span>
+      </div>
+    </form>
+    <details class="raw-text-toggle" id="hypRawWrap" hidden>
+      <summary class="gh-status" style="cursor:pointer;">Ver texto extraído del documento (por si el formulario dejó algo sin completar)</summary>
+      <div class="raw-text-preview" id="hypRawText"></div>
+    </details>
+  </details>
+
   <div class="stats" id="stats"></div>
   <p class="result-line" id="resultLine"></p>
 
@@ -441,6 +573,8 @@
   </footer>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="market_data.js"></script>
 <script>
 (function(){
@@ -487,14 +621,94 @@
     });
   }
 
+  // Rango "115-125" -> {min,max}; un solo número -> {min:max:ese valor};
+  // "n/d"/"-"/vacío -> null. Mismo parseNum ya usado para ordenar/CAGR.
+  function parseRange(str){
+    if(!str) return null;
+    var m = String(str).match(/(-?\d+(?:\.\d+)?)\s*-\s*(-?\d+(?:\.\d+)?)/);
+    if(m) return { min: parseFloat(m[1]), max: parseFloat(m[2]) };
+    var single = parseNum(str);
+    return single !== null ? { min: single, max: single } : null;
+  }
+  function fmtN(v){ return Number.isInteger(v) ? ('$' + v) : ('$' + v.toFixed(2)); }
+
+  // Comparativo precio actual/entrada vs. escenarios objetivo (Negativo/
+  // Base/Optimista) vs. zonas de valor — mismo diseño (franjas + líneas de
+  // referencia) que ya usan los gráficos del Visor Modelo JMR, adaptado a
+  // los campos de texto libre de la Bitácora (rangos "115-125", etc.).
+  function buildComparativoChart(d){
+    var rows = [
+      { label: 'Value', z: parseRange(d.zV) },
+      { label: 'Deep Value', z: parseRange(d.zD) },
+      { label: 'Hist.', z: parseRange(d.zH) }
+    ].filter(function(r){ return r.z; });
+
+    var targets = [];
+    var neg = parseNum(d.oNeg), base = parseNum(d.oBase), opt = parseNum(d.oOpt);
+    if(neg !== null) targets.push({ value: neg, label: 'Negativo', cls: 'chart-ref-cons' });
+    if(base !== null) targets.push({ value: base, label: 'Base', cls: 'chart-ref-base' });
+    if(opt !== null) targets.push({ value: opt, label: 'Optimista', cls: 'chart-ref-opt' });
+
+    var precioActual = d.precioActual != null ? d.precioActual : parseNum(d.precio);
+    var esActual = d.precioActual != null;
+
+    if(!rows.length && !targets.length){
+      return '<div class="chart-card"><div class="chart-title">Comparativo</div><div class="chart-empty">Sin datos suficientes para el comparativo.</div></div>';
+    }
+
+    var W = 460, rowH = 34, padTop = 18, padBottom = 6, padLeft = 92, padRight = 14;
+    var H = padTop + padBottom + Math.max(rows.length, 1) * rowH;
+    var allVals = rows.reduce(function(a, r){ return a.concat([r.z.min, r.z.max]); }, []).concat(targets.map(function(r){ return r.value; }));
+    if(precioActual != null && isFinite(precioActual)) allVals.push(precioActual);
+    if(!allVals.length){
+      return '<div class="chart-card"><div class="chart-title">Comparativo</div><div class="chart-empty">Sin datos suficientes para el comparativo.</div></div>';
+    }
+    var maxV = Math.max.apply(null, allVals) * 1.08;
+    var minV = Math.min(0, Math.min.apply(null, allVals) * 0.95);
+    var plotW = W - padLeft - padRight;
+    function x(v){ return padLeft + plotW * ((v - minV) / ((maxV - minV) || 1)); }
+
+    var bars = rows.map(function(r, i){
+      var rowCenter = padTop + i * rowH + rowH / 2;
+      var barY = rowCenter + 6;
+      var x1 = x(r.z.min), x2 = x(r.z.max);
+      return '<g><text x="' + (padLeft - 10) + '" y="' + (barY + 4) + '" text-anchor="end" class="chart-lbl">' + r.label + '</text>' +
+        '<rect x="' + x1 + '" y="' + (barY - 6) + '" width="' + Math.max(x2 - x1, 2) + '" height="12" rx="5" class="chart-zone-bar"><title>' + r.label + ': ' + fmtN(r.z.min) + ' – ' + fmtN(r.z.max) + '</title></rect>' +
+        '<text x="' + ((x1 + x2) / 2) + '" y="' + (rowCenter - 7) + '" text-anchor="middle" class="chart-zone-val">' + fmtN(r.z.min) + '–' + fmtN(r.z.max) + '</text></g>';
+    }).join('');
+
+    var marker = '';
+    if(precioActual != null && isFinite(precioActual)){
+      var mx = x(precioActual);
+      marker = '<line x1="' + mx + '" y1="' + (padTop - 4) + '" x2="' + mx + '" y2="' + H + '" class="chart-ref"><title>' + (esActual ? 'Actual' : 'Entrada') + ': ' + fmtN(precioActual) + '</title></line>' +
+        '<text x="' + mx + '" y="' + (padTop - 8) + '" text-anchor="middle" class="chart-ref-lbl">' + (esActual ? 'Actual' : 'Entrada') + ' ' + fmtN(precioActual) + '</text>';
+    }
+
+    var targetLines = targets.map(function(r){
+      var rx = x(r.value);
+      return '<line x1="' + rx + '" y1="' + (padTop - 4) + '" x2="' + rx + '" y2="' + H + '" class="' + r.cls + '"><title>' + r.label + ': ' + fmtN(r.value) + '</title></line>';
+    }).join('');
+
+    var legend = targets.length ? ('<div class="chart-legend">' + targets.map(function(r){
+      return '<span class="chart-legend-item"><span class="chart-legend-swatch ' + r.cls + '-sw"></span>' + r.label + ' ' + fmtN(r.value) + '</span>';
+    }).join('') + '</div>') : '';
+
+    return '<div class="chart-card"><div class="chart-title">Comparativo: precio vs. escenarios objetivo vs. zonas de valor</div>' + legend +
+      '<svg viewBox="0 0 ' + W + ' ' + H + '" class="chart-svg" role="img" aria-label="Comparativo de precio, escenarios y zonas de valor">' + bars + targetLines + marker + '</svg></div>';
+  }
+
   function detailFieldsHtml(d){
     var html = '';
     html += '<div class="dfield"><div class="dlbl">Múltiplo (' + escapeHtml(d.multP) + ')</div><div class="dval mono">Actual ' + escapeHtml(d.multA) + ' · Promedio histórico ' + escapeHtml(d.multH) + '</div></div>';
     html += '<div class="dfield"><div class="dlbl">Fecha de análisis</div><div class="dval mono">' + escapeHtml(d.fecha) + '</div></div>';
+    html += '<div class="dfield full">' + buildComparativoChart(d) + '</div>';
     html += '<div class="dfield full"><div class="dlbl">Moat</div><div class="dval">' + escapeHtml(d.moat) + '</div></div>';
     html += '<div class="dfield full"><div class="dlbl">Riesgos clave</div><div class="dval">' + escapeHtml(d.riesgos) + '</div></div>';
     html += '<div class="dfield full"><div class="dlbl">Conclusión / acción</div><div class="dval">' + escapeHtml(d.conclusion) + '</div></div>';
     html += '<div class="dfield full"><div class="dlbl">Última actualización / retorno</div><div class="dval">' + escapeHtml(d.actualizacion) + '</div></div>';
+    if(d.custom){
+      html += '<div class="dfield full"><button class="gh-btn danger" type="button" data-del-custom="' + d.n + '">Eliminar esta hipótesis</button></div>';
+    }
     return html;
   }
 
@@ -506,7 +720,7 @@
     html += '<div class="row data" tabindex="0" role="button" aria-expanded="' + expanded + '" data-n="' + d.n + '">';
     html += '<span class="c-ticker">' + escapeHtml(d.ticker) + '</span>';
     html += '<span class="c-empresa" title="' + escapeHtml(d.empresa) + '">' + escapeHtml(d.empresa) + '</span>';
-    html += '<span class="c-cat"><span class="chip ' + catClass(d.cat) + '">' + escapeHtml(d.cat) + '</span></span>';
+    html += '<span class="c-cat"><span class="chip ' + catClass(d.cat) + '">' + escapeHtml(d.cat) + '</span>' + (d.custom ? '<span class="chip custom">Nueva</span>' : '') + '</span>';
     html += '<span class="c-precio">' + escapeHtml(d.precio) + '</span>';
     html += '<span class="c-precio-actual' + (d.precioActual != null ? '' : ' stale') + '">' + (d.precioActual != null ? formatPrecioActual(d.precioActual) : '—') + '</span>';
     html += '<span class="zones"><span><b>V</b>' + escapeHtml(d.zV) + '</span><span><b>DV</b>' + escapeHtml(d.zD) + '</span><span><b>VH</b>' + escapeHtml(d.zH) + '</span></span>';
@@ -531,7 +745,7 @@
     var html = '';
     html += '<div class="s-card" tabindex="0" role="button" aria-expanded="' + expanded + '" data-n="' + d.n + '">';
     html += '  <div class="sc-head">';
-    html += '    <div class="sc-id"><span class="c-ticker">' + escapeHtml(d.ticker) + '</span><span class="chip ' + catClass(d.cat) + '">' + escapeHtml(d.cat) + '</span></div>';
+    html += '    <div class="sc-id"><span class="c-ticker">' + escapeHtml(d.ticker) + '</span><span class="chip ' + catClass(d.cat) + '">' + escapeHtml(d.cat) + '</span>' + (d.custom ? '<span class="chip custom">Nueva</span>' : '') + '</div>';
     html += '    <span class="c-cagr ' + cagrClass + '">' + escapeHtml(d.cagr) + '</span>';
     html += '  </div>';
     html += '  <div class="sc-empresa">' + escapeHtml(d.empresa) + '</div>';
@@ -586,7 +800,14 @@
     cardsEl.innerHTML = list.map(cardHtml).join("");
 
     document.querySelectorAll("#rows .row.data, #cardList .s-card").forEach(function(el){
-      el.addEventListener("click", function(){ toggleExpand(Number(el.dataset.n)); });
+      // El botón "Eliminar esta hipótesis" vive dentro de la tarjeta
+      // expandida (a diferencia de la tabla de escritorio, donde el
+      // detalle es hermano de la fila) — sin este chequeo, hacer clic en
+      // "Eliminar" también colapsaría la tarjeta por burbujeo del evento.
+      el.addEventListener("click", function(e){
+        if(e.target.closest("[data-del-custom]")) return;
+        toggleExpand(Number(el.dataset.n));
+      });
       el.addEventListener("keydown", function(e){
         if(e.key === "Enter" || e.key === " "){ e.preventDefault(); toggleExpand(Number(el.dataset.n)); }
       });
@@ -705,6 +926,343 @@
       render();
     });
   });
+
+  // ---------------------------------------------------------------------
+  // Agregar hipótesis nueva: subir PDF/.docx, extraer texto en el
+  // navegador, reconocer valores por etiqueta ("Ticker: ...", "Escenario
+  // Base: ...", etc.) y precargar un formulario editable — nunca se agrega
+  // nada a la Bitácora sin que lo revises. Se guarda en el mismo repo
+  // privado (Modelo-JMR-datos) y con el mismo token de GitHub que ya usa
+  // "Valoraciones guardadas" del Visor (misma clave de localStorage, así
+  // que si ya conectaste tu GitHub ahí, acá ya aparece conectado).
+  var GH_TOKEN_KEY = 'jmr-gh-datastore-token';
+  var GH_OWNER = 'JuanMaRobledo';
+  var GH_REPO = 'Modelo-JMR-datos';
+  var GH_API = 'https://api.github.com/repos/' + GH_OWNER + '/' + GH_REPO + '/contents/';
+  var HYP_PATH = 'bitacora/hipotesis.json';
+
+  function getGhToken(){ try { return (localStorage.getItem(GH_TOKEN_KEY) || '').trim(); } catch(e){ return ''; } }
+  function setGhToken(t){ try { localStorage.setItem(GH_TOKEN_KEY, (t||'').trim()); } catch(e){} }
+  function ghHeaders(token){ return { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github+json' }; }
+  function b64EncodeUnicode(str){ return btoa(unescape(encodeURIComponent(str))); }
+  function b64DecodeUnicode(str){ return decodeURIComponent(escape(atob(str))); }
+
+  var customList = [];   // hipótesis agregadas por el usuario, tal cual se guardan en GitHub
+  var customSha = null;  // sha del archivo bitacora/hipotesis.json, para poder sobreescribirlo
+
+  function loadCustomHipotesis(){
+    var token = getGhToken();
+    if(!token) return Promise.resolve({ list: [], sha: null });
+    return fetch(GH_API + HYP_PATH, { headers: ghHeaders(token) }).then(function(res){
+      if(res.status === 404) return { list: [], sha: null };
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json().then(function(data){
+        return { list: JSON.parse(b64DecodeUnicode(data.content.replace(/\n/g, ''))), sha: data.sha };
+      });
+    });
+  }
+  function saveCustomHipotesis(){
+    var token = getGhToken();
+    if(!token) return Promise.reject(new Error('Falta el token de GitHub.'));
+    var body = { message: 'Actualizar hipótesis de la Bitácora', content: b64EncodeUnicode(JSON.stringify(customList, null, 2)) };
+    if(customSha) body.sha = customSha;
+    return fetch(GH_API + HYP_PATH, {
+      method: 'PUT',
+      headers: Object.assign({ 'Content-Type': 'application/json' }, ghHeaders(token)),
+      body: JSON.stringify(body)
+    }).then(function(res){
+      if(!res.ok) return res.json().then(function(e){ throw new Error((e && e.message) || ('HTTP ' + res.status)); });
+      return res.json();
+    }).then(function(data){
+      customSha = data.content && data.content.sha;
+    });
+  }
+
+  function renderHypGhConnect(){
+    var el = document.getElementById('hypGhConnect');
+    if(!el) return;
+    var token = getGhToken();
+    if(token){
+      el.innerHTML = '<div class="gh-row"><span class="gh-status-badge">✓ GitHub conectado</span><button class="gh-btn" id="hypGhForgetBtn" type="button">Olvidar</button></div>';
+      document.getElementById('hypGhForgetBtn').addEventListener('click', function(){
+        setGhToken('');
+        renderHypGhConnect();
+      });
+    } else {
+      el.innerHTML = '<div class="gh-row"><input id="hypGhTokenInput" type="password" placeholder="Personal Access Token de GitHub (repo Modelo-JMR-datos)" autocomplete="off" spellcheck="false">' +
+        '<button class="gh-btn primary" id="hypGhConnectBtn" type="button">Conectar</button></div>' +
+        '<p class="field-help" style="margin-top:0;">Necesario para guardar las hipótesis nuevas — el mismo token que uses acá sirve también en "Valoraciones guardadas" del Visor.</p>';
+      var tokenInput = document.getElementById('hypGhTokenInput');
+      document.getElementById('hypGhConnectBtn').addEventListener('click', function(){
+        setGhToken(tokenInput.value);
+        renderHypGhConnect();
+        loadAndMergeCustom();
+      });
+      tokenInput.addEventListener('keydown', function(e){ if(e.key === 'Enter') document.getElementById('hypGhConnectBtn').click(); });
+    }
+  }
+  renderHypGhConnect();
+
+  function loadAndMergeCustom(){
+    return loadCustomHipotesis().then(function(res){
+      // Saca del DATA renderizado cualquier copia previa (por si se llama
+      // más de una vez, p. ej. al conectar el token después de cargar) y
+      // vuelve a agregar la lista fresca.
+      DATA = DATA.filter(function(d){ return !d.custom; });
+      customList = res.list || [];
+      customSha = res.sha;
+      var maxN = DATA.reduce(function(m, d){ return Math.max(m, d.n); }, 0);
+      customList.forEach(function(rec, i){
+        rec.n = maxN + i + 1;
+        rec.custom = true;
+        DATA.push(rec);
+      });
+      render();
+    }).catch(function(err){
+      console.warn('No se pudieron cargar las hipótesis guardadas:', err);
+    });
+  }
+  if(getGhToken()) loadAndMergeCustom();
+
+  // -- Extracción de texto: PDF vía pdf.js, .docx desarmando el .zip y
+  // sacando el texto crudo de word/document.xml (mismo enfoque que ya usa
+  // esta app con SheetJS para .xlsx: una librería liviana por CDN, todo en
+  // el navegador). El .doc antiguo (binario, pre-2007) no es viable de leer
+  // así — se avisa en vez de intentarlo.
+  function extractPdfText(file){
+    return file.arrayBuffer().then(function(buf){
+      if(typeof pdfjsLib === 'undefined') throw new Error('No se pudo cargar el lector de PDF.');
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      return pdfjsLib.getDocument({ data: buf }).promise.then(function(pdf){
+        var pagePromises = [];
+        for(var i = 1; i <= pdf.numPages; i++){
+          pagePromises.push(pdf.getPage(i).then(function(page){
+            return page.getTextContent().then(function(tc){
+              return tc.items.map(function(it){ return it.str; }).join(' ');
+            });
+          }));
+        }
+        return Promise.all(pagePromises).then(function(pages){ return pages.join('\n'); });
+      });
+    });
+  }
+  function extractDocxText(file){
+    if(typeof JSZip === 'undefined') return Promise.reject(new Error('No se pudo cargar el lector de Word.'));
+    return JSZip.loadAsync(file).then(function(zip){
+      var doc = zip.file('word/document.xml');
+      if(!doc) throw new Error('El archivo .docx no tiene el contenido esperado.');
+      return doc.async('string');
+    }).then(function(xml){
+      // Un salto de línea por párrafo antes de sacar las etiquetas, para no
+      // pegar todo el documento en una sola línea (el reconocimiento de
+      // abajo busca "Etiqueta: valor" por línea).
+      var text = xml.replace(/<\/w:p>/g, '\n').replace(/<[^>]+>/g, '')
+        .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+        .replace(/[ \t]+/g, ' ').replace(/\n{2,}/g, '\n');
+      return text.trim();
+    });
+  }
+  function extractTextFromFile(file){
+    var name = (file.name || '').toLowerCase();
+    if(name.endsWith('.pdf')) return extractPdfText(file);
+    if(name.endsWith('.docx')) return extractDocxText(file);
+    if(name.endsWith('.doc')) return Promise.reject(new Error('El formato .doc antiguo no se puede leer en el navegador — guárdalo como .docx o PDF, o completa el formulario a mano.'));
+    return Promise.reject(new Error('Formato no soportado — usa PDF o .docx.'));
+  }
+
+  // -- Reconocimiento por etiqueta: busca "Etiqueta: valor" al inicio de
+  // línea (variantes de acento/mayúsculas incluidas). Es un reconocimiento
+  // best-effort, no un análisis del lenguaje — por eso el formulario queda
+  // siempre editable y se muestra el texto crudo debajo, para completar a
+  // mano lo que no se haya reconocido.
+  var HYP_LABELS = {
+    ticker: ['ticker'],
+    empresa: ['empresa', 'compañ[ií]a', 'nombre(?: de la empresa)?'],
+    categoria: ['categor[ií]a'],
+    fecha: ['fecha(?: de an[aá]lisis)?'],
+    precio: ['precio de entrada', 'precio actual', 'precio'],
+    anio: ['a[ñn]o objetivo', 'a[ñn]o'],
+    multP: ['m[uú]ltiplo usado', 'm[uú]ltiplo'],
+    multA: ['m[uú]ltiplo actual'],
+    multH: ['m[uú]ltiplo hist[oó]rico'],
+    oNeg: ['escenario negativo', 'negativo', 'conservador'],
+    oBase: ['escenario base', 'base'],
+    oOpt: ['escenario optimista', 'optimista'],
+    zV: ['zona value', 'value'],
+    zD: ['zona deep value', 'deep value'],
+    zH: ['zona hist[oó]rica', 'valoraci[oó]n hist[oó]rica', 'hist[oó]rica'],
+    cagr: ['cagr(?: objetivo)?', 'cagr'],
+    moat: ['moat', 'ventaja competitiva'],
+    riesgos: ['riesgos(?: clave)?'],
+    conclusion: ['conclusi[oó]n(?:\\s*/\\s*acci[oó]n)?', 'conclusi[oó]n'],
+    actualizacion: ['[uú]ltima actualizaci[oó]n', 'actualizaci[oó]n']
+  };
+  var HYP_STOP = Object.keys(HYP_LABELS).map(function(k){ return HYP_LABELS[k].join('|'); }).join('|');
+  var HYP_BLOCK_FIELDS = ['moat', 'riesgos', 'conclusion', 'actualizacion'];
+
+  function grabLabel(text, patterns){
+    for(var i = 0; i < patterns.length; i++){
+      var re = new RegExp('(?:^|\\n)\\s*(?:' + patterns[i] + ')\\s*[:\\-]\\s*([^\\n]+)', 'i');
+      var m = text.match(re);
+      if(m && m[1].trim()) return m[1].trim();
+    }
+    return null;
+  }
+  function grabBlock(text, patterns, stopPattern){
+    for(var i = 0; i < patterns.length; i++){
+      var re = new RegExp('(?:^|\\n)\\s*(?:' + patterns[i] + ')\\s*[:\\-]\\s*([\\s\\S]+?)(?=\\n\\s*\\n|\\n\\s*(?:' + stopPattern + ')\\s*[:\\-]|$)', 'i');
+      var m = text.match(re);
+      if(m && m[1].trim()) return m[1].replace(/\s+/g, ' ').trim();
+    }
+    return null;
+  }
+  function parseHypothesisText(text){
+    var out = {};
+    Object.keys(HYP_LABELS).forEach(function(key){
+      if(key === 'categoria') return;
+      out[key] = HYP_BLOCK_FIELDS.indexOf(key) === -1
+        ? grabLabel(text, HYP_LABELS[key])
+        : grabBlock(text, HYP_LABELS[key], HYP_STOP);
+    });
+    if(!out.ticker){
+      var tm = text.slice(0, 300).match(/\b([A-Z]{2,6})\b/);
+      if(tm) out.ticker = tm[1];
+    }
+    var catRaw = grabLabel(text, HYP_LABELS.categoria);
+    out.cat = catRaw && /especulativ/i.test(catRaw) ? 'Especulativa'
+      : (catRaw && /est[aá]ndar/i.test(catRaw) ? 'Estándar'
+      : (/especulativ/i.test(text) ? 'Especulativa' : 'Estándar'));
+    return out;
+  }
+
+  function populateHypForm(parsed){
+    document.getElementById('hypTicker').value = parsed.ticker || '';
+    document.getElementById('hypEmpresa').value = parsed.empresa || '';
+    document.getElementById('hypCat').value = parsed.cat || 'Estándar';
+    document.getElementById('hypFecha').value = parsed.fecha || new Date().toISOString().slice(0, 10);
+    document.getElementById('hypPrecio').value = parsed.precio || '';
+    document.getElementById('hypAnio').value = parsed.anio || '';
+    document.getElementById('hypMultP').value = parsed.multP || '';
+    document.getElementById('hypMultA').value = parsed.multA || '';
+    document.getElementById('hypMultH').value = parsed.multH || '';
+    document.getElementById('hypONeg').value = parsed.oNeg || '';
+    document.getElementById('hypOBase').value = parsed.oBase || '';
+    document.getElementById('hypOOpt').value = parsed.oOpt || '';
+    document.getElementById('hypZV').value = parsed.zV || '';
+    document.getElementById('hypZD').value = parsed.zD || '';
+    document.getElementById('hypZH').value = parsed.zH || '';
+    document.getElementById('hypCagr').value = parsed.cagr || '';
+    document.getElementById('hypMoat').value = parsed.moat || '';
+    document.getElementById('hypRiesgos').value = parsed.riesgos || '';
+    document.getElementById('hypConclusion').value = parsed.conclusion || '';
+    document.getElementById('hypActualizacion').value = parsed.actualizacion || 'Posición abierta';
+    document.getElementById('hypForm').hidden = false;
+  }
+
+  var hypDropzone = document.getElementById('hypDropzone');
+  var hypFileInput = document.getElementById('hypFileInput');
+  var hypParseStatus = document.getElementById('hypParseStatus');
+
+  function handleHypFile(file){
+    if(!file) return;
+    hypParseStatus.textContent = 'Leyendo ' + file.name + '…';
+    extractTextFromFile(file).then(function(text){
+      if(!text || !text.trim()){
+        hypParseStatus.textContent = 'No se pudo extraer texto de este archivo — completa el formulario a mano.';
+        populateHypForm({});
+        return;
+      }
+      var parsed = parseHypothesisText(text);
+      populateHypForm(parsed);
+      var found = Object.keys(parsed).filter(function(k){ return parsed[k]; }).length;
+      hypParseStatus.textContent = 'Se reconocieron ' + found + ' campos de ' + file.name + ' — revísalos antes de guardar.';
+      document.getElementById('hypRawWrap').hidden = false;
+      document.getElementById('hypRawText').textContent = text;
+    }).catch(function(err){
+      hypParseStatus.textContent = 'Error: ' + err.message;
+    });
+  }
+  hypFileInput.addEventListener('change', function(){ handleHypFile(hypFileInput.files[0]); });
+  hypDropzone.addEventListener('dragover', function(e){ e.preventDefault(); hypDropzone.classList.add('drag'); });
+  hypDropzone.addEventListener('dragleave', function(){ hypDropzone.classList.remove('drag'); });
+  hypDropzone.addEventListener('drop', function(e){
+    e.preventDefault();
+    hypDropzone.classList.remove('drag');
+    if(e.dataTransfer.files[0]) handleHypFile(e.dataTransfer.files[0]);
+  });
+
+  document.getElementById('hypForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    var ticker = document.getElementById('hypTicker').value.trim().toUpperCase();
+    var empresa = document.getElementById('hypEmpresa').value.trim();
+    var status = document.getElementById('hypSaveStatus');
+    if(!ticker || !empresa){
+      status.textContent = 'Ticker y Empresa son obligatorios.';
+      return;
+    }
+    if(!getGhToken()){
+      status.textContent = 'Conecta tu GitHub arriba primero.';
+      return;
+    }
+    var record = {
+      ticker: ticker,
+      empresa: empresa,
+      fecha: document.getElementById('hypFecha').value.trim(),
+      cat: document.getElementById('hypCat').value,
+      precio: document.getElementById('hypPrecio').value.trim(),
+      multP: document.getElementById('hypMultP').value.trim(),
+      multA: document.getElementById('hypMultA').value.trim(),
+      multH: document.getElementById('hypMultH').value.trim(),
+      zV: document.getElementById('hypZV').value.trim(),
+      zD: document.getElementById('hypZD').value.trim(),
+      zH: document.getElementById('hypZH').value.trim(),
+      anio: document.getElementById('hypAnio').value.trim(),
+      oNeg: document.getElementById('hypONeg').value.trim(),
+      oBase: document.getElementById('hypOBase').value.trim(),
+      oOpt: document.getElementById('hypOOpt').value.trim(),
+      cagr: document.getElementById('hypCagr').value.trim(),
+      moat: document.getElementById('hypMoat').value.trim(),
+      riesgos: document.getElementById('hypRiesgos').value.trim(),
+      conclusion: document.getElementById('hypConclusion').value.trim(),
+      actualizacion: document.getElementById('hypActualizacion').value.trim(),
+      addedAt: new Date().toISOString()
+    };
+    status.textContent = 'Guardando…';
+    customList.push(record);
+    saveCustomHipotesis().then(function(){
+      status.textContent = 'Hipótesis agregada ✓';
+      var maxN = DATA.reduce(function(m, d){ return Math.max(m, d.n); }, 0);
+      record.n = maxN + 1;
+      record.custom = true;
+      DATA.push(record);
+      document.getElementById('hypForm').reset();
+      document.getElementById('hypForm').hidden = true;
+      document.getElementById('hypRawWrap').hidden = true;
+      hypParseStatus.textContent = '';
+      render();
+    }).catch(function(err){
+      customList.pop();
+      status.textContent = 'Error al guardar: ' + err.message;
+    });
+  });
+
+  // Delegado en #rows/#cardList porque las filas se vuelven a pintar en
+  // cada render() — un listener fijo en cada botón se perdería al redibujar.
+  function handleDeleteCustomClick(e){
+    var btn = e.target.closest('[data-del-custom]');
+    if(!btn) return;
+    var n = Number(btn.dataset.delCustom);
+    if(!confirm('¿Eliminar esta hipótesis? Esta acción no se puede deshacer.')) return;
+    DATA = DATA.filter(function(d){ return d.n !== n; });
+    customList = customList.filter(function(d){ return d.n !== n; });
+    state.expanded = null;
+    saveCustomHipotesis().then(function(){ render(); }).catch(function(err){
+      alert('Error al borrar: ' + err.message);
+      render();
+    });
+  }
+  rowsEl.addEventListener('click', handleDeleteCustomClick);
+  cardsEl.addEventListener('click', handleDeleteCustomClick);
 
   render();
 })();
