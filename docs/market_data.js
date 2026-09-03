@@ -22,11 +22,18 @@
 
 var MarketData = (function () {
   var API_KEY_STORAGE = "jmr-fmp-apikey";
+  // Key gratuita del plan free de FMP (solo cotizaciones/fundamentales de
+  // lectura) precargada para uso personal — a diferencia del token de
+  // GitHub, no da acceso a nada propio si alguien la ve en el código.
+  var DEFAULT_API_KEY = "9Gfi4tbxdeOkRR7cKEGqY4e7yMIXBN8j";
   var BASE = "https://financialmodelingprep.com/stable/";
   var M = 1e6; // el formulario trabaja en millones
 
   function getApiKey() {
-    try { return (localStorage.getItem(API_KEY_STORAGE) || "").trim(); } catch (e) { return ""; }
+    try {
+      var stored = (localStorage.getItem(API_KEY_STORAGE) || "").trim();
+      return stored || DEFAULT_API_KEY;
+    } catch (e) { return DEFAULT_API_KEY; }
   }
   function setApiKey(key) {
     try { localStorage.setItem(API_KEY_STORAGE, (key || "").trim()); } catch (e) {}
