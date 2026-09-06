@@ -1,8 +1,11 @@
-const CACHE = "modelo-jmr-v52";
+const CACHE = "modelo-jmr-v53";
 const APP_SHELL = [
   "index.html",
   "visor.html",
   "calculadora.html",
+  "research.html",
+  "research.js",
+  "prompts/analisis-fundamental-v1.md",
   "auth.js",
   "jmr_engine.js",
   "market_data.js",

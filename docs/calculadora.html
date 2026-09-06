@@ -50,8 +50,8 @@
   body{margin:0;background:var(--bg);color:var(--ink);font-family:"Public Sans", -apple-system, "Segoe UI", sans-serif;-webkit-font-smoothing:antialiased;}
   @media (prefers-reduced-motion: reduce){*{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}}
 
-  nav.appnav{display:flex; gap:4px; padding:14px 20px 0; max-width:1180px; margin:0 auto; border-bottom:1px solid var(--border);}
-  nav.appnav a{font-size:13.5px; font-weight:600; text-decoration:none; color:var(--ink-faint); padding:10px 14px; border-bottom:2px solid transparent; margin-bottom:-1px;}
+  nav.appnav{display:flex; gap:4px; padding:14px 20px 0; max-width:1180px; margin:0 auto; border-bottom:1px solid var(--border); overflow-x:auto;}
+  nav.appnav a{font-size:13.5px; font-weight:600; text-decoration:none; color:var(--ink-faint); padding:10px 14px; border-bottom:2px solid transparent; margin-bottom:-1px; white-space:nowrap;}
   nav.appnav a:hover{color:var(--ink);}
   nav.appnav a.active{color:var(--accent); border-bottom-color:var(--accent);}
 
@@ -182,6 +182,7 @@
   <a href="index.html">Bitácora de Valoración</a>
   <a href="visor.html">Visor Modelo JMR</a>
   <a href="calculadora.html" class="active">Calculadora DCF</a>
+  <a href="research.html">Research</a>
 </nav>
 
 <div class="wrap">

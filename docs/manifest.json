@@ -1,7 +1,7 @@
 {
   "name": "Modelo JMR",
   "short_name": "Modelo JMR",
-  "description": "Bitácora de valoración, visor y calculadora DCF del Modelo JMR",
+  "description": "Bitácora, research fundamental, visor y calculadora DCF del Modelo JMR",
   "start_url": "index.html",
   "scope": "./",
   "display": "standalone",
