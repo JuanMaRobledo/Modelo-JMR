@@ -4,7 +4,8 @@
   var LOCAL_KEY = 'jmr-research-library-v1';
   var PROMPT_KEY = 'jmr-research-prompt-v1';
   var GH_TOKEN_KEY = 'jmr-gh-datastore-token';
-  var GH_API = 'https://api.github.com/repos/JuanMaRobledo/Modelo-JMR-datos/contents/';
+  var GH_REPO_API = 'https://api.github.com/repos/JuanMaRobledo/Modelo-JMR-datos/';
+  var GH_API = GH_REPO_API + 'contents/';
   var REQUIRED = [
     'Resumen ejecutivo', 'Modelo de negocio', 'Industria y crecimiento',
     'Calidad del negocio', 'Ventaja competitiva', 'Competencia',
@@ -16,7 +17,7 @@
   var state = freshState();
 
   function freshState() {
-    return { id: '', title: '', ticker: '', company: '', date: new Date().toISOString().slice(0, 10), logo: '', price: null, priceFetchedAt: '', html: '', sourceName: '', valuationHtml: '', news: '', remotePath: '', remoteSha: '' };
+    return { id: '', title: '', ticker: '', company: '', date: new Date().toISOString().slice(0, 10), logo: '', price: null, priceFetchedAt: '', html: '', sourceName: '', valuationHtml: '', linkedValuation: null, news: '', remotePath: '', remoteSha: '' };
   }
   function el(id) { return document.getElementById(id); }
   function escapeHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
@@ -138,7 +139,7 @@
   function parseNews(text) {
     return String(text || '').split(/\r?\n/).map(function (line) {
       var p = line.split('|').map(function (x) { return x.trim(); });
-      return { title:p[0] || '', url:p[1] || '', date:p[2] || '' };
+      return { title:p[0] || '', url:p[1] || '', date:p[2] || '', impact:(p[3]||'').toLowerCase() };
     }).filter(function (x) { return x.title; });
   }
   function renderNews() {
@@ -147,8 +148,27 @@
     return '<section><h2>Noticias añadidas</h2><div class="news-list">' + news.map(function (n) {
       var title = escapeHtml(n.title), date = n.date ? '<span class="news-date">' + escapeHtml(n.date) + '</span>' : '';
       var link = /^https?:\/\//i.test(n.url) ? '<a href="' + escapeHtml(n.url) + '" target="_blank" rel="noopener noreferrer">' + title + '</a>' : '<strong>' + title + '</strong>';
-      return '<div class="news-item">' + link + date + '</div>';
+      var impact = ['alta','media','baja'].indexOf(n.impact) !== -1 ? '<span class="impact-badge impact-' + n.impact + '">' + n.impact + '</span>' : '';
+      return '<div class="news-item">' + link + date + impact + '</div>';
     }).join('') + '</div></section>';
+  }
+  // El precio/fecha/zonas/escenarios ya guardados en el Visor para el mismo
+  // ticker (ver linkVisorValuation) — reutiliza los mismos campos que
+  // guarda saveValoracion() en visor.html, así que no depende de re-tipear
+  // nada ni de mantener sincronizada una tabla subida a mano aparte.
+  function buildLinkedValuationHtml(lv) {
+    function money(v) { return v == null || !isFinite(v) ? '—' : '$' + Number(v).toLocaleString('es-CO', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+    function kv(label, value) { return '<div class="linked-kv"><span>' + escapeHtml(label) + '</span><strong>' + value + '</strong></div>'; }
+    function zoneKv(label, z) { return z ? kv(label, money(z.min) + ' – ' + money(z.max)) : ''; }
+    var op = lv.objetivoPonderado || {}, z = lv.zonas || {};
+    return '<section class="valuation-block linked-valuation"><span class="linked-tag">✓ Vinculado con el Visor · ' + escapeHtml(lv.sourcePath || '') + '</span><h2>Valoración cuantitativa (Visor)</h2><div class="linked-grid">' +
+      kv('Precio', money(lv.precio)) +
+      kv('Fecha del análisis', escapeHtml(lv.fecha || '—')) +
+      kv('Objetivo conservador', money(op.conservador)) +
+      kv('Objetivo base', money(op.base)) +
+      kv('Objetivo optimista', money(op.optimista)) +
+      zoneKv('Zona Value', z.value) + zoneKv('Zona Deep Value', z.deepValue) + zoneKv('Zona histórica', z.historica) +
+      '</div></section>';
   }
   function renderPreview() {
     el('previewCompany').textContent = state.company || state.title || 'Nuevo análisis';
@@ -159,10 +179,11 @@
     if (state.logo) { logo.src = state.logo; logo.alt = 'Logo de ' + (state.company || state.ticker); logo.hidden = false; }
     else { logo.hidden = true; logo.removeAttribute('src'); }
     var body = el('previewBody');
-    if (!state.html && !state.valuationHtml && !state.news) { body.innerHTML = '<div class="preview-empty">Sube un documento para ver aquí la versión normalizada.</div>'; return; }
+    if (!state.html && !state.valuationHtml && !state.linkedValuation && !state.news) { body.innerHTML = '<div class="preview-empty">Sube un documento para ver aquí la versión normalizada.</div>'; return; }
     var title = state.title ? '<h1>' + escapeHtml(state.title) + '</h1>' : '';
-    var val = state.valuationHtml ? '<section class="valuation-block"><h2>Valoración cuantitativa JMR</h2>' + state.valuationHtml + '</section>' : '';
-    body.innerHTML = '<div class="research-document">' + title + safeHtml(state.html) + val + renderNews() + '</div>';
+    var linked = state.linkedValuation ? buildLinkedValuationHtml(state.linkedValuation) : '';
+    var val = state.valuationHtml ? '<section class="valuation-block"><h2>Valoración cuantitativa (tabla subida)</h2>' + state.valuationHtml + '</section>' : '';
+    body.innerHTML = '<div class="research-document">' + title + safeHtml(state.html) + linked + val + renderNews() + '</div>';
   }
   function syncFields() {
     state.ticker = el('tickerInput').value.trim().toUpperCase();
@@ -226,6 +247,82 @@
   }
   el('valuationFile').addEventListener('change', function () { handleValuationFile(this.files && this.files[0]); });
 
+  // Vincular con el Visor: en vez de re-subir a mano la tabla de valoración,
+  // busca en "valoraciones/" (mismo repo/token que "Valoraciones guardadas"
+  // del Visor) el guardado más reciente para este ticker y trae sus números
+  // ya calculados (precio, zonas, escenarios) — queda vinculado por ruta,
+  // no copiado a ciegas: "sourcePath" muestra siempre de dónde salió.
+  function tickerFromValoracionName(name) {
+    var base = name.replace(/\.json$/i, '');
+    var m = base.match(/^(.+)-(\d{10,})$/);
+    return m ? m[1] : base;
+  }
+  function listValoraciones() {
+    return fetch(GH_API + 'valoraciones', { headers: ghHeaders() }).then(function (res) {
+      if (res.status === 404) return [];
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    }).then(function (list) { return (Array.isArray(list) ? list : []).filter(function (f) { return /\.json$/i.test(f.name); }); });
+  }
+  function fetchJsonFile(path) {
+    return fetch(GH_API + path, { headers: ghHeaders() }).then(function (res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    }).then(function (data) { return JSON.parse(b64Decode(data.content.replace(/\n/g, ''))); });
+  }
+  function linkVisorValuation() {
+    syncFields();
+    if (!state.ticker) { setStatus('linkVisorStatus','Ingresa un ticker primero.','bad'); return; }
+    if (!getGhToken()) { setStatus('linkVisorStatus','Conecta tu GitHub desde "Valoraciones guardadas" en el Visor primero.','bad'); return; }
+    var btn = el('linkVisorBtn'); btn.disabled = true; setStatus('linkVisorStatus','Buscando valoraciones de ' + state.ticker + ' en el Visor…');
+    listValoraciones().then(function (files) {
+      var matches = files.filter(function (f) { return tickerFromValoracionName(f.name) === state.ticker; });
+      if (!matches.length) throw new Error('No encontré ninguna valoración guardada para ' + state.ticker + ' en el Visor — guárdala ahí primero, o sube la tabla a mano abajo.');
+      matches.sort(function (a, b) { return b.name.localeCompare(a.name); }); // el timestamp del nombre ordena de más reciente a más vieja
+      return fetchJsonFile(matches[0].path).then(function (rec) { return { rec: rec, path: matches[0].path, count: matches.length }; });
+    }).then(function (found) {
+      var rec = found.rec;
+      state.linkedValuation = { precio: rec.precio, fecha: rec.fecha, zonas: rec.zonas, objetivoPonderado: rec.objetivoPonderado, cagr: rec.cagr, sourcePath: found.path };
+      renderPreview();
+      setStatus('linkVisorStatus','Vinculado con "' + found.path + '"' + (found.count > 1 ? ' (la más reciente de ' + found.count + ' guardadas para este ticker)' : '') + '.','ok');
+    }).catch(function (err) { setStatus('linkVisorStatus', err.message, 'bad'); }).finally(function () { btn.disabled = false; });
+  }
+  el('linkVisorBtn').addEventListener('click', linkVisorValuation);
+
+  // Noticias automáticas: usa la misma API key de FMP del resto de la app.
+  // No clasifica el impacto por sí sola (eso queda a criterio del usuario,
+  // agregando "| Alta/Media/Baja" a la línea) — solo trae titulares nuevos
+  // sin duplicar los que ya estén en el textarea.
+  function fetchAutoNews() {
+    syncFields();
+    if (!state.ticker) { setStatus('newsStatus','Ingresa un ticker primero.','bad'); return; }
+    if (typeof MarketData === 'undefined' || !MarketData.getApiKey()) { setStatus('newsStatus','Configura tu API key de FMP (en el Visor o la Calculadora) primero.','bad'); return; }
+    var btn = el('fetchNewsBtn'); btn.disabled = true; setStatus('newsStatus','Buscando noticias de ' + state.ticker + '…');
+    var key = MarketData.getApiKey();
+    fetch('https://financialmodelingprep.com/stable/news/stock?symbols=' + encodeURIComponent(state.ticker) + '&limit=10&apikey=' + encodeURIComponent(key)).then(function (res) {
+      if (res.status === 401 || res.status === 403) throw new Error('Tu plan de FMP no incluye noticias, o la API key no es válida.');
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    }).then(function (data) {
+      if (!Array.isArray(data) || !data.length) { setStatus('newsStatus','FMP no devolvió noticias recientes para ' + state.ticker + '.'); return; }
+      var existingUrls = {};
+      parseNews(state.news).forEach(function (n) { if (n.url) existingUrls[n.url] = true; });
+      var added = 0;
+      var lines = data.map(function (n) {
+        var url = n.url || n.link || '';
+        if (url && existingUrls[url]) return null;
+        added++;
+        return (n.title || '').replace(/\|/g, '/') + ' | ' + url + ' | ' + (n.publishedDate || n.date || '').slice(0, 10);
+      }).filter(Boolean);
+      if (!lines.length) { setStatus('newsStatus','No hay noticias nuevas — ya estaban todas cargadas.'); return; }
+      var textarea = el('newsInput');
+      textarea.value = (textarea.value.trim() ? textarea.value.trim() + '\n' : '') + lines.join('\n');
+      syncFields();
+      setStatus('newsStatus', added + ' noticia(s) nueva(s) agregadas. Revisa y marca el impacto (Alta/Media/Baja) a mano si querés.','ok');
+    }).catch(function (err) { setStatus('newsStatus', err.message, 'bad'); }).finally(function () { btn.disabled = false; });
+  }
+  el('fetchNewsBtn').addEventListener('click', fetchAutoNews);
+
   [['analysisDrop',handleAnalysisFile],['valuationDrop',handleValuationFile]].forEach(function (pair) {
     var zone = el(pair[0]);
     ['dragenter','dragover'].forEach(function (ev) { zone.addEventListener(ev,function(e){e.preventDefault();zone.classList.add('drag');}); });
@@ -269,6 +366,72 @@
     });
   }
 
+  // Versiones históricas: cada "Guardar" hace un PUT al mismo path de
+  // GitHub, así que git ya conserva cada versión anterior en su historial
+  // de commits — no hace falta un sistema de versionado propio, solo
+  // exponerlo. "Qué cambió" compara el texto de dos versiones con jsdiff.
+  function fetchFileHistory(path) {
+    return fetch(GH_REPO_API + 'commits?path=' + encodeURIComponent(path) + '&per_page=15', { headers: ghHeaders() }).then(function (res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    });
+  }
+  function fetchFileAtCommit(path, sha) {
+    return fetch(GH_API + path + '?ref=' + sha, { headers: ghHeaders() }).then(function (res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    }).then(function (data) { return JSON.parse(b64Decode(data.content.replace(/\n/g, ''))); });
+  }
+  function htmlToPlainText(html) {
+    var doc = new DOMParser().parseFromString(html || '', 'text/html');
+    var blocks = doc.body.querySelectorAll('h1,h2,h3,h4,p,li,blockquote,td,th');
+    var lines = Array.prototype.map.call(blocks, function (n) { return n.textContent.replace(/\s+/g, ' ').trim(); }).filter(Boolean);
+    return lines.length ? lines.join('\n') : (doc.body.textContent || '').trim();
+  }
+  function renderDiff(oldHtml, newHtml) {
+    if (typeof Diff === 'undefined') return '<p class="status bad">No se pudo cargar el comparador de texto.</p>';
+    var parts = Diff.diffLines(htmlToPlainText(oldHtml), htmlToPlainText(newHtml));
+    if (!parts.some(function (p) { return p.added || p.removed; })) return '<p class="status">Sin cambios de contenido entre estas dos versiones.</p>';
+    var html = parts.map(function (p) {
+      var text = escapeHtml(p.value).replace(/\n/g, '<br>');
+      if (p.added) return '<span class="diff-add">' + text + '</span>';
+      if (p.removed) return '<span class="diff-del">' + text + '</span>';
+      return '<span>' + text + '</span>';
+    }).join('');
+    return '<div class="diff-view">' + html + '</div>';
+  }
+  function refreshHistoryButton() { el('historyBtn').hidden = !state.remotePath || !getGhToken(); }
+  function showHistoryPanel() {
+    var panel = el('historyPanel');
+    panel.hidden = false;
+    panel.innerHTML = '<p class="status">Cargando historial…</p>';
+    fetchFileHistory(state.remotePath).then(function (commits) {
+      if (!commits.length) { panel.innerHTML = '<p class="status">No hay historial todavía — este es el único guardado.</p>'; return; }
+      panel.innerHTML = '<h3>Historial de versiones</h3><div class="history-list">' + commits.map(function (c, i) {
+        var date = new Date(c.commit.author.date).toLocaleString('es-CO');
+        return '<div class="history-item" data-sha="' + c.sha + '"><span>' + escapeHtml(date) + (i === 0 ? ' · actual' : '') + '</span>' +
+          (i === 0 ? '' : '<span class="h-actions"><button class="btn" data-hact="diff" type="button">Ver cambios</button><button class="btn" data-hact="restore" type="button">Restaurar</button></span>') +
+          '</div>';
+      }).join('') + '</div><div id="historyDiffOut"></div>';
+      panel.querySelectorAll('[data-hact]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var sha = btn.closest('.history-item').dataset.sha, action = btn.dataset.hact;
+          btn.disabled = true;
+          fetchFileAtCommit(state.remotePath, sha).then(function (oldRecord) {
+            if (action === 'diff') {
+              el('historyDiffOut').innerHTML = renderDiff(oldRecord.html || '', state.html || '');
+            } else if (action === 'restore') {
+              if (!confirm('¿Restaurar esta versión anterior en el editor? Vas a perder los cambios sin guardar que tengas ahora.')) return;
+              fillEditor(Object.assign({}, oldRecord, { remotePath: state.remotePath, remoteSha: state.remoteSha, id: state.id }));
+              setStatus('saveStatus','Versión restaurada en el editor — todavía no guardada. Presiona "Guardar análisis" para confirmarla.','ok');
+            }
+          }).catch(function (err) { alert('Error: ' + err.message); }).finally(function () { btn.disabled = false; });
+        });
+      });
+    }).catch(function (err) { panel.innerHTML = '<p class="status bad">No se pudo cargar el historial: ' + err.message + '</p>'; });
+  }
+  el('historyBtn').addEventListener('click', showHistoryPanel);
+
   function buildRecord() {
     syncFields();
     if(!state.ticker) throw new Error('Ingresa el ticker.');
@@ -284,16 +447,20 @@
     try{record=buildRecord();}catch(err){setStatus('saveStatus',err.message,'bad');return;}
     btn.disabled=true;setStatus('saveStatus','Guardando…');
     try{upsertLocal(record);}catch(err){btn.disabled=false;setStatus('saveStatus','No cabe en el almacenamiento local. Exporta la biblioteca o reduce el documento.','bad');return;}
-    remoteSave(record).then(function(saved){if(saved)upsertLocal(saved);renderLibrary();setStatus('saveStatus',saved?'Guardado localmente y en tu repositorio privado.':'Guardado en este navegador. Conecta GitHub desde el Visor para sincronizarlo.','ok');}).catch(function(err){setStatus('saveStatus','Guardado localmente, pero GitHub falló: '+err.message,'bad');}).finally(function(){btn.disabled=false;});
+    remoteSave(record).then(function(saved){if(saved)upsertLocal(saved);state=Object.assign(state,saved||record);refreshHistoryButton();renderLibrary();setStatus('saveStatus',saved?'Guardado localmente y en tu repositorio privado.':'Guardado en este navegador. Conecta GitHub desde el Visor para sincronizarlo.','ok');}).catch(function(err){setStatus('saveStatus','Guardado localmente, pero GitHub falló: '+err.message,'bad');}).finally(function(){btn.disabled=false;});
   });
 
   function fillEditor(rec) {
     state=Object.assign(freshState(),rec);
     el('tickerInput').value=state.ticker||'';el('companyInput').value=state.company||'';el('titleInput').value=state.title||'';el('dateInput').value=state.date||'';el('newsInput').value=state.news||'';
-    checkQuality();renderPreview();setStatus('saveStatus','Análisis cargado. Puedes editar sus datos o reemplazar los archivos.');switchTab('editor');
+    checkQuality();renderPreview();refreshHistoryButton();el('historyPanel').hidden=true;el('historyPanel').innerHTML='';
+    ['quoteStatus','analysisStatus','valuationStatus','linkVisorStatus','newsStatus'].forEach(function(id){setStatus(id,'');});
+    setStatus('saveStatus','Análisis cargado. Puedes editar sus datos o reemplazar los archivos.');switchTab('editor');
   }
   function resetEditor() {
-    state=freshState();['tickerInput','companyInput','titleInput','newsInput'].forEach(function(id){el(id).value='';});el('dateInput').value=state.date;el('logoInput').value='';el('analysisFile').value='';el('valuationFile').value='';el('qualityChips').innerHTML='';['quoteStatus','analysisStatus','valuationStatus','saveStatus'].forEach(function(id){setStatus(id,'');});renderPreview();
+    state=freshState();['tickerInput','companyInput','titleInput','newsInput'].forEach(function(id){el(id).value='';});el('dateInput').value=state.date;el('logoInput').value='';el('analysisFile').value='';el('valuationFile').value='';el('qualityChips').innerHTML='';
+    ['quoteStatus','analysisStatus','valuationStatus','linkVisorStatus','newsStatus','saveStatus'].forEach(function(id){setStatus(id,'');});
+    refreshHistoryButton();el('historyPanel').hidden=true;el('historyPanel').innerHTML='';renderPreview();
   }
   el('newBtn').addEventListener('click',resetEditor);
   el('printBtn').addEventListener('click',function(){window.print();});
@@ -307,6 +474,7 @@
       return '<article class="analysis-card" data-id="'+escapeHtml(r.id)+'"><div class="card-head">'+logo+'<div class="card-title"><strong>'+escapeHtml(r.title||r.company)+'</strong><span class="ticker">'+escapeHtml(r.ticker||'—')+' · '+escapeHtml(r.company||'')+'</span></div></div><div class="card-meta"><span>'+escapeHtml(r.date||'Sin fecha')+'</span><span>'+(r.remotePath?'GitHub + local':'Solo local')+'</span></div><div class="card-actions"><button class="btn" data-action="open" type="button">Abrir</button><button class="btn danger" data-action="delete" type="button">Borrar</button></div></article>';
     }).join('');
     setStatus('libraryStatus',list.length+' análisis · '+(getGhToken()?'GitHub disponible':'almacenamiento local'));
+    populateCompareSelects();
   }
   el('librarySearch').addEventListener('input',renderLibrary);
   el('libraryCards').addEventListener('click',function(e){
@@ -319,6 +487,38 @@
   el('exportLibraryBtn').addEventListener('click',function(){download('modelo-jmr-research-'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(getLocalLibrary(),null,2),'application/json');});
   el('importLibraryInput').addEventListener('change',function(){var file=this.files&&this.files[0];if(!file)return;file.text().then(function(text){var incoming=JSON.parse(text);if(!Array.isArray(incoming))throw new Error('El respaldo no contiene una biblioteca válida.');var map={};getLocalLibrary().concat(incoming).forEach(function(r){if(r&&r.id)map[r.id]=r;});setLocalLibrary(Object.keys(map).map(function(k){return map[k];}));renderLibrary();setStatus('libraryStatus','Respaldo importado.','ok');}).catch(function(err){setStatus('libraryStatus','No se pudo importar: '+err.message,'bad');});this.value='';});
 
+  // Comparar dos empresas/competidores lado a lado: reutiliza el mismo
+  // renderer de documento (safeHtml + valuation-block) para cada columna,
+  // a partir de dos análisis ya guardados en la biblioteca local.
+  function populateCompareSelects() {
+    var list = getLocalLibrary();
+    ['compareA','compareB'].forEach(function (id) {
+      var sel = el(id); if (!sel) return;
+      var current = sel.value;
+      sel.innerHTML = '<option value="">— elegir —</option>' + list.map(function (r) {
+        return '<option value="' + escapeHtml(r.id) + '">' + escapeHtml((r.ticker ? r.ticker + ' · ' : '') + (r.company || r.title || 'Sin título')) + '</option>';
+      }).join('');
+      if (current && list.some(function (r) { return r.id === current; })) sel.value = current;
+    });
+  }
+  function buildCompareColumnHtml(rec) {
+    var logo = rec.logo ? '<img class="company-logo" src="' + escapeHtml(rec.logo) + '" alt="">' : '';
+    var linked = rec.linkedValuation ? buildLinkedValuationHtml(rec.linkedValuation) : '';
+    var val = rec.valuationHtml ? '<section class="valuation-block"><h2>Valoración cuantitativa</h2>' + rec.valuationHtml + '</section>' : '';
+    var title = rec.title ? '<h1>' + escapeHtml(rec.title) + '</h1>' : '';
+    return '<div class="compare-col"><div class="company-banner"><div class="identity">' + logo + '<div class="company-name"><h2>' + escapeHtml(rec.company || rec.title || rec.ticker || '—') + '</h2><div class="ticker">' + escapeHtml(rec.ticker || '—') + '</div></div></div></div>' +
+      '<div class="preview-body"><div class="research-document">' + title + safeHtml(rec.html || '') + linked + val + '</div></div></div>';
+  }
+  el('compareBtn').addEventListener('click', function () {
+    var list = getLocalLibrary();
+    var a = list.find(function (r) { return r.id === el('compareA').value; });
+    var b = list.find(function (r) { return r.id === el('compareB').value; });
+    if (!a || !b) { setStatus('compareStatus','Elegí dos análisis guardados para comparar.','bad'); el('compareOutput').innerHTML = '<div class="compare-empty">Elegí dos empresas arriba para verlas lado a lado.</div>'; return; }
+    el('compareOutput').innerHTML = buildCompareColumnHtml(a) + buildCompareColumnHtml(b);
+    setStatus('compareStatus','Comparando "' + (a.ticker || a.title) + '" vs. "' + (b.ticker || b.title) + '".','ok');
+  });
+  el('comparePrintBtn').addEventListener('click', function () { window.print(); });
+
   function download(name,text,type){var blob=new Blob([text],{type:type||'text/plain'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url);},1000);}
   var defaultPrompt='';
   function loadPrompt(force) {
@@ -329,6 +529,7 @@
   el('downloadPromptBtn').addEventListener('click',function(){download('prompt-analisis-fundamental-modelo-jmr.md',el('promptText').value,'text/markdown');});
   el('resetPromptBtn').addEventListener('click',function(){if(defaultPrompt){el('promptText').value=defaultPrompt;try{localStorage.removeItem(PROMPT_KEY);}catch(e){}setStatus('promptStatus','Prompt restaurado.','ok');}else loadPrompt(true);});
 
+  el('compareOutput').innerHTML='<div class="compare-empty">Elegí dos empresas arriba para verlas lado a lado.</div>';
   renderLibrary();renderPreview();loadPrompt(false);
   if ('serviceWorker' in navigator) window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});
 })();
