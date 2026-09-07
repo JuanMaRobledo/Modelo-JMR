@@ -3,7 +3,6 @@
 
   var LOCAL_KEY = 'jmr-research-library-v1';
   var PROMPT_KEY = 'jmr-research-prompt-v1';
-  var GH_TOKEN_KEY = 'jmr-gh-datastore-token';
   var GH_REPO_API = 'https://api.github.com/repos/JuanMaRobledo/Modelo-JMR-datos/';
   var GH_API = GH_REPO_API + 'contents/';
   var REQUIRED = [
@@ -481,15 +480,15 @@
     if(idx>=0) list[idx]=record; else list.unshift(record);
     setLocalLibrary(list); return list;
   }
-  function getGhToken() { try{return(localStorage.getItem(GH_TOKEN_KEY)||'').trim();}catch(e){return '';} }
-  function setGhToken(t) { try{localStorage.setItem(GH_TOKEN_KEY,(t||'').trim());}catch(e){} }
-  // Modelo-JMR-datos es un repo público: leer (listar/abrir análisis) no
-  // requiere token — solo se manda Authorization si hay uno guardado.
-  // Guardar/borrar sí lo exigen (remoteSave/remoteDelete ya lo chequean
-  // antes de intentar la llamada).
-  function ghHeaders() { var h = {'Accept':'application/vnd.github+json'}; var t = getGhToken(); if (t) h['Authorization'] = 'token ' + t; return h; }
-  function b64Encode(str) { return btoa(unescape(encodeURIComponent(str))); }
-  function b64Decode(str) { return decodeURIComponent(escape(atob(str))); }
+  // getGhToken/setGhToken/ghHeaders/b64Encode/b64Decode viven en
+  // gh_oauth.js (cargado antes que este archivo) — se reusan acá tal cual
+  // para que esta página, el Visor, Mi Bitácora y Portafolio compartan una
+  // sola implementación en vez de copias que puedan desincronizarse.
+  var getGhToken = GhOAuth.getGhToken;
+  var setGhToken = GhOAuth.setGhToken;
+  var ghHeaders = GhOAuth.ghHeaders;
+  var b64Encode = GhOAuth.b64EncodeUnicode;
+  var b64Decode = GhOAuth.b64DecodeUnicode;
   function remoteSave(record) {
     if(!getGhToken()) return Promise.resolve(null);
     var safe=(record.ticker||'empresa').replace(/[^A-Za-z0-9._-]/g,'_');

@@ -937,20 +937,20 @@
   // requiere token, guardar/borrar sí) con el mismo token de GitHub que ya
   // usa "Valoraciones guardadas" del Visor (misma clave de localStorage,
   // así que si ya conectaste tu GitHub ahí, acá ya aparece conectado).
-  var GH_TOKEN_KEY = 'jmr-gh-datastore-token';
   var GH_OWNER = 'JuanMaRobledo';
   var GH_REPO = 'Modelo-JMR-datos';
   var GH_API = 'https://api.github.com/repos/' + GH_OWNER + '/' + GH_REPO + '/contents/';
   var HYP_PATH = 'bitacora/hipotesis.json';
 
-  function getGhToken(){ try { return (localStorage.getItem(GH_TOKEN_KEY) || '').trim(); } catch(e){ return ''; } }
-  function setGhToken(t){ try { localStorage.setItem(GH_TOKEN_KEY, (t||'').trim()); } catch(e){} }
-  // Modelo-JMR-datos es público: leer (cargar mis casos) no requiere
-  // token — solo se manda Authorization si hay uno guardado. Guardar/
-  // borrar sí lo exigen (se chequea antes de intentar la llamada).
-  function ghHeaders(token){ var h = { 'Accept': 'application/vnd.github+json' }; if (token) h['Authorization'] = 'token ' + token; return h; }
-  function b64EncodeUnicode(str){ return btoa(unescape(encodeURIComponent(str))); }
-  function b64DecodeUnicode(str){ return decodeURIComponent(escape(atob(str))); }
+  // getGhToken/setGhToken/ghHeaders/b64EncodeUnicode/b64DecodeUnicode viven
+  // en gh_oauth.js (cargado arriba) — se reusan acá tal cual para que esta
+  // página, el Visor, Research y Portafolio compartan una sola
+  // implementación en vez de copias que puedan desincronizarse.
+  var getGhToken = GhOAuth.getGhToken;
+  var setGhToken = GhOAuth.setGhToken;
+  var ghHeaders = GhOAuth.ghHeaders;
+  var b64EncodeUnicode = GhOAuth.b64EncodeUnicode;
+  var b64DecodeUnicode = GhOAuth.b64DecodeUnicode;
 
   var customList = [];   // mis casos, tal cual se guardan en GitHub
   var customSha = null;  // sha del archivo bitacora/hipotesis.json, para poder sobreescribirlo

@@ -41,6 +41,19 @@ var GhOAuth = (function () {
   function setGhToken(t) { try { localStorage.setItem(GH_TOKEN_KEY, (t || '').trim()); } catch (e) { } }
   function clearGhToken() { try { localStorage.removeItem(GH_TOKEN_KEY); } catch (e) { } }
   function isConfigured() { return !!(CLIENT_ID && WORKER_URL); }
+
+  // Únicas implementaciones de estas tres funciones — visor.html,
+  // mi-bitacora.html, research.js y portafolio.js las usaban cada uno con
+  // su propia copia (idéntica) del código; ahora todas apuntan acá para
+  // que no puedan desincronizarse entre sí.
+  function ghHeaders(token) {
+    var h = { 'Accept': 'application/vnd.github+json' };
+    var t = token || getGhToken();
+    if (t) h['Authorization'] = 'token ' + t;
+    return h;
+  }
+  function b64EncodeUnicode(str) { return btoa(unescape(encodeURIComponent(str))); }
+  function b64DecodeUnicode(str) { return decodeURIComponent(escape(atob(str))); }
   function callbackUrl() { return new URL('oauth-callback.html', location.href).href; }
 
   function startLogin() {
@@ -108,6 +121,9 @@ var GhOAuth = (function () {
     clearGhToken: clearGhToken,
     isConfigured: isConfigured,
     startLogin: startLogin,
-    completeLogin: completeLogin
+    completeLogin: completeLogin,
+    ghHeaders: ghHeaders,
+    b64EncodeUnicode: b64EncodeUnicode,
+    b64DecodeUnicode: b64DecodeUnicode
   };
 })();

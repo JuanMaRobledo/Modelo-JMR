@@ -1,19 +1,21 @@
 (function () {
   'use strict';
 
-  var GH_TOKEN_KEY = 'jmr-gh-datastore-token';
   var GH_OWNER = 'JuanMaRobledo';
   var GH_REPO = 'Modelo-JMR-datos';
   var GH_API = 'https://api.github.com/repos/' + GH_OWNER + '/' + GH_REPO + '/contents/';
 
   function el(id) { return document.getElementById(id); }
-  function getGhToken() { try { return (localStorage.getItem(GH_TOKEN_KEY) || '').trim(); } catch (e) { return ''; } }
-  // Modelo-JMR-datos es público: esta página solo lee (Bitácora + Visor +
-  // Research), nunca guarda nada, así que no necesita ningún token — pero
-  // si el usuario ya conectó GitHub en otra pestaña, se manda igual (mismo
-  // origen, misma clave de localStorage) por si algún día hiciera falta.
-  function ghHeaders() { var h = { 'Accept': 'application/vnd.github+json' }; var t = getGhToken(); if (t) h['Authorization'] = 'token ' + t; return h; }
-  function b64Decode(str) { return decodeURIComponent(escape(atob(str))); }
+  // getGhToken/ghHeaders/b64Decode viven en gh_oauth.js (cargado antes que
+  // este archivo) — se reusan acá tal cual para que esta página, el Visor,
+  // Mi Bitácora y Research compartan una sola implementación en vez de
+  // copias que puedan desincronizarse. Esta página solo lee (Bitácora +
+  // Visor + Research), nunca guarda nada, así que no necesita ningún token
+  // — pero si el usuario ya conectó GitHub en otra pestaña, se manda igual
+  // (mismo origen, misma clave de localStorage) por si algún día hiciera falta.
+  var getGhToken = GhOAuth.getGhToken;
+  var ghHeaders = GhOAuth.ghHeaders;
+  var b64Decode = GhOAuth.b64DecodeUnicode;
   function escapeHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function normalizeText(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
   function fmtMoney(v) {

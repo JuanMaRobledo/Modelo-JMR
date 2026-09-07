@@ -1,4 +1,4 @@
-const CACHE = "modelo-jmr-v75";
+const CACHE = "modelo-jmr-v76";
 const APP_SHELL = [
   "index.html",
   "visor.html",
@@ -37,6 +37,12 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
+  // Solo cacheamos pedidos del propio sitio (el "app shell" y sus CDNs de
+  // terceros no cambian por request). Las llamadas a api.github.com y a
+  // financialmodelingprep.com pasan sin cachear: son datos vivos (precios,
+  // análisis, hipótesis) y cachearlas podía terminar sirviendo una
+  // respuesta vieja como si fuera la actual ante cualquier hipo de red.
+  if (new URL(event.request.url).origin !== self.location.origin) return;
   event.respondWith(
     fetch(event.request)
       .then((res) => {
