@@ -170,6 +170,7 @@
       zoneKv('Zona Value', z.value) + zoneKv('Zona Deep Value', z.deepValue) + zoneKv('Zona histórica', z.historica) +
       '</div></section>';
   }
+  var editing = false;
   function renderPreview() {
     el('previewCompany').textContent = state.company || state.title || 'Nuevo análisis';
     el('previewTicker').textContent = state.ticker || '—';
@@ -178,12 +179,93 @@
     var logo = el('previewLogo');
     if (state.logo) { logo.src = state.logo; logo.alt = 'Logo de ' + (state.company || state.ticker); logo.hidden = false; }
     else { logo.hidden = true; logo.removeAttribute('src'); }
+    // Mientras se está editando el contenido a mano, no se toca el DOM
+    // editable — reconstruirlo desde state.html en cada tecla tipeada en
+    // otro campo (ticker, empresa, etc., que también llaman a
+    // renderPreview vía syncFields) borraría cualquier edición todavía
+    // no aplicada.
+    if (editing) return;
     var body = el('previewBody');
-    if (!state.html && !state.valuationHtml && !state.linkedValuation && !state.news) { body.innerHTML = '<div class="preview-empty">Sube un documento para ver aquí la versión normalizada.</div>'; return; }
+    el('editorToolbar').hidden = !(state.html || state.valuationHtml || state.linkedValuation || state.news);
+    if (!state.html && !state.valuationHtml && !state.linkedValuation && !state.news) { body.innerHTML = '<div class="preview-empty">Sube un documento para ver aquí la versión normalizada.</div>'; renderEditorToolbar(); return; }
     var title = state.title ? '<h1>' + escapeHtml(state.title) + '</h1>' : '';
     var linked = state.linkedValuation ? buildLinkedValuationHtml(state.linkedValuation) : '';
     var val = state.valuationHtml ? '<section class="valuation-block"><h2>Valoración cuantitativa (tabla subida)</h2>' + state.valuationHtml + '</section>' : '';
-    body.innerHTML = '<div class="research-document">' + title + safeHtml(state.html) + linked + val + renderNews() + '</div>';
+    body.innerHTML = '<div class="research-document">' + title + '<div id="editableContent">' + safeHtml(state.html) + '</div>' + linked + val + renderNews() + '</div>';
+    renderEditorToolbar();
+  }
+
+  // Edición directa del análisis (incluye imágenes) sin tener que volver
+  // a subir el documento entero: "Editar contenido" vuelve editable el
+  // bloque que vino del documento subido (#editableContent, ver
+  // renderPreview) y muestra una barra con negrita/cursiva/insertar
+  // imagen. "Aplicar cambios" comprime cualquier imagen nueva (mismo
+  // pipeline que ya usa la subida de documentos) y vuelca el HTML
+  // editado a state.html — recién ahí queda igual que si se hubiera
+  // subido un documento nuevo; sigue haciendo falta "Guardar análisis"
+  // para persistirlo. Mientras se edita, se ocultan los botones de
+  // guardar/limpiar/etc. para no dejar aplicar un guardado a mitad de
+  // una edición sin aplicar.
+  function setEditing(on) {
+    editing = on;
+    el('editorActions').hidden = on;
+    var content = el('editableContent');
+    if (content) {
+      content.contentEditable = on ? 'true' : 'false';
+      if (on) {
+        try { document.execCommand('defaultParagraphSeparator', false, 'p'); } catch (e) {}
+        content.focus();
+      }
+    }
+    renderEditorToolbar();
+  }
+  function applyContentEdits() {
+    var content = el('editableContent');
+    if (!content) { setEditing(false); return; }
+    setStatus('analysisStatus', 'Aplicando cambios…');
+    compressEmbeddedImages(content.innerHTML).then(function (compressed) {
+      state.html = safeHtml(compressed);
+      setEditing(false);
+      renderPreview();
+      checkQuality();
+      setStatus('analysisStatus', 'Cambios aplicados en el editor — presiona "Guardar análisis" para guardarlos definitivamente.', 'ok');
+    }).catch(function (err) {
+      setStatus('analysisStatus', 'No se pudieron procesar las imágenes: ' + err.message, 'bad');
+    });
+  }
+  function renderEditorToolbar() {
+    var bar = el('editorToolbar');
+    if (!bar || bar.hidden) return;
+    if (!editing) {
+      bar.innerHTML = '<button class="btn" id="editContentBtn" type="button">✎ Editar contenido</button><span class="help">Permite corregir texto y agregar o quitar imágenes sin volver a subir el documento.</span>';
+      el('editContentBtn').addEventListener('click', function () { setEditing(true); });
+      return;
+    }
+    bar.innerHTML = '<button class="btn" id="boldBtn" type="button" title="Negrita"><b>N</b></button>' +
+      '<button class="btn" id="italicBtn" type="button" title="Cursiva"><i>C</i></button>' +
+      '<button class="btn" id="insertImageBtn" type="button">Insertar imagen</button>' +
+      '<input type="file" id="insertImageInput" accept="image/png,image/jpeg,image/webp,image/gif" hidden>' +
+      '<button class="btn primary" id="applyEditBtn" type="button">Aplicar cambios</button>' +
+      '<button class="btn" id="cancelEditBtn" type="button">Cancelar</button>' +
+      '<span class="help">Seleccioná una imagen y presioná Supr/Backspace para quitarla.</span>';
+    el('boldBtn').addEventListener('click', function () { document.execCommand('bold'); el('editableContent').focus(); });
+    el('italicBtn').addEventListener('click', function () { document.execCommand('italic'); el('editableContent').focus(); });
+    el('insertImageBtn').addEventListener('click', function () { el('insertImageInput').click(); });
+    el('insertImageInput').addEventListener('change', function () {
+      var file = this.files && this.files[0]; if (!file) return;
+      var input = this;
+      var reader = new FileReader();
+      reader.onload = function () {
+        var content = el('editableContent');
+        content.focus();
+        try { document.execCommand('insertImage', false, reader.result); }
+        catch (e) { content.innerHTML += '<img src="' + reader.result + '">'; }
+        input.value = '';
+      };
+      reader.readAsDataURL(file);
+    });
+    el('applyEditBtn').addEventListener('click', applyContentEdits);
+    el('cancelEditBtn').addEventListener('click', function () { setEditing(false); renderPreview(); });
   }
   function syncFields() {
     state.ticker = el('tickerInput').value.trim().toUpperCase();
@@ -261,7 +343,7 @@
     extractAnalysis(file).then(function (html) {
       return compressEmbeddedImages(html);
     }).then(function (html) {
-      state.html = safeHtml(html); state.sourceName = file.name; checkQuality(); syncFields();
+      editing = false; state.html = safeHtml(html); state.sourceName = file.name; checkQuality(); syncFields();
       if (/\.pdf$/i.test(file.name)) setStatus('analysisStatus','PDF convertido a texto. Revisa títulos, tablas y orden: PDF es el formato menos fiable para reutilizar.','bad');
     }).catch(function (err) { setStatus('analysisStatus','No pude leer el archivo: ' + err.message,'bad'); });
   }
@@ -602,6 +684,7 @@
   });
 
   function fillEditor(rec) {
+    editing=false;
     state=Object.assign(freshState(),rec);
     el('tickerInput').value=state.ticker||'';el('companyInput').value=state.company||'';el('titleInput').value=state.title||'';el('dateInput').value=state.date||'';el('newsInput').value=state.news||'';
     checkQuality();renderPreview();refreshHistoryButton();el('historyPanel').hidden=true;el('historyPanel').innerHTML='';
@@ -610,6 +693,7 @@
     checkLinkedValuationFreshness();
   }
   function resetEditor() {
+    editing=false;
     state=freshState();['tickerInput','companyInput','titleInput','newsInput'].forEach(function(id){el(id).value='';});el('dateInput').value=state.date;el('logoInput').value='';el('analysisFile').value='';el('valuationFile').value='';el('qualityChips').innerHTML='';
     ['quoteStatus','analysisStatus','valuationStatus','linkVisorStatus','newsStatus','saveStatus'].forEach(function(id){setStatus(id,'');});
     refreshHistoryButton();el('historyPanel').hidden=true;el('historyPanel').innerHTML='';renderPreview();
