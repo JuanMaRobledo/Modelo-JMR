@@ -15,6 +15,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsdiff/5.1.0/diff.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
 :root{--bg:#F5F6F2;--surface:#fff;--surface-2:#ECEFE9;--ink:#16231F;--ink-soft:#51615A;--ink-faint:#8A968F;--border:#DBE1D9;--border-soft:#E7EBE3;--accent:#A6791F;--accent-soft:#F1E6CC;--accent-ink:#5C4212;--positive:#1E7F52;--positive-soft:#E1F0E6;--negative:#B0452F;--negative-soft:#F7E5DF;--shadow:0 1px 2px rgba(22,35,31,.06),0 8px 24px -12px rgba(22,35,31,.18);--focus:#3B7CE0}
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10160F;--surface:#161F1B;--surface-2:#1D2822;--ink:#ECEEE9;--ink-soft:#A9B6AF;--ink-faint:#6E7B75;--border:#2B3833;--border-soft:#212C27;--accent:#D9A64B;--accent-soft:#3B2E12;--accent-ink:#F2D9A0;--positive:#4FBD82;--positive-soft:#173627;--negative:#E07857;--negative-soft:#3B2016;--shadow:0 1px 2px rgba(0,0,0,.3),0 12px 28px -14px rgba(0,0,0,.6);--focus:#6FA8FF}}
@@ -89,7 +90,7 @@ nav.appnav{display:flex;gap:4px;padding:14px 20px 0;max-width:1180px;margin:0 au
           <div class="row"><button class="btn" id="fetchNewsBtn" type="button">Buscar noticias recientes</button></div>
           <p class="status" id="newsStatus"></p>
           <div class="field"><label for="newsInput">Noticias y eventos</label><textarea id="newsInput" placeholder="Resultados Q2 superan expectativas | https://… | 2026-08-15 | Alta"></textarea></div></section>
-        <section class="box"><h3>Guardar</h3><p class="help">Se guarda siempre una copia local. Si ya conectaste GitHub en el Visor, también se guarda en <code>Modelo-JMR-datos/analisis</code> — cada guardado ahí queda como una versión distinta en el historial de git, recuperable desde “Ver historial”.</p><div class="actions"><button class="btn primary" id="saveBtn" type="button">Guardar análisis</button><button class="btn" id="newBtn" type="button">Limpiar</button><button class="btn" id="printBtn" type="button">Imprimir / PDF</button><button class="btn" id="historyBtn" type="button" hidden>Ver historial</button></div><p class="status" id="saveStatus"></p>
+        <section class="box"><h3>Guardar</h3><p class="help">Se guarda siempre una copia local. Si ya conectaste GitHub en el Visor, también se guarda en <code>Modelo-JMR-datos/analisis</code> — cada guardado ahí queda como una versión distinta en el historial de git, recuperable desde “Ver historial”.</p><div class="actions"><button class="btn primary" id="saveBtn" type="button">Guardar análisis</button><button class="btn" id="newBtn" type="button">Limpiar</button><button class="btn" id="printBtn" type="button">Imprimir / PDF</button><button class="btn" id="downloadPdfBtn" type="button">Descargar PDF</button><button class="btn" id="historyBtn" type="button" hidden>Ver historial</button></div><p class="status" id="saveStatus"></p>
           <div id="historyPanel" hidden></div>
         </section>
       </div>
@@ -102,6 +103,7 @@ nav.appnav{display:flex;gap:4px;padding:14px 20px 0;max-width:1180px;margin:0 au
       <div class="field" style="flex:1;min-width:220px;"><label for="compareB">Empresa B</label><select id="compareB"></select></div>
       <button class="btn primary" id="compareBtn" type="button" style="align-self:flex-end;">Comparar</button>
       <button class="btn" id="comparePrintBtn" type="button" style="align-self:flex-end;">Imprimir / PDF</button>
+      <button class="btn" id="compareDownloadBtn" type="button" style="align-self:flex-end;">Descargar PDF</button>
     </div>
     <p class="status" id="compareStatus"></p>
     <div class="compare-grid" id="compareOutput"></div>

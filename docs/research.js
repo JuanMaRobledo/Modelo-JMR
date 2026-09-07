@@ -514,6 +514,35 @@
   el('newBtn').addEventListener('click',resetEditor);
   el('printBtn').addEventListener('click',function(){window.print();});
 
+  // Descarga de PDF como archivo (además de "Imprimir / PDF", que abre el
+  // diálogo del navegador): útil cuando se quiere el archivo directo sin
+  // pasar por "Guardar como" a mano. html2pdf.js (html2canvas + jsPDF por
+  // debajo) es liviano y no requiere backend — si por algún motivo no
+  // cargó desde el CDN, cae de vuelta a sugerir el botón de imprimir.
+  function safeFileSlug(s) { return String(s || 'analisis').replace(/[^A-Za-z0-9._-]/g, '_'); }
+  function downloadPdf(element, filename, btn, statusId) {
+    if (typeof html2pdf === 'undefined') { if (statusId) setStatus(statusId, 'No se pudo cargar el generador de PDF — usa "Imprimir / PDF" en su lugar.', 'bad'); return; }
+    if (btn) btn.disabled = true;
+    if (statusId) setStatus(statusId, 'Generando PDF…');
+    html2pdf().set({
+      margin: 10,
+      filename: filename,
+      image: { type: 'jpeg', quality: 0.95 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['css', 'legacy'] }
+    }).from(element).save().then(function () {
+      if (statusId) setStatus(statusId, 'PDF descargado.', 'ok');
+    }).catch(function (err) {
+      if (statusId) setStatus(statusId, 'No se pudo generar el PDF: ' + err.message, 'bad');
+    }).finally(function () {
+      if (btn) btn.disabled = false;
+    });
+  }
+  el('downloadPdfBtn').addEventListener('click', function () {
+    downloadPdf(el('previewBody'), safeFileSlug(state.ticker) + '-' + safeFileSlug(state.date || new Date().toISOString().slice(0, 10)) + '.pdf', this, 'saveStatus');
+  });
+
   // Búsqueda de texto completo: además de ticker/empresa/título, busca
   // dentro del cuerpo del análisis (y las noticias). htmlToPlainText()
   // ya existía para el diff de versiones — se reutiliza acá. Se cachea
@@ -606,6 +635,12 @@
     setStatus('compareStatus','Comparando "' + (a.ticker || a.title) + '" vs. "' + (b.ticker || b.title) + '".','ok');
   });
   el('comparePrintBtn').addEventListener('click', function () { window.print(); });
+  el('compareDownloadBtn').addEventListener('click', function () {
+    var a = getLocalLibrary().find(function (r) { return r.id === el('compareA').value; });
+    var b = getLocalLibrary().find(function (r) { return r.id === el('compareB').value; });
+    var name = safeFileSlug((a && a.ticker) || 'A') + '-vs-' + safeFileSlug((b && b.ticker) || 'B') + '.pdf';
+    downloadPdf(el('compareOutput'), name, this, 'compareStatus');
+  });
 
   function download(name,text,type){var blob=new Blob([text],{type:type||'text/plain'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url);},1000);}
   var defaultPrompt='';
