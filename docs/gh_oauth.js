@@ -31,7 +31,7 @@ var GhOAuth = (function () {
   // devuelve false y cada página cae de vuelta al campo para pegar un
   // PAT a mano, así el sitio nunca queda roto en el medio de la
   // migración.
-  var CLIENT_ID = '';
+  var CLIENT_ID = 'Ov23li9uoL2CDT8yGmho';
   // URL del Cloudflare Worker que hace el intercambio (ver
   // cloudflare-worker/oauth-worker.js). Tampoco es secreta.
   var WORKER_URL = '';
