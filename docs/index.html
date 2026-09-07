@@ -944,7 +944,10 @@
 
   function getGhToken(){ try { return (localStorage.getItem(GH_TOKEN_KEY) || '').trim(); } catch(e){ return ''; } }
   function setGhToken(t){ try { localStorage.setItem(GH_TOKEN_KEY, (t||'').trim()); } catch(e){} }
-  function ghHeaders(token){ return { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github+json' }; }
+  // Modelo-JMR-datos es público: leer (cargar hipótesis) no requiere
+  // token — solo se manda Authorization si hay uno guardado. Guardar/
+  // borrar sí lo exigen (se chequea antes de intentar la llamada).
+  function ghHeaders(token){ var h = { 'Accept': 'application/vnd.github+json' }; if (token) h['Authorization'] = 'token ' + token; return h; }
   function b64EncodeUnicode(str){ return btoa(unescape(encodeURIComponent(str))); }
   function b64DecodeUnicode(str){ return decodeURIComponent(escape(atob(str))); }
 
@@ -952,9 +955,7 @@
   var customSha = null;  // sha del archivo bitacora/hipotesis.json, para poder sobreescribirlo
 
   function loadCustomHipotesis(){
-    var token = getGhToken();
-    if(!token) return Promise.resolve({ list: [], sha: null });
-    return fetch(GH_API + HYP_PATH, { headers: ghHeaders(token) }).then(function(res){
+    return fetch(GH_API + HYP_PATH, { headers: ghHeaders(getGhToken()) }).then(function(res){
       if(res.status === 404) return { list: [], sha: null };
       if(!res.ok) throw new Error('HTTP ' + res.status);
       return res.json().then(function(data){
@@ -1023,7 +1024,7 @@
       console.warn('No se pudieron cargar las hipótesis guardadas:', err);
     });
   }
-  if(getGhToken()) loadAndMergeCustom();
+  loadAndMergeCustom();
 
   // -- Extracción de texto: PDF vía pdf.js, .docx desarmando el .zip y
   // sacando el texto crudo de word/document.xml (mismo enfoque que ya usa

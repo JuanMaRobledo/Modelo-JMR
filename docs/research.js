@@ -314,7 +314,6 @@
   function linkVisorValuation() {
     syncFields();
     if (!state.ticker) { setStatus('linkVisorStatus','Ingresa un ticker primero.','bad'); return; }
-    if (!getGhToken()) { setStatus('linkVisorStatus','Conecta tu GitHub desde "Valoraciones guardadas" en el Visor primero.','bad'); return; }
     var btn = el('linkVisorBtn'); btn.disabled = true; setStatus('linkVisorStatus','Buscando valoraciones de ' + state.ticker + ' en el Visor…');
     listValoraciones().then(function (files) {
       var matches = files.filter(function (f) { return tickerFromValoracionName(f.name) === state.ticker; });
@@ -336,7 +335,7 @@
   // pisar algo a propósito) — solo avisa, con el mismo botón de siempre
   // para refrescarlo si el usuario quiere.
   function checkLinkedValuationFreshness() {
-    if (!state.linkedValuation || !state.ticker || !getGhToken()) return;
+    if (!state.linkedValuation || !state.ticker) return;
     listValoraciones().then(function (files) {
       var matches = files.filter(function (f) { return tickerFromValoracionName(f.name) === state.ticker; });
       if (!matches.length) return;
@@ -400,7 +399,11 @@
   }
   function getGhToken() { try{return(localStorage.getItem(GH_TOKEN_KEY)||'').trim();}catch(e){return '';} }
   function setGhToken(t) { try{localStorage.setItem(GH_TOKEN_KEY,(t||'').trim());}catch(e){} }
-  function ghHeaders() { return {'Authorization':'token '+getGhToken(),'Accept':'application/vnd.github+json'}; }
+  // Modelo-JMR-datos es un repo público: leer (listar/abrir análisis) no
+  // requiere token — solo se manda Authorization si hay uno guardado.
+  // Guardar/borrar sí lo exigen (remoteSave/remoteDelete ya lo chequean
+  // antes de intentar la llamada).
+  function ghHeaders() { var h = {'Accept':'application/vnd.github+json'}; var t = getGhToken(); if (t) h['Authorization'] = 'token ' + t; return h; }
   function b64Encode(str) { return btoa(unescape(encodeURIComponent(str))); }
   function b64Decode(str) { return decodeURIComponent(escape(atob(str))); }
   function remoteSave(record) {
@@ -416,7 +419,6 @@
     return fetch(GH_API+record.remotePath,{method:'DELETE',headers:Object.assign({'Content-Type':'application/json'},ghHeaders()),body:JSON.stringify({message:'Borrar research '+(record.ticker||record.id),sha:record.remoteSha})}).then(function(res){if(!res.ok)throw new Error('HTTP '+res.status);});
   }
   function syncRemote() {
-    if(!getGhToken()) return Promise.reject(new Error('Conecta GitHub arriba primero.'));
     return fetch(GH_API+'analisis',{headers:ghHeaders()}).then(function(res){if(res.status===404)return[];if(!res.ok)throw new Error('HTTP '+res.status);return res.json();}).then(function(files){
       var jsons=(Array.isArray(files)?files:[]).filter(function(f){return /\.json$/i.test(f.name);});
       return Promise.all(jsons.map(function(f){return fetch(f.url,{headers:ghHeaders()}).then(function(r){return r.json();}).then(function(data){var rec=JSON.parse(b64Decode(data.content.replace(/\n/g,'')));rec.remotePath=f.path;rec.remoteSha=f.sha;return rec;});}));
@@ -436,7 +438,7 @@
     var el2 = el('ghConnectBanner'); if (!el2) return;
     var token = getGhToken();
     if (token) {
-      el2.innerHTML = '<div class="gh-banner ok"><span class="gh-msg">✓ GitHub conectado — tus análisis se guardan también en tu repositorio privado, no solo en este navegador.</span><button class="btn" id="ghBannerChange" type="button">Cambiar</button><button class="btn" id="ghBannerForget" type="button">Olvidar</button></div>';
+      el2.innerHTML = '<div class="gh-banner ok"><span class="gh-msg">✓ GitHub conectado — ya podés guardar y borrar análisis (verlos ya funcionaba igual sin conectar nada).</span><button class="btn" id="ghBannerChange" type="button">Cambiar</button><button class="btn" id="ghBannerForget" type="button">Olvidar</button></div>';
       el('ghBannerChange').addEventListener('click', showGhBannerForm);
       el('ghBannerForget').addEventListener('click', function () { setGhToken(''); renderGhBanner(); renderLibrary(); });
     } else {
@@ -445,7 +447,7 @@
   }
   function showGhBannerForm() {
     var el2 = el('ghConnectBanner');
-    el2.innerHTML = '<div class="gh-banner warn"><span class="gh-msg">⚠ GitHub no conectado: tus análisis solo se guardan en este navegador y se pierden si limpiás datos o cambiás de dispositivo. Conéctalo una vez para guardarlos definitivamente.</span><input id="ghBannerToken" type="password" placeholder="Personal Access Token de GitHub (repo Modelo-JMR-datos)" autocomplete="off" spellcheck="false"><button class="btn primary" id="ghBannerConnect" type="button">Conectar</button></div>';
+    el2.innerHTML = '<div class="gh-banner warn"><span class="gh-msg">⚠ GitHub no conectado: podés VER la biblioteca igual (es de lectura libre), pero GUARDAR o BORRAR análisis necesita tu propio Personal Access Token. Conéctalo una vez.</span><input id="ghBannerToken" type="password" placeholder="Personal Access Token de GitHub — solo para guardar/borrar" autocomplete="off" spellcheck="false"><button class="btn primary" id="ghBannerConnect" type="button">Conectar</button></div>';
     var input = el('ghBannerToken');
     el('ghBannerConnect').addEventListener('click', function () {
       setGhToken(input.value);
@@ -536,7 +538,7 @@
     try{record=buildRecord();}catch(err){setStatus('saveStatus',err.message,'bad');return;}
     btn.disabled=true;setStatus('saveStatus','Guardando…');
     try{upsertLocal(record);}catch(err){btn.disabled=false;setStatus('saveStatus','No cabe en el almacenamiento local. Exporta la biblioteca o reduce el documento.','bad');return;}
-    remoteSave(record).then(function(saved){if(saved)upsertLocal(saved);state=Object.assign(state,saved||record);refreshHistoryButton();renderLibrary();setStatus('saveStatus',saved?'Guardado localmente y en tu repositorio privado — a salvo aunque cambies de navegador.':'Guardado SOLO en este navegador — conecta GitHub arriba para que quede a salvo también en tu repositorio privado.',saved?'ok':'bad');}).catch(function(err){setStatus('saveStatus','Guardado localmente, pero GitHub falló: '+err.message,'bad');}).finally(function(){btn.disabled=false;});
+    remoteSave(record).then(function(saved){if(saved)upsertLocal(saved);state=Object.assign(state,saved||record);refreshHistoryButton();renderLibrary();setStatus('saveStatus',saved?'Guardado localmente y en tu repositorio de GitHub — a salvo aunque cambies de navegador.':'Guardado SOLO en este navegador — conecta GitHub arriba para que quede a salvo también en tu repositorio.',saved?'ok':'bad');}).catch(function(err){setStatus('saveStatus','Guardado localmente, pero GitHub falló: '+err.message,'bad');}).finally(function(){btn.disabled=false;});
   });
 
   function fillEditor(rec) {
@@ -707,10 +709,10 @@
   el('compareOutput').innerHTML='<div class="compare-empty">Elegí dos empresas arriba para verlas lado a lado.</div>';
   renderGhBanner();renderLibrary();renderPreview();loadPrompt(false);
   applyDeepLinkFilter();
-  // Si ya hay un token guardado (de este mismo navegador o porque se
-  // conectó antes en el Visor), trae en silencio lo que se haya guardado
-  // desde otro dispositivo/navegador con el mismo token — así la
-  // biblioteca no depende de acordarse de apretar "Sincronizar GitHub".
-  if (getGhToken()) syncRemote().then(applyDeepLinkFilter).catch(function () {});
+  // Modelo-JMR-datos es público: la sincronización inicial funciona
+  // siempre, con o sin token conectado (el token solo hace falta para
+  // guardar/borrar) — así la biblioteca nunca depende de acordarse de
+  // apretar "Sincronizar GitHub" ni de conectar nada solo para mirar.
+  syncRemote().then(applyDeepLinkFilter).catch(function () {});
   if ('serviceWorker' in navigator) window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});
 })();

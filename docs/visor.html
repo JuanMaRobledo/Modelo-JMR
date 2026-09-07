@@ -666,7 +666,7 @@
 
       <div class="gh-section">
         <h3>Guardar esta valoración</h3>
-        <p class="sub">Guarda esta valoración — el resumen, el análisis cualitativo, el análisis fundamental y las hojas crudas de Estados Financieros, Valoración y Análisis — en tu base de datos privada (repo <code>Modelo-JMR-datos</code>) para consultarla después sin volver a subir el Excel. Si el archivo es muy grande, algunas partes se omiten para poder guardar el resto.</p>
+        <p class="sub">Guarda esta valoración — el resumen, el análisis cualitativo, el análisis fundamental y las hojas crudas de Estados Financieros, Valoración y Análisis — en tu base de datos (repo <code>Modelo-JMR-datos</code>) para consultarla después sin volver a subir el Excel. Si el archivo es muy grande, algunas partes se omiten para poder guardar el resto.</p>
         <div id="saveBlock"></div>
       </div>
     </div>
@@ -875,7 +875,7 @@
 
     <div class="gh-section" id="savedSection">
       <h3>Valoraciones guardadas</h3>
-      <p class="sub">Consulta valoraciones que hayas guardado antes desde este visor — no necesitas volver a subir el Excel. Se conecta una sola vez a tu repo privado de GitHub (<code>Modelo-JMR-datos</code>); el navegador recuerda la conexión después, no hace falta volver a escribir nada.</p>
+      <p class="sub">Consulta valoraciones que hayas guardado antes desde este visor — no necesitas volver a subir el Excel, ni conectar nada para verlas. Solo hace falta pegar tu Personal Access Token de GitHub (<code>Modelo-JMR-datos</code>) si querés guardar, archivar o borrar una — el navegador lo recuerda después, no hace falta volver a escribirlo.</p>
       <div id="ghConnect"></div>
       <div class="gh-row">
         <button class="gh-btn" id="loadSavedBtn" type="button">Cargar lista</button>
@@ -890,7 +890,7 @@
     Este visor lee los resultados ya calculados por tu Excel (Modelo JMR); no recalcula el DCF ni los múltiplos por sí mismo.
     El nombre y el logo se toman de la hoja "Input sheet" y de Financial Modeling Prep respectivamente; el "Precio actual" se consulta en vivo con la misma API key de la Calculadora y la Bitácora — si no hay key o el ticker no se encuentra, se muestra el precio que quedó guardado en el Excel al momento de llenarlo, marcado como tal.
     Las pestañas "Estados Financieros", "Valoración" y "Análisis" muestran, tal cual, las hojas de tu Excel involucradas en la valoración (no las tablas fijas de referencia de la plantilla — primas de riesgo país, promedios de industria, convertidores, etc. — que son iguales para cualquier empresa).
-    Guardar una valoración la sube como un archivo JSON a un repositorio privado tuyo en GitHub (<code>Modelo-JMR-datos</code>) usando un Personal Access Token que solo tú generas y que se guarda únicamente en este navegador — nunca se envía a ningún servidor propio.
+    Guardar una valoración la sube como un archivo JSON a tu repositorio en GitHub (<code>Modelo-JMR-datos</code>) usando un Personal Access Token que solo tú generas y que se guarda únicamente en este navegador — nunca se envía a ningún servidor propio. Leer valoraciones ya guardadas no requiere ese token (el repo es público); solo hace falta para guardar, archivar o borrar.
     Para valorar una empresa nueva sin Excel, usa la <a href="calculadora.html" style="color:inherit;">Calculadora DCF</a>.
     Contenido con fines educativos y de organización personal — no constituye asesoría financiera.
   </footer>
@@ -2195,10 +2195,16 @@
   }
 
   // Persistencia de valoraciones vía la API de contenidos de GitHub, sobre
-  // un repo privado aparte (Modelo-JMR-datos) — Modelo-JMR debe permanecer
+  // un repo aparte (Modelo-JMR-datos, público) — Modelo-JMR debe permanecer
   // público porque GitHub Pages en el plan gratuito no sirve sitios desde
   // repos privados. El token se guarda solo en este navegador (localStorage)
   // y nunca se envía a ningún servidor propio.
+  //
+  // El repo de datos es público, así que LEER (listar/abrir valoraciones)
+  // no requiere ningún token — funciona igual en cualquier navegador sin
+  // configurar nada. Solo GUARDAR/BORRAR/MOVER necesita el PAT propio del
+  // usuario, porque escribir sí exige autenticación aunque el repo sea
+  // público (si no, cualquiera podría modificar los datos de cualquiera).
   var GH_TOKEN_KEY = 'jmr-gh-datastore-token';
   var GH_OWNER = 'JuanMaRobledo';
   var GH_REPO = 'Modelo-JMR-datos';
@@ -2206,7 +2212,11 @@
 
   function getGhToken(){ try { return (localStorage.getItem(GH_TOKEN_KEY) || '').trim(); } catch(e){ return ''; } }
   function setGhToken(t){ try { localStorage.setItem(GH_TOKEN_KEY, (t||'').trim()); } catch(e){} }
-  function ghHeaders(token){ return { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github+json' }; }
+  function ghHeaders(token){
+    var h = { 'Accept': 'application/vnd.github+json' };
+    if (token) h['Authorization'] = 'token ' + token;
+    return h;
+  }
   function b64EncodeUnicode(str){ return btoa(unescape(encodeURIComponent(str))); }
   function b64DecodeUnicode(str){ return decodeURIComponent(escape(atob(str))); }
 
@@ -2229,9 +2239,7 @@
   var ARCHIVE_FOLDER = 'valoraciones/archivadas';
 
   function listValoraciones(folder){
-    var token = getGhToken();
-    if(!token) return Promise.reject(new Error('Falta el token de GitHub.'));
-    return fetch(GH_API + (folder || 'valoraciones'), { headers: ghHeaders(token) }).then(function(res){
+    return fetch(GH_API + (folder || 'valoraciones'), { headers: ghHeaders(getGhToken()) }).then(function(res){
       if(res.status === 404) return [];
       if(!res.ok) return res.json().then(function(e){ throw new Error((e && e.message) || ('HTTP ' + res.status)); });
       return res.json();
@@ -2445,7 +2453,7 @@
   function showGhConnectForm(){
     var el = document.getElementById('ghConnect');
     el.innerHTML =
-      '<div class="gh-row"><input id="ghTokenInput" type="password" placeholder="Personal Access Token de GitHub (repo Modelo-JMR-datos)" autocomplete="off" spellcheck="false" value="' + getGhToken().replace(/"/g,'&quot;') + '">' +
+      '<div class="gh-row"><input id="ghTokenInput" type="password" placeholder="Personal Access Token de GitHub — solo para guardar/borrar" autocomplete="off" spellcheck="false" value="' + getGhToken().replace(/"/g,'&quot;') + '">' +
       '<button class="gh-btn primary" id="ghConnectBtn" type="button">Conectar</button></div>';
     var tokenInput = document.getElementById('ghTokenInput');
     document.getElementById('ghConnectBtn').addEventListener('click', function(){
@@ -2575,9 +2583,7 @@
     return idx >= 0 ? base.slice(0, idx) : base;
   }
   function listResearchTickers(){
-    var token = getGhToken();
-    if(!token) return Promise.resolve({});
-    return fetch(GH_API + 'analisis', { headers: ghHeaders(token) }).then(function(res){
+    return fetch(GH_API + 'analisis', { headers: ghHeaders(getGhToken()) }).then(function(res){
       if(res.status === 404) return [];
       if(!res.ok) throw new Error('HTTP ' + res.status);
       return res.json();
@@ -2617,7 +2623,6 @@
   }
 
   document.getElementById('loadSavedBtn').addEventListener('click', function(){
-    if(!getGhToken()){ document.getElementById('savedStatus').textContent = 'Pega tu Personal Access Token de GitHub arriba primero.'; return; }
     viewingArchive = false;
     document.getElementById('toggleArchiveBtn').hidden = false;
     document.getElementById('toggleArchiveBtn').textContent = 'Ver archivadas';
