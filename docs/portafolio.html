@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Portafolio · Modelo JMR</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon.ico">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="theme-color" content="#10160F">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{--bg:#F5F6F2;--surface:#fff;--surface-2:#ECEFE9;--ink:#16231F;--ink-soft:#51615A;--ink-faint:#8A968F;--border:#DBE1D9;--border-soft:#E7EBE3;--accent:#A6791F;--accent-soft:#F1E6CC;--accent-ink:#5C4212;--positive:#1E7F52;--positive-soft:#E1F0E6;--negative:#B0452F;--negative-soft:#F7E5DF;--chip-std-bg:#E4F0E7;--chip-std-fg:#1E5C3C;--chip-spec-bg:#F8E4DA;--chip-spec-fg:#8A3B1E;--shadow:0 1px 2px rgba(22,35,31,.06),0 8px 24px -12px rgba(22,35,31,.18);--focus:#3B7CE0}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10160F;--surface:#161F1B;--surface-2:#1D2822;--ink:#ECEEE9;--ink-soft:#A9B6AF;--ink-faint:#6E7B75;--border:#2B3833;--border-soft:#212C27;--accent:#D9A64B;--accent-soft:#3B2E12;--accent-ink:#F2D9A0;--positive:#4FBD82;--positive-soft:#173627;--negative:#E07857;--negative-soft:#3B2016;--chip-std-bg:#1E3A2A;--chip-std-fg:#8FDDB0;--chip-spec-bg:#3D2418;--chip-spec-fg:#F0A47C;--shadow:0 1px 2px rgba(0,0,0,.3),0 12px 28px -14px rgba(0,0,0,.6);--focus:#6FA8FF}}
+:root[data-theme="dark"]{--bg:#10160F;--surface:#161F1B;--surface-2:#1D2822;--ink:#ECEEE9;--ink-soft:#A9B6AF;--ink-faint:#6E7B75;--border:#2B3833;--border-soft:#212C27;--accent:#D9A64B;--accent-soft:#3B2E12;--accent-ink:#F2D9A0;--positive:#4FBD82;--positive-soft:#173627;--negative:#E07857;--negative-soft:#3B2016;--chip-std-bg:#1E3A2A;--chip-std-fg:#8FDDB0;--chip-spec-bg:#3D2418;--chip-spec-fg:#F0A47C;--shadow:0 1px 2px rgba(0,0,0,.3),0 12px 28px -14px rgba(0,0,0,.6);--focus:#6FA8FF}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:"Public Sans",-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}button,input{font:inherit}.wrap{max-width:1180px;margin:auto;padding:0 20px 64px}
+nav.appnav{display:flex;gap:4px;padding:14px 20px 0;max-width:1180px;margin:0 auto;border-bottom:1px solid var(--border);overflow-x:auto}nav.appnav a{font-size:13.5px;font-weight:600;text-decoration:none;color:var(--ink-faint);padding:10px 14px;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}nav.appnav a:hover{color:var(--ink)}nav.appnav a.active{color:var(--accent);border-bottom-color:var(--accent)}
+.hero{padding:34px 0 22px;display:flex;justify-content:space-between;align-items:flex-start;gap:24px}.eyebrow{font-family:"IBM Plex Mono",monospace;color:var(--accent);font-size:11px;font-weight:700;letter-spacing:.11em;text-transform:uppercase}.hero h1{font-family:"Fraunces",Georgia,serif;font-size:clamp(30px,5vw,46px);line-height:1.05;margin:8px 0 10px;letter-spacing:-.025em}.hero p{max-width:720px;color:var(--ink-soft);line-height:1.6;margin:0}.theme-btn{border:1px solid var(--border);background:var(--surface);color:var(--ink);border-radius:9px;padding:8px 13px;font-size:12.5px;font-weight:650;cursor:pointer}.theme-btn:hover{border-color:var(--ink-faint)}
+.disclaimer{background:var(--negative-soft);border:1px solid var(--negative);border-radius:12px;padding:13px 16px;margin:0 0 20px;font-size:12px;line-height:1.55}
+.search-row{display:flex;gap:10px;align-items:center;margin-bottom:8px}.search-row input{flex:1;min-width:220px;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--ink);padding:10px 12px}
+.port-status{font-size:12px;color:var(--ink-faint);margin:0 0 18px;}
+.port-list{display:flex;flex-direction:column;gap:16px}
+.port-empty-state{padding:48px 20px;border:1px dashed var(--border);border-radius:14px;color:var(--ink-faint);text-align:center;background:var(--surface)}
+.port-card{background:var(--surface);border:1px solid var(--border-soft);border-radius:16px;padding:18px 20px;box-shadow:var(--shadow)}
+.port-head{display:flex;align-items:center;gap:12px;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border-soft)}
+.port-logo{width:44px;height:44px;border-radius:10px;object-fit:contain;background:#fff;border:1px solid var(--border-soft)}
+.port-head h2{font-family:"IBM Plex Mono",monospace;font-size:18px;margin:0}
+.port-empresa{font-size:13px;color:var(--ink-soft)}
+.port-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.port-block h4{font-family:"Fraunces",Georgia,serif;font-size:14px;margin:0 0 10px;color:var(--accent-ink)}
+.port-kv-row{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+.port-fecha{font-size:11.5px;color:var(--ink-faint)}
+.port-kv{display:flex;flex-direction:column;gap:1px;margin-bottom:8px;font-size:12.5px}
+.port-kv .k{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-faint)}
+.port-kv .v{font-weight:600}
+.port-kv .v.mono,.port-text b{font-family:"IBM Plex Mono",monospace;font-weight:600}
+.port-text{font-size:12.5px;line-height:1.55;color:var(--ink-soft);margin:0 0 8px}
+.port-text b{font-family:"Public Sans",sans-serif;color:var(--ink)}
+.port-link{font-size:12.5px;font-weight:650;color:var(--accent);text-decoration:none}
+.port-link:hover{text-decoration:underline}
+.port-empty{font-size:12.5px;color:var(--ink-faint);line-height:1.6}
+.port-empty a{color:var(--accent);font-weight:650;text-decoration:none}
+.chip{display:inline-block;font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.chip.std{background:var(--chip-std-bg);color:var(--chip-std-fg)}
+.chip.spec{background:var(--chip-spec-bg);color:var(--chip-spec-fg)}
+.chart-card{background:var(--surface-2);border:1px solid var(--border-soft);border-radius:12px;padding:10px 12px;margin-top:6px}
+.chart-svg{width:100%;height:auto;display:block;overflow:visible}
+.chart-lbl{font-size:10.5px;fill:var(--ink-soft);font-family:"Public Sans",sans-serif}
+.chart-ref{stroke:var(--ink-soft);stroke-width:2;stroke-dasharray:5 4}
+.chart-ref-lbl{font-size:10px;fill:var(--ink);font-family:"Public Sans",sans-serif;font-weight:700;stroke:var(--surface-2);stroke-width:3px;paint-order:stroke;stroke-linejoin:round}
+.chart-zone-bar{fill:color-mix(in oklab, var(--positive) 32%, var(--surface));stroke:var(--positive);stroke-width:1}
+.chart-zone-val{font-family:"IBM Plex Mono",monospace;font-size:9.5px;font-weight:600;fill:var(--positive);stroke:var(--surface-2);stroke-width:3px;paint-order:stroke;stroke-linejoin:round}
+.chart-empty{color:var(--ink-faint);font-size:12.5px;padding:14px 0;text-align:center}
+.chart-ref-cons{stroke:color-mix(in oklab, var(--accent) 45%, var(--surface));stroke-width:1;stroke-dasharray:2 2;opacity:.6}
+.chart-ref-base{stroke:color-mix(in oklab, var(--accent) 70%, var(--surface));stroke-width:1;stroke-dasharray:2 2;opacity:.6}
+.chart-ref-opt{stroke:var(--accent);stroke-width:1;stroke-dasharray:2 2;opacity:.6}
+.chart-legend{display:flex;flex-wrap:wrap;gap:4px 10px;margin-bottom:6px;font-size:10px;color:var(--ink-soft)}
+.chart-legend-item{display:inline-flex;align-items:center;gap:5px;font-family:"IBM Plex Mono",monospace}
+.chart-legend-swatch{width:10px;height:3px;border-radius:2px;display:inline-block;flex:none}
+.chart-legend-swatch.chart-ref-cons-sw{background:color-mix(in oklab, var(--accent) 45%, var(--surface))}
+.chart-legend-swatch.chart-ref-base-sw{background:color-mix(in oklab, var(--accent) 70%, var(--surface))}
+.chart-legend-swatch.chart-ref-opt-sw{background:var(--accent)}
+@media(max-width:900px){.port-grid{grid-template-columns:1fr}}
+@media(max-width:600px){.wrap{padding-left:14px;padding-right:14px}.hero{padding-top:25px}.theme-btn{display:none}.port-head h2{font-size:16px}}
+</style>
+</head>
+<body>
+<script src="auth.js"></script>
+<nav class="appnav">
+  <a href="index.html">Bitácora de Valoración</a>
+  <a href="visor.html">Visor Modelo JMR</a>
+  <a href="calculadora.html">Calculadora DCF</a>
+  <a href="research.html">Research</a>
+  <a href="portafolio.html" class="active">Portafolio</a>
+</nav>
+<main class="wrap">
+  <header class="hero">
+    <div><div class="eyebrow">Modelo JMR · Vista unificada</div><h1>Portafolio</h1><p>Combina, por ticker, la ficha de la Bitácora, la valoración cuantitativa del Visor y el análisis fundamental de Research en una sola tarjeta buscable.</p></div>
+    <button class="theme-btn" id="themeToggle" type="button">Tema: sistema</button>
+  </header>
+  <div class="disclaimer"><strong>Aviso:</strong> contenido con fines educativos y de organización personal — no constituye asesoría financiera ni recomendación de inversión.</div>
+  <div class="search-row"><input id="portSearch" type="search" placeholder="Buscar por ticker, empresa o cualquier texto guardado…" autocomplete="off"></div>
+  <p class="port-status" id="portStatus"></p>
+  <div class="port-list" id="portList"></div>
+</main>
+<script>
+(function(){
+  // Misma clave de localStorage ('bitacora-theme') que las demás páginas,
+  // así el tema elegido en cualquiera de ellas se respeta acá también.
+  var KEY = 'bitacora-theme';
+  var btn = document.getElementById('themeToggle');
+  var labels = { system: 'sistema', light: 'claro', dark: 'oscuro' };
+  var order = ['system', 'light', 'dark'];
+  function apply(v){
+    if(v === 'system') document.documentElement.removeAttribute('data-theme');
+    else document.documentElement.setAttribute('data-theme', v);
+    btn.textContent = 'Tema: ' + labels[v];
+  }
+  var saved = 'system';
+  try { saved = localStorage.getItem(KEY) || 'system'; } catch(e){}
+  apply(saved);
+  btn.addEventListener('click', function(){
+    saved = order[(order.indexOf(saved) + 1) % order.length];
+    try { localStorage.setItem(KEY, saved); } catch(e){}
+    apply(saved);
+  });
+})();
+</script>
+<script src="portafolio.js"></script>
+</body>
+</html>
