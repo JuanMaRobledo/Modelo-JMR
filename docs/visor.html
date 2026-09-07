@@ -2478,17 +2478,7 @@
       if(e.key === 'Enter') document.getElementById('ghConnectBtn').click();
     });
   }
-  if(typeof GhOAuth !== 'undefined'){
-    GhOAuth.handleCallback().then(function(connected){
-      if(connected){ renderGhConnect(); renderSaveBlock(); document.getElementById('savedStatus').textContent = 'Conectado con GitHub — este navegador lo recuerda de ahora en adelante.'; }
-      else renderGhConnect();
-    }).catch(function(err){
-      renderGhConnect();
-      document.getElementById('savedStatus').textContent = 'Error al conectar con GitHub: ' + err.message;
-    });
-  } else {
-    renderGhConnect();
-  }
+  renderGhConnect();
 
   var viewingArchive = false;
 

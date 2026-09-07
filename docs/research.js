@@ -766,14 +766,7 @@
     } catch (e) {}
   }
 
-  if (typeof GhOAuth !== 'undefined') {
-    GhOAuth.handleCallback().then(function (connected) {
-      renderGhBanner();
-      if (connected) { setStatus('libraryStatus', 'Conectado con GitHub.', 'ok'); syncRemote().then(pushLocalOnlyToRemote).catch(function () {}); }
-    }).catch(function (err) { renderGhBanner(); setStatus('libraryStatus', 'Error al conectar con GitHub: ' + err.message, 'bad'); });
-  } else {
-    renderGhBanner();
-  }
+  renderGhBanner();
   el('compareOutput').innerHTML='<div class="compare-empty">Elegí dos empresas arriba para verlas lado a lado.</div>';
   renderLibrary();renderPreview();loadPrompt(false);
   applyDeepLinkFilter();

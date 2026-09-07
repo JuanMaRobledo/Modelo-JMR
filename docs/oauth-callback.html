@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Conectando con GitHub…</title>
+<meta name="robots" content="noindex">
+<style>
+  :root{--bg:#F5F6F2;--ink:#16231F;--ink-soft:#51615A;--accent:#A6791F;--negative:#B0452F;}
+  @media (prefers-color-scheme: dark){:root{--bg:#10160F;--ink:#ECEEE9;--ink-soft:#A9B6AF;--accent:#D9A64B;--negative:#E07857;}}
+  *{box-sizing:border-box;}
+  body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);color:var(--ink);font-family:-apple-system,"Segoe UI",sans-serif;}
+  .box{max-width:420px;padding:24px;text-align:center;}
+  .status{font-size:14px;line-height:1.6;color:var(--ink-soft);}
+  .status.err{color:var(--negative);}
+  a.btn{display:inline-block;margin-top:14px;padding:8px 16px;border-radius:8px;background:var(--accent);color:#fff;text-decoration:none;font-weight:600;font-size:13px;}
+</style>
+</head>
+<body>
+<script src="auth.js"></script>
+<div class="box">
+  <p class="status" id="status">Conectando con GitHub…</p>
+</div>
+<script src="gh_oauth.js"></script>
+<script>
+(function(){
+  var statusEl = document.getElementById('status');
+  GhOAuth.completeLogin().then(function(returnTo){
+    statusEl.textContent = 'Conectado — volviendo…';
+    location.replace(returnTo);
+  }).catch(function(err){
+    statusEl.className = 'status err';
+    statusEl.textContent = 'No se pudo conectar: ' + err.message;
+    var link = document.createElement('a');
+    link.className = 'btn';
+    link.href = err.returnTo || 'index.html';
+    link.textContent = 'Volver';
+    statusEl.parentNode.appendChild(link);
+  });
+})();
+</script>
+</body>
+</html>

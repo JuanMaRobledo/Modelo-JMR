@@ -1012,17 +1012,7 @@
       tokenInput.addEventListener('keydown', function(e){ if(e.key === 'Enter') document.getElementById('hypGhConnectBtn').click(); });
     }
   }
-  if(typeof GhOAuth !== 'undefined'){
-    GhOAuth.handleCallback().then(function(connected){
-      renderHypGhConnect();
-      if(connected) loadAndMergeAll();
-    }).catch(function(err){
-      renderHypGhConnect();
-      console.warn('Error al conectar con GitHub:', err);
-    });
-  } else {
-    renderHypGhConnect();
-  }
+  renderHypGhConnect();
 
   // Los casos que vienen de Research NO se guardan como copia en
   // bitacora/hipotesis.json — se leen en vivo de Modelo-JMR-datos/analisis
