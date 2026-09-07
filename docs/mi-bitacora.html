@@ -1248,17 +1248,60 @@
     });
   });
 
+  // Un caso "fromResearch" es un espejo del análisis correspondiente en
+  // Research (lo creó/actualiza syncHipotesisFromResearch en research.js
+  // cada vez que se guarda ahí) — Research es la fuente de la verdad para
+  // esos casos. Borrarlo SOLO acá (sin tocar Research) no serviría: la
+  // próxima sincronización de Research lo vuelve a crear porque sigue
+  // viendo el análisis original. Por eso borrar un caso "de Research"
+  // también borra el archivo de Research que lo generó — es un solo caso,
+  // una sola acción de borrado, sin importar desde qué página se dispare.
+  function deleteResearchFile(path){
+    if(!path) return Promise.resolve();
+    var token = getGhToken();
+    if(!token) return Promise.reject(new Error('Conecta tu GitHub arriba para poder borrar también el análisis en Research.'));
+    return fetch(GH_API + path, { headers: ghHeaders(token) }).then(function(res){
+      if(res.status === 404) return null;
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    }).then(function(data){
+      if(!data) return;
+      return fetch(GH_API + path, {
+        method: 'DELETE',
+        headers: Object.assign({ 'Content-Type': 'application/json' }, ghHeaders(token)),
+        body: JSON.stringify({ message: 'Borrar análisis de Research (borrado desde Mi Bitácora)', sha: data.sha })
+      }).then(function(res){
+        if(!res.ok) return res.json().then(function(e){ throw new Error((e && e.message) || ('HTTP ' + res.status)); });
+      });
+    });
+  }
+
   // Delegado en #rows/#cardList porque las filas se vuelven a pintar en
   // cada render() — un listener fijo en cada botón se perdería al redibujar.
   function handleDeleteCustomClick(e){
     var btn = e.target.closest('[data-del-custom]');
     if(!btn) return;
     var n = Number(btn.dataset.delCustom);
-    if(!confirm('¿Eliminar este caso? Esta acción no se puede deshacer.')) return;
+    var rec = DATA.find(function(d){ return d.n === n; });
+    if(!rec) return;
+    var msg = rec.fromResearch
+      ? '¿Eliminar este caso? También se borrará el análisis correspondiente en Research (están vinculados). Esta acción no se puede deshacer.'
+      : '¿Eliminar este caso? Esta acción no se puede deshacer.';
+    if(!confirm(msg)) return;
+    // Mutación optimista: se pinta como borrado de inmediato, pero si el
+    // guardado remoto falla se revierte (antes se dejaba la mutación
+    // local aplicada aunque el guardado fallara, lo cual hacía parecer
+    // que el borrado había funcionado hasta el siguiente reload, cuando
+    // el caso —nunca borrado de verdad en GitHub— volvía a aparecer).
+    var prevData = DATA, prevCustom = customList;
     DATA = DATA.filter(function(d){ return d.n !== n; });
     customList = customList.filter(function(d){ return d.n !== n; });
     state.expanded = null;
-    saveCustomHipotesis().then(function(){ render(); }).catch(function(err){
+    render();
+    saveCustomHipotesis().then(function(){
+      if(rec.fromResearch) return deleteResearchFile(rec.researchPath);
+    }).catch(function(err){
+      DATA = prevData; customList = prevCustom;
       alert('Error al borrar: ' + err.message);
       render();
     });

@@ -415,7 +415,15 @@
     return fetch(GH_API+path,{method:'PUT',headers:Object.assign({'Content-Type':'application/json'},ghHeaders()),body:JSON.stringify(body)}).then(function(res){if(!res.ok)return res.json().then(function(e){throw new Error(e.message||('HTTP '+res.status));});return res.json();}).then(function(data){record.remotePath=data.content.path;record.remoteSha=data.content.sha;return record;});
   }
   function remoteDelete(record) {
-    if(!getGhToken()||!record.remotePath||!record.remoteSha) return Promise.resolve();
+    // Si nunca se guardó en GitHub no hay nada remoto que borrar. Pero si
+    // SÍ hay una copia remota (remotePath) y falta el token, hay que
+    // rechazar en vez de resolver en silencio — antes esto dejaba
+    // "borrar" localmente un registro que seguía intacto en GitHub, y
+    // volvía a aparecer solo con la sincronización automática del
+    // siguiente reload, dando la sensación de que borrar no funcionaba.
+    if(!record.remotePath) return Promise.resolve();
+    if(!getGhToken()) return Promise.reject(new Error('Conecta tu GitHub arriba para poder borrar también la copia guardada en el repositorio.'));
+    if(!record.remoteSha) return Promise.resolve();
     return fetch(GH_API+record.remotePath,{method:'DELETE',headers:Object.assign({'Content-Type':'application/json'},ghHeaders()),body:JSON.stringify({message:'Borrar research '+(record.ticker||record.id),sha:record.remoteSha})}).then(function(res){if(!res.ok)throw new Error('HTTP '+res.status);});
   }
   function syncRemote() {
@@ -479,6 +487,7 @@
       actualizacion: 'Posición abierta',
       fromResearch: true,
       researchId: rec.id,
+      researchPath: rec.remotePath || null,
       addedAt: new Date().toISOString()
     };
   }
