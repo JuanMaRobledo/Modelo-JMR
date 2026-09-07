@@ -34,7 +34,7 @@ var GhOAuth = (function () {
   var CLIENT_ID = 'Ov23li9uoL2CDT8yGmho';
   // URL del Cloudflare Worker que hace el intercambio (ver
   // cloudflare-worker/oauth-worker.js). Tampoco es secreta.
-  var WORKER_URL = '';
+  var WORKER_URL = 'https://modelo-jmr-oauth.juan0804.workers.dev';
   var SCOPE = 'public_repo';
 
   function getGhToken() { try { return (localStorage.getItem(GH_TOKEN_KEY) || '').trim(); } catch (e) { return ''; } }
