@@ -27,15 +27,17 @@
   }
 
   // ---------------------------------------------------------------------
-  // Fuente 1: Bitácora — los 55 casos viven hardcodeados en un `var DATA =
-  // [...]` dentro del propio index.html (JSON válido embebido como literal
-  // JS), no en un archivo fetcheable aparte. Se extrae con fetch + regex en
-  // vez de duplicar la lista a mano o tocar index.html (que ya funciona) —
-  // ver HANDOFF_PORTAFOLIO.md, opción (A). Las hipótesis "custom" que el
-  // usuario agrega a mano sí están en un JSON aparte y se mezclan igual que
-  // hace el propio index.html.
+  // Dos bitácoras distintas, mantenidas como fuentes separadas (nunca
+  // mezcladas en una sola lista): la externa (55 casos de un tercero,
+  // hardcodeados en un `var DATA = [...]` dentro del propio index.html —
+  // JSON válido embebido como literal JS, sin archivo fetcheable aparte;
+  // se extrae con fetch + regex en vez de duplicar la lista a mano o tocar
+  // index.html, que ya funciona — ver HANDOFF_PORTAFOLIO.md, opción A) y
+  // la propia (mi-bitacora.html, guardada en bitacora/hipotesis.json). Un
+  // mismo ticker puede tener caso en ambas — se muestran las dos, nunca se
+  // descarta una a favor de la otra.
   // ---------------------------------------------------------------------
-  function fetchBitacoraBase() {
+  function fetchBitacoraExterna() {
     return fetch('index.html').then(function (res) {
       if (!res.ok) throw new Error('HTTP ' + res.status);
       return res.text();
@@ -43,9 +45,9 @@
       var m = text.match(/var DATA = (\[[\s\S]*?\]);/);
       if (!m) throw new Error('No se encontró la lista de casos en index.html');
       return JSON.parse(m[1]);
-    });
+    }).catch(function (err) { console.error('Bitácora externa:', err); return []; });
   }
-  function fetchBitacoraCustom() {
+  function fetchBitacoraPropia() {
     return fetch(GH_API + 'bitacora/hipotesis.json', { headers: ghHeaders() }).then(function (res) {
       if (res.status === 404) return [];
       if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -53,12 +55,7 @@
     }).then(function (data) {
       if (!data || !data.content) return [];
       return JSON.parse(b64Decode(data.content.replace(/\n/g, '')));
-    });
-  }
-  function loadBitacora() {
-    return Promise.all([fetchBitacoraBase().catch(function (err) { console.error('Bitácora base:', err); return []; }),
-      fetchBitacoraCustom().catch(function (err) { console.error('Bitácora custom:', err); return []; })])
-      .then(function (r) { return r[0].concat(r[1]); });
+    }).catch(function (err) { console.error('Mi Bitácora:', err); return []; });
   }
 
   // ---------------------------------------------------------------------
@@ -87,18 +84,25 @@
     return first || null;
   }
 
-  function buildPortfolio(bitacora, visorRecords, researchRecords) {
+  function buildPortfolio(bitacoraExterna, bitacoraPropia, visorRecords, researchRecords) {
     var map = {};
     function ensure(t, displayTicker) {
-      if (!map[t]) map[t] = { ticker: t, displayTicker: displayTicker || t, empresa: '', bitacora: null, visor: null, research: null };
+      if (!map[t]) map[t] = { ticker: t, displayTicker: displayTicker || t, empresa: '', bitacoraExterna: null, bitacoraPropia: null, visor: null, research: null };
       return map[t];
     }
-    bitacora.forEach(function (d) {
+    bitacoraExterna.forEach(function (d) {
       var t = canonicalTicker(d.ticker);
       if (!t) return;
       var entry = ensure(t, d.ticker);
       if (!entry.empresa && d.empresa) entry.empresa = d.empresa;
-      if (!entry.bitacora || String(d.fecha || '') > String(entry.bitacora.fecha || '')) entry.bitacora = d;
+      if (!entry.bitacoraExterna || String(d.fecha || '') > String(entry.bitacoraExterna.fecha || '')) entry.bitacoraExterna = d;
+    });
+    bitacoraPropia.forEach(function (d) {
+      var t = canonicalTicker(d.ticker);
+      if (!t) return;
+      var entry = ensure(t, d.ticker);
+      if (!entry.empresa && d.empresa) entry.empresa = d.empresa;
+      if (!entry.bitacoraPropia || String(d.fecha || '') > String(entry.bitacoraPropia.fecha || '')) entry.bitacoraPropia = d;
     });
     visorRecords.forEach(function (r) {
       var t = canonicalTicker(r.ticker);
@@ -121,7 +125,9 @@
   function entrySearchText(entry) {
     if (searchCache[entry.ticker]) return searchCache[entry.ticker];
     var parts = [entry.ticker, entry.displayTicker, entry.empresa];
-    if (entry.bitacora) parts.push(entry.bitacora.empresa, entry.bitacora.moat, entry.bitacora.riesgos, entry.bitacora.conclusion, entry.bitacora.cat);
+    [entry.bitacoraExterna, entry.bitacoraPropia].forEach(function (d) {
+      if (d) parts.push(d.empresa, d.moat, d.riesgos, d.conclusion, d.cat);
+    });
     if (entry.research) parts.push(entry.research.title, entry.research.company, htmlToPlainText(entry.research.html));
     var text = normalizeText(parts.join(' '));
     searchCache[entry.ticker] = text;
@@ -197,9 +203,7 @@
     return legend + '<svg viewBox="0 0 ' + W + ' ' + H + '" class="chart-svg" role="img" aria-label="Zonas de valor vs. precio actual y objetivos">' + bars + targetLines + marker + '</svg>';
   }
 
-  function bitacoraBlockHtml(entry) {
-    var d = entry.bitacora;
-    if (!d) return '<div class="port-empty">Sin caso registrado en la Bitácora.</div>';
+  function bitacoraCaseHtml(d) {
     var catCls = normalizeText(d.cat) === 'especulativa' ? 'spec' : 'std';
     return '' +
       '<div class="port-kv-row"><span class="chip ' + catCls + '">' + escapeHtml(d.cat || '—') + '</span><span class="port-fecha">' + escapeHtml(d.fecha || '') + '</span></div>' +
@@ -210,6 +214,24 @@
       (d.moat ? '<p class="port-text"><b>Moat:</b> ' + escapeHtml(d.moat) + '</p>' : '') +
       (d.riesgos ? '<p class="port-text"><b>Riesgos:</b> ' + escapeHtml(d.riesgos) + '</p>' : '') +
       (d.conclusion ? '<p class="port-text"><b>Conclusión:</b> ' + escapeHtml(d.conclusion) + '</p>' : '');
+  }
+
+  // Un mismo ticker puede tener caso en la Bitácora externa y en Mi
+  // Bitácora a la vez — se muestran ambas, cada una con su propia
+  // etiqueta, en vez de descartar una a favor de la otra.
+  function bitacoraBlockHtml(entry) {
+    if (!entry.bitacoraExterna && !entry.bitacoraPropia) {
+      return '<div class="port-empty">Sin caso registrado en ninguna bitácora.</div>';
+    }
+    var out = '';
+    if (entry.bitacoraPropia) {
+      out += '<div class="port-source-lbl">Mi Bitácora</div>' + bitacoraCaseHtml(entry.bitacoraPropia);
+    }
+    if (entry.bitacoraExterna) {
+      if (out) out += '<hr class="port-divider">';
+      out += '<div class="port-source-lbl">Bitácora externa</div>' + bitacoraCaseHtml(entry.bitacoraExterna);
+    }
+    return out;
   }
 
   function visorBlockHtml(entry) {
@@ -259,14 +281,14 @@
     } else {
       holder.innerHTML = list.map(cardHtml).join('');
     }
-    el('portStatus').textContent = list.length + ' de ' + ALL.length + ' tickers · combina Bitácora, Visor y Research por ticker';
+    el('portStatus').textContent = list.length + ' de ' + ALL.length + ' tickers · combina Mi Bitácora, la Bitácora externa, el Visor y Research por ticker';
   }
 
   function boot() {
     el('portSearch').addEventListener('input', render);
-    el('portStatus').textContent = 'Cargando Bitácora, Visor y Research…';
-    Promise.all([loadBitacora(), loadJsonFolder('valoraciones'), loadJsonFolder('analisis')]).then(function (r) {
-      ALL = buildPortfolio(r[0], r[1], r[2]);
+    el('portStatus').textContent = 'Cargando ambas bitácoras, Visor y Research…';
+    Promise.all([fetchBitacoraExterna(), fetchBitacoraPropia(), loadJsonFolder('valoraciones'), loadJsonFolder('analisis')]).then(function (r) {
+      ALL = buildPortfolio(r[0], r[1], r[2], r[3]);
       render();
     }).catch(function (err) {
       console.error(err);
