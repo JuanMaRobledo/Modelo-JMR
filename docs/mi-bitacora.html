@@ -1080,8 +1080,44 @@
     });
   }
 
+  // Un análisis de Research guardado sin GitHub conectado en ese momento
+  // queda solo en localStorage — research.js ya intenta subirlo apenas se
+  // conecta el token ahí, pero si el usuario nunca vuelve a abrir esa
+  // página (y en cambio abre directamente Mi Bitácora, esperando ver sus
+  // análisis reflejados acá), ese intento nunca se dispara. Repetir el
+  // mismo empuje acá — misma clave de localStorage
+  // (jmr-research-library-v1), mismo path de archivo — cierra ese hueco
+  // sin importar por cuál página entre el usuario primero.
+  var RESEARCH_LOCAL_KEY = 'jmr-research-library-v1';
+  function getResearchLocalLibrary(){ try { return JSON.parse(localStorage.getItem(RESEARCH_LOCAL_KEY) || '[]'); } catch(e){ return []; } }
+  function setResearchLocalLibrary(list){ try { localStorage.setItem(RESEARCH_LOCAL_KEY, JSON.stringify(list)); } catch(e){} }
+  function pushLocalOnlyResearchToRemote(){
+    var token = getGhToken();
+    if(!token) return Promise.resolve();
+    var list = getResearchLocalLibrary();
+    var pending = list.filter(function(r){ return r && r.ticker && !r.remotePath; });
+    if(!pending.length) return Promise.resolve();
+    return pending.reduce(function(chain, rec){
+      return chain.then(function(){
+        var safe = (rec.ticker || 'empresa').replace(/[^A-Za-z0-9._-]/g, '_');
+        var path = 'analisis/' + safe + '-' + rec.id + '.json';
+        var copy = Object.assign({}, rec); delete copy.remoteSha;
+        var body = { message: 'Guardar research ' + safe, content: b64EncodeUnicode(JSON.stringify(copy, null, 2)) };
+        return fetch(GH_API + path, { method: 'PUT', headers: Object.assign({ 'Content-Type': 'application/json' }, ghHeaders(token)), body: JSON.stringify(body) }).then(function(res){
+          if(!res.ok) return res.json().then(function(e){ throw new Error((e && e.message) || ('HTTP ' + res.status)); });
+          return res.json();
+        }).then(function(data){
+          rec.remotePath = data.content.path;
+          rec.remoteSha = data.content.sha;
+        }).catch(function(err){ console.warn('No se pudo subir ' + (rec.ticker || rec.id) + ' a GitHub desde Mi Bitácora:', err); });
+      });
+    }, Promise.resolve()).then(function(){
+      setResearchLocalLibrary(list);
+    });
+  }
+
   function loadAndMergeAll(){
-    return Promise.all([loadCustomHipotesis(), loadResearchDerived()]).then(function(r){
+    return pushLocalOnlyResearchToRemote().catch(function(){}).then(function(){ return Promise.all([loadCustomHipotesis(), loadResearchDerived()]); }).then(function(r){
       var customRes = r[0], researchRecs = r[1];
       // Saca del DATA renderizado cualquier copia previa (por si se llama
       // más de una vez, p. ej. al conectar el token después de cargar) y

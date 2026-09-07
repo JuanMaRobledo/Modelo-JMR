@@ -424,7 +424,12 @@
     if(!record.remotePath) return Promise.resolve();
     if(!getGhToken()) return Promise.reject(new Error('Conecta tu GitHub arriba para poder borrar también la copia guardada en el repositorio.'));
     if(!record.remoteSha) return Promise.resolve();
-    return fetch(GH_API+record.remotePath,{method:'DELETE',headers:Object.assign({'Content-Type':'application/json'},ghHeaders()),body:JSON.stringify({message:'Borrar research '+(record.ticker||record.id),sha:record.remoteSha})}).then(function(res){if(!res.ok)throw new Error('HTTP '+res.status);});
+    // Si el archivo ya no existe en GitHub (404) no es un error — significa
+    // que ya está borrado (p. ej. remotePath/remoteSha quedó desactualizado
+    // por algún cambio hecho fuera de la app). Sin este chequeo, un
+    // registro así queda imposible de borrar para siempre: cada intento
+    // reintenta la misma llamada que siempre va a fallar con 404.
+    return fetch(GH_API+record.remotePath,{method:'DELETE',headers:Object.assign({'Content-Type':'application/json'},ghHeaders()),body:JSON.stringify({message:'Borrar research '+(record.ticker||record.id),sha:record.remoteSha})}).then(function(res){if(!res.ok && res.status!==404)throw new Error('HTTP '+res.status);});
   }
   function syncRemote() {
     return fetch(GH_API+'analisis',{headers:ghHeaders()}).then(function(res){if(res.status===404)return[];if(!res.ok)throw new Error('HTTP '+res.status);return res.json();}).then(function(files){
@@ -450,15 +455,27 @@
     var pending = getLocalLibrary().filter(function (r) { return r.ticker && !r.remotePath; });
     if (!pending.length) return Promise.resolve();
     setStatus('libraryStatus', 'Subiendo ' + pending.length + ' análisis pendiente(s) a GitHub…');
+    var ok = 0, errors = [];
     return pending.reduce(function (chain, rec) {
       return chain.then(function () {
         return remoteSave(rec).then(function (saved) {
-          if (saved) upsertLocal(saved);
-        }).catch(function (err) { console.warn('No se pudo subir ' + (rec.ticker || rec.id) + ' a GitHub:', err); });
+          if (saved) { upsertLocal(saved); ok++; }
+        }).catch(function (err) {
+          console.warn('No se pudo subir ' + (rec.ticker || rec.id) + ' a GitHub:', err);
+          errors.push((rec.ticker || rec.id) + ': ' + err.message);
+        });
       });
     }, Promise.resolve()).then(function () {
       renderLibrary();
-      setStatus('libraryStatus', pending.length + ' análisis subido(s) a GitHub.', 'ok');
+      // No mostrar "subido" si en realidad falló — antes esto decía éxito
+      // aunque remoteSave hubiera fallado para todos (p. ej. token vencido
+      // o sin permiso de escritura), dejando al usuario sin ninguna pista
+      // de que en realidad nada llegó a GitHub.
+      if (errors.length) {
+        setStatus('libraryStatus', ok + ' de ' + pending.length + ' subido(s) — falló: ' + errors.join('; '), 'bad');
+      } else {
+        setStatus('libraryStatus', pending.length + ' análisis subido(s) a GitHub.', 'ok');
+      }
     });
   }
 
