@@ -498,6 +498,15 @@
   }
   function showGhBannerForm() {
     var el2 = el('ghConnectBanner');
+    // Mientras GhOAuth no esté configurado (falta el Client ID/Worker URL
+    // tras crear la OAuth App), se cae de vuelta al campo de pegar un PAT
+    // a mano, para no dejar el sitio sin forma de conectar en el medio de
+    // la migración.
+    if (typeof GhOAuth !== 'undefined' && GhOAuth.isConfigured()) {
+      el2.innerHTML = '<div class="gh-banner warn"><span class="gh-msg">⚠ GitHub no conectado: podés VER la biblioteca igual (es de lectura libre), pero GUARDAR o BORRAR análisis necesita conectar tu cuenta.</span><button class="btn primary" id="ghBannerConnect" type="button">Conectar con GitHub</button></div>';
+      el('ghBannerConnect').addEventListener('click', function () { GhOAuth.startLogin(); });
+      return;
+    }
     el2.innerHTML = '<div class="gh-banner warn"><span class="gh-msg">⚠ GitHub no conectado: podés VER la biblioteca igual (es de lectura libre), pero GUARDAR o BORRAR análisis necesita tu propio Personal Access Token. Conéctalo una vez.</span><input id="ghBannerToken" type="password" placeholder="Personal Access Token de GitHub — solo para guardar/borrar" autocomplete="off" spellcheck="false"><button class="btn primary" id="ghBannerConnect" type="button">Conectar</button></div>';
     var input = el('ghBannerToken');
     el('ghBannerConnect').addEventListener('click', function () {
@@ -757,8 +766,16 @@
     } catch (e) {}
   }
 
+  if (typeof GhOAuth !== 'undefined') {
+    GhOAuth.handleCallback().then(function (connected) {
+      renderGhBanner();
+      if (connected) { setStatus('libraryStatus', 'Conectado con GitHub.', 'ok'); syncRemote().then(pushLocalOnlyToRemote).catch(function () {}); }
+    }).catch(function (err) { renderGhBanner(); setStatus('libraryStatus', 'Error al conectar con GitHub: ' + err.message, 'bad'); });
+  } else {
+    renderGhBanner();
+  }
   el('compareOutput').innerHTML='<div class="compare-empty">Elegí dos empresas arriba para verlas lado a lado.</div>';
-  renderGhBanner();renderLibrary();renderPreview();loadPrompt(false);
+  renderLibrary();renderPreview();loadPrompt(false);
   applyDeepLinkFilter();
   // Modelo-JMR-datos es público: la sincronización inicial funciona
   // siempre, con o sin token conectado (el token solo hace falta para

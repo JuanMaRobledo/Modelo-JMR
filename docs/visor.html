@@ -15,6 +15,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="market_data.js"></script>
 <script src="jmr_engine.js"></script>
+<script src="gh_oauth.js"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
   :root{
@@ -2454,6 +2455,15 @@
   }
   function showGhConnectForm(){
     var el = document.getElementById('ghConnect');
+    // Mientras GhOAuth no esté configurado (falta el Client ID/Worker URL
+    // tras crear la OAuth App), se cae de vuelta al campo de pegar un PAT
+    // a mano, para no dejar el sitio sin forma de conectar en el medio de
+    // la migración.
+    if(typeof GhOAuth !== 'undefined' && GhOAuth.isConfigured()){
+      el.innerHTML = '<div class="gh-row"><button class="gh-btn primary" id="ghConnectBtn" type="button">Conectar con GitHub</button></div>';
+      document.getElementById('ghConnectBtn').addEventListener('click', function(){ GhOAuth.startLogin(); });
+      return;
+    }
     el.innerHTML =
       '<div class="gh-row"><input id="ghTokenInput" type="password" placeholder="Personal Access Token de GitHub — solo para guardar/borrar" autocomplete="off" spellcheck="false" value="' + getGhToken().replace(/"/g,'&quot;') + '">' +
       '<button class="gh-btn primary" id="ghConnectBtn" type="button">Conectar</button></div>';
@@ -2468,7 +2478,17 @@
       if(e.key === 'Enter') document.getElementById('ghConnectBtn').click();
     });
   }
-  renderGhConnect();
+  if(typeof GhOAuth !== 'undefined'){
+    GhOAuth.handleCallback().then(function(connected){
+      if(connected){ renderGhConnect(); renderSaveBlock(); document.getElementById('savedStatus').textContent = 'Conectado con GitHub — este navegador lo recuerda de ahora en adelante.'; }
+      else renderGhConnect();
+    }).catch(function(err){
+      renderGhConnect();
+      document.getElementById('savedStatus').textContent = 'Error al conectar con GitHub: ' + err.message;
+    });
+  } else {
+    renderGhConnect();
+  }
 
   var viewingArchive = false;
 

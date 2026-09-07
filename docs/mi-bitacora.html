@@ -579,6 +579,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="market_data.js"></script>
+<script src="gh_oauth.js"></script>
 <script>
 (function(){
   var DATA = [];
@@ -990,6 +991,14 @@
         setGhToken('');
         renderHypGhConnect();
       });
+    } else if(typeof GhOAuth !== 'undefined' && GhOAuth.isConfigured()){
+      // Mientras GhOAuth no esté configurado (falta el Client ID/Worker
+      // URL tras crear la OAuth App), se cae de vuelta al campo de pegar
+      // un PAT a mano, para no dejar el sitio sin forma de conectar en el
+      // medio de la migración.
+      el.innerHTML = '<div class="gh-row"><button class="gh-btn primary" id="hypGhConnectBtn" type="button">Conectar con GitHub</button></div>' +
+        '<p class="field-help" style="margin-top:0;">Ver tus casos ya funciona sin conectar nada — conectar solo hace falta para guardar o borrar.</p>';
+      document.getElementById('hypGhConnectBtn').addEventListener('click', function(){ GhOAuth.startLogin(); });
     } else {
       el.innerHTML = '<div class="gh-row"><input id="hypGhTokenInput" type="password" placeholder="Personal Access Token de GitHub (repo Modelo-JMR-datos) — solo para guardar/borrar" autocomplete="off" spellcheck="false">' +
         '<button class="gh-btn primary" id="hypGhConnectBtn" type="button">Conectar</button></div>' +
@@ -1003,7 +1012,17 @@
       tokenInput.addEventListener('keydown', function(e){ if(e.key === 'Enter') document.getElementById('hypGhConnectBtn').click(); });
     }
   }
-  renderHypGhConnect();
+  if(typeof GhOAuth !== 'undefined'){
+    GhOAuth.handleCallback().then(function(connected){
+      renderHypGhConnect();
+      if(connected) loadAndMergeAll();
+    }).catch(function(err){
+      renderHypGhConnect();
+      console.warn('Error al conectar con GitHub:', err);
+    });
+  } else {
+    renderHypGhConnect();
+  }
 
   // Los casos que vienen de Research NO se guardan como copia en
   // bitacora/hipotesis.json — se leen en vivo de Modelo-JMR-datos/analisis
