@@ -693,12 +693,24 @@
   el('downloadPromptBtn').addEventListener('click',function(){download('prompt-analisis-fundamental-modelo-jmr.md',el('promptText').value,'text/markdown');});
   el('resetPromptBtn').addEventListener('click',function(){if(defaultPrompt){el('promptText').value=defaultPrompt;try{localStorage.removeItem(PROMPT_KEY);}catch(e){}setStatus('promptStatus','Prompt restaurado.','ok');}else loadPrompt(true);});
 
+  // Enlace inverso desde "Valoraciones guardadas" del Visor: llega acá
+  // como research.html?ticker=XXX — precarga la búsqueda con ese ticker
+  // y se queda en la Biblioteca. Se reaplica después de sincronizar por
+  // si el análisis todavía no estaba en este navegador (solo en GitHub).
+  function applyDeepLinkFilter() {
+    try {
+      var ticker = new URLSearchParams(location.search).get('ticker');
+      if (ticker) { el('librarySearch').value = ticker; switchTab('library'); renderLibrary(); }
+    } catch (e) {}
+  }
+
   el('compareOutput').innerHTML='<div class="compare-empty">Elegí dos empresas arriba para verlas lado a lado.</div>';
   renderGhBanner();renderLibrary();renderPreview();loadPrompt(false);
+  applyDeepLinkFilter();
   // Si ya hay un token guardado (de este mismo navegador o porque se
   // conectó antes en el Visor), trae en silencio lo que se haya guardado
   // desde otro dispositivo/navegador con el mismo token — así la
   // biblioteca no depende de acordarse de apretar "Sincronizar GitHub".
-  if (getGhToken()) syncRemote().catch(function () {});
+  if (getGhToken()) syncRemote().then(applyDeepLinkFilter).catch(function () {});
   if ('serviceWorker' in navigator) window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});
 })();

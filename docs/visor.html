@@ -541,7 +541,7 @@
   }
   .gh-btn{
     font:inherit; font-size:12.5px; font-weight:600; padding:7px 13px; border-radius:8px; border:1px solid var(--border);
-    background:var(--surface-2); color:var(--ink); cursor:pointer;
+    background:var(--surface-2); color:var(--ink); cursor:pointer; text-decoration:none; display:inline-block;
   }
   .gh-btn:hover{border-color:var(--ink-faint);}
   .gh-btn:disabled{opacity:.5; cursor:default;}
@@ -2505,9 +2505,11 @@
     listEl.innerHTML = files.map(function(f){
       var label = parseSavedFileLabel(f);
       var moveLabel = viewingArchive ? 'Restaurar' : 'Archivar';
+      var researchLink = f.hasResearch ? '<a class="gh-btn" href="research.html?ticker=' + encodeURIComponent(f.ticker) + '">Ver análisis fundamental →</a>' : '';
       return '<div class="saved-item">' +
         '<span class="si-name">' + label + '</span>' +
         '<span class="si-actions">' +
+          researchLink +
           '<button class="gh-btn" data-act="ver" data-path="' + f.path + '" data-sha="' + f.sha + '" data-name="' + f.name + '" type="button">Ver</button>' +
           '<button class="gh-btn" data-act="mover" data-path="' + f.path + '" data-sha="' + f.sha + '" data-name="' + f.name + '" type="button">' + moveLabel + '</button>' +
           '<button class="gh-btn danger" data-act="borrar" data-path="' + f.path + '" data-sha="' + f.sha + '" data-name="' + f.name + '" type="button">Borrar</button>' +
@@ -2562,6 +2564,32 @@
     });
   }
 
+  // Enlace inverso hacia Research: si el mismo ticker ya tiene un análisis
+  // fundamental guardado ahí (mismo repo, carpeta "analisis/"), se muestra
+  // un link directo desde acá. Los archivos de Research se llaman
+  // "<TICKER>-research-<timestamp>-<random>.json" (ver makeId() en
+  // research.js) — el ticker es todo lo que va antes de "-research-".
+  function tickerFromResearchFileName(name){
+    var base = name.replace(/\.json$/i, '');
+    var idx = base.indexOf('-research-');
+    return idx >= 0 ? base.slice(0, idx) : base;
+  }
+  function listResearchTickers(){
+    var token = getGhToken();
+    if(!token) return Promise.resolve({});
+    return fetch(GH_API + 'analisis', { headers: ghHeaders(token) }).then(function(res){
+      if(res.status === 404) return [];
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    }).then(function(list){
+      var set = {};
+      (Array.isArray(list) ? list : []).filter(function(f){ return /\.json$/i.test(f.name); }).forEach(function(f){
+        set[tickerFromResearchFileName(f.name)] = true;
+      });
+      return set;
+    }).catch(function(){ return {}; });
+  }
+
   // Abre cada archivo (no solo el listado de nombres) para poder mostrar
   // el ticker y la fecha del análisis reales en vez de adivinarlos del
   // nombre del archivo. Si algún archivo falla al leerse (o es muy viejo
@@ -2570,12 +2598,17 @@
   function reloadSavedList(){
     var status = document.getElementById('savedStatus');
     status.textContent = 'Cargando…';
-    listValoraciones(viewingArchive ? ARCHIVE_FOLDER : 'valoraciones').then(function(files){
+    Promise.all([
+      listValoraciones(viewingArchive ? ARCHIVE_FOLDER : 'valoraciones'),
+      listResearchTickers()
+    ]).then(function(results){
+      var files = results[0], researchTickers = results[1];
       if(!files.length) return files;
       status.textContent = 'Cargando ' + files.length + ' valoración(es)…';
       return Promise.all(files.map(function(f){
         return fetchValoracion(f.path).then(function(res){
-          return Object.assign({}, f, { ticker: res.record && res.record.ticker, fecha: res.record && res.record.fecha });
+          var ticker = res.record && res.record.ticker;
+          return Object.assign({}, f, { ticker: ticker, fecha: res.record && res.record.fecha, hasResearch: !!(ticker && researchTickers[ticker]) });
         }).catch(function(){ return f; });
       }));
     }).then(renderSavedList).catch(function(err){
