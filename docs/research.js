@@ -529,13 +529,37 @@
     }
     return searchTextCache[key];
   }
+  // Extracto para las tarjetas de la biblioteca: el texto de "Resumen
+  // ejecutivo" (siempre la primera sección del formato maestro), o el
+  // primer párrafo del documento si por algún motivo esa sección no está.
+  var excerptCache = {};
+  function recordExcerpt(r) {
+    var key = r.id + ':' + (r.updatedAt || r.date || '');
+    if (excerptCache[key] != null) return excerptCache[key];
+    var text = '';
+    if (r.html) {
+      var doc = new DOMParser().parseFromString(r.html, 'text/html');
+      var headings = Array.prototype.slice.call(doc.body.querySelectorAll('h1,h2,h3,h4'));
+      var target = headings.find(function (h) { return normalizeText(h.textContent).indexOf('resumen ejecutivo') === 0; });
+      if (target) {
+        var node = target.nextElementSibling;
+        while (node && !/^H[1-4]$/.test(node.tagName)) { text += ' ' + node.textContent; node = node.nextElementSibling; }
+      }
+      text = text.replace(/\s+/g, ' ').trim();
+      if (!text) { var p = doc.body.querySelector('p,li'); text = p ? p.textContent.replace(/\s+/g, ' ').trim() : ''; }
+    }
+    if (text.length > 160) text = text.slice(0, 160).replace(/\s+\S*$/, '') + '…';
+    excerptCache[key] = text;
+    return text;
+  }
   function renderLibrary() {
     var q=normalizeText(el('librarySearch').value), list=getLocalLibrary().filter(function(r){return !q||recordSearchText(r).indexOf(q)>=0;});
     var holder=el('libraryCards');
     if(!list.length){holder.innerHTML='<div class="empty">Todavía no hay análisis guardados. Abre “Nuevo análisis” para crear el primero.</div>';setStatus('libraryStatus',getGhToken()?'GitHub conectado.':'Biblioteca local · GitHub no conectado.');return;}
     holder.innerHTML=list.map(function(r){
       var logo=r.logo?'<img class="mini-logo" src="'+escapeHtml(r.logo)+'" alt="">':'<span class="mini-logo mini-fallback">'+escapeHtml((r.ticker||'?').slice(0,2))+'</span>';
-      return '<article class="analysis-card" data-id="'+escapeHtml(r.id)+'"><div class="card-head">'+logo+'<div class="card-title"><strong>'+escapeHtml(r.title||r.company)+'</strong><span class="ticker">'+escapeHtml(r.ticker||'—')+' · '+escapeHtml(r.company||'')+'</span></div></div><div class="card-meta"><span>'+escapeHtml(r.date||'Sin fecha')+'</span><span>'+(r.remotePath?'GitHub + local':'Solo local')+'</span></div><div class="card-actions"><button class="btn" data-action="open" type="button">Abrir</button><button class="btn danger" data-action="delete" type="button">Borrar</button></div></article>';
+      var excerpt=recordExcerpt(r);
+      return '<article class="analysis-card" data-id="'+escapeHtml(r.id)+'"><div class="card-head">'+logo+'<div class="card-title"><strong>'+escapeHtml(r.title||r.company)+'</strong><span class="ticker">'+escapeHtml(r.ticker||'—')+' · '+escapeHtml(r.company||'')+'</span></div></div>'+(excerpt?'<p class="card-excerpt">'+escapeHtml(excerpt)+'</p>':'')+'<div class="card-meta"><span>'+escapeHtml(r.date||'Sin fecha')+'</span><span>'+(r.remotePath?'GitHub + local':'Solo local')+'</span></div><div class="card-actions"><button class="btn" data-action="open" type="button">Abrir</button><button class="btn danger" data-action="delete" type="button">Borrar</button></div></article>';
     }).join('');
     setStatus('libraryStatus',list.length+' análisis · '+(getGhToken()?'GitHub disponible':'almacenamiento local'));
     populateCompareSelects();
