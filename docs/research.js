@@ -10,9 +10,11 @@
     'Resumen ejecutivo', 'Modelo de negocio', 'Industria y crecimiento',
     'Calidad del negocio', 'Ventaja competitiva', 'Competencia',
     'Gestión y asignación de capital', 'Catalizadores', 'Riesgos',
-    'Bulls say / Bears say', 'Warren Buffett', 'Charlie Munger',
+    'FODA', 'Las 5 fuerzas de Porter',
+    'Bulls say / Bears say', 'Escenarios cualitativos',
+    'Warren Buffett', 'Charlie Munger',
     'Peter Lynch', 'Howard Marks', 'Joel Greenblatt',
-    'Noticias y eventos recientes', 'Fuentes'
+    'Noticias y eventos recientes', 'Síntesis final', 'Fuentes'
   ];
   var state = freshState();
 
