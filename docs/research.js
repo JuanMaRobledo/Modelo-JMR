@@ -495,8 +495,23 @@
   el('newBtn').addEventListener('click',resetEditor);
   el('printBtn').addEventListener('click',function(){window.print();});
 
+  // Búsqueda de texto completo: además de ticker/empresa/título, busca
+  // dentro del cuerpo del análisis (y las noticias). htmlToPlainText()
+  // ya existía para el diff de versiones — se reutiliza acá. Se cachea
+  // por id+updatedAt (no por el objeto en sí, porque getLocalLibrary()
+  // vuelve a parsear el JSON en cada llamada y crea objetos nuevos cada
+  // vez) para no re-parsear el HTML completo en cada tecla mientras se
+  // escribe en el buscador.
+  var searchTextCache = {};
+  function recordSearchText(r) {
+    var key = r.id + ':' + (r.updatedAt || r.date || '');
+    if (searchTextCache[key] == null) {
+      searchTextCache[key] = normalizeText([r.ticker, r.company, r.title, r.news].join(' ') + ' ' + htmlToPlainText(r.html || ''));
+    }
+    return searchTextCache[key];
+  }
   function renderLibrary() {
-    var q=normalizeText(el('librarySearch').value), list=getLocalLibrary().filter(function(r){return !q||normalizeText([r.ticker,r.company,r.title].join(' ')).indexOf(q)>=0;});
+    var q=normalizeText(el('librarySearch').value), list=getLocalLibrary().filter(function(r){return !q||recordSearchText(r).indexOf(q)>=0;});
     var holder=el('libraryCards');
     if(!list.length){holder.innerHTML='<div class="empty">Todavía no hay análisis guardados. Abre “Nuevo análisis” para crear el primero.</div>';setStatus('libraryStatus',getGhToken()?'GitHub conectado.':'Biblioteca local · GitHub no conectado.');return;}
     holder.innerHTML=list.map(function(r){
