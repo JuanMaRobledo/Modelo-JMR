@@ -210,16 +210,57 @@
     }).catch(function (err) { setStatus('quoteStatus','No fue posible consultar FMP: ' + err.message,'bad'); }).finally(function () { btn.disabled = false; });
   });
 
+  // Compresión de imágenes antes de guardarlas: reescala a un máximo de
+  // píxeles y reencoda a JPEG vía canvas, sin ninguna librería. Se aplica
+  // tanto al logo subido a mano como a cualquier imagen embebida como
+  // data: URI dentro del documento convertido (mammoth.js, por ejemplo,
+  // embebe así las imágenes de un .docx) — así un análisis con varias
+  // capturas pegadas no se acerca a los límites prácticos de tamaño de
+  // localStorage o de un archivo individual en GitHub.
+  function compressImageDataUrl(dataUrl, maxDim, quality) {
+    return new Promise(function (resolve, reject) {
+      var img = new Image();
+      img.onload = function () {
+        var scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+        var w = Math.max(1, Math.round(img.width * scale)), h = Math.max(1, Math.round(img.height * scale));
+        var canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        try { resolve(canvas.toDataURL('image/jpeg', quality || 0.82)); } catch (e) { resolve(dataUrl); }
+      };
+      img.onerror = function () { reject(new Error('No se pudo procesar la imagen.')); };
+      img.src = dataUrl;
+    });
+  }
+  function compressEmbeddedImages(html) {
+    var doc = new DOMParser().parseFromString(html, 'text/html');
+    var imgs = Array.prototype.filter.call(doc.querySelectorAll('img'), function (img) { return /^data:image\//i.test(img.getAttribute('src') || ''); });
+    if (!imgs.length) return Promise.resolve(html);
+    return Promise.all(imgs.map(function (img) {
+      return compressImageDataUrl(img.getAttribute('src'), 900, 0.82).then(function (compressed) { img.setAttribute('src', compressed); }).catch(function () {});
+    })).then(function () { return doc.body.innerHTML; });
+  }
+
   el('logoInput').addEventListener('change', function () {
     var file = this.files && this.files[0]; if (!file) return;
-    if (file.size > 450000) { setStatus('quoteStatus','El logo debe pesar menos de 450 KB.','bad'); this.value=''; return; }
-    var reader = new FileReader(); reader.onload = function () { state.logo = reader.result; renderPreview(); setStatus('quoteStatus','Logo propio cargado.','ok'); }; reader.readAsDataURL(file);
+    if (file.size > 15000000) { setStatus('quoteStatus','El archivo de logo es demasiado pesado (máx. 15 MB antes de comprimir).','bad'); this.value=''; return; }
+    var reader = new FileReader();
+    reader.onload = function () {
+      compressImageDataUrl(reader.result, 240, 0.85).then(function (compressed) {
+        state.logo = compressed; renderPreview();
+        setStatus('quoteStatus','Logo propio cargado y comprimido (~' + Math.round(compressed.length / 1024) + ' KB).','ok');
+      }).catch(function (err) { setStatus('quoteStatus', err.message, 'bad'); });
+    };
+    reader.readAsDataURL(file);
   });
 
   function handleAnalysisFile(file) {
     if (!file) return;
     setStatus('analysisStatus','Convirtiendo ' + file.name + '…');
     extractAnalysis(file).then(function (html) {
+      return compressEmbeddedImages(html);
+    }).then(function (html) {
       state.html = safeHtml(html); state.sourceName = file.name; checkQuality(); syncFields();
       if (/\.pdf$/i.test(file.name)) setStatus('analysisStatus','PDF convertido a texto. Revisa títulos, tablas y orden: PDF es el formato menos fiable para reutilizar.','bad');
     }).catch(function (err) { setStatus('analysisStatus','No pude leer el archivo: ' + err.message,'bad'); });
