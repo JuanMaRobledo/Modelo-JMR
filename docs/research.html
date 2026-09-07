@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Research Fundamental · Modelo JMR</title>
+<title>Análisis Fundamental · Modelo JMR</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="favicon.ico">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -50,18 +50,19 @@ nav.appnav{display:flex;gap:4px;padding:14px 20px 0;max-width:1180px;margin:0 au
   <a href="index.html">Bitácora de Valoración</a>
   <a href="visor.html">Visor Modelo JMR</a>
   <a href="calculadora.html">Calculadora DCF</a>
-  <a href="research.html" class="active">Research</a>
+  <a href="research.html" class="active">Análisis Fundamental</a>
   <a href="portafolio.html">Portafolio</a>
   <a href="mi-bitacora.html">Mi Bitácora</a>
 </nav>
+<script>(function(){var a=document.querySelector('nav.appnav a.active');if(a)a.scrollIntoView({inline:'center',block:'nearest'});})();</script>
 <main class="wrap">
   <header class="hero">
-    <div><div class="eyebrow">Modelo JMR · Investigación cualitativa</div><h1>Research Fundamental</h1><p>Convierte análisis de ChatGPT o Claude en fichas comparables, incorpora tu valoración cuantitativa y conserva una biblioteca con una estructura uniforme.</p></div>
+    <div><div class="eyebrow">Modelo JMR · Investigación cualitativa</div><h1>Análisis Fundamental</h1><p>Convierte análisis de ChatGPT o Claude en fichas comparables, incorpora tu valoración cuantitativa y conserva una biblioteca con una estructura uniforme.</p></div>
     <button class="theme-btn" id="themeToggle" type="button">Tema: sistema</button>
   </header>
   <div class="disclaimer"><strong>Aviso:</strong> esta herramienta organiza investigación con fines educativos. El contenido generado por IA puede contener errores; verifica cifras, fechas y fuentes antes de tomar decisiones de inversión.</div>
   <div id="ghConnectBanner"></div>
-  <div class="tabs" role="tablist" aria-label="Secciones de Research">
+  <div class="tabs" role="tablist" aria-label="Secciones de Análisis Fundamental">
     <button class="active" data-tab="library" type="button">Biblioteca</button>
     <button data-tab="editor" type="button">Nuevo análisis</button>
     <button data-tab="compare" type="button">Comparar</button>
@@ -95,7 +96,7 @@ nav.appnav{display:flex;gap:4px;padding:14px 20px 0;max-width:1180px;margin:0 au
           <div class="row"><button class="btn" id="fetchNewsBtn" type="button">Buscar noticias recientes</button></div>
           <p class="status" id="newsStatus"></p>
           <div class="field"><label for="newsInput">Noticias y eventos</label><textarea id="newsInput" placeholder="Resultados Q2 superan expectativas | https://… | 2026-08-15 | Alta"></textarea></div></section>
-        <section class="box"><h3>Guardar</h3><p class="help">Se guarda siempre una copia local. Si ya conectaste GitHub en el Visor, también se guarda en <code>Modelo-JMR-datos/analisis</code> — cada guardado ahí queda como una versión distinta en el historial de git, recuperable desde “Ver historial” — y aparece automáticamente en <a href="mi-bitacora.html">Mi Bitácora</a> (con las zonas y escenarios del Visor si lo vinculaste arriba) — se lee en vivo desde acá, así que si después editás el análisis, se actualiza solo, sin duplicar nada.</p><div class="actions" id="editorActions"><button class="btn primary" id="saveBtn" type="button">Guardar análisis</button><button class="btn" id="newBtn" type="button">Limpiar</button><button class="btn" id="printBtn" type="button">Imprimir / PDF</button><button class="btn" id="downloadPdfBtn" type="button">Descargar PDF</button><button class="btn" id="historyBtn" type="button" hidden>Ver historial</button></div><p class="status" id="saveStatus"></p>
+        <section class="box"><h3>Guardar</h3><p class="help">Se guarda siempre una copia local. Si ya conectaste GitHub en el Visor, también se guarda en <code>Modelo-JMR-datos/analisis</code> — cada guardado ahí queda como una versión distinta en el historial de git, recuperable desde “Ver historial” — y aparece automáticamente en <a href="mi-bitacora.html">Mi Bitácora</a> (con las zonas y escenarios del Visor si lo vinculaste arriba) — se lee en vivo desde acá, así que si después editás el análisis, se actualiza solo, sin duplicar nada.</p><div class="actions" id="editorActions"><button class="btn primary" id="saveBtn" type="button">Guardar análisis</button><button class="btn" id="newBtn" type="button">Limpiar</button><button class="btn" id="printBtn" type="button">Imprimir / PDF</button><button class="btn" id="downloadPdfBtn" type="button">Descargar PDF</button><button class="btn" id="substackBtn" type="button">Copiar para Substack</button><button class="btn" id="historyBtn" type="button" hidden>Ver historial</button></div><p class="status" id="saveStatus"></p>
           <div id="historyPanel" hidden></div>
         </section>
       </div>

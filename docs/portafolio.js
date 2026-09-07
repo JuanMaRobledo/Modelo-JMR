@@ -249,7 +249,7 @@
 
   function researchBlockHtml(entry) {
     var r = entry.research;
-    if (!r) return '<div class="port-empty">Sin análisis fundamental guardado en Research. <a href="research.html">Crear uno →</a></div>';
+    if (!r) return '<div class="port-empty">Sin análisis fundamental guardado. <a href="research.html">Crear uno →</a></div>';
     var excerpt = excerptFromHtml(r.html);
     return '' +
       '<div class="port-kv-row"><span class="port-fecha">' + escapeHtml(r.title || 'Tesis fundamental') + '</span></div>' +
@@ -268,7 +268,7 @@
       '  <div class="port-grid">' +
       '    <div class="port-block"><h4>Bitácora</h4>' + bitacoraBlockHtml(entry) + '</div>' +
       '    <div class="port-block"><h4>Modelo JMR</h4>' + visorBlockHtml(entry) + '</div>' +
-      '    <div class="port-block"><h4>Research</h4>' + researchBlockHtml(entry) + '</div>' +
+      '    <div class="port-block"><h4>Análisis Fundamental</h4>' + researchBlockHtml(entry) + '</div>' +
       '  </div>' +
       '</article>';
   }
@@ -283,12 +283,12 @@
     } else {
       holder.innerHTML = list.map(cardHtml).join('');
     }
-    el('portStatus').textContent = list.length + ' de ' + ALL.length + ' tickers · combina Mi Bitácora, la Bitácora externa, el Visor y Research por ticker';
+    el('portStatus').textContent = list.length + ' de ' + ALL.length + ' tickers · combina Mi Bitácora, la Bitácora externa, el Visor y Análisis Fundamental por ticker';
   }
 
   function boot() {
     el('portSearch').addEventListener('input', render);
-    el('portStatus').textContent = 'Cargando ambas bitácoras, Visor y Research…';
+    el('portStatus').textContent = 'Cargando ambas bitácoras, Visor y Análisis Fundamental…';
     Promise.all([fetchBitacoraExterna(), fetchBitacoraPropia(), loadJsonFolder('valoraciones'), loadJsonFolder('analisis')]).then(function (r) {
       ALL = buildPortfolio(r[0], r[1], r[2], r[3]);
       render();

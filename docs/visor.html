@@ -574,10 +574,11 @@
   <a href="index.html">Bitácora de Valoración</a>
   <a href="visor.html" class="active">Visor Modelo JMR</a>
   <a href="calculadora.html">Calculadora DCF</a>
-  <a href="research.html">Research</a>
+  <a href="research.html">Análisis Fundamental</a>
   <a href="portafolio.html">Portafolio</a>
   <a href="mi-bitacora.html">Mi Bitácora</a>
 </nav>
+<script>(function(){var a=document.querySelector('nav.appnav a.active');if(a)a.scrollIntoView({inline:'center',block:'nearest'});})();</script>
 
 <div class="wrap">
   <h1>Visor Modelo JMR</h1>
@@ -2098,6 +2099,17 @@
   document.getElementById('mainTabs').addEventListener('click', function(e){
     var btn = e.target.closest('button[data-tab]');
     if(!btn) return;
+    // "Análisis Fundamental" ya no es un lienzo aparte acá adentro: lleva
+    // directo a la página de Análisis Fundamental (antes "Research"), que
+    // es donde vive el análisis de verdad. Si hay un ticker cargado, lo
+    // lleva puesto (mismo patrón que "Ver análisis fundamental →" de la
+    // biblioteca de valoraciones).
+    if(btn.dataset.tab === 'fundamental'){
+      var url = 'research.html';
+      if(currentTicker && currentTicker !== 'Modelo JMR') url += '?ticker=' + encodeURIComponent(currentTicker);
+      location.href = url;
+      return;
+    }
     document.querySelectorAll('#mainTabs button').forEach(function(b){ b.classList.toggle('active', b === btn); });
     document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.toggle('active', p.dataset.panel === btn.dataset.tab); });
   });

@@ -444,10 +444,11 @@
   <a href="index.html">Bitácora de Valoración</a>
   <a href="visor.html">Visor Modelo JMR</a>
   <a href="calculadora.html">Calculadora DCF</a>
-  <a href="research.html">Research</a>
+  <a href="research.html">Análisis Fundamental</a>
   <a href="portafolio.html">Portafolio</a>
   <a href="mi-bitacora.html" class="active">Mi Bitácora</a>
 </nav>
+<script>(function(){var a=document.querySelector('nav.appnav a.active');if(a)a.scrollIntoView({inline:'center',block:'nearest'});})();</script>
 
 <header class="top">
   <div class="inner">
@@ -571,7 +572,7 @@
 
   <footer>
     Contenido con fines educativos y de organización personal de información — no constituye asesoría financiera ni recomendación de inversión.
-    Los casos agregados a mano se guardan en tu repositorio de GitHub (<code>Modelo-JMR-datos/bitacora/hipotesis.json</code>) — leerlos no requiere ningún token, pero agregar o borrar uno sí necesita tu Personal Access Token, conectado una sola vez. Los casos con la etiqueta "Research" no son una copia: se leen en vivo desde tus análisis guardados ahí, así que siempre muestran los valores actuales — borrarlos borra el análisis correspondiente en Research.<br><br>
+    Los casos agregados a mano se guardan en tu repositorio de GitHub (<code>Modelo-JMR-datos/bitacora/hipotesis.json</code>) — leerlos no requiere ningún token, pero agregar o borrar uno sí necesita tu Personal Access Token, conectado una sola vez. Los casos con la etiqueta "Análisis Fundamental" no son una copia: se leen en vivo desde tus análisis guardados ahí, así que siempre muestran los valores actuales — borrarlos borra el análisis correspondiente en Análisis Fundamental.<br><br>
     "Precio actual" se consulta bajo demanda (botón "Actualizar precios actuales") desde Financial Modeling Prep, con la misma API key gratuita que la Calculadora — se guarda solo en este navegador.
   </footer>
 </div>
@@ -722,7 +723,7 @@
     html += '<div class="row data" tabindex="0" role="button" aria-expanded="' + expanded + '" data-n="' + d.n + '">';
     html += '<span class="c-ticker">' + escapeHtml(d.ticker) + '</span>';
     html += '<span class="c-empresa" title="' + escapeHtml(d.empresa) + '">' + escapeHtml(d.empresa) + '</span>';
-    html += '<span class="c-cat"><span class="chip ' + catClass(d.cat) + '">' + escapeHtml(d.cat) + '</span>' + (d.fromResearch ? '<span class="chip custom">Research</span>' : '') + '</span>';
+    html += '<span class="c-cat"><span class="chip ' + catClass(d.cat) + '">' + escapeHtml(d.cat) + '</span>' + (d.fromResearch ? '<span class="chip custom">Análisis Fundamental</span>' : '') + '</span>';
     html += '<span class="c-precio">' + escapeHtml(d.precio) + '</span>';
     html += '<span class="c-precio-actual' + (d.precioActual != null ? '' : ' stale') + '">' + (d.precioActual != null ? formatPrecioActual(d.precioActual) : '—') + '</span>';
     html += '<span class="zones"><span><b>V</b>' + escapeHtml(d.zV) + '</span><span><b>DV</b>' + escapeHtml(d.zD) + '</span><span><b>VH</b>' + escapeHtml(d.zH) + '</span></span>';
@@ -747,7 +748,7 @@
     var html = '';
     html += '<div class="s-card" tabindex="0" role="button" aria-expanded="' + expanded + '" data-n="' + d.n + '">';
     html += '  <div class="sc-head">';
-    html += '    <div class="sc-id"><span class="c-ticker">' + escapeHtml(d.ticker) + '</span><span class="chip ' + catClass(d.cat) + '">' + escapeHtml(d.cat) + '</span>' + (d.fromResearch ? '<span class="chip custom">Research</span>' : '') + '</div>';
+    html += '    <div class="sc-id"><span class="c-ticker">' + escapeHtml(d.ticker) + '</span><span class="chip ' + catClass(d.cat) + '">' + escapeHtml(d.cat) + '</span>' + (d.fromResearch ? '<span class="chip custom">Análisis Fundamental</span>' : '') + '</div>';
     html += '    <span class="c-cagr ' + cagrClass + '">' + escapeHtml(d.cagr) + '</span>';
     html += '  </div>';
     html += '  <div class="sc-empresa">' + escapeHtml(d.empresa) + '</div>';
@@ -1063,7 +1064,7 @@
       moat: extractSection(rec.html, 'Ventaja competitiva'),
       riesgos: extractSection(rec.html, 'Riesgos'),
       conclusion: 'Análisis completo en research.html?ticker=' + encodeURIComponent(rec.ticker),
-      actualizacion: 'Ver Research para el detalle completo',
+      actualizacion: 'Ver Análisis Fundamental para el detalle completo',
       fromResearch: true,
       researchId: rec.id,
       researchPath: rec.remotePath || null
@@ -1389,7 +1390,7 @@
   function deleteResearchFile(path){
     if(!path) return Promise.resolve();
     var token = getGhToken();
-    if(!token) return Promise.reject(new Error('Conecta tu GitHub arriba para poder borrar también el análisis en Research.'));
+    if(!token) return Promise.reject(new Error('Conecta tu GitHub arriba para poder borrar también el análisis en Análisis Fundamental.'));
     return fetch(GH_API + path, { headers: ghHeaders(token) }).then(function(res){
       if(res.status === 404) return null;
       if(!res.ok) throw new Error('HTTP ' + res.status);
@@ -1399,7 +1400,7 @@
       return fetch(GH_API + path, {
         method: 'DELETE',
         headers: Object.assign({ 'Content-Type': 'application/json' }, ghHeaders(token)),
-        body: JSON.stringify({ message: 'Borrar análisis de Research (borrado desde Mi Bitácora)', sha: data.sha })
+        body: JSON.stringify({ message: 'Borrar análisis de Análisis Fundamental (borrado desde Mi Bitácora)', sha: data.sha })
       }).then(function(res){
         if(!res.ok) return res.json().then(function(e){ throw new Error((e && e.message) || ('HTTP ' + res.status)); });
       });
@@ -1419,7 +1420,7 @@
     // leen en vivo) — borrarlos es borrar el análisis de Research
     // directamente, sin tocar bitacora/hipotesis.json.
     if(rec.fromResearch){
-      if(!confirm('¿Eliminar este caso? Es un análisis de Research — se borra ahí, no solo acá. Esta acción no se puede deshacer.')) return;
+      if(!confirm('¿Eliminar este caso? Viene de Análisis Fundamental — se borra ahí, no solo acá. Esta acción no se puede deshacer.')) return;
       var prevDataR = DATA;
       DATA = DATA.filter(function(d){ return d.n !== n; });
       state.expanded = null;

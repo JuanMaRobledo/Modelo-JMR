@@ -731,6 +731,49 @@
     downloadPdf(el('previewBody'), safeFileSlug(state.ticker) + '-' + safeFileSlug(state.date || new Date().toISOString().slice(0, 10)) + '.pdf', this, 'saveStatus');
   });
 
+  // Substack no tiene forma de "subir un archivo" para un post individual
+  // (su import de archivo es solo para migrar un newsletter entero desde
+  // Medium/WordPress/Ghost) — lo que sí funciona es pegar contenido con
+  // formato en su editor: al copiar HTML al portapapeles (no solo texto),
+  // Substack conserva títulos, negrita, tablas y links. Se copia el mismo
+  // documento ya renderizado en la vista previa (con el título y, si hay
+  // empresa/ticker/fecha, una línea de contexto debajo), sin los controles
+  // propios de esta app. Las imágenes quedan como <img src="data:...">
+  // (mismas que usa el PDF): algunos editores de pegado no las traen —
+  // si falta alguna al pegar, se reinserta a mano ahí mismo.
+  function buildSubstackHtml() {
+    var doc = el('previewBody').querySelector('.research-document');
+    if (!doc) return null;
+    var html = doc.innerHTML;
+    var meta = [state.company, state.ticker, state.date].filter(Boolean).join(' · ');
+    if (meta) {
+      var metaHtml = '<p><em>' + escapeHtml(meta) + '</em></p>';
+      var h1 = html.match(/^\s*<h1[^>]*>[\s\S]*?<\/h1>/i);
+      html = h1 ? html.slice(0, h1[0].length) + metaHtml + html.slice(h1[0].length) : metaHtml + html;
+    }
+    return html;
+  }
+  el('substackBtn').addEventListener('click', function () {
+    var html = buildSubstackHtml();
+    if (!html) { setStatus('saveStatus', 'No hay nada para copiar todavía — sube o escribe un análisis primero.', 'bad'); return; }
+    var hasImg = /<img[^>]+src="data:/i.test(html);
+    var imgNote = hasImg ? ' Las imágenes pegadas como datos pueden no llegar — si falta alguna, insértala de nuevo directamente en Substack.' : '';
+    if (!(navigator.clipboard && window.ClipboardItem)) {
+      setStatus('saveStatus', 'Este navegador no soporta copiar formato al portapapeles — selecciona el análisis a mano (arriba) y cópialo con Ctrl+C / Cmd+C.', 'bad');
+      return;
+    }
+    navigator.clipboard.write([
+      new ClipboardItem({
+        'text/html': new Blob([html], { type: 'text/html' }),
+        'text/plain': new Blob([htmlToPlainText(html)], { type: 'text/plain' })
+      })
+    ]).then(function () {
+      setStatus('saveStatus', 'Copiado — pégalo en el editor de Substack con Ctrl+V / Cmd+V.' + imgNote, 'ok');
+    }).catch(function (err) {
+      setStatus('saveStatus', 'No se pudo copiar automáticamente (' + err.message + ') — selecciona el análisis a mano y cópialo con Ctrl+C.', 'bad');
+    });
+  });
+
   // Búsqueda de texto completo: además de ticker/empresa/título, busca
   // dentro del cuerpo del análisis (y las noticias). htmlToPlainText()
   // ya existía para el diff de versiones — se reutiliza acá. Se cachea
