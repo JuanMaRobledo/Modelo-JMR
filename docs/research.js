@@ -436,6 +436,32 @@
     });
   }
 
+  // Un análisis guardado sin GitHub conectado en ese momento (o guardado
+  // antes de conectar el token por primera vez) queda SOLO en este
+  // navegador — remoteSave() ya lo avisa en el status, pero si el usuario
+  // conecta el token más tarde y nunca vuelve a apretar "Guardar" en cada
+  // uno, esos análisis nunca llegan a GitHub y por lo tanto nunca
+  // aparecen en Mi Bitácora, Portafolio ni en otro navegador. Al conectar
+  // (o ya estando conectado al cargar la página) se suben en cadena
+  // (uno por vez, no en paralelo, para no chocar con la API de GitHub)
+  // todos los que todavía no tengan remotePath.
+  function pushLocalOnlyToRemote() {
+    if (!getGhToken()) return Promise.resolve();
+    var pending = getLocalLibrary().filter(function (r) { return r.ticker && !r.remotePath; });
+    if (!pending.length) return Promise.resolve();
+    setStatus('libraryStatus', 'Subiendo ' + pending.length + ' análisis pendiente(s) a GitHub…');
+    return pending.reduce(function (chain, rec) {
+      return chain.then(function () {
+        return remoteSave(rec).then(function (saved) {
+          if (saved) upsertLocal(saved);
+        }).catch(function (err) { console.warn('No se pudo subir ' + (rec.ticker || rec.id) + ' a GitHub:', err); });
+      });
+    }, Promise.resolve()).then(function () {
+      renderLibrary();
+      setStatus('libraryStatus', pending.length + ' análisis subido(s) a GitHub.', 'ok');
+    });
+  }
+
   // Banner de GitHub siempre visible (no solo dentro de "Guardar"), para
   // que quede claro desde cualquier pestaña si los análisis están
   // guardándose solo en este navegador (se pierden al limpiar datos o
@@ -460,7 +486,7 @@
     el('ghBannerConnect').addEventListener('click', function () {
       setGhToken(input.value);
       renderGhBanner();
-      syncRemote().catch(function () {});
+      syncRemote().then(pushLocalOnlyToRemote).catch(function () {});
     });
     input.addEventListener('keydown', function (e) { if (e.key === 'Enter') el('ghBannerConnect').click(); });
   }
@@ -651,7 +677,7 @@
     if(!confirm('¿Borrar el análisis de '+(rec.company||rec.ticker)+'? Esta acción no se puede deshacer.'))return;
     btn.disabled=true;remoteDelete(rec).then(function(){setLocalLibrary(list.filter(function(r){return r.id!==rec.id;}));renderLibrary();}).catch(function(err){btn.disabled=false;setStatus('libraryStatus','No se pudo borrar: '+err.message,'bad');});
   });
-  el('syncBtn').addEventListener('click',function(){var btn=this;btn.disabled=true;setStatus('libraryStatus','Sincronizando…');syncRemote().then(function(n){setStatus('libraryStatus','Sincronización completa: '+n+' análisis.','ok');}).catch(function(err){setStatus('libraryStatus',err.message,'bad');}).finally(function(){btn.disabled=false;});});
+  el('syncBtn').addEventListener('click',function(){var btn=this;btn.disabled=true;setStatus('libraryStatus','Sincronizando…');syncRemote().then(function(n){setStatus('libraryStatus','Sincronización completa: '+n+' análisis.','ok');return pushLocalOnlyToRemote();}).catch(function(err){setStatus('libraryStatus',err.message,'bad');}).finally(function(){btn.disabled=false;});});
   el('exportLibraryBtn').addEventListener('click',function(){download('modelo-jmr-research-'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(getLocalLibrary(),null,2),'application/json');});
   el('importLibraryInput').addEventListener('change',function(){var file=this.files&&this.files[0];if(!file)return;file.text().then(function(text){var incoming=JSON.parse(text);if(!Array.isArray(incoming))throw new Error('El respaldo no contiene una biblioteca válida.');var map={};getLocalLibrary().concat(incoming).forEach(function(r){if(r&&r.id)map[r.id]=r;});setLocalLibrary(Object.keys(map).map(function(k){return map[k];}));renderLibrary();setStatus('libraryStatus','Respaldo importado.','ok');}).catch(function(err){setStatus('libraryStatus','No se pudo importar: '+err.message,'bad');});this.value='';});
 
@@ -721,6 +747,6 @@
   // siempre, con o sin token conectado (el token solo hace falta para
   // guardar/borrar) — así la biblioteca nunca depende de acordarse de
   // apretar "Sincronizar GitHub" ni de conectar nada solo para mirar.
-  syncRemote().then(applyDeepLinkFilter).catch(function () {});
+  syncRemote().then(function (n) { applyDeepLinkFilter(); return pushLocalOnlyToRemote(); }).catch(function () {});
   if ('serviceWorker' in navigator) window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});
 })();

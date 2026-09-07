@@ -225,7 +225,7 @@
     }
     var out = '';
     if (entry.bitacoraPropia) {
-      out += '<div class="port-source-lbl">Mi Bitácora</div>' + bitacoraCaseHtml(entry.bitacoraPropia);
+      out += '<div class="port-source-lbl">Modelo JMR Bitácora</div>' + bitacoraCaseHtml(entry.bitacoraPropia);
     }
     if (entry.bitacoraExterna) {
       if (out) out += '<hr class="port-divider">';
@@ -265,7 +265,7 @@
       '  </div>' +
       '  <div class="port-grid">' +
       '    <div class="port-block"><h4>Bitácora</h4>' + bitacoraBlockHtml(entry) + '</div>' +
-      '    <div class="port-block"><h4>Visor</h4>' + visorBlockHtml(entry) + '</div>' +
+      '    <div class="port-block"><h4>Modelo JMR</h4>' + visorBlockHtml(entry) + '</div>' +
       '    <div class="port-block"><h4>Research</h4>' + researchBlockHtml(entry) + '</div>' +
       '  </div>' +
       '</article>';
