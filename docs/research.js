@@ -522,6 +522,40 @@
     }).catch(function (err) { console.warn('No se pudo quitar de Mi Bitácora:', err); });
   }
 
+  // Relleno: los análisis guardados ANTES de que existiera esta
+  // sincronización automática (o guardados sin GitHub conectado en su
+  // momento) nunca dispararon syncHipotesisFromResearch — sin este
+  // relleno, no aparecerían nunca en Mi Bitácora hasta volver a abrirlos y
+  // guardarlos a mano. Se corre en cada sincronización con GitHub
+  // conectado; es barato (una sola lectura + una sola escritura, nunca N)
+  // porque agrega TODOS los faltantes de una sola vez y no hace nada si no
+  // falta ninguno.
+  function backfillHipotesisFromLibrary() {
+    if (!getGhToken()) return Promise.resolve();
+    var records = getLocalLibrary().filter(function (r) { return r.ticker; });
+    if (!records.length) return Promise.resolve();
+    return fetch(GH_API + HYP_PATH, { headers: ghHeaders() }).then(function (res) {
+      if (res.status === 404) return { list: [], sha: null };
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json().then(function (data) {
+        return { list: JSON.parse(b64Decode(data.content.replace(/\n/g, ''))), sha: data.sha };
+      });
+    }).then(function (found) {
+      var list = found.list || [];
+      var existingIds = {};
+      list.forEach(function (h) { if (h.fromResearch) existingIds[h.researchId] = true; });
+      var missing = records.filter(function (r) { return !existingIds[r.id]; });
+      if (!missing.length) return;
+      missing.forEach(function (r) { list.push(buildHipotesisFromResearch(r)); });
+      var body = { message: 'Completar Mi Bitácora con ' + missing.length + ' análisis de Research existentes', content: b64Encode(JSON.stringify(list, null, 2)) };
+      if (found.sha) body.sha = found.sha;
+      return fetch(GH_API + HYP_PATH, { method: 'PUT', headers: Object.assign({ 'Content-Type': 'application/json' }, ghHeaders()), body: JSON.stringify(body) }).then(function (res) {
+        if (!res.ok) return res.json().then(function (e) { throw new Error((e && e.message) || ('HTTP ' + res.status)); });
+        return res.json();
+      });
+    }).catch(function (err) { console.warn('No se pudo completar Mi Bitácora con análisis existentes:', err); });
+  }
+
   // Banner de GitHub siempre visible (no solo dentro de "Guardar"), para
   // que quede claro desde cualquier pestaña si los análisis están
   // guardándose solo en este navegador (se pierden al limpiar datos o
@@ -546,7 +580,7 @@
     el('ghBannerConnect').addEventListener('click', function () {
       setGhToken(input.value);
       renderGhBanner();
-      syncRemote().catch(function () {});
+      syncRemote().then(backfillHipotesisFromLibrary).catch(function () {});
     });
     input.addEventListener('keydown', function (e) { if (e.key === 'Enter') el('ghBannerConnect').click(); });
   }
@@ -737,7 +771,7 @@
     if(!confirm('¿Borrar el análisis de '+(rec.company||rec.ticker)+'? Esta acción no se puede deshacer.'))return;
     btn.disabled=true;remoteDelete(rec).then(function(){setLocalLibrary(list.filter(function(r){return r.id!==rec.id;}));renderLibrary();deleteHipotesisFromResearch(rec.id);}).catch(function(err){btn.disabled=false;setStatus('libraryStatus','No se pudo borrar: '+err.message,'bad');});
   });
-  el('syncBtn').addEventListener('click',function(){var btn=this;btn.disabled=true;setStatus('libraryStatus','Sincronizando…');syncRemote().then(function(n){setStatus('libraryStatus','Sincronización completa: '+n+' análisis.','ok');}).catch(function(err){setStatus('libraryStatus',err.message,'bad');}).finally(function(){btn.disabled=false;});});
+  el('syncBtn').addEventListener('click',function(){var btn=this;btn.disabled=true;setStatus('libraryStatus','Sincronizando…');syncRemote().then(function(n){setStatus('libraryStatus','Sincronización completa: '+n+' análisis.','ok');return backfillHipotesisFromLibrary();}).catch(function(err){setStatus('libraryStatus',err.message,'bad');}).finally(function(){btn.disabled=false;});});
   el('exportLibraryBtn').addEventListener('click',function(){download('modelo-jmr-research-'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(getLocalLibrary(),null,2),'application/json');});
   el('importLibraryInput').addEventListener('change',function(){var file=this.files&&this.files[0];if(!file)return;file.text().then(function(text){var incoming=JSON.parse(text);if(!Array.isArray(incoming))throw new Error('El respaldo no contiene una biblioteca válida.');var map={};getLocalLibrary().concat(incoming).forEach(function(r){if(r&&r.id)map[r.id]=r;});setLocalLibrary(Object.keys(map).map(function(k){return map[k];}));renderLibrary();setStatus('libraryStatus','Respaldo importado.','ok');}).catch(function(err){setStatus('libraryStatus','No se pudo importar: '+err.message,'bad');});this.value='';});
 
@@ -807,6 +841,6 @@
   // siempre, con o sin token conectado (el token solo hace falta para
   // guardar/borrar) — así la biblioteca nunca depende de acordarse de
   // apretar "Sincronizar GitHub" ni de conectar nada solo para mirar.
-  syncRemote().then(applyDeepLinkFilter).catch(function () {});
+  syncRemote().then(function (n) { applyDeepLinkFilter(); return backfillHipotesisFromLibrary(); }).catch(function () {});
   if ('serviceWorker' in navigator) window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});
 })();
