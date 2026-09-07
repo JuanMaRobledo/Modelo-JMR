@@ -289,6 +289,24 @@
   }
   el('linkVisorBtn').addEventListener('click', linkVisorValuation);
 
+  // Chequeo silencioso de vínculo desactualizado: al abrir un análisis que
+  // ya tiene una valoración vinculada, compara contra el guardado más
+  // reciente del Visor para el mismo ticker. No lo actualiza solo (podría
+  // pisar algo a propósito) — solo avisa, con el mismo botón de siempre
+  // para refrescarlo si el usuario quiere.
+  function checkLinkedValuationFreshness() {
+    if (!state.linkedValuation || !state.ticker || !getGhToken()) return;
+    listValoraciones().then(function (files) {
+      var matches = files.filter(function (f) { return tickerFromValoracionName(f.name) === state.ticker; });
+      if (!matches.length) return;
+      matches.sort(function (a, b) { return b.name.localeCompare(a.name); });
+      var latestPath = matches[0].path;
+      if (latestPath !== state.linkedValuation.sourcePath) {
+        setStatus('linkVisorStatus', '⚠ Hay una valoración más reciente en el Visor ("' + latestPath + '") — este análisis sigue vinculado con "' + state.linkedValuation.sourcePath + '". Pulsa "Vincular con Visor" para actualizarlo.', 'bad');
+      }
+    }).catch(function () {});
+  }
+
   // Noticias automáticas: usa la misma API key de FMP del resto de la app.
   // No clasifica el impacto por sí sola (eso queda a criterio del usuario,
   // agregando "| Alta/Media/Baja" a la línea) — solo trae titulares nuevos
@@ -486,6 +504,7 @@
     checkQuality();renderPreview();refreshHistoryButton();el('historyPanel').hidden=true;el('historyPanel').innerHTML='';
     ['quoteStatus','analysisStatus','valuationStatus','linkVisorStatus','newsStatus'].forEach(function(id){setStatus(id,'');});
     setStatus('saveStatus','Análisis cargado. Puedes editar sus datos o reemplazar los archivos.');switchTab('editor');
+    checkLinkedValuationFreshness();
   }
   function resetEditor() {
     state=freshState();['tickerInput','companyInput','titleInput','newsInput'].forEach(function(id){el(id).value='';});el('dateInput').value=state.date;el('logoInput').value='';el('analysisFile').value='';el('valuationFile').value='';el('qualityChips').innerHTML='';
