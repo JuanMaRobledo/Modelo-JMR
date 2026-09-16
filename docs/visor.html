@@ -1181,20 +1181,31 @@
     }
     var nombreActivo = (stockInfo && stockInfo.name) || '';
     // 'Input sheet'!D1 es el precio que Excel refresca cada vez que abres el
-    // archivo con conexión (extraído del tipo de dato "Acciones" de A1) — es
-    // más reciente que 'Resumen de Valoración'!B3, que es el precio fijo al
-    // día del análisis, no el precio de hoy.
+    // archivo con conexión (extraído del tipo de dato "Acciones" de A1).
+    //
+    // 'Resumen de Valoración'!B3 ("Precio al día del análisis", según su
+    // propia etiqueta) NO es confiable como snapshot fijo: en la plantilla
+    // apunta a 'Input sheet'!B23 ("Current stock price ="), que a su vez
+    // es ='Input sheet'!D1 — el mismo precio EN VIVO de arriba, no uno
+    // congelado. B3 es un insumo del modelo (para comparar contra el
+    // precio de mercado de hoy), no un registro histórico, aunque su
+    // etiqueta sugiera lo contrario. El snapshot fijo real vive en C25:
+    // la propia plantilla arma ahí su propia etiqueta autogenerada
+    // ="Precio al Día del Análisis ("&TEXT('Input sheet'!B4,...)&")" junto
+    // a un valor tipeado a mano (no una fórmula), así que C25 es la única
+    // celda que consistentemente representa el precio verdadero del día
+    // del análisis. Si no existiera esa fila (plantilla distinta), se cae
+    // de vuelta a B3 antes que no mostrar nada.
     var precioExcelD1 = cellVal(inputSheet, 'D1');
-    var precioAnalisis = cellVal(res, 'B3');
+    var precioAnalisis = cellVal(res, 'C25');
+    if(!(typeof precioAnalisis === 'number' && isFinite(precioAnalisis))) precioAnalisis = cellVal(res, 'B3');
     var precio = (typeof precioExcelD1 === 'number' && isFinite(precioExcelD1)) ? precioExcelD1 : precioAnalisis;
-    // 'Resumen de Valoración'!B2 es =TODAY() en la plantilla — siempre
-    // marca el día en que se abrió/exportó el Excel, no el día real del
-    // análisis, así que con el tiempo queda desincronizada del precio fijo
-    // de al lado (B3, que si es un snapshot real). La fecha correcta es
-    // 'Input sheet'!B4 ("Date of valuation"), una celda fija que el propio
-    // Excel ya usa para su propia etiqueta autogenerada en B25 ("Precio al
-    // Día del Análisis (...)"). Si por algún motivo no está esa hoja/celda,
-    // se cae de vuelta a B2 antes que no mostrar ninguna fecha.
+    // 'Resumen de Valoración'!B2 puede no ser confiable como fecha fija
+    // (en versiones viejas de la plantilla es =TODAY(), siempre el día en
+    // que se abrió el Excel). La fecha correcta es 'Input sheet'!B4 ("Date
+    // of valuation"), la misma celda fija que la propia plantilla ya usa
+    // para su etiqueta autogenerada en A25. Si por algún motivo no está
+    // esa hoja/celda, se cae de vuelta a B2 antes que no mostrar ninguna.
     var fecha = cellVal(inputSheet, 'B4');
     if(!(fecha instanceof Date) && typeof fecha !== 'number') fecha = cellVal(res, 'B2');
     var tipo = cellVal(res, 'G3');
