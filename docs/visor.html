@@ -385,7 +385,7 @@
      ancho para las tablas de datos): un párrafo justificado a más de
      ~980px de ancho se vuelve incómodo de leer. */
   .sheet-scroll.prose{overflow-x:hidden; padding:0; max-width:980px;}
-  .sheet-scroll.prose table{border-collapse:separate; border-spacing:0; table-layout:fixed; width:100%; font-size:13.5px;}
+  .sheet-scroll.prose table{border-collapse:separate; border-spacing:0; table-layout:auto; width:100%; font-size:13.5px;}
   .sheet-scroll.prose table td{
     /* white-space:normal (no pre-wrap) a propósito: en Excel es común que
        un párrafo largo dentro de una sola celda tenga saltos de línea
@@ -406,6 +406,14 @@
     border-right:1px solid var(--border-soft); text-align:left;
   }
   .sheet-scroll.prose table td:empty{padding:0; border-color:transparent;}
+  /* Filas marcadas "qual-wide" en widenTitleRows() (JS): la primera celda
+     ya es un párrafo largo por sí solo, no una etiqueta corta — se le
+     quita el tratamiento angosto/negrita/220px y queda igual que el resto
+     de las celdas de contenido (misma prosa, mismo ancho disponible). */
+  .sheet-scroll.prose table tr.qual-wide td:first-child{
+    font-weight:400; color:inherit; background:transparent; width:auto; white-space:normal;
+    border-right:none; text-align:justify; text-align-last:left;
+  }
 
   /* Cualitativo es editable a mano (incluida la sección de Gobierno
      Corporativo, que empieza vacía) — cursor de texto, contorno sutil al
@@ -439,10 +447,11 @@
     color:var(--accent-ink); background:var(--accent-soft); text-align:left;
     padding:13px 16px; white-space:pre-wrap; border-bottom:1px solid var(--border);
   }
-  /* Separador de aire (color del fondo de la página) entre el final de una
-     sección y el título de la siguiente, para que se lean como bloques
-     distintos y no como una sola grilla continua. */
-  .sheet-scroll.prose table td.qual-title-sep{border-top:14px solid var(--bg);}
+  /* Separador de aire entre el final de una sección y el título de la
+     siguiente: ahora que cada sección es su propia <table> (ver
+     widenTitleRows), alcanza con un margen entre tablas hermanas en vez
+     del viejo truco de un borde ancho del color del fondo. */
+  .sheet-scroll.prose table.qual-section-sep{margin-top:14px;}
 
   /* Encabezado de mini-tabla (columnas cortas dentro de una sección, p. ej.
      "Industry Average | Most Recent year | Next year"): discreto, en
@@ -1331,43 +1340,113 @@
   }
 
   // En hojas de texto (Cualitativo, etc.), las filas donde solo la primera
-  // celda tiene contenido son títulos/encabezados de sección (el resto de
-  // la fila queda vacía por el rango cuadrado que arma sheet_to_html) — se
-  // extienden a todo el ancho en vez de quedar apretadas en la columna
-  // angosta de las filas etiqueta:valor.
+  // celda tiene contenido son títulos/encabezados de sección — el resto de
+  // la fila queda vacía por el rango cuadrado que arma sheet_to_html.
+  //
+  // Cada título arranca una <table> NUEVA en vez de seguir agregando filas
+  // a una sola tabla compartida por toda la hoja: una hoja de "prosa" en
+  // realidad mezcla secciones con formas muy distintas (pares etiqueta:
+  // valor, una tabla Bulls/Bears de 2 columnas anchas, una tabla de
+  // escenarios de 5 columnas...) y con una sola <table>, el ancho de
+  // columna que el navegador calcula para una sección se contamina con el
+  // contenido de las demás (p. ej. una columna angosta en una sección deja
+  // "corta" a esa misma columna en una sección totalmente distinta que sí
+  // necesitaba ancho de sobra). Tablas separadas = cada sección calcula su
+  // propio ancho de columna sin interferir con las demás.
   function widenTitleRows(html){
     var tmp = document.createElement('div');
     tmp.innerHTML = html;
     var table = tmp.querySelector('table');
     if(!table) return html;
     var rows = Array.prototype.slice.call(table.rows);
-    var totalCols = tableTotalCols(table);
-    var firstTitleSeen = false;
-    rows.forEach(function(tr, idx){
+
+    var sections = [];
+    var current = null;
+    rows.forEach(function(tr){
       var cells = Array.prototype.slice.call(tr.cells);
       if(!cells.length) return;
       var nonEmpty = cells.filter(function(td){ return td.textContent.trim() !== ''; });
-      if(nonEmpty.length === 1 && cells[0] === nonEmpty[0]){
-        cells[0].colSpan = totalCols || cells.length;
-        cells[0].className = 'qual-title' + (firstTitleSeen ? ' qual-title-sep' : '');
-        firstTitleSeen = true;
-        for(var i = cells.length - 1; i >= 1; i--) tr.removeChild(cells[i]);
-        return;
-      }
-      // Fila de encabezados de columna de una mini-tabla (p. ej. en
-      // Diagnostics: "| Industry Average | Most Recent year | Next year |
-      // Years 2-5"): la primera celda va vacía (no es una fila
-      // etiqueta:valor) y el resto son textos cortos — se distingue con un
-      // estilo más discreto en vez del tratamiento de etiqueta en negrita.
-      var firstEmpty = cells[0].textContent.trim() === '';
-      var restShort = nonEmpty.length >= 2 && nonEmpty.every(function(td){ return td.textContent.trim().length <= 40; });
-      var nextRow = rows[idx+1];
-      var nextHasLabel = nextRow && nextRow.cells.length && nextRow.cells[0].textContent.trim() !== '';
-      if(firstEmpty && restShort && nextHasLabel){
-        tr.className = 'qual-subhead';
+      var isTitle = nonEmpty.length === 1 && cells[0] === nonEmpty[0];
+      if(isTitle || !current){
+        current = { titleRow: isTitle ? tr : null, rows: isTitle ? [] : [tr] };
+        sections.push(current);
+      } else {
+        current.rows.push(tr);
       }
     });
-    return tmp.innerHTML;
+
+    var out = document.createElement('div');
+    sections.forEach(function(sec, secIdx){
+      var t = document.createElement('table');
+      if(secIdx > 0) t.className = 'qual-section-sep';
+
+      // Una sección de comparación de 2 columnas anchas (p. ej. Bulls vs.
+      // Bears, ambos lados con párrafos) tiene, real, exactamente 2 <td>
+      // por fila — pero removeEmptyCells ya había estirado el colspan del
+      // segundo hasta el ancho total de la hoja entera (pensado para el
+      // patrón etiqueta:valor de columna angosta, donde la "etiqueta" SÍ
+      // es corta). Ese colspan disparejo (1 y 4, digamos) hace que el
+      // cálculo de ancho de columna del navegador siga favoreciendo una
+      // columna angosta para el lado izquierdo aunque ya esté en su
+      // propia tabla. Se normaliza a colspan=1 en ambas celdas para que
+      // la sección se calcule limpiamente como lo que es: 2 columnas
+      // reales, no 5.
+      var isWideCompare = sec.rows.length > 0
+        && sec.rows.every(function(tr){ return tr.cells.length === 2; })
+        && sec.rows.some(function(tr){ return tr.cells[0].textContent.trim().length > 50; });
+      if(isWideCompare){
+        sec.rows.forEach(function(tr){
+          Array.prototype.forEach.call(tr.cells, function(td){ td.colSpan = 1; });
+        });
+      }
+
+      if(sec.titleRow){
+        var titleCells = Array.prototype.slice.call(sec.titleRow.cells);
+        var totalCols = 1;
+        sec.rows.forEach(function(tr){
+          var cols = 0;
+          Array.prototype.forEach.call(tr.cells, function(td){ cols += td.colSpan || 1; });
+          if(cols > totalCols) totalCols = cols;
+        });
+        titleCells[0].colSpan = totalCols;
+        titleCells[0].className = 'qual-title';
+        for(var i = titleCells.length - 1; i >= 1; i--) sec.titleRow.removeChild(titleCells[i]);
+        t.appendChild(sec.titleRow);
+      }
+      sec.rows.forEach(function(tr, idx){
+        var cells = Array.prototype.slice.call(tr.cells);
+        var nonEmpty = cells.filter(function(td){ return td.textContent.trim() !== ''; });
+        // Fila de encabezados de columna de una mini-tabla (p. ej. en
+        // Diagnostics: "| Industry Average | Most Recent year | Next year |
+        // Years 2-5"): la primera celda va vacía (no es una fila
+        // etiqueta:valor) y el resto son textos cortos — se distingue con
+        // un estilo más discreto en vez del tratamiento de etiqueta en
+        // negrita.
+        var firstEmpty = cells[0].textContent.trim() === '';
+        var restShort = nonEmpty.length >= 2 && nonEmpty.every(function(td){ return td.textContent.trim().length <= 40; });
+        var nextRow = sec.rows[idx+1];
+        var nextHasLabel = nextRow && nextRow.cells.length && nextRow.cells[0].textContent.trim() !== '';
+        if(firstEmpty && restShort && nextHasLabel){
+          tr.className = 'qual-subhead';
+        } else if(isWideCompare || cells[0].textContent.trim().length > 50){
+          // Filas donde la "etiqueta" (primera celda) es en realidad un
+          // párrafo largo — p. ej. la columna "Caso alcista (Bull)" de una
+          // tabla Bulls vs. Bears, donde ambos lados tienen texto largo, no
+          // una etiqueta corta seguida de un valor. El tratamiento normal
+          // de etiqueta (angosta, negrita, 220px) la aplastaba y la
+          // justificaba en una columna carísima mientras el otro lado
+          // quedaba mucho más ancho. En una sección "isWideCompare" TODAS
+          // las filas (incluida la de encabezado "Bull | Bear", corta)
+          // reciben el mismo trato parejo, para que las dos columnas
+          // queden simétricas de punta a punta en vez de que solo la fila
+          // de encabezado se vea angosta/negrita y el resto no.
+          tr.className = 'qual-wide';
+        }
+        t.appendChild(tr);
+      });
+      out.appendChild(t);
+    });
+    return out.innerHTML;
   }
 
   // El rango de una hoja (!ref) suele incluir columnas totalmente vacías al
@@ -1480,24 +1559,20 @@
 
   // Sección de Gobierno Corporativo: no viene del Excel (la plantilla no
   // trae esta información) — se agrega siempre al final de Cualitativo como
-  // un bloque más, con celdas vacías editables (el usuario la llena a mano
-  // con la pluma ✏️ del tab). Se inserta con el DOM (no con un string de
-  // HTML) y DESPUÉS de widenTitleRows(), no antes: sus filas etiqueta:valor
-  // arrancan con el valor vacío (para el placeholder ":empty"), y
-  // widenTitleRows interpretaría "solo una celda con texto" como un título
-  // de sección más — justo como el título de este bloque — y le borraría la
-  // celda de valor. Aquí el colspan del título se calcula con la misma
-  // tableTotalCols() ya con las filas reales de Excel puestas, así que
-  // ocupa el ancho real de la tabla sin ese falso positivo.
-  function appendGovernanceSection(table){
-    var totalCols = Math.max(2, tableTotalCols(table));
+  // su propia tabla (mismo patrón que cada sección de widenTitleRows), con
+  // celdas vacías editables (el usuario la llena a mano con la pluma ✏️ del
+  // tab). Siempre 2 columnas (etiqueta + valor) — al ser su propia tabla ya
+  // no depende del ancho de ninguna otra sección.
+  function buildGovernanceSection(){
+    var t = document.createElement('table');
+    t.className = 'qual-section-sep';
     var titleTr = document.createElement('tr');
     var titleTd = document.createElement('td');
-    titleTd.className = 'qual-title qual-title-sep';
-    titleTd.colSpan = totalCols;
+    titleTd.className = 'qual-title';
+    titleTd.colSpan = 2;
     titleTd.textContent = 'GOBIERNO CORPORATIVO';
     titleTr.appendChild(titleTd);
-    table.appendChild(titleTr);
+    t.appendChild(titleTr);
     [
       'Estructura del Directorio',
       'Propiedad y Accionistas Principales',
@@ -1510,11 +1585,11 @@
       tdLabel.textContent = f;
       var tdValue = document.createElement('td');
       tdValue.className = 'gov-value';
-      tdValue.colSpan = Math.max(1, totalCols - 1);
       tr.appendChild(tdLabel);
       tr.appendChild(tdValue);
-      table.appendChild(tr);
+      t.appendChild(tr);
     });
+    return t;
   }
 
   function cellPairAt(ws, r, c){
@@ -1957,12 +2032,10 @@
     var ws = currentWb && currentWb.Sheets[name];
     var html;
     if(name === 'Cualitativo'){
-      var baseHtml = ws ? widenTitleRows(removeEmptyCells(XLSX.utils.sheet_to_html(trimSheetForProse(ws), {header:'', footer:'', editable:false}))) : '<table></table>';
+      var baseHtml = ws ? widenTitleRows(removeEmptyCells(XLSX.utils.sheet_to_html(trimSheetForProse(ws), {header:'', footer:'', editable:false}))) : '';
       var tmp = document.createElement('div');
       tmp.innerHTML = baseHtml;
-      var table = tmp.querySelector('table');
-      if(!table){ tmp.innerHTML = '<table></table>'; table = tmp.querySelector('table'); }
-      appendGovernanceSection(table);
+      tmp.appendChild(buildGovernanceSection());
       html = (ws ? '' : '<div class="sheet-empty">Este archivo no tiene la hoja "Cualitativo" — puedes agregar tus propias notas abajo.</div>') + tmp.innerHTML;
     } else if(!ws){
       html = '<div class="sheet-empty">Este archivo no tiene la hoja "' + name + '".</div>';
