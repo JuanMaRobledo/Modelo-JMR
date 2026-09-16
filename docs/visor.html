@@ -1187,7 +1187,16 @@
     var precioExcelD1 = cellVal(inputSheet, 'D1');
     var precioAnalisis = cellVal(res, 'B3');
     var precio = (typeof precioExcelD1 === 'number' && isFinite(precioExcelD1)) ? precioExcelD1 : precioAnalisis;
-    var fecha = cellVal(res, 'B2');
+    // 'Resumen de Valoración'!B2 es =TODAY() en la plantilla — siempre
+    // marca el día en que se abrió/exportó el Excel, no el día real del
+    // análisis, así que con el tiempo queda desincronizada del precio fijo
+    // de al lado (B3, que si es un snapshot real). La fecha correcta es
+    // 'Input sheet'!B4 ("Date of valuation"), una celda fija que el propio
+    // Excel ya usa para su propia etiqueta autogenerada en B25 ("Precio al
+    // Día del Análisis (...)"). Si por algún motivo no está esa hoja/celda,
+    // se cae de vuelta a B2 antes que no mostrar ninguna fecha.
+    var fecha = cellVal(inputSheet, 'B4');
+    if(!(fecha instanceof Date) && typeof fecha !== 'number') fecha = cellVal(res, 'B2');
     var tipo = cellVal(res, 'G3');
     var mos = cellVal(res, 'G4');
 
