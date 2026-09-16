@@ -929,7 +929,7 @@
   var SHEET_GROUPS = {
     financieros: ['Income Statement', 'Balance Sheet', 'Cash Flow Statement'],
     valoracion: ['Resumen de Valoración', 'Valuation output', 'Trailing Valuation', 'Forward Valuation', 'EVEBITDA', 'EVFCFF', 'PE', 'PFCFE', 'POCF', 'Financials Multiples'],
-    analisis: ['Márgenes', 'Eficiencia de capital', 'Salud Financiera', 'Por acción', 'Dividendos', 'Estadísticas', 'Crecimiento y Márgenes', 'Diagnostics']
+    analisis: ['Tesis de Inversión y Supuestos', 'Márgenes', 'Eficiencia de capital', 'Salud Financiera', 'Por acción', 'Dividendos', 'Estadísticas', 'Crecimiento y Márgenes', 'Diagnostics']
   };
   var sheetHtmlCache = {};
   // Hojas de múltiplos: cada una trae al final una "Matriz de
@@ -940,7 +940,7 @@
   // El nombre de la hoja en Excel (sin barra, por compatibilidad con
   // nombres de hoja) sigue siendo la llave real para leer datos — esto
   // solo cambia el texto que se muestra en la pestaña/pill.
-  var SHEET_DISPLAY_NAMES = {'EVEBITDA':'EV/EBITDA', 'EVFCFF':'EV/FCFF', 'PE':'P/E', 'PFCFE':'P/FCFE', 'POCF':'P/OCF'};
+  var SHEET_DISPLAY_NAMES = {'EVEBITDA':'EV/EBITDA', 'EVFCFF':'EV/FCFF', 'PE':'P/E', 'PFCFE':'P/FCFE', 'POCF':'P/OCF', 'Tesis de Inversión y Supuestos':'Tesis de Inversión'};
   // Cualitativo (pestaña principal propia, ya no una pill de Análisis) es
   // editable a mano (incluye la sección de Gobierno Corporativo, que no
   // viene del Excel) — mientras esta variable no sea null, tiene prioridad
@@ -1956,6 +1956,12 @@
       html = (ws ? '' : '<div class="sheet-empty">Este archivo no tiene la hoja "Cualitativo" — puedes agregar tus propias notas abajo.</div>') + tmp.innerHTML;
     } else if(!ws){
       html = '<div class="sheet-empty">Este archivo no tiene la hoja "' + name + '".</div>';
+    } else if(name === 'Tesis de Inversión y Supuestos'){
+      // Misma hoja narrativa que Cualitativo (secciones + párrafos + una
+      // tabla ancha de justificación por escenario) -- el mismo tratamiento
+      // "prosa" (recortar al rango usado, títulos a ancho completo) le
+      // queda mejor que el renderer genérico de grillas financieras.
+      html = widenTitleRows(removeEmptyCells(XLSX.utils.sheet_to_html(trimSheetForProse(ws), {header:'', footer:'', editable:false})));
     } else if(name === 'Diagnostics'){
       html = renderDiagnosticsSheet(ws);
     } else if(name === 'Resumen de Valoración'){
@@ -2004,6 +2010,7 @@
       containerEl.innerHTML = getHtml(names[idx]);
       containerEl.classList.toggle('diagnostics', names[idx] === 'Diagnostics');
       containerEl.classList.toggle('resumen-val', names[idx] === 'Resumen de Valoración');
+      containerEl.classList.toggle('prose', names[idx] === 'Tesis de Inversión y Supuestos');
       pillsEl.querySelectorAll('button').forEach(function(b,i){ b.classList.toggle('active', i === idx); });
     }
     pillsEl.querySelectorAll('button').forEach(function(b){
