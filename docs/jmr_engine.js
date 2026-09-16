@@ -11,7 +11,9 @@ var JMR_WEIGHTS = {
   "Financiera":            {dcf:0.35, evEbitda:0.00, evFcff:0.00, pe:0.35, pfcfe:0.20, pocf:0.10},
   "Infraestructura":       {dcf:0.40, evEbitda:0.15, evFcff:0.25, pe:0.10, pfcfe:0.05, pocf:0.05},
   "REIT/Inmobiliaria":     {dcf:0.25, evEbitda:0.30, evFcff:0.10, pe:0.05, pfcfe:0.20, pocf:0.10},
-  "Software":              {dcf:0.55, evEbitda:0.25, evFcff:0.05, pe:0.05, pfcfe:0.05, pocf:0.05}
+  "Software":              {dcf:0.55, evEbitda:0.25, evFcff:0.05, pe:0.05, pfcfe:0.05, pocf:0.05},
+  "Hyper-Crecimiento / Pre-Rentable": {dcf:0.80, evEbitda:0.00, evFcff:0.10, pe:0.00, pfcfe:0.05, pocf:0.05},
+  "Biotech/Farma":         {dcf:0.55, evEbitda:0.05, evFcff:0.20, pe:0.05, pfcfe:0.10, pocf:0.05}
 };
 
 function growthPath(growthY1to5, terminalGrowth){
