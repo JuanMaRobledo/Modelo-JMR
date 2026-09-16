@@ -13,6 +13,8 @@ en un **modelo replicable** para analizar nuevas empresas de forma consistente.
 | `casos_de_estudio/CASOS_DE_ESTUDIO.md` | Ficha detallada de cada uno de los 55 casos (negocio, moat, métricas, múltiplos, objetivos, riesgos, actualizaciones) | Consulta rápida de cualquier caso histórico y sus números |
 | `casos_de_estudio/Resumen_Casos_de_Estudio.pdf` | Tabla en PDF (formato A3 horizontal, 3 páginas) con las 3 zonas de valor y los 3 escenarios de precio objetivo de los 55 casos, más conclusión y última actualización/retorno | Para ver de un vistazo, sin abrir el Excel, dónde escalonar entradas y qué retorno implica cada escenario en cualquier caso |
 | `docs/index.html` | Página web autocontenida (sin dependencias de build) con los 55 casos: buscador, filtro por categoría, columnas ordenables y cada fila expandible con el detalle completo | La forma más rápida de consultar — abre el archivo en el navegador o publícalo con GitHub Pages (ver abajo) |
+| `docs/visor.html` | Visor del modelo DCF Damodaran + 5 múltiplos (Excel/Google Sheets ya lleno para un ticker) | Sube el `.xlsx` (o pega el link de un Google Sheet compartido) y lo resume sin abrir Excel |
+| `docs/ejemplos/Modelo_JMR_UBER.xlsx` | Modelo DCF Damodaran + 5 múltiplos ya lleno, caso Uber Technologies (UBER) | Archivo de ejemplo compatible con `docs/visor.html` — útil para probar el visor o como plantilla de referencia del formato de hoja/celda que espera |
 
 ### Consultar los casos en el navegador (`docs/index.html`)
 
