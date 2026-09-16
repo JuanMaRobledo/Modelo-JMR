@@ -162,7 +162,8 @@
     function kv(label, value) { return '<div class="linked-kv"><span>' + escapeHtml(label) + '</span><strong>' + value + '</strong></div>'; }
     function zoneKv(label, z) { return z ? kv(label, money(z.min) + ' – ' + money(z.max)) : ''; }
     var op = lv.objetivoPonderado || {}, z = lv.zonas || {};
-    return '<section class="valuation-block linked-valuation"><span class="linked-tag">✓ Vinculado con el Visor · ' + escapeHtml(lv.sourcePath || '') + '</span><h2>Valoración cuantitativa (Visor)</h2><div class="linked-grid">' +
+    var visorLink = lv.sourcePath ? '<a class="linked-visor-link" href="visor.html?path=' + encodeURIComponent(lv.sourcePath) + '">Ver en el Visor →</a>' : '';
+    return '<section class="valuation-block linked-valuation"><span class="linked-tag">✓ Vinculado con el Visor · ' + escapeHtml(lv.sourcePath || '') + '</span>' + visorLink + '<h2>Valoración cuantitativa (Visor)</h2><div class="linked-grid">' +
       kv('Precio', money(lv.precio)) +
       kv('Fecha del análisis', escapeHtml(lv.fecha || '—')) +
       kv('Objetivo conservador', money(op.conservador)) +
@@ -819,7 +820,8 @@
     holder.innerHTML=list.map(function(r){
       var logo=r.logo?'<img class="mini-logo" src="'+escapeHtml(r.logo)+'" alt="">':'<span class="mini-logo mini-fallback">'+escapeHtml((r.ticker||'?').slice(0,2))+'</span>';
       var excerpt=recordExcerpt(r);
-      return '<article class="analysis-card" data-id="'+escapeHtml(r.id)+'"><div class="card-head">'+logo+'<div class="card-title"><strong>'+escapeHtml(r.title||r.company)+'</strong><span class="ticker">'+escapeHtml(r.ticker||'—')+' · '+escapeHtml(r.company||'')+'</span></div></div>'+(excerpt?'<p class="card-excerpt">'+escapeHtml(excerpt)+'</p>':'')+'<div class="card-meta"><span>'+escapeHtml(r.date||'Sin fecha')+'</span><span>'+(r.remotePath?'GitHub + local':'Solo local')+'</span></div><div class="card-actions"><button class="btn" data-action="open" type="button">Abrir</button><button class="btn danger" data-action="delete" type="button">Borrar</button></div></article>';
+      var visorLink=(r.linkedValuation&&r.linkedValuation.sourcePath)?'<a class="btn" href="visor.html?path='+encodeURIComponent(r.linkedValuation.sourcePath)+'">Ver en el Visor</a>':'';
+      return '<article class="analysis-card" data-id="'+escapeHtml(r.id)+'"><div class="card-head">'+logo+'<div class="card-title"><strong>'+escapeHtml(r.title||r.company)+'</strong><span class="ticker">'+escapeHtml(r.ticker||'—')+' · '+escapeHtml(r.company||'')+'</span></div></div>'+(excerpt?'<p class="card-excerpt">'+escapeHtml(excerpt)+'</p>':'')+'<div class="card-meta"><span>'+escapeHtml(r.date||'Sin fecha')+'</span><span>'+(r.remotePath?'GitHub + local':'Solo local')+'</span></div><div class="card-actions"><button class="btn" data-action="open" type="button">Abrir</button>'+visorLink+'<button class="btn danger" data-action="delete" type="button">Borrar</button></div></article>';
     }).join('');
     setStatus('libraryStatus',list.length+' análisis · '+(getGhToken()?'GitHub disponible':'almacenamiento local'));
     populateCompareSelects();

@@ -3171,6 +3171,22 @@
   var savedTheme = 'system';
   try { savedTheme = localStorage.getItem('bitacora-theme') || 'system'; } catch(e){}
   if(savedTheme !== 'system'){ document.documentElement.setAttribute('data-theme', savedTheme); }
+
+  // Deep link desde "Ver en el Visor →" (Análisis Fundamental, cuando un
+  // análisis está vinculado con una valoración guardada acá): abre esa
+  // valoración directo, sin tener que ir a buscarla a mano en
+  // "Valoraciones guardadas". Leer no requiere token (el repo de datos es
+  // público), así que funciona igual sin conectar nada.
+  var deepLinkPath = new URLSearchParams(location.search).get('path');
+  if(deepLinkPath){
+    document.getElementById('savedStatus').textContent = 'Cargando valoración vinculada…';
+    fetchValoracion(deepLinkPath).then(function(res){
+      displaySavedRecord(res.record);
+      document.getElementById('savedStatus').textContent = 'Valoración vinculada cargada.';
+    }).catch(function(err){
+      document.getElementById('savedStatus').textContent = 'No se pudo cargar la valoración vinculada (' + deepLinkPath + '): ' + err.message;
+    });
+  }
 })();
 </script>
 
