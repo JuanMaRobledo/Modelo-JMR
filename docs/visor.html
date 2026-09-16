@@ -648,6 +648,12 @@
         <div class="stat"><div class="lbl">CAGR máximo (Optimista)</div><div class="big" id="cagrO">—</div></div>
       </div>
 
+      <div class="grid3" style="margin-top:10px;">
+        <div class="stat"><div class="lbl">Potencial vs. precio del análisis (Conservador)</div><div class="big" id="potC">—</div></div>
+        <div class="stat"><div class="lbl">Potencial vs. precio del análisis (Base)</div><div class="big" id="potB">—</div></div>
+        <div class="stat"><div class="lbl">Potencial vs. precio del análisis (Optimista)</div><div class="big" id="potO">—</div></div>
+      </div>
+
       <p class="section-title">Zonas de valor (escalonar entradas)</p>
       <div class="grid4">
         <div class="stat"><div class="lbl">Value</div><div class="rng" id="zValue">—</div></div>
@@ -818,10 +824,11 @@
 
       <div id="rcResult" style="display:none;">
         <p class="section-title">Resultado recalculado (hipotético — no es lo que dice tu Excel)</p>
-        <div class="grid3">
+        <div class="grid4">
           <div class="stat"><div class="lbl">Precio con este supuesto</div><div class="big" id="rcPrice">—</div></div>
           <div class="stat"><div class="lbl">Precio con MOS</div><div class="big" id="rcPrecioMOS">—</div></div>
           <div class="stat"><div class="lbl">CAGR promedio (Base)</div><div class="big" id="rcCagrB">—</div></div>
+          <div class="stat"><div class="lbl">Potencial vs. precio actual (Base)</div><div class="big" id="rcPotB">—</div></div>
         </div>
         <div class="methods-scroll">
           <table class="methods">
@@ -953,6 +960,14 @@
   function fmtPct(v){
     if(v === undefined || v === null || typeof v !== 'number' || isNaN(v)) return '—';
     return (v*100).toFixed(1) + '%';
+  }
+  // Retorno total (no anualizado) desde el precio al día del análisis hasta
+  // un precio objetivo — complementa al CAGR a 3 años, que sí está
+  // anualizado y por eso "esconde" cuánto es el recorrido total real.
+  function fmtPotencial(target, basePrice){
+    if(typeof target !== 'number' || !isFinite(target)) return '—';
+    if(typeof basePrice !== 'number' || !isFinite(basePrice) || basePrice === 0) return '—';
+    return fmtPct(target/basePrice - 1);
   }
 
   // Barras verticales Conservador/Base/Optimista con el mismo tinte
@@ -1201,6 +1216,11 @@
     document.getElementById('cagrC').textContent = fmtPct(cellVal(res,'C13'));
     document.getElementById('cagrB').textContent = fmtPct(cellVal(res,'D13'));
     document.getElementById('cagrO').textContent = fmtPct(cellVal(res,'E13'));
+
+    var potBase = currentPrecioAnalisis;
+    document.getElementById('potC').textContent = fmtPotencial(cellVal(res,'C12'), potBase);
+    document.getElementById('potB').textContent = fmtPotencial(cellVal(res,'D12'), potBase);
+    document.getElementById('potO').textContent = fmtPotencial(cellVal(res,'E12'), potBase);
 
     function zoneText(row){
       var max = cellVal(res, 'B'+row), min = cellVal(res, 'C'+row);
@@ -2335,6 +2355,9 @@
     document.getElementById('cagrC').textContent = fmtPct(cagr.conservador);
     document.getElementById('cagrB').textContent = fmtPct(cagr.base);
     document.getElementById('cagrO').textContent = fmtPct(cagr.optimista);
+    document.getElementById('potC').textContent = fmtPotencial(op.conservador, currentPrecioAnalisis);
+    document.getElementById('potB').textContent = fmtPotencial(op.base, currentPrecioAnalisis);
+    document.getElementById('potO').textContent = fmtPotencial(op.optimista, currentPrecioAnalisis);
     function zoneText(z){ if(!z) return '—'; return fmtMoney(z.min) + ' – ' + fmtMoney(z.max); }
     var z = rec.zonas || {};
     document.getElementById('zValue').textContent = zoneText(z.value);
@@ -2902,6 +2925,7 @@
     document.getElementById('rcPrice').textContent = fmtMoney(inp.precioActual);
     document.getElementById('rcPrecioMOS').textContent = fmtMoney(r.precioConMOS.cons) + ' – ' + fmtMoney(r.precioConMOS.base);
     document.getElementById('rcCagrB').textContent = fmtPct(r.cagr.base);
+    document.getElementById('rcPotB').textContent = fmtPotencial(r.precioObjetivo.base, inp.precioActual);
 
     var tbody = document.getElementById('rcMethodsBody');
     tbody.innerHTML = '';

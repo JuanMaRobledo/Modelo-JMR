@@ -17,13 +17,33 @@
  *   GITHUB_CLIENT_ID     — Client ID de la OAuth App (no es secreto)
  *   GITHUB_CLIENT_SECRET — Client Secret de la OAuth App (SÍ es secreto —
  *                          marcarlo como "Secret", no como texto plano)
- *   ALLOWED_ORIGIN        — el origin exacto del sitio, p. ej.
- *                          "https://juanmarobledo.github.io"
+ *   ALLOWED_ORIGIN        — el origin exacto del sitio. Verificado en vivo
+ *                          (sept-2026): el sitio sirve desde
+ *                          "https://juanmarobledo.github.io" (repo de
+ *                          proyecto en /Modelo-JMR/, pero el Origin de un
+ *                          request nunca incluye el path, solo
+ *                          esquema+host). Sin barra final.
+ *
+ * Si "Conectar con GitHub" falla con "Origen no permitido" o con un error
+ * 500 pidiendo configurar ALLOWED_ORIGIN, revisar esta variable en el
+ * dashboard de Cloudflare (Workers & Pages -> este Worker -> Settings ->
+ * Variables and Secrets) — es la causa más común de que el login no
+ * funcione, y no se puede diagnosticar ni arreglar desde el código del
+ * repo porque vive solo en Cloudflare, fuera de control de versiones.
  */
+
+// Un Origin nunca trae barra final ni distingue mayúsculas en el host, pero
+// ALLOWED_ORIGIN es una variable que se pega a mano en el dashboard de
+// Cloudflare -- normalizamos ambos lados antes de comparar para no fallar
+// por un "https://user.github.io/" (con barra) vs "https://user.github.io"
+// (sin barra) configurado en Settings -> Variables and Secrets.
+function normalizeOrigin(o) {
+  return (o || '').trim().replace(/\/+$/, '').toLowerCase();
+}
 
 function corsHeaders(origin, allowedOrigin) {
   var headers = { 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type' };
-  if (origin && origin === allowedOrigin) headers['Access-Control-Allow-Origin'] = allowedOrigin;
+  if (origin && normalizeOrigin(origin) === normalizeOrigin(allowedOrigin)) headers['Access-Control-Allow-Origin'] = origin;
   return headers;
 }
 
@@ -35,8 +55,15 @@ async function handleRequest(request, env) {
     return new Response(null, { status: 204, headers: cors });
   }
 
-  if (origin !== env.ALLOWED_ORIGIN) {
-    return new Response(JSON.stringify({ error: 'Origen no permitido.' }), {
+  if (!env.ALLOWED_ORIGIN) {
+    return new Response(JSON.stringify({ error: 'El Worker no tiene configurada la variable ALLOWED_ORIGIN (Settings -> Variables and Secrets en Cloudflare).' }), {
+      status: 500,
+      headers: Object.assign({ 'Content-Type': 'application/json' }, cors)
+    });
+  }
+
+  if (normalizeOrigin(origin) !== normalizeOrigin(env.ALLOWED_ORIGIN)) {
+    return new Response(JSON.stringify({ error: 'Origen no permitido: "' + origin + '" (el Worker espera "' + env.ALLOWED_ORIGIN + '").' }), {
       status: 403,
       headers: Object.assign({ 'Content-Type': 'application/json' }, cors)
     });
