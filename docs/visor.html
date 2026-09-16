@@ -387,7 +387,16 @@
   .sheet-scroll.prose{overflow-x:hidden; padding:0; max-width:980px;}
   .sheet-scroll.prose table{border-collapse:separate; border-spacing:0; table-layout:fixed; width:100%; font-size:13.5px;}
   .sheet-scroll.prose table td{
-    white-space:pre-wrap; word-break:break-word; vertical-align:top; line-height:1.6;
+    /* white-space:normal (no pre-wrap) a propósito: en Excel es común que
+       un párrafo largo dentro de una sola celda tenga saltos de línea
+       manuales (Alt+Enter) puestos solo para que se vea entero en la
+       celda, sin significar un párrafo nuevo. Con pre-wrap, cada uno de
+       esos tramos se justifica por separado y queda estirado con huecos
+       enormes entre palabras — con white-space normal el navegador
+       colapsa esos saltos en un espacio y todo el texto fluye y se
+       justifica como un párrafo continuo, igual que en Análisis
+       Fundamental. */
+    white-space:normal; overflow-wrap:break-word; word-break:normal; hyphens:auto; -webkit-hyphens:auto; vertical-align:top; line-height:1.65;
     padding:11px 16px; border:none; border-bottom:1px solid var(--border-soft);
     text-align:justify; text-align-last:left;
   }
@@ -572,9 +581,9 @@
 
 <nav class="appnav">
   <a href="index.html">Bitácora de Valoración</a>
+  <a href="research.html">Análisis Fundamental</a>
   <a href="visor.html" class="active">Visor Modelo JMR</a>
   <a href="calculadora.html">Calculadora DCF</a>
-  <a href="research.html">Análisis Fundamental</a>
   <a href="portafolio.html">Portafolio</a>
   <a href="mi-bitacora.html">Mi Bitácora</a>
 </nav>
