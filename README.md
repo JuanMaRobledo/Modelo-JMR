@@ -1,5 +1,9 @@
 # Modelo-JMR — Modelo de Valoración por Múltiplos Relativos
 
+> Aplicación oficial de valoración del ecosistema **JMR · Centro financiero**.
+> [Volver al centro financiero](https://cartera-two-eta.vercel.app/) ·
+> Repositorio canónico: `JuanMaRobledo/Modelo-JMR`.
+
 Este repositorio organiza y sistematiza el enfoque de valoración fundamental usado en
 **"Casos de estudio"** (55 hipótesis de inversión analizadas entre 2022 y 2026), y lo convierte
 en un **modelo replicable** para analizar nuevas empresas de forma consistente.

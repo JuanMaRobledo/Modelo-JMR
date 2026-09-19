@@ -1,0 +1,139 @@
+/* Identidad compartida del ecosistema JMR.
+   La estructura analítica de Modelo JMR se conserva; estos tokens alinean
+   color, navegación, foco, radios y superficies con Cartera y Presupuesto. */
+:root {
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --surface-2: #f1f5f9;
+  --ink: #0f172a;
+  --ink-soft: #475569;
+  --ink-faint: #64748b;
+  --border: #cbd5e1;
+  --border-soft: #e2e8f0;
+  --accent: #4f46e5;
+  --accent-soft: #eef2ff;
+  --accent-ink: #3730a3;
+  --positive: #047857;
+  --positive-soft: #d1fae5;
+  --negative: #b91c1c;
+  --negative-soft: #fee2e2;
+  --chip-std-bg: #e0f2fe;
+  --chip-std-fg: #0369a1;
+  --chip-spec-bg: #ede9fe;
+  --chip-spec-fg: #6d28d9;
+  --shadow: 0 1px 2px rgba(15, 23, 42, .06), 0 12px 28px -16px rgba(15, 23, 42, .2);
+  --focus: #0ea5e9;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #020617;
+    --surface: #0f172a;
+    --surface-2: #1e293b;
+    --ink: #f8fafc;
+    --ink-soft: #cbd5e1;
+    --ink-faint: #94a3b8;
+    --border: #475569;
+    --border-soft: #334155;
+    --accent: #818cf8;
+    --accent-soft: #1e1b4b;
+    --accent-ink: #c7d2fe;
+    --positive: #34d399;
+    --positive-soft: #064e3b;
+    --negative: #f87171;
+    --negative-soft: #450a0a;
+    --chip-std-bg: #0c4a6e;
+    --chip-std-fg: #bae6fd;
+    --chip-spec-bg: #4c1d95;
+    --chip-spec-fg: #ddd6fe;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .32), 0 14px 32px -16px rgba(0, 0, 0, .7);
+    --focus: #38bdf8;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #020617;
+  --surface: #0f172a;
+  --surface-2: #1e293b;
+  --ink: #f8fafc;
+  --ink-soft: #cbd5e1;
+  --ink-faint: #94a3b8;
+  --border: #475569;
+  --border-soft: #334155;
+  --accent: #818cf8;
+  --accent-soft: #1e1b4b;
+  --accent-ink: #c7d2fe;
+  --positive: #34d399;
+  --positive-soft: #064e3b;
+  --negative: #f87171;
+  --negative-soft: #450a0a;
+  --chip-std-bg: #0c4a6e;
+  --chip-std-fg: #bae6fd;
+  --chip-spec-bg: #4c1d95;
+  --chip-spec-fg: #ddd6fe;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .32), 0 14px 32px -16px rgba(0, 0, 0, .7);
+  --focus: #38bdf8;
+}
+
+body {
+  font-family: "Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+nav.appnav {
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  margin-top: 14px;
+  padding: 6px 8px;
+}
+
+nav.appnav a {
+  border-bottom: 0;
+  border-radius: 8px;
+  margin-bottom: 0;
+  padding: 9px 11px;
+}
+
+nav.appnav a:hover {
+  background: var(--surface-2);
+}
+
+nav.appnav a.active {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+
+nav.appnav a.jmr-home {
+  align-items: center;
+  background: #020617;
+  color: #fff;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 800;
+  justify-content: center;
+  letter-spacing: .08em;
+  min-width: 48px;
+}
+
+nav.appnav a.jmr-home:hover {
+  background: #1e293b;
+  color: #fff;
+}
+
+button,
+input,
+select,
+textarea {
+  border-radius: 8px;
+}
+
+@media (max-width: 700px) {
+  nav.appnav {
+    border-left: 0;
+    border-radius: 0;
+    border-right: 0;
+    margin-top: 0;
+  }
+}

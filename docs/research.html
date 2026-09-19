@@ -7,7 +7,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="favicon.ico">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<meta name="theme-color" content="#10160F">
+<meta name="theme-color" content="#020617">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
@@ -43,10 +43,12 @@ nav.appnav{display:flex;gap:4px;padding:14px 20px 0;max-width:1180px;margin:0 au
 @media(max-width:900px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.editor-grid,.prompt-layout{grid-template-columns:1fr}.sticky{position:static}}@media(max-width:600px){.wrap{padding-left:14px;padding-right:14px}.hero{padding-top:25px}.theme-btn{display:none}.cards{grid-template-columns:1fr}.company-banner{align-items:flex-start}.company-name h2{font-size:19px}.preview-body{padding:19px 16px}.live-price strong{font-size:16px}}
 @media print{nav,.hero,.tabs,.editor-grid>.stack,.theme-btn,.actions,.disclaimer{display:none!important}.panel{display:block!important}.panel:not(.active){display:none!important}.editor-grid{display:block}.preview-shell{box-shadow:none;border:0}.preview-body{padding:0}.company-banner{padding:0 0 16px;background:none}.wrap{max-width:none;padding:0}}
 </style>
+<link rel="stylesheet" href="jmr-theme.css">
 </head>
 <body>
 <script src="auth.js"></script>
 <nav class="appnav">
+  <a class="jmr-home" href="https://cartera-two-eta.vercel.app/" title="Centro financiero JMR">JMR</a>
   <a href="index.html">Bitácora de Valoración</a>
   <a href="research.html" class="active">Análisis Fundamental</a>
   <a href="visor.html">Valoración - Modelo JMR</a>
