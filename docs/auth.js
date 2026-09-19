@@ -10,6 +10,12 @@
   var PASS_HASH = "a5abc1ea59fec33f3b13fa73dd732f49bb303c90916e1adee160ddb9516b49c6";
   var STORAGE_KEY = "jmr-auth-ok-v1";
 
+  // En Vercel, el servidor ya validó las credenciales. La cookie evita
+  // pedirlas por segunda vez; no concede acceso por sí sola.
+  if (document.cookie.split(";").some(function (part) {
+    return part.trim() === "jmr-server-auth=1";
+  })) return;
+
   var authed = false;
   try { authed = localStorage.getItem(STORAGE_KEY) === "1"; } catch (e) {}
   if (authed) return;

@@ -4,6 +4,17 @@
 > [Volver al centro financiero](https://cartera-two-eta.vercel.app/) ·
 > Repositorio canónico: `JuanMaRobledo/Modelo-JMR`.
 
+## Acceso privado en Vercel
+
+El sitio se publica desde `docs/` y el proxy de Vercel protege todas las
+rutas antes de entregar HTML, JavaScript, archivos o imágenes. Configurar en
+Vercel las variables `APP_USERNAME` y `APP_PASSWORD` para Production, Preview
+y Development. Si falta alguna, el sitio responde 503 en vez de quedar
+público.
+
+La pantalla antigua de `docs/auth.js` se conserva únicamente como respaldo
+para GitHub Pages. No sustituye la protección del servidor.
+
 Este repositorio organiza y sistematiza el enfoque de valoración fundamental usado en
 **"Casos de estudio"** (55 hipótesis de inversión analizadas entre 2022 y 2026), y lo convierte
 en un **modelo replicable** para analizar nuevas empresas de forma consistente.
