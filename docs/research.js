@@ -5,6 +5,13 @@
   var PROMPT_KEY = 'jmr-research-prompt-v1';
   var GH_REPO_API = 'https://api.github.com/repos/JuanMaRobledo/Modelo-JMR-datos/';
   var GH_API = GH_REPO_API + 'contents/';
+  // Algunos logos del CDN de FMP desaparecen aunque la empresa siga
+  // existiendo. Conservamos localmente los casos conocidos para que la
+  // biblioteca no dependa de esas URLs externas.
+  var LOCAL_LOGOS = {
+    UBER: 'assets/logos/uber.svg',
+    NKE: 'assets/logos/nike.svg'
+  };
   var REQUIRED = [
     'Resumen ejecutivo', 'Modelo de negocio', 'Industria y crecimiento',
     'Calidad del negocio', 'Ventaja competitiva', 'Competencia',
@@ -22,6 +29,22 @@
   }
   function el(id) { return document.getElementById(id); }
   function escapeHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function logoForRecord(record) {
+    var ticker = String(record && record.ticker || '').trim().toUpperCase();
+    return LOCAL_LOGOS[ticker] || (record && record.logo) || '';
+  }
+  function wireLogoFallbacks(root) {
+    if (!root) return;
+    root.querySelectorAll('img.mini-logo[data-ticker]').forEach(function (img) {
+      img.onerror = function () {
+        var fallback = document.createElement('span');
+        fallback.className = 'mini-logo mini-fallback';
+        fallback.textContent = (img.getAttribute('data-ticker') || '?').slice(0, 2).toUpperCase();
+        img.replaceWith(fallback);
+      };
+      if (img.complete && img.naturalWidth === 0) img.onerror();
+    });
+  }
   function safeHtml(html) {
     if (typeof DOMPurify === 'undefined') return escapeHtml(html);
     return DOMPurify.sanitize(html, {
@@ -179,7 +202,8 @@
     el('previewPrice').textContent = state.price != null ? new Intl.NumberFormat('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2}).format(state.price) : '—';
     el('previewPriceNote').textContent = state.priceFetchedAt ? new Date(state.priceFetchedAt).toLocaleDateString('es-CO') : '';
     var logo = el('previewLogo');
-    if (state.logo) { logo.src = state.logo; logo.alt = 'Logo de ' + (state.company || state.ticker); logo.hidden = false; }
+    var logoSrc = logoForRecord(state);
+    if (logoSrc) { logo.src = logoSrc; logo.alt = 'Logo de ' + (state.company || state.ticker); logo.hidden = false; }
     else { logo.hidden = true; logo.removeAttribute('src'); }
     // Mientras se está editando el contenido a mano, no se toca el DOM
     // editable — reconstruirlo desde state.html en cada tecla tipeada en
@@ -818,11 +842,13 @@
     var holder=el('libraryCards');
     if(!list.length){holder.innerHTML='<div class="empty">Todavía no hay análisis guardados. Abre “Nuevo análisis” para crear el primero.</div>';setStatus('libraryStatus',getGhToken()?'GitHub conectado.':'Biblioteca local · GitHub no conectado.');return;}
     holder.innerHTML=list.map(function(r){
-      var logo=r.logo?'<img class="mini-logo" src="'+escapeHtml(r.logo)+'" alt="">':'<span class="mini-logo mini-fallback">'+escapeHtml((r.ticker||'?').slice(0,2))+'</span>';
+      var logoSrc=logoForRecord(r);
+      var logo=logoSrc?'<img class="mini-logo" src="'+escapeHtml(logoSrc)+'" data-ticker="'+escapeHtml(r.ticker||'?')+'" alt="Logo de '+escapeHtml(r.company||r.ticker||'empresa')+'">':'<span class="mini-logo mini-fallback">'+escapeHtml((r.ticker||'?').slice(0,2))+'</span>';
       var excerpt=recordExcerpt(r);
       var visorLink=(r.linkedValuation&&r.linkedValuation.sourcePath)?'<a class="btn" href="visor.html?path='+encodeURIComponent(r.linkedValuation.sourcePath)+'">Ver en el Visor</a>':'';
       return '<article class="analysis-card" data-id="'+escapeHtml(r.id)+'"><div class="card-head">'+logo+'<div class="card-title"><strong>'+escapeHtml(r.title||r.company)+'</strong><span class="ticker">'+escapeHtml(r.ticker||'—')+' · '+escapeHtml(r.company||'')+'</span></div></div>'+(excerpt?'<p class="card-excerpt">'+escapeHtml(excerpt)+'</p>':'')+'<div class="card-meta"><span>'+escapeHtml(r.date||'Sin fecha')+'</span><span>'+(r.remotePath?'GitHub + local':'Solo local')+'</span></div><div class="card-actions"><button class="btn" data-action="open" type="button">Abrir</button>'+visorLink+'<button class="btn danger" data-action="delete" type="button">Borrar</button></div></article>';
     }).join('');
+    wireLogoFallbacks(holder);
     setStatus('libraryStatus',list.length+' análisis · '+(getGhToken()?'GitHub disponible':'almacenamiento local'));
     populateCompareSelects();
   }
@@ -852,7 +878,8 @@
     });
   }
   function buildCompareColumnHtml(rec) {
-    var logo = rec.logo ? '<img class="company-logo" src="' + escapeHtml(rec.logo) + '" alt="">' : '';
+    var logoSrc = logoForRecord(rec);
+    var logo = logoSrc ? '<img class="company-logo" src="' + escapeHtml(logoSrc) + '" alt="Logo de ' + escapeHtml(rec.company || rec.ticker || 'empresa') + '">' : '';
     var linked = rec.linkedValuation ? buildLinkedValuationHtml(rec.linkedValuation) : '';
     var val = rec.valuationHtml ? '<section class="valuation-block"><h2>Valoración cuantitativa</h2>' + rec.valuationHtml + '</section>' : '';
     var title = rec.title ? '<h1>' + escapeHtml(rec.title) + '</h1>' : '';
