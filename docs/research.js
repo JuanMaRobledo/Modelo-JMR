@@ -659,7 +659,12 @@
     }).join('');
     return '<div class="diff-view">' + html + '</div>';
   }
-  function refreshHistoryButton() { el('historyBtn').hidden = !state.remotePath || !getGhToken(); }
+  function refreshHistoryButton() {
+    el('historyBtn').hidden = !state.remotePath || !getGhToken();
+    // El PDF real (api/pdf.js) necesita una URL reproducible — solo existe
+    // una vez que el análisis ya se guardó en Modelo-JMR-datos (remotePath).
+    el('downloadRealPdfBtn').hidden = !state.remotePath;
+  }
   function showHistoryPanel() {
     var panel = el('historyPanel');
     panel.hidden = false;
@@ -754,6 +759,32 @@
   }
   el('downloadPdfBtn').addEventListener('click', function () {
     downloadPdf(el('previewBody'), safeFileSlug(state.ticker) + '-' + safeFileSlug(state.date || new Date().toISOString().slice(0, 10)) + '.pdf', this, 'saveStatus');
+  });
+
+  // PDF real (texto/vectores, no una captura de pantalla): abre esta misma
+  // página con Chromium headless en el servidor (api/pdf.js) usando el
+  // mismo deep link ?id= que la sincroniza con lo guardado en
+  // Modelo-JMR-datos, así que solo está disponible una vez guardado ahí.
+  el('downloadRealPdfBtn').addEventListener('click', function () {
+    if (!state.remotePath || !state.id) return;
+    var btn = this;
+    btn.disabled = true;
+    setStatus('realPdfStatus', 'Generando PDF…');
+    fetch('/api/pdf?page=research&id=' + encodeURIComponent(state.id))
+      .then(function (res) {
+        if (!res.ok) return res.json().then(function (e) { throw new Error(e.error || ('HTTP ' + res.status)); });
+        return res.blob();
+      })
+      .then(function (blob) {
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url; a.download = safeFileSlug(state.ticker) + '-' + safeFileSlug(state.date || new Date().toISOString().slice(0, 10)) + '.pdf';
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+        setStatus('realPdfStatus', '');
+      })
+      .catch(function (err) { setStatus('realPdfStatus', 'No se pudo generar el PDF: ' + err.message, 'bad'); })
+      .finally(function () { btn.disabled = false; });
   });
 
   // Substack no tiene forma de "subir un archivo" para un post individual
@@ -923,6 +954,25 @@
     } catch (e) {}
   }
 
+  // ?id=<state.id> abre directo la vista previa de ESE análisis (a
+  // diferencia de ?ticker=, que solo filtra la Biblioteca) — lo usa
+  // api/pdf.js para generar el PDF real con Chromium headless, y también
+  // sirve como enlace directo compartible a un análisis puntual.
+  var pdfMode = new URLSearchParams(location.search).get('pdfmode') === '1';
+  var deepLinkId = new URLSearchParams(location.search).get('id');
+  function applyDeepLinkId() {
+    if (!deepLinkId) return false;
+    var rec = getLocalLibrary().find(function (r) { return r.id === deepLinkId; });
+    if (!rec) return false;
+    fillEditor(rec);
+    return true;
+  }
+  if (pdfMode) {
+    document.body.classList.add('pdf-mode');
+    var pdfDate = el('pdfHeaderDate');
+    if (pdfDate) pdfDate.textContent = 'Generado el ' + new Date().toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' });
+  }
+
   renderGhBanner();
   el('compareOutput').innerHTML='<div class="compare-empty">Elegí dos empresas arriba para verlas lado a lado.</div>';
   renderLibrary();renderPreview();loadPrompt(false);
@@ -931,6 +981,16 @@
   // siempre, con o sin token conectado (el token solo hace falta para
   // guardar/borrar) — así la biblioteca nunca depende de acordarse de
   // apretar "Sincronizar GitHub" ni de conectar nada solo para mirar.
-  syncRemote().then(function (n) { applyDeepLinkFilter(); return pushLocalOnlyToRemote(); }).catch(function () {});
+  syncRemote().then(function (n) {
+    applyDeepLinkFilter();
+    if (deepLinkId) applyDeepLinkId();
+    return pushLocalOnlyToRemote();
+  }).catch(function () {}).finally(function () {
+    // Señal para api/pdf.js: se espera este flag en vez de un timeout fijo,
+    // porque syncRemote() es asíncrono y termina después de que la red
+    // queda "quieta". Si pdfmode pidió un id que no existe, igual hay que
+    // liberar a Chromium en vez de dejarlo colgado.
+    if (pdfMode) window.__pdfReady = true;
+  });
   if ('serviceWorker' in navigator) window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});
 })();

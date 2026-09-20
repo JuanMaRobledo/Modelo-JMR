@@ -15,6 +15,21 @@ público.
 La pantalla antigua de `docs/auth.js` se conserva únicamente como respaldo
 para GitHub Pages. No sustituye la protección del servidor.
 
+## PDF real de una valoración o un análisis fundamental
+
+El botón "Descargar PDF" de una valoración guardada (`visor.html`) o de un
+análisis fundamental ya guardado (`research.html`) genera un PDF de verdad
+(texto y vectores, no una captura de pantalla): `api/pdf.js`, una función de
+Vercel, abre esa misma página en un Chromium headless
+(`puppeteer-core` + `@sparticuz/chromium`) con `?pdfmode=1` — ese parámetro
+oculta la navegación y los controles de edición, agrega el sello de la marca
+(`docs/assets/jmr-sello-grabado.png`) como encabezado, y avisa con
+`window.__pdfReady` cuándo terminó de cargar los datos guardados — y
+convierte esa página a PDF con `page.pdf()`. Solo está disponible para
+análisis/valoraciones ya guardados en `Modelo-JMR-datos` (necesita una URL
+reproducible para poder abrirla); un cálculo recién hecho pero sin guardar
+no tiene de dónde generarlo.
+
 Este repositorio organiza y sistematiza el enfoque de valoración fundamental usado en
 **"Casos de estudio"** (55 hipótesis de inversión analizadas entre 2022 y 2026), y lo convierte
 en un **modelo replicable** para analizar nuevas empresas de forma consistente.

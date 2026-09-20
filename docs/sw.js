@@ -1,4 +1,4 @@
-const CACHE = "modelo-jmr-v87";
+const CACHE = "modelo-jmr-v88";
 const APP_SHELL = [
   "index.html",
   "visor.html",
@@ -19,7 +19,8 @@ const APP_SHELL = [
   "icons/icon-192.png",
   "icons/icon-512.png",
   "assets/logos/uber.svg",
-  "assets/logos/nike.svg"
+  "assets/logos/nike.svg",
+  "assets/jmr-sello-grabado.png"
 ];
 
 self.addEventListener("install", (event) => {

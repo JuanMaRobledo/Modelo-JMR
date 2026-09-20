@@ -583,6 +583,25 @@
   }
 
   footer{margin-top:32px; font-size:12px; color:var(--ink-faint); line-height:1.6; border-top:1px solid var(--border-soft); padding-top:16px;}
+
+  /* Modo PDF: activado por api/pdf.js vía ?pdfmode=1 al abrir esta página
+     con Chromium headless. Oculta todo lo interactivo (nav, subida de
+     Excel, lista de guardadas, botones) y deja solo el resultado, con un
+     encabezado con el sello de la marca en vez del <h1> normal. */
+  .pdf-header{display:none;}
+  body.pdf-mode .appnav,
+  body.pdf-mode .subtitle,
+  body.pdf-mode #loadDataTitle,
+  body.pdf-mode #loadDataGrid,
+  body.pdf-mode footer,
+  body.pdf-mode #downloadPdfBtn{display:none !important;}
+  body.pdf-mode .pdf-header{
+    display:flex; align-items:center; gap:14px; margin-bottom:20px; padding-bottom:16px;
+    border-bottom:2px solid var(--border-soft, #ddd);
+  }
+  body.pdf-mode .pdf-header img{width:52px; height:auto; flex:none;}
+  body.pdf-mode .pdf-header .pdf-header-text strong{display:block; font-size:16px; color:var(--ink, #111);}
+  body.pdf-mode .pdf-header .pdf-header-text span{font-size:12px; color:var(--ink-faint, #666);}
 </style>
 <link rel="stylesheet" href="jmr-theme.css">
 </head>
@@ -604,6 +623,14 @@
   <h1>Valoración - Modelo JMR</h1>
   <p class="subtitle">Sube tu Excel del Modelo JMR (DCF Damodaran + 5 múltiplos) ya lleno para un ticker, y lo verás resumido aquí — sin abrir Excel.</p>
 
+  <div class="pdf-header">
+    <img src="assets/jmr-sello-grabado.png" alt="JMR">
+    <div class="pdf-header-text">
+      <strong>Modelo JMR · Valoración</strong>
+      <span id="pdfHeaderDate"></span>
+    </div>
+  </div>
+
   <div class="error-box" id="errorBox"></div>
 
   <div id="result">
@@ -621,6 +648,11 @@
         <div id="rPrice">—</div>
         <div class="price-sub" id="rPriceNote"></div>
       </div>
+    </div>
+
+    <div class="gh-row" style="margin:-4px 0 18px;">
+      <button class="gh-btn" id="downloadPdfBtn" type="button" hidden>Descargar PDF</button>
+      <span class="gh-status" id="downloadPdfStatus"></span>
     </div>
 
     <p class="section-title">Precio de hoy vs. precio al día del análisis</p>
@@ -883,8 +915,8 @@
     </div>
   </div>
 
-  <p class="section-title">Cargar datos</p>
-  <div class="data-grid">
+  <p class="section-title" id="loadDataTitle">Cargar datos</p>
+  <div class="data-grid" id="loadDataGrid">
     <div class="gh-section">
       <h3>Subir un Excel nuevo</h3>
       <p class="sub">Sube tu Excel del Modelo JMR (DCF Damodaran + 5 múltiplos) ya lleno para un ticker, o un CSV exportado desde este mismo visor — y lo verás resumido arriba, sin abrir Excel.</p>
@@ -940,6 +972,39 @@
   var currentResumen = null;
   var currentTicker = null;
   var currentPrecioAnalisis = null;
+  // Ruta en Modelo-JMR-datos de la valoración guardada que se está viendo
+  // ahora mismo (null si lo que se ve viene de un Excel recién subido, sin
+  // guardar todavía) — el PDF real solo puede generarse para una valoración
+  // ya guardada, porque api/pdf.js necesita una URL reproducible para
+  // abrirla con Chromium headless.
+  var currentSavedPath = null;
+
+  function setCurrentSavedPath(path){
+    currentSavedPath = path || null;
+    var btn = document.getElementById('downloadPdfBtn');
+    if(btn) btn.hidden = !currentSavedPath;
+  }
+
+  document.getElementById('downloadPdfBtn').addEventListener('click', function(){
+    if(!currentSavedPath) return;
+    var btn = this, status = document.getElementById('downloadPdfStatus');
+    btn.disabled = true; status.textContent = 'Generando PDF…';
+    fetch('/api/pdf?page=visor&path=' + encodeURIComponent(currentSavedPath))
+      .then(function(res){
+        if(!res.ok) return res.json().then(function(e){ throw new Error(e.error || ('HTTP ' + res.status)); });
+        return res.blob();
+      })
+      .then(function(blob){
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url; a.download = 'modelo-jmr-valoracion-' + (currentTicker || 'analisis') + '.pdf';
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+        status.textContent = '';
+      })
+      .catch(function(err){ status.textContent = 'No se pudo generar el PDF: ' + err.message; })
+      .finally(function(){ btn.disabled = false; });
+  });
 
   // Hojas de la plantilla "involucradas en la valoración" (informes
   // financieros, tablas de valoración y de análisis) — se excluyen a
@@ -2710,6 +2775,7 @@
         b.disabled = true; b.textContent = 'Cargando…';
         fetchValoracion(b.dataset.path).then(function(res){
           displaySavedRecord(res.record);
+          setCurrentSavedPath(b.dataset.path);
         }).catch(function(err){
           status.textContent = 'Error al cargar: ' + err.message;
         }).then(function(){
@@ -3273,14 +3339,35 @@
   // "Valoraciones guardadas". Leer no requiere token (el repo de datos es
   // público), así que funciona igual sin conectar nada.
   var deepLinkPath = new URLSearchParams(location.search).get('path');
+
+  // ?pdfmode=1 lo agrega api/pdf.js al abrir esta página con Chromium
+  // headless (ver docs/visor.html .pdf-header en el <style>) — nunca lo usa
+  // un visitante normal a mano.
+  var pdfMode = new URLSearchParams(location.search).get('pdfmode') === '1';
+  if(pdfMode){
+    document.body.classList.add('pdf-mode');
+    var pdfDate = document.getElementById('pdfHeaderDate');
+    if(pdfDate) pdfDate.textContent = 'Generado el ' + new Date().toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' });
+  }
+
   if(deepLinkPath){
     document.getElementById('savedStatus').textContent = 'Cargando valoración vinculada…';
     fetchValoracion(deepLinkPath).then(function(res){
       displaySavedRecord(res.record);
+      setCurrentSavedPath(deepLinkPath);
       document.getElementById('savedStatus').textContent = 'Valoración vinculada cargada.';
     }).catch(function(err){
       document.getElementById('savedStatus').textContent = 'No se pudo cargar la valoración vinculada (' + deepLinkPath + '): ' + err.message;
+    }).then(function(){
+      // Señal para api/pdf.js: se espera este flag (con éxito o error) en
+      // vez de un timeout fijo, porque el fetch a GitHub es asíncrono y
+      // termina bastante después de que la red queda "quieta".
+      window.__pdfReady = true;
     });
+  } else if(pdfMode){
+    // pdfmode sin ?path es un uso incorrecto de la API — no hay nada que
+    // esperar, así que no hay que dejar a Chromium colgado.
+    window.__pdfReady = true;
   }
 })();
 </script>
