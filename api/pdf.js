@@ -1,6 +1,19 @@
 import chromium from "@sparticuz/chromium";
 import puppeteer from "puppeteer-core";
 
+// @sparticuz/chromium solo extrae las librerías del sistema que le faltan a
+// su Chromium empaquetado (libnss3.so y demás) cuando detecta que corre
+// dentro de AWS Lambda de verdad, mirando variables como AWS_EXECUTION_ENV.
+// Las funciones de Vercel corren sobre esa misma infraestructura pero no
+// definen esa variable, así que sin este parche la detección falla,
+// Chromium arranca sin esas librerías y puppeteer explota con "Failed to
+// launch the browser process: ... libnss3.so: cannot open shared object
+// file". Fingir el valor (antes de pedirle el executablePath) hace que
+// extraiga el paquete correcto para Node 20+ (Amazon Linux 2023).
+if (!process.env.AWS_EXECUTION_ENV) {
+  process.env.AWS_EXECUTION_ENV = "AWS_Lambda_nodejs20.x";
+}
+
 // Genera un PDF real (texto y vectores, no una captura de pantalla) de una
 // valoración guardada (visor.html) o un análisis fundamental (research.html),
 // abriendo la página correspondiente en un Chromium headless — el mismo
