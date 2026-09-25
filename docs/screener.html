@@ -28,6 +28,9 @@
   h1{font-family:"Fraunces", Georgia, serif; font-weight:700; font-size:clamp(26px,4vw,34px); letter-spacing:-0.01em; margin:0;}
   h2{font-family:"Fraunces", Georgia, serif; font-size:20px; margin:32px 0 10px;}
   .subtitle{color:var(--ink-soft); font-size:14px; line-height:1.55; margin:6px 0 0; max-width:780px;}
+  .live{font-size:12.5px; color:var(--ink-faint); margin-top:4px;}
+  .live.ok{color:var(--positive);}
+  .live.ok::before{content:"● "; }
   .meta{color:var(--ink-faint); font-size:12.5px; margin-top:8px;}
   .theme-toggle, .btn{
     background:var(--surface); color:var(--ink-soft); border:1px solid var(--border);
@@ -130,8 +133,11 @@
         <h1>Screener de empresas maravillosas</h1>
         <p class="subtitle">Negocios con ROIC alto y sostenido, márgenes estables, utilidades que se convierten en caja, crecimiento y balance sano — y dónde está su precio hoy frente a su propia historia. Es el primer filtro: lo que sale arriba se analiza a fondo con el checklist de 8 pasos.</p>
         <div class="meta" id="meta">Cargando resultados…</div>
+        <div class="live" id="live" aria-live="polite"></div>
       </div>
       <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn" id="exportXlsx" type="button" title="Descargar la lista tal como está filtrada y ordenada, con todas las métricas">Exportar Excel</button>
+        <button class="btn" id="exportCsv" type="button" title="CSV con ; como separador y coma decimal (abre directo en Excel en español)">Exportar CSV</button>
         <label class="btn" for="fileInput" title="Abrir un resultados.json generado localmente con scripts/run_screener.py">Abrir JSON local</label>
         <input id="fileInput" type="file" accept=".json,application/json" hidden>
         <button class="theme-toggle" id="themeToggle" type="button" aria-label="Cambiar tema">Tema: sistema</button>
@@ -288,15 +294,78 @@
     if(x==null) return "—"; var a=Math.abs(x);
     if(a>=1e12) return "$"+(x/1e12).toFixed(2)+" T"; if(a>=1e9) return "$"+(x/1e9).toFixed(1)+" B"; return "$"+(x/1e6).toFixed(0)+" M";}
 
+  // --- Precios del día ---------------------------------------------------
+  // El JSON trae los fundamentales LTM de la última corrida (diaria, ver
+  // .github/workflows/screener.yml). Al abrir la página se piden los precios
+  // de hoy (api/quotes.js) y se recalcula todo lo que depende del precio.
+  var MULT_DEF = {pe:["mcap","net_income"], p_fcf:["mcap","fcf"], p_fcfe:["mcap","fcfe"], p_ocf:["mcap","ocf"],
+    ev_ebitda:["ev","ebitda"], ev_fcff:["ev","fcff"], ev_ebit:["ev","ebit"]};
+  function priceLabel(vs){
+    if(vs==null) return "Sin historia";
+    if(vs<=-0.20) return "Barata vs su historia";
+    if(vs<=-0.05) return "Algo bajo su historia";
+    if(vs<=0.10) return "En linea con su historia";
+    return "Cara vs su historia";
+  }
+  function repriced(v, p){
+    var k = p / v.price;
+    var mcap = v.shares ? v.shares * p : v.market_cap * k;
+    var full = v.ltm && v.net_debt != null;  // JSON nuevo: recalculo exacto
+    Object.keys(MULT_DEF).forEach(function(key){
+      var mm = v.multiples && v.multiples[key]; if(!mm) return;
+      var kind = MULT_DEF[key][0], den = full ? v.ltm[MULT_DEF[key][1]] : null;
+      if(full){
+        var num = kind==="mcap" ? mcap : mcap + v.net_debt;
+        mm.current = den > 0 && num > 0 ? num / den : null;
+      } else if(kind==="mcap" && mm.current != null){
+        mm.current = mm.current * k;   // JSON viejo: solo los múltiplos sobre market cap
+      }
+      mm.vs_hist = mm.current != null && mm.median_hist ? mm.current / mm.median_hist - 1 : null;
+    });
+    var M = v.multiples || {};
+    if(M.pe){ v.pe = M.pe.current; v.pe_vs_hist = M.pe.vs_hist; }
+    if(M.p_fcf){ v.p_fcf = M.p_fcf.current; v.p_fcf_vs_hist = M.p_fcf.vs_hist; }
+    if(M.ev_ebit) v.ev_ebit = M.ev_ebit.current;
+    if(v.fcf_yield != null) v.fcf_yield = full && v.ltm.fcf != null ? v.ltm.fcf / mcap : v.fcf_yield / k;
+    if(v.eps_growth > 0) v.peg = v.pe ? v.pe / (v.eps_growth * 100) : null;
+    else if(v.peg != null) v.peg = v.peg * k;
+    v.label = priceLabel(v.p_fcf_vs_hist != null ? v.p_fcf_vs_hist : v.pe_vs_hist);
+    v.price = Math.round(p * 100) / 100; v.market_cap = mcap; v.live = true;
+  }
+  function loadLivePrices(){
+    var results = (state.data && state.data.results) || [];
+    var tickers = results.filter(function(r){ return r.valuation && r.valuation.price > 0; }).map(function(r){ return r.ticker; });
+    if(!tickers.length) return;
+    setLive("Actualizando precios…");
+    fetch("api/quotes?symbols=" + encodeURIComponent(tickers.join(",")), {cache:"no-store"})
+      .then(function(r){ if(!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+      .then(function(q){
+        var n = 0, prices = q.prices || {};
+        results.forEach(function(r){
+          var p = prices[r.ticker];
+          if(r.valuation && p > 0){ repriced(r.valuation, p); n++; }
+        });
+        var t = new Date(q.asOf || Date.now());
+        setLive("Precios en vivo " + t.toLocaleString("es-CO", {day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit"}) +
+          " (" + n + " de " + tickers.length + ")", true);
+        render();
+      })
+      .catch(function(err){
+        setLive("No se pudieron actualizar los precios (" + err.message + "): se muestran los del " + (state.data.generated || "último cálculo") + ".");
+      });
+  }
+  function setLive(text, ok){ var el = $("live"); el.textContent = text; el.className = "live" + (ok ? " ok" : ""); }
+
   function load(payload){
     state.data = payload;
     var results = payload.results || [];
     results.forEach(function(r, i){ r._rank = i+1; });
-    $("meta").textContent = (payload.universe||"") + " · generado el " + (payload.generated||"—") + " · " + results.length + " empresas · Fuente: " + (payload.source||"");
+    $("meta").textContent = (payload.universe||"") + " · fundamentales al " + (payload.generated||"—") + " · " + results.length + " empresas · Fuente: " + (payload.source||"");
     var sectors = {}; results.forEach(function(r){ var s=r.sector||""; if(s) sectors[s]=1; });
     var sel = $("sector"); sel.length = 1;
     Object.keys(sectors).sort().forEach(function(s){ var o=document.createElement("option"); o.value=s; o.textContent=s; sel.appendChild(o); });
     renderTiles(); renderMethod(); render();
+    loadLivePrices();
   }
 
   function renderTiles(){
@@ -320,15 +389,21 @@
     });
   }
 
-  function render(){
+  // Filas con los filtros y el orden actuales (lo que se ve y lo que se exporta).
+  function visibleRows(){
     var col = findCol(state.sort.k) || COLS[0];
-    var cols = COLS.indexOf(col) >= 0 ? COLS : COLS.concat([col]);
-    var rows = filtered().slice().sort(function(a, b){
+    return filtered().slice().sort(function(a, b){
       var x=col.get(a), y=col.get(b);
       if(x==null && y==null) return a._rank-b._rank; if(x==null) return 1; if(y==null) return -1;
       if(typeof x==="string") return state.sort.dir*x.localeCompare(y);
       return state.sort.dir*(x-y);
     });
+  }
+
+  function render(){
+    var col = findCol(state.sort.k) || COLS[0];
+    var cols = COLS.indexOf(col) >= 0 ? COLS : COLS.concat([col]);
+    var rows = visibleRows();
     $("thead").innerHTML = cols.map(function(c){
       var s = c.k===state.sort.k ? (state.sort.dir>0?"ascending":"descending") : "none";
       return '<th class="'+(c.l?"l":"")+'" data-k="'+c.k+'" aria-sort="'+s+'" scope="col">'+esc(c.t)+'</th>';}).join("");
@@ -388,8 +463,100 @@
       '<div class="table-wrap" style="box-shadow:none"><table><thead><tr><th class="l">Grupo</th><th class="l">Métrica</th><th>Peso</th><th>Malo</th><th>Excelente</th><th class="l">Sentido</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
       '<p><strong>3. Precio vs su historia</strong> (Paso 4): P/FCF de hoy contra la mediana del P/FCF de cada cierre fiscal de los últimos ~10 años (P/E si no hay FCF). "Barata" = 20% o más por debajo de su mediana. Una empresa maravillosa rara vez está barata en términos absolutos: lo que se busca es el descuento relativo.</p>'+
       '<p><strong>Múltiplos</strong>: los cinco del Modelo JMR (EV/EBITDA, EV/FCFF, P/E, P/FCFE, P/OCF) más P/FCF y EV/EBIT, con el dato LTM de hoy. Cada uno se pinta verde si está 5% o más por debajo de su mediana histórica y rojo si está más de 10% por encima (pasá el cursor para ver la mediana). FCFF = OCF − CapEx + intereses × (1 − t); FCFE = OCF − CapEx + endeudamiento neto del año. <strong>PEG</strong> = P/E ÷ crecimiento anual del EPS de 5 años (en %): ≤ 1 en verde, > 2 en rojo; no se calcula si el EPS no creció.</p>'+
-      '<p><strong>Actualizar</strong>: en <code>JMR-valuation</code> correr <code>python scripts/run_screener.py --json-out ../Modelo-JMR/docs/screener/resultados.json</code> (o <code>--universe sp400</code> / <code>sp600</code> / <code>--tickers …</code>) y subir el JSON, o abrirlo con “Abrir JSON local”.</p>';
+      '<p><strong>Actualización</strong>: los precios se traen en vivo cada vez que abrís la página y con ellos se recalculan market cap, múltiplos, FCF yield, PEG y la etiqueta de precio. Los fundamentales (10-K, ROIC, márgenes, medianas históricas) se recalculan solos de lunes a viernes después del cierre de Nueva York (GitHub Actions → “Screener diario”, que también se puede correr a mano y con otro universo). Para una lista propia: en <code>JMR-valuation</code>, <code>python scripts/run_screener.py --tickers …</code> y abrir el JSON con “Abrir JSON local”.</p>'+
+      '<p><strong>Exportar</strong>: “Exportar Excel” y “Exportar CSV” bajan la lista tal como está filtrada y ordenada, con todas las métricas y múltiplos (no solo las columnas visibles). El CSV usa <code>;</code> y coma decimal para abrir directo en Excel en español.</p>';
   }
+
+  // --- Exportar ---------------------------------------------------------
+  // Exporta lo que se ve (filtros y orden actuales) con TODAS las métricas,
+  // no solo las columnas de la tabla.
+  var PCT_METRICS = Object.keys(METRIC_LABELS).filter(function(k){ return !X_METRICS[k]; });
+  function exportColumns(){
+    var cols = [
+      {h:"#", t:"num", get:function(r){return r._rank;}},
+      {h:"Ticker", t:"text", get:function(r){return r.ticker;}},
+      {h:"Empresa", t:"text", get:function(r){return r.name;}},
+      {h:"Sector", t:"text", get:function(r){return r.sector || "";}},
+      {h:"Industria", t:"text", get:function(r){return r.industry || "";}},
+      {h:"Clase", t:"text", get:function(r){return r.tier;}},
+      {h:"Puntaje", t:"num", get:function(r){return r.score;}}
+    ];
+    Object.keys(METRIC_LABELS).forEach(function(k){
+      cols.push({h:METRIC_LABELS[k], t:X_METRICS[k] ? "x" : "pct", get:m(k)});
+    });
+    cols.push({h:"Precio", t:"money", get:v("price")});
+    cols.push({h:"Market cap", t:"money", get:v("market_cap")});
+    cols.push({h:"FCF yield", t:"pct", get:v("fcf_yield")});
+    cols.push({h:"PEG", t:"num2", get:v("peg")});
+    Object.keys(MULT_LABELS).forEach(function(key){
+      cols.push({h:MULT_LABELS[key]+" hoy", t:"x", get:mc(key)});
+      cols.push({h:MULT_LABELS[key]+" mediana hist.", t:"x", get:mh(key)});
+      cols.push({h:MULT_LABELS[key]+" vs hist.", t:"pct", get:mv(key)});
+    });
+    cols.push({h:"Precio vs historia", t:"text", get:function(r){return r.valuation ? r.valuation.label : "";}});
+    cols.push({h:"Filtros que no pasa", t:"text", get:function(r){return ((r.quality||{}).failed_filters||[]).join(" | ");}});
+    cols.push({h:"Alertas", t:"text", get:function(r){return ((r.quality||{}).flags||[]).join(" | ");}});
+    return cols;
+  }
+  function exportName(ext){
+    var tier = state.tier ? state.tier.toLowerCase().replace(/[^a-z0-9]+/g, "-") : "todas";
+    return "screener-" + tier + "-" + new Date().toISOString().slice(0, 10) + "." + ext;
+  }
+  function saveBlob(blob, name){
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+  }
+  function exportCsv(){
+    var cols = exportColumns(), rows = visibleRows();
+    function cell(c, r){
+      var x = c.get(r);
+      if(x == null || (typeof x === "number" && !isFinite(x))) return "";
+      if(c.t === "text") return '"' + String(x).replace(/"/g, '""') + '"';
+      if(c.t === "pct") x = x * 100;
+      return String(Math.round(x * 10000) / 10000).replace(".", ",");
+    }
+    var head = cols.map(function(c){ return '"' + c.h + (c.t === "pct" ? " (%)" : "") + '"'; }).join(";");
+    var body = rows.map(function(r){ return cols.map(function(c){ return cell(c, r); }).join(";"); });
+    saveBlob(new Blob(["\ufeff" + [head].concat(body).join("\r\n")], {type:"text/csv;charset=utf-8"}), exportName("csv"));
+  }
+  var XLSX_URL = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+  function withXlsx(fn){
+    if(window.XLSX) return fn();
+    var sc = document.createElement("script"); sc.src = XLSX_URL;
+    sc.onload = fn;
+    sc.onerror = function(){ setLive("No se pudo cargar el exportador de Excel; usá Exportar CSV."); };
+    document.head.appendChild(sc);
+  }
+  function exportXlsx(){
+    withXlsx(function(){
+      var cols = exportColumns(), rows = visibleRows();
+      var FMT = {pct:"0.0%", x:"0.0\"x\"", money:"#,##0.00", num2:"0.00", num:"0.#"};
+      var aoa = [cols.map(function(c){ return c.h; })].concat(rows.map(function(r){
+        return cols.map(function(c){ var x = c.get(r); return (typeof x === "number" && !isFinite(x)) ? null : (x == null ? null : x); });
+      }));
+      var ws = XLSX.utils.aoa_to_sheet(aoa);
+      rows.forEach(function(_, i){
+        cols.forEach(function(c, j){
+          var ref = XLSX.utils.encode_cell({r:i+1, c:j});
+          if(ws[ref] && FMT[c.t] && ws[ref].t === "n") ws[ref].z = FMT[c.t];
+        });
+      });
+      ws["!cols"] = cols.map(function(c){ return {wch: c.t === "text" ? Math.max(12, c.h.length) : Math.max(9, Math.min(c.h.length, 22))}; });
+      ws["!freeze"] = {xSplit: 3, ySplit: 1};
+      var wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Screener");
+      var info = [["Screener de empresas maravillosas"], ["Universo", state.data.universe || ""],
+        ["Fundamentales al", state.data.generated || ""], ["Exportado", new Date().toLocaleString("es-CO")],
+        ["Filtro de clase", state.tier || "Todas"], ["Orden", (findCol(state.sort.k) || {}).t + (state.sort.dir > 0 ? " ascendente" : " descendente")],
+        ["Fuente", state.data.source || ""]];
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(info), "Info");
+      XLSX.writeFile(wb, exportName("xlsx"));
+    });
+  }
+  $("exportCsv").addEventListener("click", exportCsv);
+  $("exportXlsx").addEventListener("click", exportXlsx);
 
   // --- Eventos ---
   $("tiles").addEventListener("click", function(e){
