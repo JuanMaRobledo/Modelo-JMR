@@ -49,6 +49,8 @@
   }
   .controls input[type=search]{flex:1 1 220px;}
   .controls label.chk{display:flex; gap:6px; align-items:center; font-size:13px; color:var(--ink-soft);}
+  .sortbox{display:flex; gap:6px; align-items:center;}
+  .sortbox::before{content:"Ordenar por"; font-size:12.5px; color:var(--ink-soft);}
   .count{font-size:12.5px; color:var(--ink-faint); margin-left:auto;}
 
   .table-wrap{overflow-x:auto; background:var(--surface); border:1px solid var(--border-soft); border-radius:14px; box-shadow:var(--shadow);}
@@ -149,6 +151,7 @@
       <option value="Cara vs su historia">Cara vs su historia</option>
     </select>
     <label class="chk"><input type="checkbox" id="noFlags"> Sin alertas</label>
+    <span class="sortbox"><select id="sortBy" aria-label="Ordenar por"></select><button class="btn" id="sortDir" type="button" aria-label="Cambiar sentido del orden">↑ Ascendente</button></span>
     <span class="count" id="count"></span>
   </div>
 
@@ -186,25 +189,45 @@
 
   var COLS = [
     {k:"rank", t:"#", get:function(r){return r._rank;}, fmt:function(v){return v;}},
-    {k:"ticker", t:"Empresa", l:true, get:function(r){return r.ticker;}, html:function(r){
+    {k:"ticker", t:"Empresa", l:true, get:function(r){return r.name||r.ticker;}, html:function(r){
       return '<span class="tk">'+esc(r.ticker)+'</span><span class="nm" title="'+esc(r.name)+'">'+esc(r.name)+'</span>';}},
     {k:"sector", t:"Sector", l:true, get:function(r){return r.sector||r.industry||"";}, html:function(r){return '<span class="nm" style="max-width:150px">'+esc(r.sector||r.industry||"—")+'</span>';}},
     {k:"tier", t:"Clase", l:true, get:function(r){return TIER_ORDER.indexOf(r.tier);}, html:function(r){return chip("t", r.tier);}},
     {k:"score", t:"Puntaje", get:function(r){return r.score;}, html:function(r){
       if(r.score==null) return "—";
       return '<span class="bar"><i style="width:'+Math.max(0,Math.min(100,r.score))+'%"></i></span>'+r.score.toFixed(0);}},
-    {k:"roic", t:"ROIC 5a", get:m("roic_median_5y"), fmt:pctColor(0.15, 0.10)},
-    {k:"gm", t:"Mg. bruto", get:m("gross_margin_median_5y"), fmt:pct},
-    {k:"fcfm", t:"Mg. FCF", get:m("fcf_margin_median_5y"), fmt:pctColor(0.15, 0.05)},
-    {k:"rev", t:"Ventas 5a", get:m("revenue_cagr_5y"), fmt:pctColor(0.08, 0.0)},
-    {k:"fps", t:"FCF/acc. 5a", get:m("fcf_per_share_cagr_5y"), fmt:pctColor(0.08, 0.0)},
-    {k:"nd", t:"DN/EBITDA", get:m("net_debt_to_ebitda"), fmt:function(v){
+    {k:"roic", metricKey:"roic_median_5y", t:"ROIC 5a", get:m("roic_median_5y"), fmt:pctColor(0.15, 0.10)},
+    {k:"gm", metricKey:"gross_margin_median_5y", t:"Mg. bruto", get:m("gross_margin_median_5y"), fmt:pct},
+    {k:"fcfm", metricKey:"fcf_margin_median_5y", t:"Mg. FCF", get:m("fcf_margin_median_5y"), fmt:pctColor(0.15, 0.05)},
+    {k:"rev", metricKey:"revenue_cagr_5y", t:"Ventas 5a", get:m("revenue_cagr_5y"), fmt:pctColor(0.08, 0.0)},
+    {k:"fps", metricKey:"fcf_per_share_cagr_5y", t:"FCF/acc. 5a", get:m("fcf_per_share_cagr_5y"), fmt:pctColor(0.08, 0.0)},
+    {k:"nd", metricKey:"net_debt_to_ebitda", t:"DN/EBITDA", get:m("net_debt_to_ebitda"), fmt:function(v){
       if(v==null) return "—"; var c = v>3?"bad":(v<=1?"good":""); return '<span class="'+c+'">'+v.toFixed(1)+'x</span>';}},
+    {k:"price", t:"Precio", get:v("price"), fmt:function(x){return x==null?"—":"$"+x.toFixed(2);}},
+    {k:"mcap", t:"Market cap", get:v("market_cap"), fmt:money},
     {k:"fy", t:"FCF yield", get:v("fcf_yield"), fmt:pctColor(0.05, 0.02, 1)},
-    {k:"vs", t:"P/FCF vs hist.", get:v("p_fcf_vs_hist"), fmt:function(x){
-      if(x==null) return "—"; var c = x<=-0.05?"good":(x>0.10?"bad":""); return '<span class="'+c+'">'+(x>0?"+":"")+(x*100).toFixed(0)+'%</span>';}},
-    {k:"label", t:"Precio", l:true, get:function(r){return r.valuation?r.valuation.label:"";}, html:function(r){return r.valuation?chip("v", r.valuation.label):"—";}}
+    {k:"pfcf", t:"P/FCF", get:v("p_fcf"), fmt:mult},
+    {k:"pfcfh", t:"P/FCF hist.", get:v("p_fcf_median_hist"), fmt:mult},
+    {k:"vs", t:"P/FCF vs hist.", get:v("p_fcf_vs_hist"), fmt:vsHist},
+    {k:"pe", t:"P/E", get:v("pe"), fmt:mult},
+    {k:"peh", t:"P/E hist.", get:v("pe_median_hist"), fmt:mult},
+    {k:"pevs", t:"P/E vs hist.", get:v("pe_vs_hist"), fmt:vsHist},
+    {k:"evebit", t:"EV/EBIT", get:v("ev_ebit"), fmt:mult},
+    {k:"label", t:"Valoración", l:true, get:function(r){return r.valuation?r.valuation.label:"";}, html:function(r){return r.valuation?chip("v", r.valuation.label):"—";}}
   ];
+
+  // Parametros que no tienen columna fija: al ordenar por uno de ellos se
+  // agrega como columna al final de la tabla, para ver el valor que ordena.
+  var EXTRA = [
+    {k:"tk", t:"Ticker", l:true, get:function(r){return r.ticker;}, fmt:function(x){return esc(x);}}
+  ].concat(Object.keys(METRIC_LABELS).filter(function(key){
+    return !COLS.some(function(c){return c.metricKey===key;});
+  }).map(function(key){
+    return {k:"m_"+key, t:METRIC_LABELS[key], get:m(key), fmt:function(x){return fmtMetric(key, x);}};
+  }));
+  var ASC_FIRST = {rank:1, ticker:1, tk:1, sector:1, tier:1, nd:1, vs:1, pevs:1, pfcf:1, pe:1, evebit:1,
+    m_net_debt_to_ebitda:1, m_gross_margin_std_5y:1, m_shares_cagr_5y:1, m_sbc_pct_revenue:1};
+  function findCol(k){ return COLS.concat(EXTRA).filter(function(c){return c.k===k;})[0]; }
 
   var state = {data:null, rows:[], tier:"Maravillosa", sort:{k:"rank", dir:1}, open:{}};
   var $ = function(id){return document.getElementById(id);};
@@ -212,6 +235,9 @@
   function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
   function m(key){return function(r){return r.metrics?r.metrics[key]:null;};}
   function v(key){return function(r){return r.valuation?r.valuation[key]:null;};}
+  function mult(x){return x==null||!isFinite(x)?"—":x.toFixed(1)+"x";}
+  function vsHist(x){
+    if(x==null) return "—"; var c = x<=-0.05?"good":(x>0.10?"bad":""); return '<span class="'+c+'">'+(x>0?"+":"")+(x*100).toFixed(0)+'%</span>';}
   function pct(x, d){return x==null||!isFinite(x)?"—":(x*100).toFixed(d==null?0:d)+"%";}
   function pctColor(good, bad, d){return function(x){
     if(x==null||!isFinite(x)) return "—";
@@ -263,24 +289,27 @@
   }
 
   function render(){
-    var col = COLS.filter(function(c){return c.k===state.sort.k;})[0] || COLS[0];
+    var col = findCol(state.sort.k) || COLS[0];
+    var cols = COLS.indexOf(col) >= 0 ? COLS : COLS.concat([col]);
     var rows = filtered().slice().sort(function(a, b){
       var x=col.get(a), y=col.get(b);
       if(x==null && y==null) return a._rank-b._rank; if(x==null) return 1; if(y==null) return -1;
       if(typeof x==="string") return state.sort.dir*x.localeCompare(y);
       return state.sort.dir*(x-y);
     });
-    $("thead").innerHTML = COLS.map(function(c){
+    $("thead").innerHTML = cols.map(function(c){
       var s = c.k===state.sort.k ? (state.sort.dir>0?"ascending":"descending") : "none";
       return '<th class="'+(c.l?"l":"")+'" data-k="'+c.k+'" aria-sort="'+s+'" scope="col">'+esc(c.t)+'</th>';}).join("");
     var html = [];
     rows.forEach(function(r){
-      html.push('<tr class="row" data-t="'+esc(r.ticker)+'" aria-expanded="'+(!!state.open[r.ticker])+'">'+COLS.map(function(c){
+      html.push('<tr class="row" data-t="'+esc(r.ticker)+'" aria-expanded="'+(!!state.open[r.ticker])+'">'+cols.map(function(c){
         var inner = c.html ? c.html(r) : c.fmt(c.get(r));
         return '<td class="'+(c.l?"l":"num")+'">'+inner+'</td>';}).join("")+'</tr>');
-      if(state.open[r.ticker]) html.push('<tr class="detail"><td colspan="'+COLS.length+'">'+detail(r)+'</td></tr>');
+      if(state.open[r.ticker]) html.push('<tr class="detail"><td colspan="'+cols.length+'">'+detail(r)+'</td></tr>');
     });
     $("tbody").innerHTML = html.join("");
+    $("sortBy").value = state.sort.k;
+    $("sortDir").textContent = state.sort.dir > 0 ? "↑ Ascendente" : "↓ Descendente";
     $("count").textContent = rows.length + " de " + (state.data.results||[]).length + " empresas";
     var empty = $("empty"); empty.hidden = rows.length>0;
     if(!rows.length) empty.textContent = "Ninguna empresa cumple estos filtros.";
@@ -334,8 +363,22 @@
   ["search","sector","price","noFlags"].forEach(function(id){ $(id).addEventListener("input", render); });
   $("thead").addEventListener("click", function(e){
     var th = e.target.closest("th"); if(!th) return; var k = th.getAttribute("data-k");
-    if(state.sort.k===k) state.sort.dir *= -1; else state.sort = {k:k, dir: (k==="rank"||k==="ticker"||k==="sector"||k==="tier"||k==="nd"||k==="vs")?1:-1};
-    render();});
+    setSort(k); render();});
+  function setSort(k){
+    if(state.sort.k===k) state.sort.dir *= -1; else state.sort = {k:k, dir: ASC_FIRST[k]?1:-1};
+  }
+  (function(){
+    var sel = $("sortBy");
+    function group(label, list){
+      var g = document.createElement("optgroup"); g.label = label;
+      list.forEach(function(c){ var o=document.createElement("option"); o.value=c.k; o.textContent=c.k==="ticker"?"Nombre":(c.k==="rank"?"Ranking (clase + puntaje)":c.t); g.appendChild(o); });
+      sel.appendChild(g);
+    }
+    group("En la tabla", COLS);
+    group("Otros parámetros", EXTRA);
+    sel.addEventListener("change", function(){ state.sort = {k:sel.value, dir: ASC_FIRST[sel.value]?1:-1}; render(); });
+    $("sortDir").addEventListener("click", function(){ state.sort.dir *= -1; render(); });
+  })();
   $("tbody").addEventListener("click", function(e){
     if(e.target.closest("a")) return;
     var tr = e.target.closest("tr.row"); if(!tr) return; var t = tr.getAttribute("data-t");
