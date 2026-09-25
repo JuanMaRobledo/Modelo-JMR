@@ -49,6 +49,8 @@
   }
   .controls input[type=search]{flex:1 1 220px;}
   .controls label.chk{display:flex; gap:6px; align-items:center; font-size:13px; color:var(--ink-soft);}
+  .sortbox{display:flex; gap:6px; align-items:center;}
+  .sortbox::before{content:"Ordenar por"; font-size:12.5px; color:var(--ink-soft);}
   .count{font-size:12.5px; color:var(--ink-faint); margin-left:auto;}
 
   .table-wrap{overflow-x:auto; background:var(--surface); border:1px solid var(--border-soft); border-radius:14px; box-shadow:var(--shadow);}
@@ -87,6 +89,9 @@
   .glist{display:flex; flex-direction:column; gap:6px;}
   .grow{display:grid; grid-template-columns:92px 1fr 36px; gap:8px; align-items:center; font-size:12.5px;}
   .grow .bar{width:100%;}
+  table.mtab{margin-top:10px; font-size:12.5px;}
+  table.mtab th{position:static; cursor:default; background:transparent; padding:4px 6px;}
+  table.mtab td{padding:4px 6px;}
   ul.flags{margin:0; padding-left:18px; font-size:13px; line-height:1.6;}
   ul.flags.fail li{color:var(--negative);}
   .dlinks{margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;}
@@ -149,6 +154,7 @@
       <option value="Cara vs su historia">Cara vs su historia</option>
     </select>
     <label class="chk"><input type="checkbox" id="noFlags"> Sin alertas</label>
+    <span class="sortbox"><select id="sortBy" aria-label="Ordenar por"></select><button class="btn" id="sortDir" type="button" aria-label="Cambiar sentido del orden">↑ Ascendente</button></span>
     <span class="count" id="count"></span>
   </div>
 
@@ -181,30 +187,60 @@
     fcf_per_share_cagr_5y: "Crecimiento FCF/acción 5a", eps_cagr_5y: "Crecimiento EPS 5a", net_debt_to_ebitda: "Deuda neta / EBITDA",
     interest_coverage: "Cobertura de intereses", shares_cagr_5y: "Cambio anual de acciones 5a", sbc_pct_revenue: "SBC / ventas"
   };
+  var MULT_LABELS = {pe:"P/E", p_fcf:"P/FCF", p_fcfe:"P/FCFE", p_ocf:"P/OCF", ev_ebitda:"EV/EBITDA", ev_fcff:"EV/FCFF", ev_ebit:"EV/EBIT"};
   var X_METRICS = {net_debt_to_ebitda:1, interest_coverage:1};
   var PP_METRICS = {gross_margin_std_5y:1};
 
   var COLS = [
     {k:"rank", t:"#", get:function(r){return r._rank;}, fmt:function(v){return v;}},
-    {k:"ticker", t:"Empresa", l:true, get:function(r){return r.ticker;}, html:function(r){
+    {k:"ticker", t:"Empresa", l:true, get:function(r){return r.name||r.ticker;}, html:function(r){
       return '<span class="tk">'+esc(r.ticker)+'</span><span class="nm" title="'+esc(r.name)+'">'+esc(r.name)+'</span>';}},
     {k:"sector", t:"Sector", l:true, get:function(r){return r.sector||r.industry||"";}, html:function(r){return '<span class="nm" style="max-width:150px">'+esc(r.sector||r.industry||"—")+'</span>';}},
     {k:"tier", t:"Clase", l:true, get:function(r){return TIER_ORDER.indexOf(r.tier);}, html:function(r){return chip("t", r.tier);}},
     {k:"score", t:"Puntaje", get:function(r){return r.score;}, html:function(r){
       if(r.score==null) return "—";
       return '<span class="bar"><i style="width:'+Math.max(0,Math.min(100,r.score))+'%"></i></span>'+r.score.toFixed(0);}},
-    {k:"roic", t:"ROIC 5a", get:m("roic_median_5y"), fmt:pctColor(0.15, 0.10)},
-    {k:"gm", t:"Mg. bruto", get:m("gross_margin_median_5y"), fmt:pct},
-    {k:"fcfm", t:"Mg. FCF", get:m("fcf_margin_median_5y"), fmt:pctColor(0.15, 0.05)},
-    {k:"rev", t:"Ventas 5a", get:m("revenue_cagr_5y"), fmt:pctColor(0.08, 0.0)},
-    {k:"fps", t:"FCF/acc. 5a", get:m("fcf_per_share_cagr_5y"), fmt:pctColor(0.08, 0.0)},
-    {k:"nd", t:"DN/EBITDA", get:m("net_debt_to_ebitda"), fmt:function(v){
+    {k:"roic", metricKey:"roic_median_5y", t:"ROIC 5a", get:m("roic_median_5y"), fmt:pctColor(0.15, 0.10)},
+    {k:"gm", metricKey:"gross_margin_median_5y", t:"Mg. bruto", get:m("gross_margin_median_5y"), fmt:pct},
+    {k:"fcfm", metricKey:"fcf_margin_median_5y", t:"Mg. FCF", get:m("fcf_margin_median_5y"), fmt:pctColor(0.15, 0.05)},
+    {k:"rev", metricKey:"revenue_cagr_5y", t:"Ventas 5a", get:m("revenue_cagr_5y"), fmt:pctColor(0.08, 0.0)},
+    {k:"fps", metricKey:"fcf_per_share_cagr_5y", t:"FCF/acc. 5a", get:m("fcf_per_share_cagr_5y"), fmt:pctColor(0.08, 0.0)},
+    {k:"nd", metricKey:"net_debt_to_ebitda", t:"DN/EBITDA", get:m("net_debt_to_ebitda"), fmt:function(v){
       if(v==null) return "—"; var c = v>3?"bad":(v<=1?"good":""); return '<span class="'+c+'">'+v.toFixed(1)+'x</span>';}},
+    {k:"price", t:"Precio", get:v("price"), fmt:function(x){return x==null?"—":"$"+x.toFixed(2);}},
+    {k:"mcap", t:"Market cap", get:v("market_cap"), fmt:money},
     {k:"fy", t:"FCF yield", get:v("fcf_yield"), fmt:pctColor(0.05, 0.02, 1)},
-    {k:"vs", t:"P/FCF vs hist.", get:v("p_fcf_vs_hist"), fmt:function(x){
-      if(x==null) return "—"; var c = x<=-0.05?"good":(x>0.10?"bad":""); return '<span class="'+c+'">'+(x>0?"+":"")+(x*100).toFixed(0)+'%</span>';}},
-    {k:"label", t:"Precio", l:true, get:function(r){return r.valuation?r.valuation.label:"";}, html:function(r){return r.valuation?chip("v", r.valuation.label):"—";}}
+    {k:"pe", t:"P/E", get:mc("pe"), html:multCell("pe")},
+    {k:"peg", t:"PEG", get:v("peg"), fmt:function(x){
+      if(x==null) return "—"; var c = x<=1?"good":(x>2?"bad":""); return '<span class="'+c+'">'+x.toFixed(2)+'</span>';}},
+    {k:"pfcf", t:"P/FCF", get:mc("p_fcf"), html:multCell("p_fcf")},
+    {k:"pfcfe", t:"P/FCFE", get:mc("p_fcfe"), html:multCell("p_fcfe")},
+    {k:"pocf", t:"P/OCF", get:mc("p_ocf"), html:multCell("p_ocf")},
+    {k:"evebitda", t:"EV/EBITDA", get:mc("ev_ebitda"), html:multCell("ev_ebitda")},
+    {k:"evfcff", t:"EV/FCFF", get:mc("ev_fcff"), html:multCell("ev_fcff")},
+    {k:"evebit", t:"EV/EBIT", get:mc("ev_ebit"), html:multCell("ev_ebit")},
+    {k:"vs", t:"P/FCF vs hist.", get:v("p_fcf_vs_hist"), fmt:vsHist},
+    {k:"label", t:"Valoración", l:true, get:function(r){return r.valuation?r.valuation.label:"";}, html:function(r){return r.valuation?chip("v", r.valuation.label):"—";}}
   ];
+
+  // Parametros que no tienen columna fija: al ordenar por uno de ellos se
+  // agrega como columna al final de la tabla, para ver el valor que ordena.
+  var EXTRA = [
+    {k:"tk", t:"Ticker", l:true, get:function(r){return r.ticker;}, fmt:function(x){return esc(x);}}
+  ].concat(Object.keys(MULT_LABELS).reduce(function(acc, key){
+    acc.push({k:"h_"+key, t:MULT_LABELS[key]+" mediana hist.", get:mh(key), fmt:mult});
+    if(key!=="p_fcf") acc.push({k:"vs_"+key, t:MULT_LABELS[key]+" vs hist.", get:mv(key), fmt:vsHist});
+    return acc;
+  }, [])).concat(Object.keys(METRIC_LABELS).filter(function(key){
+    return !COLS.some(function(c){return c.metricKey===key;});
+  }).map(function(key){
+    return {k:"m_"+key, t:METRIC_LABELS[key], get:m(key), fmt:function(x){return fmtMetric(key, x);}};
+  }));
+  var ASC_FIRST = {rank:1, ticker:1, tk:1, sector:1, tier:1, nd:1, vs:1, pe:1, peg:1, pfcf:1, pfcfe:1, pocf:1,
+    evebitda:1, evfcff:1, evebit:1, h_pe:1, h_p_fcf:1, h_p_fcfe:1, h_p_ocf:1, h_ev_ebitda:1, h_ev_fcff:1, h_ev_ebit:1,
+    vs_pe:1, vs_p_fcfe:1, vs_p_ocf:1, vs_ev_ebitda:1, vs_ev_fcff:1, vs_ev_ebit:1,
+    m_net_debt_to_ebitda:1, m_gross_margin_std_5y:1, m_shares_cagr_5y:1, m_sbc_pct_revenue:1};
+  function findCol(k){ return COLS.concat(EXTRA).filter(function(c){return c.k===k;})[0]; }
 
   var state = {data:null, rows:[], tier:"Maravillosa", sort:{k:"rank", dir:1}, open:{}};
   var $ = function(id){return document.getElementById(id);};
@@ -212,6 +248,28 @@
   function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
   function m(key){return function(r){return r.metrics?r.metrics[key]:null;};}
   function v(key){return function(r){return r.valuation?r.valuation[key]:null;};}
+  function multOf(r, key){ return r.valuation && r.valuation.multiples ? r.valuation.multiples[key] : null; }
+  // JSON viejos (sin "multiples") traen P/E, P/FCF y EV/EBIT sueltos.
+  var LEGACY = {pe:["pe","pe_median_hist","pe_vs_hist"], p_fcf:["p_fcf","p_fcf_median_hist","p_fcf_vs_hist"], ev_ebit:["ev_ebit",null,null]};
+  function mfield(r, key, i){
+    var mm = multOf(r, key);
+    if(mm) return [mm.current, mm.median_hist, mm.vs_hist][i];
+    var l = LEGACY[key]; return l && l[i] && r.valuation ? r.valuation[l[i]] : null;
+  }
+  function mc(key){ return function(r){ return mfield(r, key, 0); }; }
+  function mh(key){ return function(r){ return mfield(r, key, 1); }; }
+  function mv(key){ return function(r){ return mfield(r, key, 2); }; }
+  // Multiplo de hoy, en verde/rojo segun este por debajo/encima de su propia mediana historica.
+  function multCell(key){ return function(r){
+    var cur = mfield(r, key, 0), med = mfield(r, key, 1), vs = mfield(r, key, 2);
+    if(cur==null) return "—";
+    var c = vs==null?"":(vs<=-0.05?"good":(vs>0.10?"bad":""));
+    var tip = med!=null ? "Mediana histórica "+med.toFixed(1)+"x"+(vs!=null?" · "+(vs>0?"+":"")+(vs*100).toFixed(0)+"%":"") : "Sin historia suficiente";
+    return '<span class="'+c+'" title="'+esc(tip)+'">'+cur.toFixed(1)+'x</span>';
+  }; }
+  function mult(x){return x==null||!isFinite(x)?"—":x.toFixed(1)+"x";}
+  function vsHist(x){
+    if(x==null) return "—"; var c = x<=-0.05?"good":(x>0.10?"bad":""); return '<span class="'+c+'">'+(x>0?"+":"")+(x*100).toFixed(0)+'%</span>';}
   function pct(x, d){return x==null||!isFinite(x)?"—":(x*100).toFixed(d==null?0:d)+"%";}
   function pctColor(good, bad, d){return function(x){
     if(x==null||!isFinite(x)) return "—";
@@ -263,24 +321,27 @@
   }
 
   function render(){
-    var col = COLS.filter(function(c){return c.k===state.sort.k;})[0] || COLS[0];
+    var col = findCol(state.sort.k) || COLS[0];
+    var cols = COLS.indexOf(col) >= 0 ? COLS : COLS.concat([col]);
     var rows = filtered().slice().sort(function(a, b){
       var x=col.get(a), y=col.get(b);
       if(x==null && y==null) return a._rank-b._rank; if(x==null) return 1; if(y==null) return -1;
       if(typeof x==="string") return state.sort.dir*x.localeCompare(y);
       return state.sort.dir*(x-y);
     });
-    $("thead").innerHTML = COLS.map(function(c){
+    $("thead").innerHTML = cols.map(function(c){
       var s = c.k===state.sort.k ? (state.sort.dir>0?"ascending":"descending") : "none";
       return '<th class="'+(c.l?"l":"")+'" data-k="'+c.k+'" aria-sort="'+s+'" scope="col">'+esc(c.t)+'</th>';}).join("");
     var html = [];
     rows.forEach(function(r){
-      html.push('<tr class="row" data-t="'+esc(r.ticker)+'" aria-expanded="'+(!!state.open[r.ticker])+'">'+COLS.map(function(c){
+      html.push('<tr class="row" data-t="'+esc(r.ticker)+'" aria-expanded="'+(!!state.open[r.ticker])+'">'+cols.map(function(c){
         var inner = c.html ? c.html(r) : c.fmt(c.get(r));
         return '<td class="'+(c.l?"l":"num")+'">'+inner+'</td>';}).join("")+'</tr>');
-      if(state.open[r.ticker]) html.push('<tr class="detail"><td colspan="'+COLS.length+'">'+detail(r)+'</td></tr>');
+      if(state.open[r.ticker]) html.push('<tr class="detail"><td colspan="'+cols.length+'">'+detail(r)+'</td></tr>');
     });
     $("tbody").innerHTML = html.join("");
+    $("sortBy").value = state.sort.k;
+    $("sortDir").textContent = state.sort.dir > 0 ? "↑ Ascendente" : "↓ Descendente";
     $("count").textContent = rows.length + " de " + (state.data.results||[]).length + " empresas";
     var empty = $("empty"); empty.hidden = rows.length>0;
     if(!rows.length) empty.textContent = "Ninguna empresa cumple estos filtros.";
@@ -297,10 +358,12 @@
       return '<div class="kv"><span>'+METRIC_LABELS[k]+'</span><span>'+fmtMetric(k, mt[k])+'</span></div>';}).join("");
     var valRows = val ? [
       ["Precio", "$"+val.price], ["Market cap", money(val.market_cap)], ["FCF yield", pct(val.fcf_yield,1)],
-      ["P/FCF hoy", val.p_fcf?val.p_fcf.toFixed(1)+"x":"—"], ["P/FCF mediana histórica", val.p_fcf_median_hist?val.p_fcf_median_hist.toFixed(1)+"x":"—"],
-      ["P/E hoy", val.pe?val.pe.toFixed(1)+"x":"—"], ["P/E mediana histórica", val.pe_median_hist?val.pe_median_hist.toFixed(1)+"x":"—"],
-      ["EV/EBIT", val.ev_ebit?val.ev_ebit.toFixed(1)+"x":"—"], ["Años de historia de precio", val.hist_years]
-    ].map(function(p){return '<div class="kv"><span>'+p[0]+'</span><span>'+esc(p[1])+'</span></div>';}).join("") : "<p>Sin precios.</p>";
+      ["PEG (P/E ÷ crec. EPS 5a)", val.peg!=null?val.peg.toFixed(2):"—"]
+    ].map(function(p){return '<div class="kv"><span>'+p[0]+'</span><span>'+esc(p[1])+'</span></div>';}).join("") +
+      '<table class="mtab"><thead><tr><th class="l">Múltiplo</th><th>Hoy</th><th>Mediana hist.</th><th>vs hist.</th></tr></thead><tbody>'+
+      Object.keys(MULT_LABELS).map(function(key){
+        return '<tr><td class="l">'+MULT_LABELS[key]+'</td><td class="num">'+mult(mfield(r,key,0))+'</td><td class="num">'+mult(mfield(r,key,1))+'</td><td class="num">'+vsHist(mfield(r,key,2))+'</td></tr>';
+      }).join("")+'</tbody></table>' : "<p>Sin precios.</p>";
     var fails = (q.failed_filters||[]).length ? '<h4>Filtros que no pasa</h4><ul class="flags fail">'+q.failed_filters.map(function(f){return "<li>"+esc(f)+"</li>";}).join("")+'</ul>' : '<h4>Filtros duros</h4><p class="good" style="margin:0 0 10px;font-size:13px;">Pasa todos.</p>';
     var flags = (q.flags||[]).length ? '<h4 style="margin-top:12px">Alertas a revisar</h4><ul class="flags">'+q.flags.map(function(f){return "<li>"+esc(f)+"</li>";}).join("")+'</ul>' : '<h4 style="margin-top:12px">Alertas</h4><p style="margin:0;font-size:13px;">Ninguna.</p>';
     return '<div class="dgrid">'+
@@ -324,6 +387,7 @@
       '<p><strong>2. Puntaje 0-100</strong>: cada métrica suma entre 0 (en el umbral "malo") y su peso completo (en el umbral "excelente"), con una rampa lineal entre ambos. Si falta un dato (p. ej. margen bruto en empresas que no reportan costo de ventas) se saca del cálculo y el resto se renormaliza. Clases: '+tiers+'.</p>'+
       '<div class="table-wrap" style="box-shadow:none"><table><thead><tr><th class="l">Grupo</th><th class="l">Métrica</th><th>Peso</th><th>Malo</th><th>Excelente</th><th class="l">Sentido</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
       '<p><strong>3. Precio vs su historia</strong> (Paso 4): P/FCF de hoy contra la mediana del P/FCF de cada cierre fiscal de los últimos ~10 años (P/E si no hay FCF). "Barata" = 20% o más por debajo de su mediana. Una empresa maravillosa rara vez está barata en términos absolutos: lo que se busca es el descuento relativo.</p>'+
+      '<p><strong>Múltiplos</strong>: los cinco del Modelo JMR (EV/EBITDA, EV/FCFF, P/E, P/FCFE, P/OCF) más P/FCF y EV/EBIT, con el dato LTM de hoy. Cada uno se pinta verde si está 5% o más por debajo de su mediana histórica y rojo si está más de 10% por encima (pasá el cursor para ver la mediana). FCFF = OCF − CapEx + intereses × (1 − t); FCFE = OCF − CapEx + endeudamiento neto del año. <strong>PEG</strong> = P/E ÷ crecimiento anual del EPS de 5 años (en %): ≤ 1 en verde, > 2 en rojo; no se calcula si el EPS no creció.</p>'+
       '<p><strong>Actualizar</strong>: en <code>JMR-valuation</code> correr <code>python scripts/run_screener.py --json-out ../Modelo-JMR/docs/screener/resultados.json</code> (o <code>--universe sp400</code> / <code>sp600</code> / <code>--tickers …</code>) y subir el JSON, o abrirlo con “Abrir JSON local”.</p>';
   }
 
@@ -334,8 +398,22 @@
   ["search","sector","price","noFlags"].forEach(function(id){ $(id).addEventListener("input", render); });
   $("thead").addEventListener("click", function(e){
     var th = e.target.closest("th"); if(!th) return; var k = th.getAttribute("data-k");
-    if(state.sort.k===k) state.sort.dir *= -1; else state.sort = {k:k, dir: (k==="rank"||k==="ticker"||k==="sector"||k==="tier"||k==="nd"||k==="vs")?1:-1};
-    render();});
+    setSort(k); render();});
+  function setSort(k){
+    if(state.sort.k===k) state.sort.dir *= -1; else state.sort = {k:k, dir: ASC_FIRST[k]?1:-1};
+  }
+  (function(){
+    var sel = $("sortBy");
+    function group(label, list){
+      var g = document.createElement("optgroup"); g.label = label;
+      list.forEach(function(c){ var o=document.createElement("option"); o.value=c.k; o.textContent=c.k==="ticker"?"Nombre":(c.k==="rank"?"Ranking (clase + puntaje)":c.t); g.appendChild(o); });
+      sel.appendChild(g);
+    }
+    group("En la tabla", COLS);
+    group("Otros parámetros", EXTRA);
+    sel.addEventListener("change", function(){ state.sort = {k:sel.value, dir: ASC_FIRST[sel.value]?1:-1}; render(); });
+    $("sortDir").addEventListener("click", function(){ state.sort.dir *= -1; render(); });
+  })();
   $("tbody").addEventListener("click", function(e){
     if(e.target.closest("a")) return;
     var tr = e.target.closest("tr.row"); if(!tr) return; var t = tr.getAttribute("data-t");
