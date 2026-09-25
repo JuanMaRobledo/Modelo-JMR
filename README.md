@@ -7,10 +7,14 @@
 ## Acceso privado en Vercel
 
 El sitio se publica desde `docs/` y el proxy de Vercel protege todas las
-rutas antes de entregar HTML, JavaScript, archivos o imágenes. Configurar en
-Vercel las variables `APP_USERNAME` y `APP_PASSWORD` para Production, Preview
-y Development. Si falta alguna, el sitio responde 503 en vez de quedar
-público.
+rutas antes de entregar HTML, JavaScript, archivos o imágenes. El ingreso
+por usuario y contraseña ocurre en el [Centro Financiero](https://cartera-two-eta.vercel.app/):
+un código de un solo uso se verifica desde `api/sso.js` y crea una cookie
+privada para este dominio. Los enlaces directos llevan al mismo ingreso y
+regresan a la página solicitada. Configurar `APP_PASSWORD` en Vercel para
+Production, Preview y Development como clave local de firma de las sesiones;
+puede ser distinta a la contraseña de ingreso en Cartera. Si falta, el sitio
+responde 503. `APP_USERNAME` ya no controla el acceso a este módulo.
 
 La pantalla antigua de `docs/auth.js` se conserva únicamente como respaldo
 para GitHub Pages. No sustituye la protección del servidor.

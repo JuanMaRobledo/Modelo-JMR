@@ -1,5 +1,6 @@
 import chromium from "@sparticuz/chromium";
 import puppeteer from "puppeteer-core";
+import { createSession, SESSION_NAME } from "../sso-session.js";
 
 // @sparticuz/chromium solo extrae las librerías del sistema que le faltan a
 // su Chromium empaquetado (libnss3.so y demás) cuando detecta que corre
@@ -20,9 +21,8 @@ if (!process.env.AWS_EXECUTION_ENV) {
 // motor que usaría un usuario, así que hereda automáticamente cualquier
 // cambio visual futuro de esas páginas sin tener que duplicar su HTML acá.
 //
-// El sitio entero está protegido con Basic Auth (ver proxy.js), así que
-// Chromium necesita autenticarse igual que un navegador real antes de poder
-// cargar la página que va a imprimir.
+// El sitio entero está protegido por una cookie firmada (ver proxy.js).
+// Chromium recibe una sesión local para abrir la página que va a imprimir.
 export default async function handler(req, res) {
   const pageName = req.query.page;
   if (pageName !== "visor" && pageName !== "research") {
@@ -30,9 +30,8 @@ export default async function handler(req, res) {
     return;
   }
 
-  const username = process.env.APP_USERNAME?.trim();
-  const password = process.env.APP_PASSWORD;
-  if (!username || !password) {
+  const session = createSession();
+  if (!session) {
     res.status(503).json({ error: "El acceso privado todavía no está configurado." });
     return;
   }
@@ -68,7 +67,7 @@ export default async function handler(req, res) {
     });
 
     const page = await browser.newPage();
-    await page.authenticate({ username, password });
+    await page.setCookie({ name: SESSION_NAME, value: session, url: `${proto}://${host}/`, httpOnly: true, secure: true, sameSite: "Lax" });
     await page.goto(targetUrl, { waitUntil: "networkidle0", timeout: 25000 });
     // La página tarda un momento en traer los datos guardados desde GitHub
     // (fetch asíncrono) después de que la red queda "quieta" — esperar este
