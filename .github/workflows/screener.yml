@@ -39,12 +39,18 @@ jobs:
       # en el repo publico ni en los logs.
       SEC_EDGAR_USER_AGENT: ${{ secrets.SEC_EDGAR_USER_AGENT || vars.SEC_EDGAR_USER_AGENT }}
     steps:
+      # Al pegar el secreto es comun que quede un espacio o salto de linea al
+      # final, y requests rechaza un header con esos caracteres
+      # (InvalidHeader). Se normaliza a una sola linea sin espacios de mas.
       - name: Verificar identificacion para la SEC
         run: |
-          if [ -z "$SEC_EDGAR_USER_AGENT" ]; then
+          ua="$(printf '%s' "$SEC_EDGAR_USER_AGENT" | tr -s '\r\n\t' '   ' | sed 's/^ *//; s/ *$//')"
+          if [ -z "$ua" ]; then
             echo "::error::Falta el secreto SEC_EDGAR_USER_AGENT (nombre + correo real, p. ej. 'Modelo JMR tu_correo@ejemplo.com'). Crealo en Settings -> Secrets and variables -> Actions."
             exit 1
           fi
+          echo "::add-mask::$ua"
+          echo "SEC_EDGAR_USER_AGENT=$ua" >> "$GITHUB_ENV"
 
       - uses: actions/checkout@v4
 
