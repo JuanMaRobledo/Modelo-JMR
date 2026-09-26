@@ -2,7 +2,9 @@
   'use strict';
 
   var LOCAL_KEY = 'jmr-research-library-v1';
-  var PROMPT_KEY = 'jmr-research-prompt-v1';
+  // Clave nueva: los cambios locales del antiguo prompt de 21 secciones
+  // no deben ocultar la versión maestra v4 al actualizar la aplicación.
+  var PROMPT_KEY = 'jmr-research-prompt-v4';
   var GH_REPO_API = 'https://api.github.com/repos/JuanMaRobledo/Modelo-JMR-datos/';
   var GH_API = GH_REPO_API + 'contents/';
   // Algunos logos del CDN de FMP desaparecen aunque la empresa siga
@@ -13,14 +15,12 @@
     NKE: 'assets/logos/nike.svg'
   };
   var REQUIRED = [
-    'Resumen ejecutivo', 'Modelo de negocio', 'Industria y crecimiento',
-    'Calidad del negocio', 'Ventaja competitiva', 'Competencia',
-    'Gestión y asignación de capital', 'Catalizadores', 'Riesgos',
-    'FODA', 'Las 5 fuerzas de Porter',
-    'Bulls say / Bears say', 'Escenarios cualitativos',
-    'Warren Buffett', 'Charlie Munger',
-    'Peter Lynch', 'Howard Marks', 'Joel Greenblatt',
-    'Noticias y eventos recientes', 'Síntesis final', 'Fuentes'
+    'Resumen ejecutivo', 'Modelo de negocio', 'Segmentos y geografía',
+    'Industria y crecimiento', 'Calidad del negocio', 'Ventaja competitiva',
+    'Competencia', 'Gestión y asignación de capital', 'Catalizadores',
+    'Riesgos', 'Bulls say / Bears say', 'Filosofías de inversión',
+    'Noticias y eventos recientes', 'Qué vigilar', 'Preguntas abiertas',
+    'Fuentes', 'Control de calidad final'
   ];
   var state = freshState();
 
@@ -101,14 +101,16 @@
     syncFields();
   }
   function textToHtml(text) {
-    var known = REQUIRED.concat(['Segmentos y geografía','Filosofías de inversión','Qué vigilar','Preguntas abiertas','Control de calidad final']);
+    var known = REQUIRED.concat(['Las 5 fuerzas de Porter', 'Análisis financiero histórico',
+      'Auditoría de cifras y supuestos del Modelo JMR', 'Escenarios cualitativos de largo plazo',
+      'FODA de síntesis', 'Síntesis final']);
     var lines = String(text || '').replace(/\r/g, '').split('\n');
     var out = [], para = [];
     function flush() { if (para.length) { out.push('<p>' + escapeHtml(para.join(' ')) + '</p>'); para = []; } }
     lines.forEach(function (raw) {
       var line = raw.trim();
       if (!line) { flush(); return; }
-      var normalized = normalizeText(line.replace(/[:.]$/, ''));
+      var normalized = normalizeText(line.replace(/^\d+\.\s*/, '').replace(/[:.]$/, ''));
       var heading = known.find(function (x) { return normalizeText(x) === normalized; });
       if (heading) { flush(); out.push('<h2>' + escapeHtml(heading) + '</h2>'); }
       else if (/^[•\-*]\s+/.test(line)) { flush(); out.push('<p>• ' + escapeHtml(line.replace(/^[•\-*]\s+/, '')) + '</p>'); }
@@ -153,7 +155,7 @@
     var headings = Array.from(doc.querySelectorAll('h1,h2,h3,h4')).map(function (h) { return normalizeText(h.textContent); });
     var missing = 0;
     REQUIRED.forEach(function (name) {
-      var ok = headings.some(function (h) { var n = normalizeText(name); return h === n || h.indexOf(n) >= 0; });
+      var ok = headings.some(function (h) { return h.replace(/^\d+\s+/, '') === normalizeText(name); });
       var chip = document.createElement('span'); chip.textContent = (ok ? '✓ ' : 'Falta: ') + name; chip.className = ok ? 'ok' : ''; holder.appendChild(chip);
       if (!ok) missing++;
     });
@@ -936,11 +938,11 @@
   function download(name,text,type){var blob=new Blob([text],{type:type||'text/plain'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url);},1000);}
   var defaultPrompt='';
   function loadPrompt(force) {
-    fetch('prompts/analisis-fundamental-v1.md',{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.text();}).then(function(text){defaultPrompt=text;var saved='';try{saved=localStorage.getItem(PROMPT_KEY)||'';}catch(e){}el('promptText').value=force||!saved?text:saved;}).catch(function(err){setStatus('promptStatus','No se pudo cargar el prompt: '+err.message,'bad');});
+    fetch('prompts/research-fundamental-jmr-v4.md',{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.text();}).then(function(text){defaultPrompt=text;var saved='';try{saved=localStorage.getItem(PROMPT_KEY)||'';}catch(e){}el('promptText').value=force||!saved?text:saved;}).catch(function(err){setStatus('promptStatus','No se pudo cargar el prompt: '+err.message,'bad');});
   }
   el('copyPromptBtn').addEventListener('click',function(){navigator.clipboard.writeText(el('promptText').value).then(function(){setStatus('promptStatus','Prompt copiado.','ok');}).catch(function(){el('promptText').select();document.execCommand('copy');setStatus('promptStatus','Prompt copiado.','ok');});});
   el('savePromptBtn').addEventListener('click',function(){try{localStorage.setItem(PROMPT_KEY,el('promptText').value);setStatus('promptStatus','Cambios guardados en este navegador.','ok');}catch(e){setStatus('promptStatus','No fue posible guardar el prompt.','bad');}});
-  el('downloadPromptBtn').addEventListener('click',function(){download('prompt-analisis-fundamental-modelo-jmr.md',el('promptText').value,'text/markdown');});
+  el('downloadPromptBtn').addEventListener('click',function(){download('prompt-research-fundamental-modelo-jmr-v4.md',el('promptText').value,'text/markdown');});
   el('resetPromptBtn').addEventListener('click',function(){if(defaultPrompt){el('promptText').value=defaultPrompt;try{localStorage.removeItem(PROMPT_KEY);}catch(e){}setStatus('promptStatus','Prompt restaurado.','ok');}else loadPrompt(true);});
 
   // Enlace inverso desde "Valoraciones guardadas" del Visor: llega acá
