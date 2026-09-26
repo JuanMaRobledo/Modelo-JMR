@@ -312,3 +312,46 @@ Las hojas de texto (Tesis, Cualitativo, Supuestos Recomendados, Supuestos de los
 Stories to Numbers) quedaron con un formato uniforme: tipografía, bandas de sección, texto
 ajustado y alto de fila calculado para que ningún párrafo quede cortado. Los resultados por
 escenario que estaban tipeados en la Tesis pasaron a fórmulas vivas.
+
+### Contaminación entre empresas por copiar una valoración ya llena (26-sep-2026)
+
+Varias valoraciones se armaron duplicando en Drive la hoja de OTRA empresa ya llena, en vez de
+partir de la plantilla maestra en blanco. Los estados financieros y los supuestos se corrigen al
+correr el refresh, pero **las hojas de texto no se regeneran solas** y se detectaron casos reales
+con contenido de la empresa anterior sin corregir:
+
+- **PYPL**: `Cualitativo` con CAGRs de Adobe, `Stories to Numbers` con contenido de Amazon (ya
+  corregido antes de esta auditoría; lo documenta la propia hoja de PYPL en su bitácora).
+- **ADBE, DUOL, UBER** y, por separado, **LULU, MSFT, PLTR**: en `Estadísticas`, el bloque de
+  crecimiento histórico (`G4:H15`) quedó copiado y pegado entre las tres empresas de cada grupo
+  (mismos números en compañías sin relación).
+- **MSFT**: `Cualitativo` con el perfil completo de Palantir (CEO, plataformas, métricas).
+- **PLTR** (su propia hoja): `Cualitativo` con párrafos de Apple mezclados con los propios, y el
+  CEO equivocado.
+- **LULU**: `Cualitativo` con el encabezado (título, fecha, precio, WACC) de Palantir; el cuerpo
+  sí era propio.
+
+**Regla obligatoria de acá en adelante: ninguna empresa nueva empieza duplicando la hoja de otra
+empresa.** Se usa `JMR-valuation/scripts/reset_from_master.py`, que copia la plantilla maestra
+auditada hoja por hoja (fórmulas, no solo valores) y respalda el contenido anterior por si la
+hoja destino no era en realidad nueva:
+
+```
+# Hoja que ya existe (por ejemplo, duplicada de otra empresa por error) — la reinicia:
+PYTHONPATH=.:scripts python scripts/reset_from_master.py --sheet-id ID [--dry-run]
+
+# Hoja que todavia no existe — crea una copia limpia de la plantilla en Drive:
+PYTHONPATH=.:scripts python scripts/reset_from_master.py --new "Modelo JMR - TICKER" [--dry-run]
+```
+
+`--new` casi seguro falla (la cuenta de servicio tiene cuota de Drive 0, no puede ser dueña de
+archivos nuevos): en ese caso, una persona hace "Archivo > Hacer una copia" de la plantilla
+maestra a mano en Drive y la comparte con la cuenta de servicio; esa copia ya sale limpia y no
+necesita `--sheet-id` después. `reset_from_master.py` generaliza el paso `step_reset` que se
+escribió primero solo para AFYA (`run_afya.py`), para que cualquier empresa nueva lo use sin
+tener que escribir un script a medida.
+
+Además, después de correr el contenido de una empresa nueva conviene un chequeo rápido de
+`Cualitativo`, `Stories to Numbers`, `Supuestos Recomendados` y `Supuestos de los Múltiplos`
+buscando el nombre de otra empresa o su CEO (así se encontraron los casos de arriba), sobre todo
+si la hoja se armó a mano en vez de con un script reproducible.
