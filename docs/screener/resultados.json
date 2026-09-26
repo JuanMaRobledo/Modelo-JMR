@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-25",
+ "generated": "2026-09-26",
  "universe": "S&P 500",
  "source": "SEC EDGAR (companyfacts, 10-K) + precios semanales de Yahoo Finance",
  "criteria": {
