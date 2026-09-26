@@ -298,6 +298,15 @@ valoración se respetan.
 | A7 | Múltiplo Base = MIN de 4 años aunque alguno fuera negativo | Precios objetivo negativos o absurdos cuando un año tuvo FCFE negativo | Mínimo de los múltiplos positivos |
 | A8 | «Forward Valuation» M:N traía valores de PYPL pegados | Dato ajeno visible en todas las valoraciones | Se borran |
 | A9 | Rótulos «NTM» en múltiplos trailing; «LTM» que era el último año fiscal | Lectura equivocada | Rótulos corregidos |
+| A10 | El múltiplo del año FY-3 (columna B de cada hoja de múltiplos) salía de «Trailing Valuation» con OTRA definición que los años C-E (EV/FCF apalancado vs. FCFF; OCF reportado vs. NI+D&A-ΔNWC; precio/EPS diluido vs. NI consolidado) | El múltiplo Base (mínimo de la fila) podía mezclar dos definiciones distintas | La columna B usa la misma definición que C-E |
+| A11 | El endeudamiento neto del FCFE se proyectaba como el % promedio de las ventas de los últimos 3 años, perpetuamente | Distorsionaba el FCFE y el precio por P/FCFE (NKE: −US$933/año) | La deuda crece con las ventas, manteniendo la razón deuda/ventas LTM constante |
+| A12 | La mediana del cambio de acciones incluía un año LTM parcial; el precio de EV/EBITDA y EV/FCFF dividía por las acciones proyectadas (menos por recompras) pero restaba la deuda neta de HOY, sin descontar la caja que paga esas recompras | Doble conteo de la recompra en el precio objetivo | Mediana sin el año parcial; precio dividido por MAX(acciones de hoy; proyectadas) |
+| A13 | Los escenarios Conservador y Optimista convergían el margen desde el margen Año 1 del escenario BASE ($C$6), no desde el suyo propio | Cambiar el margen Año 1 de un escenario solo afectaba al año 1 | Cada escenario converge desde su propio margen Año 1 |
+| A14 | «Income Statement» fila 30 (margen EBITDA) daba #DIV/0! en empresas con menos de 10 años de historia | Se propagaba a «Crecimiento y Márgenes» | IFERROR |
+| A15 | «Resumen»: B2 «Fecha del análisis» era `=HOY()` (cambia cada día); etiquetas de MOS y Potencial usaban precios distintos sin aclararlo | Confusión entre precio del análisis y precio en vivo | B2 = fecha de valoración fija; etiquetas aclaradas |
+| A16 | «Valuation output»: la columna «Growth» de la tabla de escenarios mostraba la tasa libre de riesgo, el promedio de industria y el CAGR 3Y en vez del crecimiento real de cada escenario; tablas de referencia sin usar (filas 95-102, 146-153) | Lectura equivocada | Muestra el crecimiento real (Año 1); tablas marcadas como referencia |
+| A17 | «Stories to Numbers» F13 («Sales to capital» terminal) calculaba g/ROIC (tasa de reinversión), no ventas/capital | Etiqueta y cifra no correspondían | ROIC ÷ (margen × (1 − tasa de impuestos)) |
+| A18 | «Input sheet» C20 (año anterior) sumaba Other LT Assets y B20 (LTM) no | Comparación LTM vs. año anterior inconsistente | Misma definición en ambas |
 
 Las hojas de texto (Tesis, Cualitativo, Supuestos Recomendados, Supuestos de los Múltiplos,
 Stories to Numbers) quedaron con un formato uniforme: tipografía, bandas de sección, texto
