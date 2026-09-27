@@ -744,6 +744,7 @@
   function fillEditor(rec) {
     editing=false;
     state=Object.assign(freshState(),rec);
+    el('analysisSettings').open=false;
     el('tickerInput').value=state.ticker||'';el('companyInput').value=state.company||'';el('titleInput').value=state.title||'';el('dateInput').value=state.date||'';el('newsInput').value=state.news||'';
     checkQuality();renderPreview();refreshHistoryButton();el('historyPanel').hidden=true;el('historyPanel').innerHTML='';
     ['quoteStatus','analysisStatus','valuationStatus','linkVisorStatus','newsStatus'].forEach(function(id){setStatus(id,'');});
@@ -753,6 +754,7 @@
   function resetEditor() {
     editing=false;
     state=freshState();['tickerInput','companyInput','titleInput','newsInput'].forEach(function(id){el(id).value='';});el('dateInput').value=state.date;el('logoInput').value='';el('analysisFile').value='';el('valuationFile').value='';el('qualityChips').innerHTML='';
+    el('analysisSettings').open=true;
     ['quoteStatus','analysisStatus','valuationStatus','linkVisorStatus','newsStatus','saveStatus'].forEach(function(id){setStatus(id,'');});
     refreshHistoryButton();el('historyPanel').hidden=true;el('historyPanel').innerHTML='';renderPreview();
   }
