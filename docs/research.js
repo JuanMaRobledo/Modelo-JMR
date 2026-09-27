@@ -4,7 +4,7 @@
   var LOCAL_KEY = 'jmr-research-library-v1';
   // Clave nueva: los cambios locales del antiguo prompt de 21 secciones
   // no deben ocultar la versión maestra v4 al actualizar la aplicación.
-  var PROMPT_KEY = 'jmr-research-prompt-v4';
+  var PROMPT_KEY = 'jmr-research-prompt-v4.1';
   var GH_REPO_API = 'https://api.github.com/repos/JuanMaRobledo/Modelo-JMR-datos/';
   var GH_API = GH_REPO_API + 'contents/';
   // Algunos logos del CDN de FMP desaparecen aunque la empresa siga
@@ -938,11 +938,11 @@
   function download(name,text,type){var blob=new Blob([text],{type:type||'text/plain'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url);},1000);}
   var defaultPrompt='';
   function loadPrompt(force) {
-    fetch('prompts/research-fundamental-jmr-v4.md',{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.text();}).then(function(text){defaultPrompt=text;var saved='';try{saved=localStorage.getItem(PROMPT_KEY)||'';}catch(e){}el('promptText').value=force||!saved?text:saved;}).catch(function(err){setStatus('promptStatus','No se pudo cargar el prompt: '+err.message,'bad');});
+    fetch('prompts/JMR-PROMPT-Research-VIGENTE.md',{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.text();}).then(function(text){defaultPrompt=text;var saved='';try{saved=localStorage.getItem(PROMPT_KEY)||'';}catch(e){}el('promptText').value=force||!saved?text:saved;}).catch(function(err){setStatus('promptStatus','No se pudo cargar el prompt: '+err.message,'bad');});
   }
   el('copyPromptBtn').addEventListener('click',function(){navigator.clipboard.writeText(el('promptText').value).then(function(){setStatus('promptStatus','Prompt copiado.','ok');}).catch(function(){el('promptText').select();document.execCommand('copy');setStatus('promptStatus','Prompt copiado.','ok');});});
   el('savePromptBtn').addEventListener('click',function(){try{localStorage.setItem(PROMPT_KEY,el('promptText').value);setStatus('promptStatus','Cambios guardados en este navegador.','ok');}catch(e){setStatus('promptStatus','No fue posible guardar el prompt.','bad');}});
-  el('downloadPromptBtn').addEventListener('click',function(){download('prompt-research-fundamental-modelo-jmr-v4.md',el('promptText').value,'text/markdown');});
+  el('downloadPromptBtn').addEventListener('click',function(){download('JMR-PROMPT-Research-VIGENTE-v4.1.md',el('promptText').value,'text/markdown');});
   el('resetPromptBtn').addEventListener('click',function(){if(defaultPrompt){el('promptText').value=defaultPrompt;try{localStorage.removeItem(PROMPT_KEY);}catch(e){}setStatus('promptStatus','Prompt restaurado.','ok');}else loadPrompt(true);});
 
   // Enlace inverso desde "Valoraciones guardadas" del Visor: llega acá
