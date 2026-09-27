@@ -52,6 +52,27 @@
       ALLOWED_ATTR: ['href','src','alt','title','colspan','rowspan','target','rel']
     });
   }
+  // El índice se construye al mostrar el documento: cubre los informes ya
+  // guardados y los nuevos, sin alterar el texto original del análisis.
+  function navigableAnalysis(html, scope) {
+    var doc = new DOMParser().parseFromString(safeHtml(html), 'text/html');
+    var headings = Array.from(doc.body.querySelectorAll('h2,h3'));
+    if (!headings.length) return { toc: '', body: doc.body.innerHTML };
+    var used = {};
+    var items = headings.map(function (heading, index) {
+      var label = heading.textContent.trim();
+      var slug = normalizeText(label).replace(/\s+/g, '-').slice(0, 70) || 'seccion-' + (index + 1);
+      var base = 'indice-' + scope + '-' + slug;
+      used[base] = (used[base] || 0) + 1;
+      var id = base + (used[base] > 1 ? '-' + used[base] : '');
+      heading.id = id;
+      return '<li class="toc-' + heading.tagName.toLowerCase() + '"><a href="#' + escapeHtml(id) + '">' + escapeHtml(label) + '</a></li>';
+    });
+    return {
+      toc: '<nav class="research-toc" aria-label="Tabla de contenidos"><h2>Tabla de contenidos</h2><ol>' + items.join('') + '</ol></nav>',
+      body: doc.body.innerHTML
+    };
+  }
   function normalizeText(s) {
     return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
   }
@@ -219,7 +240,8 @@
     var title = state.title ? '<h1>' + escapeHtml(state.title) + '</h1>' : '';
     var linked = state.linkedValuation ? buildLinkedValuationHtml(state.linkedValuation) : '';
     var val = state.valuationHtml ? '<section class="valuation-block"><h2>Valoración cuantitativa (tabla subida)</h2>' + state.valuationHtml + '</section>' : '';
-    body.innerHTML = '<div class="research-document">' + title + '<div id="editableContent">' + safeHtml(state.html) + '</div>' + linked + val + renderNews() + '</div>';
+    var analysis = navigableAnalysis(state.html, 'principal');
+    body.innerHTML = '<div class="research-document">' + title + analysis.toc + '<div id="editableContent">' + analysis.body + '</div>' + linked + val + renderNews() + '</div>';
     renderEditorToolbar();
   }
 
@@ -546,7 +568,10 @@
       var jsons=(Array.isArray(files)?files:[]).filter(function(f){return /\.json$/i.test(f.name);});
       return Promise.all(jsons.map(function(f){return fetch(f.url,{headers:ghHeaders()}).then(function(r){return r.json();}).then(function(data){var rec=JSON.parse(b64Decode(data.content.replace(/\n/g,'')));rec.remotePath=f.path;rec.remoteSha=f.sha;return rec;});}));
     }).then(function(remote){
-      var map={}; getLocalLibrary().concat(remote).forEach(function(r){var old=map[r.id];if(!old||String(r.updatedAt||'')>String(old.updatedAt||''))map[r.id]=r;});
+      // La lista remota es autoritativa para los registros que alguna vez
+      // estuvieron en GitHub. De otro modo, los borrados reviven desde
+      // localStorage en cada sincronización.
+      var map={}; getLocalLibrary().filter(function(r){return !r.remotePath;}).concat(remote).forEach(function(r){var old=map[r.id];if(!old||String(r.updatedAt||'')>String(old.updatedAt||''))map[r.id]=r;});
       var list=Object.keys(map).map(function(k){return map[k];}).sort(function(a,b){return String(b.updatedAt||b.date).localeCompare(String(a.updatedAt||a.date));});setLocalLibrary(list);renderLibrary();return list.length;
     });
   }
@@ -916,8 +941,9 @@
     var linked = rec.linkedValuation ? buildLinkedValuationHtml(rec.linkedValuation) : '';
     var val = rec.valuationHtml ? '<section class="valuation-block"><h2>Valoración cuantitativa</h2>' + rec.valuationHtml + '</section>' : '';
     var title = rec.title ? '<h1>' + escapeHtml(rec.title) + '</h1>' : '';
+    var analysis = navigableAnalysis(rec.html || '', 'comparar-' + String(rec.id).replace(/[^a-zA-Z0-9_-]/g, '-'));
     return '<div class="compare-col"><div class="company-banner"><div class="identity">' + logo + '<div class="company-name"><h2>' + escapeHtml(rec.company || rec.title || rec.ticker || '—') + '</h2><div class="ticker">' + escapeHtml(rec.ticker || '—') + '</div></div></div></div>' +
-      '<div class="preview-body"><div class="research-document">' + title + safeHtml(rec.html || '') + linked + val + '</div></div></div>';
+      '<div class="preview-body"><div class="research-document">' + title + analysis.toc + analysis.body + linked + val + '</div></div></div>';
   }
   el('compareBtn').addEventListener('click', function () {
     var list = getLocalLibrary();
