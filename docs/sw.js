@@ -1,4 +1,4 @@
-const CACHE = "modelo-jmr-v95";
+const CACHE = "modelo-jmr-v96";
 const APP_SHELL = [
   "index.html",
   "visor.html",
