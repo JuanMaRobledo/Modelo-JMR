@@ -1,4 +1,4 @@
-// Precios del día para el Screener (docs/screener.html): con ellos la página
+// Cotizaciones para el Screener (docs/screener.html): con ellas la página
 // recalcula market cap, múltiplos, FCF yield y PEG cada vez que se abre, sin
 // esperar a la corrida diaria completa (.github/workflows/screener.yml).
 //
@@ -29,8 +29,16 @@ async function fetchChunk(symbols) {
       const out = {};
       for (const [symbol, row] of Object.entries(data || {})) {
         const closes = (row && row.close) || [];
-        const price = row && (row.fulldayPrice ?? closes[closes.length - 1]);
-        if (typeof price === "number" && isFinite(price) && price > 0) out[symbol] = price;
+        // El último cierre y el último timestamp pertenecen a la misma barra.
+        // fulldayPrice puede ser intradía con fecha del cierre anterior.
+        const price = closes[closes.length - 1];
+        const timestamps = row && row.timestamp;
+        const lastTimestamp = Array.isArray(timestamps) && timestamps.length
+          ? timestamps[timestamps.length - 1] : null;
+        if (typeof price === "number" && isFinite(price) && price > 0 &&
+            typeof lastTimestamp === "number" && isFinite(lastTimestamp)) {
+          out[symbol] = { price, date: new Date(lastTimestamp * 1000).toISOString().slice(0, 10) };
+        }
       }
       return out;
     }
@@ -52,10 +60,14 @@ export default async function handler(req, res) {
 
   const now = Date.now();
   const prices = {};
+  const priceDates = {};
   const missing = [];
   for (const s of symbols) {
     const hit = cache.get(s);
-    if (hit && now - hit.at < TTL_MS) prices[s] = hit.price;
+    if (hit && now - hit.at < TTL_MS) {
+      prices[s] = hit.price;
+      priceDates[s] = hit.date;
+    }
     else missing.push(s);
   }
 
@@ -64,13 +76,14 @@ export default async function handler(req, res) {
   for (let i = 0; i < chunks.length; i += PARALLEL) {
     const results = await Promise.all(chunks.slice(i, i + PARALLEL).map((c) => fetchChunk(c).catch(() => ({}))));
     for (const found of results) {
-      for (const [s, price] of Object.entries(found)) {
-        prices[s] = price;
-        cache.set(s, { price, at: now });
+      for (const [s, quote] of Object.entries(found)) {
+        prices[s] = quote.price;
+        priceDates[s] = quote.date;
+        cache.set(s, { ...quote, at: now });
       }
     }
   }
 
   res.setHeader("Cache-Control", "private, no-store");
-  res.status(200).json({ asOf: new Date(now).toISOString(), source: "Yahoo Finance", prices });
+  res.status(200).json({ checkedAt: new Date(now).toISOString(), source: "Yahoo Finance", prices, priceDates });
 }

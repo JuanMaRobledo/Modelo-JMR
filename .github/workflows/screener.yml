@@ -6,7 +6,7 @@
 #
 # Corre de lunes a viernes después del cierre de Nueva York, y a mano desde
 # la pestaña Actions -> "Screener diario" -> "Run workflow" (ahí se puede
-# elegir otro universo: sp500, sp400 o sp600).
+# elegir otro universo: sp500, sp400, sp600 o sp1500 combinado).
 name: Screener diario
 
 on:
@@ -15,8 +15,8 @@ on:
   workflow_dispatch:
     inputs:
       universe:
-        description: "Universo (sp500, sp400 o sp600)"
-        default: "sp500"
+        description: "Universo (sp500, sp400, sp600 o sp1500 combinado)"
+        default: "sp1500"
         required: true
 
 permissions:
@@ -29,7 +29,7 @@ concurrency:
 jobs:
   screener:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 180
     env:
       # La SEC exige identificar a quien consulta con un nombre y un correo
       # real, y rechaza (403) las direcciones noreply de GitHub. Se toma del
@@ -80,7 +80,7 @@ jobs:
       - name: Correr el screener
         run: |
           python jmr-valuation/scripts/run_screener.py \
-            --universe "${{ github.event.inputs.universe || 'sp500' }}" \
+            --universe "${{ github.event.inputs.universe || 'sp1500' }}" \
             --max-cache-age-days 3 \
             --json-out docs/screener/resultados.json
 
