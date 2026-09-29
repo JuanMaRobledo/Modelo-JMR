@@ -976,14 +976,37 @@
   });
 
   function download(name,text,type){var blob=new Blob([text],{type:type||'text/plain'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url);},1000);}
-  var defaultPrompt='';
-  function loadPrompt(force) {
-    fetch('prompts/research-fundamental-jmr-v4.md',{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.text();}).then(function(text){defaultPrompt=text;var saved='';try{saved=localStorage.getItem(PROMPT_KEY)||'';}catch(e){}el('promptText').value=force||!saved?text:saved;}).catch(function(err){setStatus('promptStatus','No se pudo cargar el prompt: '+err.message,'bad');});
+  // Dos prompts maestros: el de Research fundamental (v4) y el de valoración
+  // del Modelo JMR (v3, que reemplazó a la v2: múltiplos elegidos con anclas
+  // documentadas e independientes del DCF). Cada uno guarda sus cambios aparte.
+  var PROMPTS = {
+    research: { file: 'prompts/research-fundamental-jmr-v4.md', key: PROMPT_KEY, download: 'prompt-research-fundamental-modelo-jmr-v4.md',
+      title: 'Prompt maestro v4 · 17 secciones', btn: 'promptKindResearch',
+      help: 'Úsalo en ChatGPT o Claude junto con la tabla del Modelo JMR. El esquema fijo hace que ambos produzcan documentos comparables.',
+      note: 'Adjunta la tabla JMR y los informes disponibles. La versión v4 integra la evidencia en la narrativa y verifica las cifras y supuestos del modelo sin recalcular el valor intrínseco.' },
+    valuation: { file: 'prompts/valoracion-modelo-jmr-v3.md', key: 'jmr-valuation-prompt-v3', download: 'JMR - PROMPT Valoracion VIGENTE v3.md',
+      title: 'Prompt de valoración v3 · reemplaza a la v2', btn: 'promptKindValuation',
+      help: 'Arma el Modelo JMR de punta a punta (SEC EDGAR, costo de capital, supuestos anclados, bugs conocidos, guardado en Drive) y elige los múltiplos con tres anclas documentadas: historia depurada, peers ajustados y múltiplo justificado.',
+      note: 'Los múltiplos ya no se derivan del DCF: cada uno queda con su origen en «Supuestos de los Múltiplos» y en la hoja de tesis, y el resultado se reporta como DCF hoy, múltiplos hoy y ponderado por separado.' }
+  };
+  var promptKind = 'research', defaultPrompts = {};
+  try { if (localStorage.getItem('jmr-prompt-kind') === 'valuation') promptKind = 'valuation'; } catch (e) {}
+  function currentPrompt(){ return PROMPTS[promptKind]; }
+  function showPromptMeta(){
+    var p = currentPrompt();
+    el('promptTitle').textContent = p.title; el('promptHelp').textContent = p.help; el('promptNote').textContent = p.note;
+    Object.keys(PROMPTS).forEach(function(k){ var b = el(PROMPTS[k].btn); b.classList.toggle('primary', k === promptKind); b.setAttribute('aria-pressed', String(k === promptKind)); });
   }
+  function loadPrompt(force) {
+    var kind = promptKind, p = PROMPTS[kind];
+    showPromptMeta();
+    fetch(p.file,{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.text();}).then(function(text){if(kind!==promptKind)return;defaultPrompts[kind]=text;var saved='';try{saved=localStorage.getItem(p.key)||'';}catch(e){}el('promptText').value=force||!saved?text:saved;setStatus('promptStatus','','');}).catch(function(err){setStatus('promptStatus','No se pudo cargar el prompt: '+err.message,'bad');});
+  }
+  Object.keys(PROMPTS).forEach(function(k){ el(PROMPTS[k].btn).addEventListener('click', function(){ if (k === promptKind) return; promptKind = k; try { localStorage.setItem('jmr-prompt-kind', k); } catch (e) {} loadPrompt(false); }); });
   el('copyPromptBtn').addEventListener('click',function(){navigator.clipboard.writeText(el('promptText').value).then(function(){setStatus('promptStatus','Prompt copiado.','ok');}).catch(function(){el('promptText').select();document.execCommand('copy');setStatus('promptStatus','Prompt copiado.','ok');});});
-  el('savePromptBtn').addEventListener('click',function(){try{localStorage.setItem(PROMPT_KEY,el('promptText').value);setStatus('promptStatus','Cambios guardados en este navegador.','ok');}catch(e){setStatus('promptStatus','No fue posible guardar el prompt.','bad');}});
-  el('downloadPromptBtn').addEventListener('click',function(){download('prompt-research-fundamental-modelo-jmr-v4.md',el('promptText').value,'text/markdown');});
-  el('resetPromptBtn').addEventListener('click',function(){if(defaultPrompt){el('promptText').value=defaultPrompt;try{localStorage.removeItem(PROMPT_KEY);}catch(e){}setStatus('promptStatus','Prompt restaurado.','ok');}else loadPrompt(true);});
+  el('savePromptBtn').addEventListener('click',function(){try{localStorage.setItem(currentPrompt().key,el('promptText').value);setStatus('promptStatus','Cambios guardados en este navegador.','ok');}catch(e){setStatus('promptStatus','No fue posible guardar el prompt.','bad');}});
+  el('downloadPromptBtn').addEventListener('click',function(){download(currentPrompt().download,el('promptText').value,'text/markdown');});
+  el('resetPromptBtn').addEventListener('click',function(){var d=defaultPrompts[promptKind];if(d){el('promptText').value=d;try{localStorage.removeItem(currentPrompt().key);}catch(e){}setStatus('promptStatus','Prompt restaurado.','ok');}else loadPrompt(true);});
 
   // Enlace inverso desde "Valoraciones guardadas" del Visor: llega acá
   // como research.html?ticker=XXX — precarga la búsqueda con ese ticker

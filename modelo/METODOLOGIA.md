@@ -298,6 +298,17 @@ tasa libre de riesgo + ERP maduro.
   la mediana de los peers. Si el Base queda muy por encima de esas referencias, el precio
   objetivo depende de una re-valoración y hay que justificarlo en la Tesis.
 
+> **Desde el 29-sep-2026 los múltiplos de cada valoración se eligen con el prompt de valoración v3**
+> (`docs/prompts/valoracion-modelo-jmr-v3.md`, también en la pestaña «Prompt maestro» de Análisis
+> Fundamental). Cada múltiplo Conservador/Base/Optimista sale de tres anclas documentadas: la historia
+> de la empresa sin atípicos, la mediana de peers ajustada explícitamente por crecimiento, margen, ROIC
+> y riesgo, y el múltiplo justificado por fundamentales de Damodaran (EV/FCFF = (1+g)/(WACC−g),
+> P/FCFE = (1+g)/(Ke−g), etc.). El Base debe quedar dentro del rango de esas anclas, se escribe en
+> J8/J19/J30 y queda explicado en «Supuestos de los Múltiplos» A3/A12 y en la hoja de tesis. Está
+> prohibido derivar un múltiplo del valor del DCF o ajustarlo después de ver el DCF: así los múltiplos
+> siguen siendo una segunda opinión independiente. La regla automática de la plantilla (mínimo positivo
+> de 4 cierres, ±10%) queda solo como valor por defecto cuando J está vacía.
+
 > Relación con la Calculadora de Excel: la regla de la Calculadora (Base ≈ 0,78× el promedio
 > histórico) viene del juicio promedio en los 55 casos. La regla del modelo de Sheets (mínimo
 > positivo de los últimos 4 cierres) es una variante mecánica y, en general, igual o más exigente.
