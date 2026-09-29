@@ -1317,10 +1317,14 @@
       tr.innerHTML = '<td>'+m[0]+'</td><td>'+fmtPct(peso)+'</td><td>'+fmtMoney(cons)+'</td><td>'+fmtMoney(base)+'</td><td>'+fmtMoney(opt)+'</td>';
       tbody.appendChild(tr);
     });
+    var futureMultiples={conservador:0,base:0,optimista:0}, futureWeight=0;
+    methods.slice(1).forEach(function(m){var w=Number(cellVal(res,'B'+m[1]))||0;futureWeight+=w;Object.keys(futureMultiples).forEach(function(k,i){futureMultiples[k]+=w*(Number(cellVal(res,'CDE'[i]+m[1]))||0);});});
+    if(futureWeight){var fy3Row=document.createElement('tr');fy3Row.innerHTML='<td>Múltiplos ponderados FY+3</td><td>'+fmtPct(futureWeight)+'</td>'+Object.keys(futureMultiples).map(function(k){return '<td>'+fmtMoney(futureMultiples[k]/futureWeight)+'</td>';}).join('');tbody.appendChild(fy3Row);}
     var totRow = document.createElement('tr');
     totRow.className = 'total';
     totRow.innerHTML = '<td>Combinado FY+3 (incluye dividendos)</td><td>100%</td><td class="total-cons">'+fmtMoney(cellVal(res,'C12'))+'</td><td class="total-base">'+fmtMoney(cellVal(res,'D12'))+'</td><td class="total-opt">'+fmtMoney(cellVal(res,'E12'))+'</td>';
     tbody.appendChild(totRow);
+    [['DCF a valor de hoy',32],['Múltiplos descontados a hoy',33]].forEach(function(item){if(typeof cellVal(res,'D'+item[1])!=='number')return;var tr=document.createElement('tr');tr.innerHTML='<td>'+item[0]+'</td><td>—</td>'+['C','D','E'].map(function(col){return '<td>'+fmtMoney(cellVal(res,col+item[1]))+'</td>';}).join('');tbody.appendChild(tr);});
     if(typeof cellVal(res,'D34') === 'number'){
       var todayRow = document.createElement('tr');
       todayRow.className = 'total';
@@ -1364,6 +1368,7 @@
       }),
       objetivoPonderado: { conservador: cellVal(res,'C12'), base: cellVal(res,'D12'), optimista: cellVal(res,'E12') },
       valorPresentePonderado: { conservador: cellVal(res,'C34'), base: cellVal(res,'D34'), optimista: cellVal(res,'E34') },
+      descuentoMultiples: { horizonteAnios: 3, costoPatrimonio: cellVal(wb.Sheets['Descuento de múltiplos'],'D2'), dcfHoy: { conservador: cellVal(res,'C32'), base: cellVal(res,'D32'), optimista: cellVal(res,'E32') }, multiplesHoy: { conservador: cellVal(res,'C33'), base: cellVal(res,'D33'), optimista: cellVal(res,'E33') } },
       precioMOSHoy: { conservador: cellVal(res,'C36'), base: cellVal(res,'D36'), optimista: cellVal(res,'E36') },
       cagr: { conservador: cellVal(res,'C13'), base: cellVal(res,'D13'), optimista: cellVal(res,'E13') },
       zonas: {
