@@ -161,6 +161,15 @@ Seguí este proceso, en este orden:
        A. HISTORIA DEPURADA de la empresa ('Trailing Valuation': P/E fila 13,
           P/OCF 15, P/FCF 16 como referencia de P/FCFE, EV/EBITDA 21, EV/FCF 24
           como referencia de EV/FCFF; resumen en 'Supuestos de los Múltiplos').
+          EV/FCF usa el flujo DESPUÉS de intereses: para compararlo con EV/FCFF
+          multiplicalo por (FCF después de intereses ÷ FCFF) de 'Financials
+          Multiples'. Si el último cierre trae partidas no operativas en
+          'Interest / Other' (ganancias en inversiones, diferencia cambiaria),
+          usá la mediana de los tres cierres o 1,0 y decilo. En los peers, EV/FCFF
+          = EV ÷ (FCF + intereses × (1 − 21%)).
+          Revisá que la historia esté ajustada por splits: cierres con múltiplos
+          ~10-20 veces menores que los siguientes son precio sin ajustar, no
+          historia; excluilos y decilo (y no los uses como tope del Optimista).
           Mediana de 5 y 10 años, percentiles 25 y 75, mínimo, máximo y LTM.
           Excluí y listá los atípicos: años con métrica negativa o ~0, múltiplos
           > 2,5× la mediana (burbuja) o < 0,4× (crisis puntual), salvo que sean el
@@ -198,6 +207,9 @@ Seguí este proceso, en este orden:
          si la empresa de FY+3 se parece a la de hoy o si C es inestable; más si la
          empresa de FY+3 va a ser claramente distinta. Declará λ y su motivo. Si A
          no tiene cierres representativos, usá B en lugar de promedio(A, B).
+         Si la empresa crece mucho más hoy que en FY+3 (ej. 80% hoy, 40% en FY+3),
+         el múltiplo de hoy no sirve para la métrica de FY+3: no lo uses como A.
+         Si C no se puede calcular (g ≥ Ke o WACC − 1 pp), λ no aplica.
          Control: el Base tiene que quedar DENTRO del rango [mín(A,B,C);
          máx(A,B,C)]; si queda afuera es una excepción que justificás con
          evidencia concreta.
