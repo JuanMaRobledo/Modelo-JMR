@@ -223,6 +223,24 @@
   .visual-detail .chart-card{overflow:hidden;}
   @media(max-width:620px){.visual-detail{grid-template-columns:1fr;}.visual-grid{grid-template-columns:1fr;}}
   .visual-grid[hidden],.table-scroll[hidden],.card-list[hidden]{display:none!important;}
+  .summary-list[hidden],.print-sheet{display:none!important;}
+  .summary-list{display:grid;gap:8px;}
+  .summary-item{display:grid;grid-template-columns:minmax(140px,2fr) repeat(3,minmax(95px,1fr)) auto;align-items:center;gap:12px;padding:12px 16px;background:var(--surface);border:1px solid var(--border-soft);border-radius:12px;}
+  .summary-item strong{display:block;font-size:14px;}.summary-item small{display:block;color:var(--ink-faint);font-size:11px;}
+  .summary-item .num{font:600 13px "IBM Plex Mono",monospace;}.summary-item .positive{color:var(--positive);}.summary-item .negative{color:var(--negative);}
+  .summary-item button{font:600 12px inherit;border:0;background:var(--accent-soft);color:var(--accent-ink);padding:8px;border-radius:7px;cursor:pointer;}
+  @media(max-width:620px){.summary-item{grid-template-columns:1fr 1fr;}.summary-item .identity{grid-column:1/-1;}.summary-item button{grid-column:1/-1;}.summary-item .num small{margin-bottom:3px;}}
+  .print-btn{font:600 12px inherit;border:1px solid var(--border);background:var(--surface);color:var(--ink);padding:8px 12px;border-radius:9px;cursor:pointer;}
+  @media print{
+    @page{size:A4 landscape;margin:12mm;}
+    body{background:#fff!important;color:#17211b!important;}
+    header,.wrap > :not(.print-sheet),footer{display:none!important;}
+    .wrap{max-width:none!important;margin:0!important;padding:0!important;}
+    .print-sheet{display:block!important;width:100%;font:10pt Arial,sans-serif;}
+    .print-sheet h1{font-size:18pt;margin:0 0 6pt;}.print-sheet p{margin:0 0 9pt;color:#444;}
+    .print-sheet table{width:100%;border-collapse:collapse;}.print-sheet th,.print-sheet td{border-bottom:1px solid #ddd;padding:5pt;text-align:left;}
+    .print-sheet thead{display:table-header-group;}.print-sheet tr{break-inside:avoid;}
+  }
 
   .table-scroll{
     overflow-x:auto;
@@ -585,8 +603,10 @@
   </details>
 
   <div class="stats" id="stats"></div>
-  <div class="view-controls"><p class="result-line" id="resultLine"></p><div class="view-switch" role="group" aria-label="Vista de la bitácora"><button type="button" data-view="visual" aria-pressed="true">◫ Vista gráfica</button><button type="button" data-view="table" aria-pressed="false">☷ Tabla</button></div></div>
+  <div class="view-controls"><p class="result-line" id="resultLine"></p><div class="view-switch" role="group" aria-label="Vista de la bitácora"><button type="button" data-view="summary" aria-pressed="true">Resumen</button><button type="button" data-view="visual" aria-pressed="false">Vista completa</button><button type="button" data-view="table" aria-pressed="false">Tabla</button></div><button class="print-btn" id="printListBtn" type="button">Imprimir lista actualizada</button></div>
+  <div class="summary-list" id="summaryList"></div>
   <div class="visual-grid" id="visualGrid"></div>
+  <div class="print-sheet" id="printSheet" aria-hidden="true"></div>
 
   <div class="mobile-sort">
     <label for="mobileSortSelect">Ordenar por</label>
@@ -636,12 +656,13 @@
 (function(){
   var DATA = [];
 
-  var savedView='visual';try{savedView=localStorage.getItem('jmr-bitacora-view')||'visual';}catch(e){}
-  var state = { q: "", cat: "all", sortKey: "n", sortDir: 1, expanded: null, view:savedView==='table'?'table':'visual' };
+  var savedView='summary';try{savedView=localStorage.getItem('jmr-bitacora-view')||'summary';}catch(e){}
+  var state = { q: "", cat: "all", sortKey: "n", sortDir: 1, expanded: null, view:['summary','visual','table'].indexOf(savedView)>=0?savedView:'summary' };
 
   var rowsEl = document.getElementById("rows");
   var cardsEl = document.getElementById("cardList");
   var visualEl = document.getElementById("visualGrid");
+  var summaryEl = document.getElementById("summaryList");
   var tableEl = document.querySelector(".table-scroll");
   var resultLine = document.getElementById("resultLine");
   var statsEl = document.getElementById("stats");
@@ -763,7 +784,18 @@
     methods.forEach(function(m){if(/DCF/i.test(m.nombre||''))return;var w=Number(m.peso)||0;sum+=w;Object.keys(weighted).forEach(function(k){weighted[k]+=w*(Number(m[k])||0);});});
     if(sum) Object.keys(weighted).forEach(function(k){weighted[k]/=sum;});
     var rows=[['DCF · valor intrínseco hoy',dm.dcfHoy],['Múltiplos · valor hoy',dm.multiplesHoy],['Ponderado · valor hoy',v.valorPresentePonderado],['Múltiplos · objetivo FY+3',sum?weighted:null],['Ponderado · objetivo FY+3',v.objetivoPonderado]];
-    return '<div class="dfield full valuation-panel"><h3>Valoración en dos horizontes</h3><p>USD por acción · conservador / base / optimista. FY+3 incluye los dividendos proyectados.</p><div class="valuation-grid">'+rows.filter(function(r){return r[1];}).map(function(r){return '<div class="valuation-cell'+(/Ponderado/.test(r[0])?' featured':'')+'"><strong>'+r[0]+'</strong><span>'+fmtVal(r[1].conservador)+' / '+fmtVal(r[1].base)+' / '+fmtVal(r[1].optimista)+'</span></div>';}).join('')+'</div>'+(v.hojaGoogle?'<p style="margin:12px 0 0"><a href="'+escapeHtml(v.hojaGoogle)+'" target="_blank" rel="noopener noreferrer">Abrir hoja con fórmulas →</a></p>':'')+'</div>';
+    var rate=Number(dm.costoPatrimonio),years=Number(dm.horizonteAnios)||3,div=dm.dividendosAnualesPorAccion||[];
+    var divSum=div.reduce(function(a,b){return a+(Number(b)||0);},0);
+    var divPv=div.reduce(function(a,b,i){return a+(Number(b)||0)/Math.pow(1+rate,i+1);},0);
+    function presentMethod(m,k){
+      if(/DCF/i.test(m.nombre||''))return dm.dcfHoy&&dm.dcfHoy[k];
+      return isFinite(rate)&&typeof m[k]==='number'?(m[k]-divSum)/Math.pow(1+rate,years)+divPv:null;
+    }
+    var methodTable=methods.length?'<div style="overflow-x:auto"><table class="valuation-methods"><thead><tr><th>Método</th><th>Peso</th><th>Hoy C / B / O</th><th>FY+3 C / B / O</th></tr></thead><tbody>'+methods.map(function(m){
+      var ks=['conservador','base','optimista'];
+      return '<tr><td>'+escapeHtml(m.nombre)+'</td><td>'+((Number(m.peso)||0)*100).toFixed(0)+'%</td><td>'+ks.map(function(k){return fmtVal(presentMethod(m,k));}).join(' / ')+'</td><td>'+ks.map(function(k){return fmtVal(m[k]);}).join(' / ')+'</td></tr>';
+    }).join('')+'</tbody></table></div>':'';
+    return '<div class="dfield full valuation-panel"><h3>Valoración en dos horizontes</h3><p>USD por acción · conservador / base / optimista. FY+3 incluye los dividendos proyectados. Los múltiplos se descuentan con el costo del patrimonio; el DCF ya está expresado a hoy.</p><div class="valuation-grid">'+rows.filter(function(r){return r[1];}).map(function(r){return '<div class="valuation-cell'+(/Ponderado/.test(r[0])?' featured':'')+'"><strong>'+r[0]+'</strong><span>'+fmtVal(r[1].conservador)+' / '+fmtVal(r[1].base)+' / '+fmtVal(r[1].optimista)+'</span></div>';}).join('')+'</div>'+methodTable+(v.hojaGoogle?'<p style="margin:12px 0 0"><a href="'+escapeHtml(v.hojaGoogle)+'" target="_blank" rel="noopener noreferrer">Abrir hoja con fórmulas →</a></p>':'')+'</div>';
   }
   function detailFieldsHtml(d){
     var html = '';
@@ -854,8 +886,26 @@
       (expanded?'<div class="visual-detail">'+detailFieldsHtml(d)+'</div>':'')+'</article>';
   }
 
+  function intrinsicBase(d){
+    var v=d.valoracionActual&&d.valoracionActual.valorPresentePonderado;
+    return v&&typeof v.base==='number'&&isFinite(v.base)?v.base:null;
+  }
+  function priceDifference(d){
+    var value=intrinsicBase(d),price=d.precioActual;
+    return value!==null&&typeof price==='number'&&isFinite(price)&&price>0?(value/price-1)*100:null;
+  }
+  function summaryHtml(d){
+    var price=d.precioActual,delta=priceDifference(d),valid=typeof price==='number'&&isFinite(price)&&price>0;
+    return '<div class="summary-item"><div class="identity"><strong>'+escapeHtml(d.ticker)+' · '+escapeHtml(d.empresa||d.ticker)+'</strong><small>'+escapeHtml(d.fecha||'')+'</small></div>'+
+      '<div class="num"><small>Precio consultado</small>'+(valid?fmtVal(price):'Pendiente')+'</div>'+
+      '<div class="num"><small>Valor intrínseco base</small>'+fmtVal(intrinsicBase(d))+'</div>'+
+      '<div class="num'+(delta===null?'':delta<0?' negative':' positive')+'"><small>Diferencia vs. precio</small>'+(delta===null?'—':(delta>=0?'+':'')+delta.toFixed(1)+'%')+'</div>'+
+      '<button type="button" data-summary-n="'+d.n+'">Ver completo</button></div>';
+  }
+
   function applyView(){
-    var visual=state.view==='visual';visualEl.hidden=!visual;tableEl.hidden=visual;cardsEl.hidden=visual;
+    var visual=state.view==='visual',summary=state.view==='summary';
+    summaryEl.hidden=!summary;visualEl.hidden=!visual;tableEl.hidden=visual||summary;cardsEl.hidden=visual||summary;
     document.querySelectorAll('[data-view]').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.view===state.view));});
   }
 
@@ -891,11 +941,13 @@
       rowsEl.innerHTML = '<div class="empty">Ningún caso coincide con la búsqueda.</div>';
       cardsEl.innerHTML = '<div class="empty">Ningún caso coincide con la búsqueda.</div>';
       visualEl.innerHTML = '<div class="empty">Ningún caso coincide con la búsqueda.</div>';
+      summaryEl.innerHTML = '<div class="empty">Ningún caso coincide con la búsqueda.</div>';
       return;
     }
     rowsEl.innerHTML = list.map(rowHtml).join("");
     cardsEl.innerHTML = list.map(cardHtml).join("");
     visualEl.innerHTML = list.map(visualCardHtml).join("");
+    summaryEl.innerHTML = list.map(summaryHtml).join("");
 
     document.querySelectorAll("#rows .row.data, #cardList .s-card").forEach(function(el){
       // El botón "Eliminar este caso" vive dentro de la tarjeta expandida
@@ -930,6 +982,12 @@
 
   visualEl.addEventListener('click',function(e){
     var btn=e.target.closest('[data-visual-n]');if(btn)toggleExpand(Number(btn.dataset.visualN));
+  });
+  summaryEl.addEventListener('click',function(e){
+    var btn=e.target.closest('[data-summary-n]');if(!btn)return;
+    state.expanded=Number(btn.dataset.summaryN);state.view='visual';
+    try{localStorage.setItem('jmr-bitacora-view',state.view);}catch(err){}
+    render();
   });
   document.querySelector('.view-switch').addEventListener('click',function(e){
     var btn=e.target.closest('[data-view]');if(!btn)return;
@@ -1006,31 +1064,54 @@
     refreshKeyRowVisibility();
   });
 
-  updatePricesBtn.addEventListener("click", function(){
-    if(!hasMarketData()){ priceStatus.textContent = "No se pudo cargar market_data.js."; return; }
+  function refreshPrices(){
+    if(!hasMarketData()){ priceStatus.textContent = "No se pudo cargar market_data.js."; return Promise.resolve(false); }
     var key = MarketData.getApiKey();
     if(!key){
       priceKeyRow.hidden = false;
       priceStatus.textContent = "Ingresa tu API key de Financial Modeling Prep primero.";
-      return;
+      return Promise.resolve(false);
     }
     // Los tickers compuestos (varios instrumentos separados por "/") no
     // tienen un único precio que mostrar — se dejan como "—".
     var candidates = DATA.filter(function(d){ return !/[\/\s]/.test(d.ticker); });
     updatePricesBtn.disabled = true;
+    candidates.forEach(function(d){d.precioActual=null;d.precioActualConsultado=null;});
     priceStatus.textContent = "Actualizando precios… (0/" + candidates.length + ")";
     var done = 0, ok = 0;
-    Promise.allSettled(candidates.map(function(d){
+    return Promise.allSettled(candidates.map(function(d){
       return MarketData.fetchPrice(d.ticker).then(function(p){
-        if(p != null){ d.precioActual = p; ok++; }
+        if(typeof p==='number'&&isFinite(p)&&p>0){ d.precioActual = p; d.precioActualConsultado=new Date().toISOString(); ok++; }
       }).catch(function(){}).then(function(){
         done++;
         priceStatus.textContent = "Actualizando precios… (" + done + "/" + candidates.length + ")";
       });
     })).then(function(){
       updatePricesBtn.disabled = false;
-      priceStatus.textContent = "Actualizado " + ok + "/" + candidates.length + " tickers · " + new Date().toLocaleTimeString();
+      priceStatus.textContent = "Consultado " + ok + "/" + candidates.length + " tickers · " + new Date().toLocaleTimeString('es-CO',{timeZone:'America/Bogota'}) + " hora Colombia; proveedor con posible retraso.";
       render();
+      return true;
+    });
+  }
+  updatePricesBtn.addEventListener("click", function(){refreshPrices();});
+
+  function buildPrintSheet(){
+    var seen={}, list=DATA.filter(function(d){
+      var ticker=String(d.ticker||'').toUpperCase();
+      if(!ticker||seen[ticker])return false;
+      seen[ticker]=true;return true;
+    }).sort(function(a,b){return a.ticker.localeCompare(b.ticker);});
+    var now=new Date().toLocaleString('es-CO',{timeZone:'America/Bogota',dateStyle:'medium',timeStyle:'short'});
+    document.getElementById('printSheet').innerHTML='<h1>Mi Bitácora · activos estudiados</h1><p>Consulta: '+escapeHtml(now)+' (Colombia) · USD por acción · precios de Financial Modeling Prep con posible retraso. “—” indica cotización o valoración no disponible. Diferencia = (valor intrínseco base / precio − 1) × 100.</p>'+
+      '<table><thead><tr><th>Ticker</th><th>Activo</th><th>Precio consultado</th><th>Valor intrínseco base hoy</th><th>Diferencia vs. precio</th><th>Hora de consulta</th></tr></thead><tbody>'+
+      list.map(function(d){var delta=priceDifference(d);return '<tr><td>'+escapeHtml(d.ticker)+'</td><td>'+escapeHtml(d.empresa||'')+'</td><td>'+(d.precioActual?fmtVal(d.precioActual):'—')+'</td><td>'+fmtVal(intrinsicBase(d))+'</td><td>'+(delta===null?'—':(delta>=0?'+':'')+delta.toFixed(1)+'%')+'</td><td>'+(d.precioActualConsultado?escapeHtml(new Date(d.precioActualConsultado).toLocaleTimeString('es-CO',{timeZone:'America/Bogota'})):'—')+'</td></tr>';}).join('')+'</tbody></table>';
+  }
+  document.getElementById('printListBtn').addEventListener('click',function(){
+    var button=this;button.disabled=true;button.textContent='Consultando precios…';
+    refreshPrices().then(function(ok){
+      button.disabled=false;button.textContent='Imprimir lista actualizada';
+      if(!ok)return;
+      buildPrintSheet();window.print();
     });
   });
 
