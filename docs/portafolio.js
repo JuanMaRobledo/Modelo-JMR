@@ -240,10 +240,17 @@
     var r = entry.visor;
     if (!r) return '<div class="port-empty">Sin valoración guardada en el Visor. <a href="visor.html">Crear una →</a></div>';
     var precio = typeof r.precio === 'number' ? r.precio : null;
+    var dm=r.descuentoMultiples||{}, mw=0, multiples={conservador:0,base:0,optimista:0};
+    (r.metodos||[]).forEach(function(m){if(/DCF/i.test(m.nombre||''))return;var w=Number(m.peso)||0;mw+=w;Object.keys(multiples).forEach(function(k){multiples[k]+=w*(Number(m[k])||0);});});
+    if(mw)Object.keys(multiples).forEach(function(k){multiples[k]/=mw;});
+    function scenarios(label,s){return s?'<div class="port-kv"><span class="k">'+label+'</span><span class="v mono">Cons '+fmtMoney(s.conservador)+' · Base '+fmtMoney(s.base)+' · Opt '+fmtMoney(s.optimista)+'</span></div>':'';}
     return '' +
       '<div class="port-kv-row"><span class="port-fecha">Analizado el ' + escapeHtml(r.fecha || '—') + '</span></div>' +
       '<div class="port-kv"><span class="k">Precio al día del análisis</span><span class="v mono">' + fmtMoney(precio) + '</span></div>' +
-      (r.objetivoPonderado ? '<div class="port-kv"><span class="k">Objetivo ponderado</span><span class="v mono">Cons ' + fmtMoney(r.objetivoPonderado.conservador) + ' · Base ' + fmtMoney(r.objetivoPonderado.base) + ' · Opt ' + fmtMoney(r.objetivoPonderado.optimista) + '</span></div>' : '') +
+      scenarios('DCF · valor intrínseco hoy',dm.dcfHoy) + scenarios('Múltiplos · valor hoy',dm.multiplesHoy) +
+      (r.valorPresentePonderado ? '<div class="port-kv"><span class="k">Valor ponderado hoy</span><span class="v mono">Cons ' + fmtMoney(r.valorPresentePonderado.conservador) + ' · Base ' + fmtMoney(r.valorPresentePonderado.base) + ' · Opt ' + fmtMoney(r.valorPresentePonderado.optimista) + '</span></div>' : '') +
+      scenarios('Múltiplos · objetivo FY+3',mw?multiples:null) +
+      (r.objetivoPonderado ? '<div class="port-kv"><span class="k">Combinado FY+3</span><span class="v mono">Cons ' + fmtMoney(r.objetivoPonderado.conservador) + ' · Base ' + fmtMoney(r.objetivoPonderado.base) + ' · Opt ' + fmtMoney(r.objetivoPonderado.optimista) + '</span></div>' : '') +
       '<div class="chart-card">' + buildZonesChart(precio, r.zonas, r.objetivoPonderado) + '</div>';
   }
 
