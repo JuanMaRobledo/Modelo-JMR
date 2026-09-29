@@ -135,6 +135,20 @@ function impliedPrice(multiploBase, metricFY3, sharesFY3, mult){
   return (multiploBase*mult)*(metricFY3/sharesFY3);
 }
 
+// Múltiplos a valor presente (29-sep-2026): el precio de cada múltiplo al
+// cierre del año n (n = 1, 2, 3) más los dividendos acumulados hasta ese año
+// (sumados nominalmente) se trae a hoy con el costo del patrimonio:
+//   VP_n = (Precio_n + Dividendos_1..n) / (1 + Ke)^n
+// Se consolida por método con el promedio simple de los 3 horizontes
+// ("promedio", por defecto) o solo con el de 3 años ("solo3").
+function valorPresenteMultiplo(precioMasDividendos, ke, n){
+  return precioMasDividendos/Math.pow(1+ke, n);
+}
+function consolidarHorizontes(vp, criterio){
+  if(criterio === 'solo3') return vp[2];
+  return (vp[0]+vp[1]+vp[2])/3;
+}
+
 // Cálculo completo. inp = objeto con todos los inputs (ver docs/calculadora.html).
 function calcularModeloJMR(inp){
   var scenarios = ["cons","base","opt"];
@@ -173,6 +187,43 @@ function calcularModeloJMR(inp){
     });
   });
 
+  // Valor presente: 5 métodos × 3 horizontes por escenario, consolidado por
+  // método y ponderado con el DCF (que ya está en valor de hoy).
+  var ke = (typeof inp.costoPatrimonio === 'number' && isFinite(inp.costoPatrimonio)) ? inp.costoPatrimonio : inp.wacc;
+  var criterio = inp.criterioConsolidacion === 'solo3' ? 'solo3' : 'promedio';
+  var pesosVP = JMR_WEIGHTS[inp.tipoEmpresa];
+  var pesoMultiplos = 0;
+  Object.keys(methods).forEach(function(name){ pesoMultiplos += pesosVP[name]; });
+  var vpMetodos = {}, vpMultiplos = {}, vpPonderado = {}, chequeo = {};
+  Object.keys(methods).forEach(function(name){
+    vpMetodos[name] = {};
+    scenarios.forEach(function(s){
+      var f = fin[s], nominal = [], vp = [];
+      for(var n=1;n<=3;n++){
+        var total = impliedPrice(methods[name].baseMult, f[methods[name].metric][n], f.shares[n], multMap[s]) + inp.dividendPerShare*n;
+        nominal.push(total);
+        vp.push(valorPresenteMultiplo(total, ke, n));
+      }
+      vpMetodos[name][s] = {nominal: nominal, vp: vp, consolidado: consolidarHorizontes(vp, criterio)};
+    });
+  });
+  scenarios.forEach(function(s){
+    var cons = 0, nominal3 = 0, vp3 = 0;
+    Object.keys(methods).forEach(function(name){
+      var w = pesoMultiplos ? pesosVP[name]/pesoMultiplos : 0;
+      cons += w*vpMetodos[name][s].consolidado;
+      nominal3 += w*vpMetodos[name][s].nominal[2];
+      vp3 += w*vpMetodos[name][s].vp[2];
+    });
+    vpMultiplos[s] = cons;
+    vpPonderado[s] = dcf[s]*pesosVP.dcf + cons*pesoMultiplos;
+    chequeo[s] = {multiplosFY3SinDescontar: nominal3, multiplosVP3: vp3, ok: nominal3 <= 0 || vp3 < nominal3};
+  });
+  var valorPresente = {
+    tasaDescuento: ke, criterio: criterio, pesoDcf: pesosVP.dcf, pesoMultiplos: pesoMultiplos,
+    dcf: dcf, metodos: vpMetodos, multiplos: vpMultiplos, ponderado: vpPonderado, chequeo: chequeo
+  };
+
   var pesos = JMR_WEIGHTS[inp.tipoEmpresa];
   var precioObjetivo = {};
   scenarios.forEach(function(s){
@@ -204,7 +255,9 @@ function calcularModeloJMR(inp){
     cons: precioObjetivo.cons*(1-inp.mos)
   };
 
-  return {precios: precios, pesos: pesos, precioObjetivo: precioObjetivo, cagr: cagr, zonas: zonas, precioConMOS: precioConMOS};
+  return {precios: precios, pesos: pesos, precioObjetivo: precioObjetivo, cagr: cagr, zonas: zonas, precioConMOS: precioConMOS,
+          valorPresente: valorPresente};
 }
 
-if(typeof module !== 'undefined') module.exports = {calcularModeloJMR: calcularModeloJMR, JMR_WEIGHTS: JMR_WEIGHTS};
+if(typeof module !== 'undefined') module.exports = {calcularModeloJMR: calcularModeloJMR, JMR_WEIGHTS: JMR_WEIGHTS,
+  valorPresenteMultiplo: valorPresenteMultiplo, consolidarHorizontes: consolidarHorizontes};

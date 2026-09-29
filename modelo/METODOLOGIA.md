@@ -215,6 +215,31 @@ Este anexo resume las reglas.
   los dividendos cobrados en el camino. El DCF da el valor intrínseco *hoy*, así que se lleva
   a 3 años con el costo del equity: `valor × (1 + Ke)³`. Así el «CAGR a 3 años» y las zonas de
   compra comparan magnitudes del mismo momento.
+- **Valor intrínseco hoy (29-sep-2026).** Además del precio FY+3, cada valoración trae la hoja
+  **«Descuento de múltiplos»**, que pone todo en dólares de hoy para poder ponderar el DCF con los
+  múltiplos sin mezclar momentos:
+  1. Para cada múltiplo (EV/EBITDA, EV/FCFF, P/E, P/FCFE, P/OCF), escenario y horizonte n = 1, 2 y
+     3 años se toma el precio objetivo al cierre de FY+n (múltiplo × métrica proyectada) más los
+     dividendos por acción acumulados hasta ese año, sumados en nominal (filas 12, 23 y 34, columnas
+     F:H de cada hoja de múltiplo).
+  2. Ese total se trae a hoy con el costo del patrimonio (Ke, `Cost of capital worksheet!B63`, el
+     mismo con que se lleva el DCF a FY+3): `VP_n = (Precio FY+n + Dividendos FY+1..FY+n) ÷ (1 + Ke)^n`.
+     Se usa Ke y no el WACC porque se descuenta un precio por acción (patrimonio); el WACC descuenta
+     flujos a la firma. `C5` permite escribir otra tasa.
+  3. Son 15 valores presente por escenario (5 métodos × 3 horizontes). Cada método se consolida con
+     el **promedio simple de los tres horizontes** (criterio por defecto: suaviza la dependencia de un
+     solo año de salida) o, eligiendo «Solo 3 años» en `C6`, con el VP a 3 años.
+  4. **Múltiplos consolidados** = promedio de los 5 métodos con sus pesos de la categoría,
+     reescalados a 100% dentro de los múltiplos. **Valor intrínseco ponderado** = DCF hoy × peso DCF
+     + múltiplos consolidados × peso de los múltiplos (los pesos de `Resumen de Valoración!I5:U11`;
+     ej. «Madura»: 40% DCF y 60% múltiplos, con EV/EBITDA y P/E 20% cada uno).
+  5. Chequeo matemático: el VP a 3 años de cada método y del consolidado debe ser menor que el precio
+     FY+3 sin descontar (columna K y filas 47-49). Si algún método da un precio ≤ 0 se marca «n/a».
+
+  El Resumen (filas 30-47) y el visor web muestran por separado el DCF hoy, los múltiplos
+  consolidados hoy, el ponderado y cada método a valor hoy, para ver cuánto divergen la valoración
+  intrínseca y la relativa (enfoque de Damodaran). El precio de compra con MOS de la fila 36 sale del
+  ponderado hoy. Script: `JMR-valuation/scripts/discount_multiples.py` (plantilla maestra y copias).
 - **Tres escenarios.** El **Base** lo fija el analista (`Input sheet` B27–B33) con la guía de la
   empresa, el consenso y la historia, y lo justifica en la hoja «Tesis de Inversión y
   Supuestos». **Conservador** y **Optimista** salen de reglas sobre el Base en
