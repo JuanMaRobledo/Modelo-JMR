@@ -642,6 +642,7 @@
           <h2 id="rTicker">—</h2>
           <div class="r-company" id="rCompanyName"></div>
           <div class="meta" id="rMeta">—</div>
+          <a class="meta" id="rSheetLink" href="#" target="_blank" rel="noopener noreferrer" hidden>Ver hoja de cálculo y supuestos →</a>
         </div>
       </div>
       <div class="price">
@@ -691,10 +692,10 @@
       <div class="grid3">
         <div class="stat"><div class="lbl">Tipo de empresa</div><div class="big" id="rTipo" style="font-family:'Public Sans',sans-serif;font-size:15px;">—</div></div>
         <div class="stat"><div class="lbl">Margen de seguridad (MOS)</div><div class="big" id="rMOS">—</div></div>
-        <div class="stat"><div class="lbl">Precio con MOS</div><div class="big" id="rPrecioMOS">—</div></div>
+        <div class="stat"><div class="lbl">Precio con MOS (valor hoy)</div><div class="big" id="rPrecioMOS">—</div></div>
       </div>
 
-      <p class="section-title">Precio objetivo ponderado (6 métodos)</p>
+    <p class="section-title">Valoración por escenarios (6 métodos)</p>
       <div class="methods-scroll">
         <table class="methods">
           <thead><tr><th>Método</th><th>Peso</th><th>Conservador</th><th>Base</th><th>Optimista</th></tr></thead>
@@ -1015,7 +1016,7 @@
   // etc.), que son insumos genéricos de la plantilla y no de esta empresa.
   var SHEET_GROUPS = {
     financieros: ['Income Statement', 'Balance Sheet', 'Cash Flow Statement'],
-    valoracion: ['Resumen de Valoración', 'Valuation output', 'Trailing Valuation', 'Forward Valuation', 'EVEBITDA', 'EVFCFF', 'PE', 'PFCFE', 'POCF', 'Financials Multiples'],
+    valoracion: ['Resumen de Valoración', 'Descuento de múltiplos', 'Valuation output', 'Trailing Valuation', 'Forward Valuation', 'EVEBITDA', 'EVFCFF', 'PE', 'PFCFE', 'POCF', 'Financials Multiples'],
     analisis: ['Tesis de Inversión y Supuestos', 'Márgenes', 'Eficiencia de capital', 'Salud Financiera', 'Por acción', 'Dividendos', 'Estadísticas', 'Crecimiento y Márgenes', 'Diagnostics']
   };
   var sheetHtmlCache = {};
@@ -1292,13 +1293,14 @@
       fechaTxt = 'Análisis del ' + d.toLocaleDateString('es-CO', {day:'2-digit', month:'short', year:'numeric'});
     }
     document.getElementById('rMeta').textContent = fechaTxt || 'Modelo JMR — DCF Damodaran + múltiplos';
+    document.getElementById('rSheetLink').hidden = true;
     document.getElementById('rPrice').textContent = fmtMoney(precio);
     document.getElementById('rPriceNote').textContent = (precio === precioExcelD1 ? 'Del Excel (Input sheet)' : 'Precio al día del análisis') + (hasApiKey() ? ' — actualizando al precio de hoy…' : '');
     currentPrecioAnalisis = (typeof precioAnalisis === 'number' && isFinite(precioAnalisis)) ? precioAnalisis : null;
     renderPriceCompare(currentPrecioAnalisis, precio);
     document.getElementById('rTipo').textContent = tipo || '—';
     document.getElementById('rMOS').textContent = fmtPct(mos);
-    document.getElementById('rPrecioMOS').textContent = fmtMoney(cellVal(res,'C19')) + ' – ' + fmtMoney(cellVal(res,'B19'));
+    document.getElementById('rPrecioMOS').textContent = typeof cellVal(res,'D36') === 'number' ? fmtMoney(cellVal(res,'C36')) + ' – ' + fmtMoney(cellVal(res,'D36')) : fmtMoney(cellVal(res,'C19')) + ' – ' + fmtMoney(cellVal(res,'B19'));
 
     var methods = [
       ['DCF Damodaran', 6], ['EV/EBITDA', 7], ['EV/FCFF', 8], ['P/E', 9], ['P/FCFE', 10], ['P/OCF', 11]
@@ -1317,8 +1319,14 @@
     });
     var totRow = document.createElement('tr');
     totRow.className = 'total';
-    totRow.innerHTML = '<td>Precio Objetivo Ponderado</td><td>100%</td><td class="total-cons">'+fmtMoney(cellVal(res,'C12'))+'</td><td class="total-base">'+fmtMoney(cellVal(res,'D12'))+'</td><td class="total-opt">'+fmtMoney(cellVal(res,'E12'))+'</td>';
+    totRow.innerHTML = '<td>Combinado FY+3 (incluye dividendos)</td><td>100%</td><td class="total-cons">'+fmtMoney(cellVal(res,'C12'))+'</td><td class="total-base">'+fmtMoney(cellVal(res,'D12'))+'</td><td class="total-opt">'+fmtMoney(cellVal(res,'E12'))+'</td>';
     tbody.appendChild(totRow);
+    if(typeof cellVal(res,'D34') === 'number'){
+      var todayRow = document.createElement('tr');
+      todayRow.className = 'total';
+      todayRow.innerHTML = '<td>Combinado a valor de hoy</td><td>100%</td><td class="total-cons">'+fmtMoney(cellVal(res,'C34'))+'</td><td class="total-base">'+fmtMoney(cellVal(res,'D34'))+'</td><td class="total-opt">'+fmtMoney(cellVal(res,'E34'))+'</td>';
+      tbody.appendChild(todayRow);
+    }
 
     document.getElementById('cagrC').textContent = fmtPct(cellVal(res,'C13'));
     document.getElementById('cagrB').textContent = fmtPct(cellVal(res,'D13'));
@@ -1355,6 +1363,8 @@
         return { nombre: m[0], peso: cellVal(res,'B'+row), conservador: cellVal(res,'C'+row), base: cellVal(res,'D'+row), optimista: cellVal(res,'E'+row) };
       }),
       objetivoPonderado: { conservador: cellVal(res,'C12'), base: cellVal(res,'D12'), optimista: cellVal(res,'E12') },
+      valorPresentePonderado: { conservador: cellVal(res,'C34'), base: cellVal(res,'D34'), optimista: cellVal(res,'E34') },
+      precioMOSHoy: { conservador: cellVal(res,'C36'), base: cellVal(res,'D36'), optimista: cellVal(res,'E36') },
       cagr: { conservador: cellVal(res,'C13'), base: cellVal(res,'D13'), optimista: cellVal(res,'E13') },
       zonas: {
         value: { max: cellVal(res,'B16'), min: cellVal(res,'C16') },
@@ -2510,13 +2520,17 @@
     document.getElementById('rCompanyName').textContent = rec.nombreActivo || '';
     showLogo(rec.ticker);
     document.getElementById('rMeta').textContent = (rec.fecha || 'Modelo JMR — DCF Damodaran + múltiplos') + (rec.savedAt ? ' · guardada el ' + new Date(rec.savedAt).toLocaleDateString('es-CO') : '');
+    var sheetLink = document.getElementById('rSheetLink');
+    sheetLink.hidden = !/^https:\/\/docs\.google\.com\/spreadsheets\/d\/[\w-]+\//.test(rec.hojaGoogle || '');
+    if(!sheetLink.hidden) sheetLink.href = rec.hojaGoogle;
     document.getElementById('rPrice').textContent = fmtMoney(rec.precio);
     document.getElementById('rPriceNote').textContent = 'Dato guardado' + (hasApiKey() ? ' — actualizando al precio de hoy…' : '');
     currentPrecioAnalisis = (typeof rec.precioAnalisis === 'number' && isFinite(rec.precioAnalisis)) ? rec.precioAnalisis : null;
     renderPriceCompare(currentPrecioAnalisis, rec.precio);
     document.getElementById('rTipo').textContent = rec.tipo || '—';
     document.getElementById('rMOS').textContent = fmtPct(rec.mos);
-    document.getElementById('rPrecioMOS').textContent = fmtMoney(rec.precioMOS) + (rec.precioMOSMax != null ? ' – ' + fmtMoney(rec.precioMOSMax) : '');
+    var mosHoy = rec.precioMOSHoy;
+    document.getElementById('rPrecioMOS').textContent = mosHoy ? fmtMoney(mosHoy.conservador) + ' – ' + fmtMoney(mosHoy.base) : fmtMoney(rec.precioMOS) + (rec.precioMOSMax != null ? ' – ' + fmtMoney(rec.precioMOSMax) : '');
     var tbody = document.getElementById('methodsBody');
     tbody.innerHTML = '';
     (rec.metodos || []).forEach(function(m){
@@ -2524,11 +2538,28 @@
       tr.innerHTML = '<td>'+m.nombre+'</td><td>'+fmtPct(m.peso)+'</td><td>'+fmtMoney(m.conservador)+'</td><td>'+fmtMoney(m.base)+'</td><td>'+fmtMoney(m.optimista)+'</td>';
       tbody.appendChild(tr);
     });
+    var weightedMultiples={conservador:0,base:0,optimista:0}, weightMultiples=0;
+    (rec.metodos||[]).forEach(function(m){if(/DCF/i.test(m.nombre||''))return;var w=Number(m.peso)||0;weightMultiples+=w;Object.keys(weightedMultiples).forEach(function(k){weightedMultiples[k]+=w*(Number(m[k])||0);});});
+    if(weightMultiples){
+      Object.keys(weightedMultiples).forEach(function(k){weightedMultiples[k]/=weightMultiples;});
+      var fy3Multiple=document.createElement('tr');
+      fy3Multiple.innerHTML='<td>Múltiplos ponderados FY+3</td><td>'+fmtPct(weightMultiples)+'</td><td>'+fmtMoney(weightedMultiples.conservador)+'</td><td>'+fmtMoney(weightedMultiples.base)+'</td><td>'+fmtMoney(weightedMultiples.optimista)+'</td>';
+      tbody.appendChild(fy3Multiple);
+    }
     var totRow = document.createElement('tr');
     totRow.className = 'total';
     var op = rec.objetivoPonderado || {};
-    totRow.innerHTML = '<td>Precio Objetivo Ponderado</td><td>100%</td><td class="total-cons">'+fmtMoney(op.conservador)+'</td><td class="total-base">'+fmtMoney(op.base)+'</td><td class="total-opt">'+fmtMoney(op.optimista)+'</td>';
+    totRow.innerHTML = '<td>Combinado FY+3 (incluye dividendos)</td><td>100%</td><td class="total-cons">'+fmtMoney(op.conservador)+'</td><td class="total-base">'+fmtMoney(op.base)+'</td><td class="total-opt">'+fmtMoney(op.optimista)+'</td>';
     tbody.appendChild(totRow);
+    var dm=rec.descuentoMultiples||{};
+    [['DCF a valor de hoy',dm.dcfHoy],['Múltiplos descontados a hoy',dm.multiplesHoy]].forEach(function(pair){if(!pair[1])return;var tr=document.createElement('tr');tr.innerHTML='<td>'+pair[0]+'</td><td>—</td><td>'+fmtMoney(pair[1].conservador)+'</td><td>'+fmtMoney(pair[1].base)+'</td><td>'+fmtMoney(pair[1].optimista)+'</td>';tbody.appendChild(tr);});
+    var vp = rec.valorPresentePonderado;
+    if(vp && typeof vp.base === 'number'){
+      var todayRow = document.createElement('tr');
+      todayRow.className = 'total';
+      todayRow.innerHTML = '<td>Combinado a valor de hoy</td><td>100%</td><td class="total-cons">'+fmtMoney(vp.conservador)+'</td><td class="total-base">'+fmtMoney(vp.base)+'</td><td class="total-opt">'+fmtMoney(vp.optimista)+'</td>';
+      tbody.appendChild(todayRow);
+    }
     var cagr = rec.cagr || {};
     document.getElementById('cagrC').textContent = fmtPct(cagr.conservador);
     document.getElementById('cagrB').textContent = fmtPct(cagr.base);
