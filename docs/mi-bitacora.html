@@ -185,6 +185,44 @@
   .result-line{
     font-size:12.5px; color:var(--ink-faint); margin:0 0 8px 2px;
   }
+  .view-controls{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:18px 0 12px;}
+  .view-switch{display:inline-flex;gap:3px;padding:3px;background:var(--surface-2);border:1px solid var(--border);border-radius:11px;}
+  .view-switch button{font-family:inherit;font-size:12px;font-weight:600;border:0;background:transparent;color:var(--ink-soft);padding:8px 13px;border-radius:8px;cursor:pointer;}
+  .view-switch button[aria-pressed="true"]{background:var(--surface);color:var(--accent);box-shadow:var(--shadow);}
+  .view-switch button:focus-visible{outline:2px solid var(--focus);outline-offset:2px;}
+  .visual-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,325px),1fr));gap:14px;align-items:start;}
+  .visual-card{background:var(--surface);border:1px solid var(--border-soft);border-radius:16px;box-shadow:var(--shadow);padding:17px;min-width:0;}
+  .visual-card:focus-within{border-color:var(--accent);}
+  .visual-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
+  .visual-head h3{font-family:"Fraunces",Georgia,serif;font-size:19px;line-height:1.2;margin:3px 0 2px;}
+  .visual-head .chip{flex:none;}
+  .visual-sub{font-size:11px;color:var(--ink-faint);}
+  .visual-numbers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:15px 0 12px;}
+  .visual-number{background:var(--surface-2);border-radius:10px;padding:10px;}
+  .visual-number span{display:block;color:var(--ink-faint);font-size:10px;text-transform:uppercase;letter-spacing:.04em;}
+  .visual-number strong{font:700 18px "IBM Plex Mono",monospace;display:block;margin-top:4px;overflow-wrap:anywhere;}
+  .visual-number.today{background:var(--accent-soft);color:var(--accent-ink);}
+  .visual-chart{position:relative;padding:18px 0 3px;}
+  .visual-price{font:11px "IBM Plex Mono",monospace;color:var(--ink-soft);margin-bottom:9px;}
+  .visual-meter{display:grid;grid-template-columns:76px 1fr 64px;align-items:center;gap:7px;margin:8px 0;}
+  .visual-meter label{font-size:10px;font-weight:700;color:var(--ink-soft);}
+  .visual-meter .value{font:600 11px "IBM Plex Mono",monospace;text-align:right;}
+  .visual-track{height:9px;border-radius:999px;background:var(--surface-2);position:relative;overflow:visible;}
+  .visual-fill{display:block;height:100%;border-radius:999px;background:var(--accent);min-width:2px;}
+  .visual-fill.future{background:var(--positive);}
+  .visual-marker{position:absolute;top:-4px;height:17px;width:2px;background:var(--ink);transform:translateX(-1px);z-index:1;}
+  .visual-footer{display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px solid var(--border-soft);margin-top:13px;padding-top:11px;}
+  .visual-upside{font:600 12px "IBM Plex Mono",monospace;color:var(--positive);}
+  .visual-upside.negative{color:var(--negative);}
+  .visual-upside.neutral{color:var(--ink-soft);}
+  .visual-more{font-family:inherit;font-size:12px;font-weight:600;color:var(--accent);background:none;border:0;cursor:pointer;padding:6px;}
+  .visual-more:focus-visible{outline:2px solid var(--focus);border-radius:5px;}
+  .visual-detail{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:15px;padding-top:14px;border-top:1px solid var(--border-soft);}
+  .visual-detail .valuation-panel{grid-column:1/-1;}
+  .visual-detail .full{grid-column:1/-1;}
+  .visual-detail .chart-card{overflow:hidden;}
+  @media(max-width:620px){.visual-detail{grid-template-columns:1fr;}.visual-grid{grid-template-columns:1fr;}}
+  .visual-grid[hidden],.table-scroll[hidden],.card-list[hidden]{display:none!important;}
 
   .table-scroll{
     overflow-x:auto;
@@ -547,7 +585,8 @@
   </details>
 
   <div class="stats" id="stats"></div>
-  <p class="result-line" id="resultLine"></p>
+  <div class="view-controls"><p class="result-line" id="resultLine"></p><div class="view-switch" role="group" aria-label="Vista de la bitácora"><button type="button" data-view="visual" aria-pressed="true">◫ Vista gráfica</button><button type="button" data-view="table" aria-pressed="false">☷ Tabla</button></div></div>
+  <div class="visual-grid" id="visualGrid"></div>
 
   <div class="mobile-sort">
     <label for="mobileSortSelect">Ordenar por</label>
@@ -597,10 +636,13 @@
 (function(){
   var DATA = [];
 
-  var state = { q: "", cat: "all", sortKey: "n", sortDir: 1, expanded: null };
+  var savedView='visual';try{savedView=localStorage.getItem('jmr-bitacora-view')||'visual';}catch(e){}
+  var state = { q: "", cat: "all", sortKey: "n", sortDir: 1, expanded: null, view:savedView==='table'?'table':'visual' };
 
   var rowsEl = document.getElementById("rows");
   var cardsEl = document.getElementById("cardList");
+  var visualEl = document.getElementById("visualGrid");
+  var tableEl = document.querySelector(".table-scroll");
   var resultLine = document.getElementById("resultLine");
   var statsEl = document.getElementById("stats");
 
@@ -790,6 +832,33 @@
     return html;
   }
 
+  function visualCardHtml(d){
+    var v=d.valoracionActual||{}, present=v.valorPresentePonderado&&v.valorPresentePonderado.base;
+    var future=v.objetivoPonderado&&v.objetivoPonderado.base;
+    if(!(typeof future==='number'&&isFinite(future)))future=parseNum(d.oBase);
+    var price=d.precioActual;
+    var validPrice=typeof price==='number'&&isFinite(price)&&price>0;
+    var scale=Math.max(present||0,future||0,validPrice?price:0,1)*1.1;
+    var marker=validPrice?Math.min(100,Math.max(0,price/scale*100)):null;
+    function bar(label,value,kind){
+      if(!(typeof value==='number'&&isFinite(value)))return '';
+      var width=Math.min(100,Math.max(0,value/scale*100));
+      return '<div class="visual-meter"><label>'+label+'</label><div class="visual-track"><span class="visual-fill '+kind+'" style="width:'+width.toFixed(2)+'%"></span>'+(marker!==null?'<span class="visual-marker" style="left:'+marker.toFixed(2)+'%" aria-hidden="true"></span>':'')+'</div><span class="value">'+fmtVal(value)+'</span></div>';
+    }
+    var upside=validPrice&&typeof present==='number'?(present/price-1)*100:null;
+    var expanded=state.expanded===d.n;
+    return '<article class="visual-card"><div class="visual-head"><div><span class="c-ticker">'+escapeHtml(d.ticker)+'</span><h3>'+escapeHtml(d.empresa||d.ticker)+'</h3><div class="visual-sub">'+escapeHtml(d.fecha||'')+(d.fromResearch?' · Análisis fundamental':'')+'</div></div><span class="chip '+catClass(d.cat)+'">'+escapeHtml(d.cat)+'</span></div>'+
+      '<div class="visual-numbers"><div class="visual-number today"><span>Ponderado hoy</span><strong>'+fmtVal(present)+'</strong></div><div class="visual-number"><span>Objetivo FY+3</span><strong>'+fmtVal(future)+'</strong></div></div>'+
+      '<div class="visual-chart"><div class="visual-price">'+(validPrice?'│ Precio actual '+fmtVal(price):'Entrada histórica '+escapeHtml(d.precio||'—')+' · precio actual pendiente')+'</div>'+bar('Hoy',present,'')+bar('FY+3',future,'future')+'</div>'+
+      '<div class="visual-footer"><span class="visual-upside'+(upside===null?' neutral':upside<0?' negative':'')+'">'+(upside!==null?(upside>=0?'+':'')+upside.toFixed(1)+'% vs. precio actual':'CAGR base '+escapeHtml(d.cagr||'—'))+'</span><button type="button" class="visual-more" data-visual-n="'+d.n+'" aria-expanded="'+expanded+'">'+(expanded?'Ocultar detalle':'Ver análisis')+' →</button></div>'+
+      (expanded?'<div class="visual-detail">'+detailFieldsHtml(d)+'</div>':'')+'</article>';
+  }
+
+  function applyView(){
+    var visual=state.view==='visual';visualEl.hidden=!visual;tableEl.hidden=visual;cardsEl.hidden=visual;
+    document.querySelectorAll('[data-view]').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.view===state.view));});
+  }
+
   function render(){
     var q = state.q.trim().toLowerCase();
     var list = DATA.filter(function(d){
@@ -815,15 +884,18 @@
     });
 
     renderStats(list);
+    applyView();
     resultLine.textContent = "Mostrando " + list.length + " de " + DATA.length + " casos";
 
     if(!list.length){
       rowsEl.innerHTML = '<div class="empty">Ningún caso coincide con la búsqueda.</div>';
       cardsEl.innerHTML = '<div class="empty">Ningún caso coincide con la búsqueda.</div>';
+      visualEl.innerHTML = '<div class="empty">Ningún caso coincide con la búsqueda.</div>';
       return;
     }
     rowsEl.innerHTML = list.map(rowHtml).join("");
     cardsEl.innerHTML = list.map(cardHtml).join("");
+    visualEl.innerHTML = list.map(visualCardHtml).join("");
 
     document.querySelectorAll("#rows .row.data, #cardList .s-card").forEach(function(el){
       // El botón "Eliminar este caso" vive dentro de la tarjeta expandida
@@ -855,6 +927,15 @@
     state.expanded = (state.expanded === n) ? null : n;
     render();
   }
+
+  visualEl.addEventListener('click',function(e){
+    var btn=e.target.closest('[data-visual-n]');if(btn)toggleExpand(Number(btn.dataset.visualN));
+  });
+  document.querySelector('.view-switch').addEventListener('click',function(e){
+    var btn=e.target.closest('[data-view]');if(!btn)return;
+    state.view=btn.dataset.view;try{localStorage.setItem('jmr-bitacora-view',state.view);}catch(err){}
+    applyView();
+  });
 
   document.getElementById("search").addEventListener("input", function(e){
     state.q = e.target.value; render();
