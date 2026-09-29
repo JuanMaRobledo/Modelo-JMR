@@ -207,14 +207,20 @@
     function money(v) { return v == null || !isFinite(v) ? '—' : '$' + Number(v).toLocaleString('es-CO', {minimumFractionDigits:2, maximumFractionDigits:2}); }
     function kv(label, value) { return '<div class="linked-kv"><span>' + escapeHtml(label) + '</span><strong>' + value + '</strong></div>'; }
     function zoneKv(label, z) { return z ? kv(label, money(z.min) + ' – ' + money(z.max)) : ''; }
-    var op = lv.objetivoPonderado || {}, z = lv.zonas || {};
+    var op = lv.objetivoPonderado || {}, vp = lv.valorPresentePonderado || {}, z = lv.zonas || {}, dm=lv.descuentoMultiples||{};
+    var methods=lv.metodos||[], sum=0, fy3={conservador:0,base:0,optimista:0};
+    methods.forEach(function(m){if(/DCF/i.test(m.nombre||''))return;var w=Number(m.peso)||0;sum+=w;Object.keys(fy3).forEach(function(k){fy3[k]+=w*(Number(m[k])||0);});});
+    if(sum)Object.keys(fy3).forEach(function(k){fy3[k]/=sum;});
+    function scenarios(label,v,featured){return v&&v.base!=null?'<div class="linked-scenario'+(featured?' featured':'')+'"><span>'+escapeHtml(label)+'</span><strong>'+money(v.base)+'</strong><small>Cons '+money(v.conservador)+' · Opt '+money(v.optimista)+'</small></div>':'';}
     var visorLink = lv.sourcePath ? '<a class="linked-visor-link" href="visor.html?path=' + encodeURIComponent(lv.sourcePath) + '">Ver en el Visor →</a>' : '';
-    return '<section class="valuation-block linked-valuation"><span class="linked-tag">✓ Vinculado con el Visor · ' + escapeHtml(lv.sourcePath || '') + '</span>' + visorLink + '<h2>Valoración cuantitativa (Visor)</h2><div class="linked-grid">' +
+    return '<section class="valuation-block linked-valuation"><span class="linked-tag">✓ Vinculado con el Visor · ' + escapeHtml(lv.sourcePath || '') + '</span>' + visorLink + '<h2>Valoración cuantitativa (Visor)</h2><div class="linked-scenarios">' +
+      scenarios('DCF · valor intrínseco hoy',dm.dcfHoy) + scenarios('Múltiplos · valor hoy',dm.multiplesHoy) + scenarios('Ponderado · valor hoy',vp,true) + scenarios('Múltiplos · objetivo FY+3',sum?fy3:null) + scenarios('Ponderado · objetivo FY+3',op,true) + '</div><div class="linked-grid">' +
       kv('Precio', money(lv.precio)) +
       kv('Fecha del análisis', escapeHtml(lv.fecha || '—')) +
-      kv('Objetivo conservador', money(op.conservador)) +
-      kv('Objetivo base', money(op.base)) +
-      kv('Objetivo optimista', money(op.optimista)) +
+      (vp.base != null ? kv('Valor hoy conservador', money(vp.conservador)) + kv('Valor hoy base', money(vp.base)) + kv('Valor hoy optimista', money(vp.optimista)) : '') +
+      kv('Combinado FY+3 conservador', money(op.conservador)) +
+      kv('Combinado FY+3 base', money(op.base)) +
+      kv('Combinado FY+3 optimista', money(op.optimista)) +
       zoneKv('Zona Value', z.value) + zoneKv('Zona Deep Value', z.deepValue) + zoneKv('Zona histórica', z.historica) +
       '</div></section>';
   }
@@ -454,7 +460,7 @@
       return fetchJsonFile(matches[0].path).then(function (rec) { return { rec: rec, path: matches[0].path, count: matches.length }; });
     }).then(function (found) {
       var rec = found.rec;
-      state.linkedValuation = { precio: rec.precio, fecha: rec.fecha, zonas: rec.zonas, objetivoPonderado: rec.objetivoPonderado, cagr: rec.cagr, sourcePath: found.path };
+      state.linkedValuation = { precio: rec.precio, fecha: rec.fecha, zonas: rec.zonas, objetivoPonderado: rec.objetivoPonderado, valorPresentePonderado: rec.valorPresentePonderado, descuentoMultiples: rec.descuentoMultiples, metodos: rec.metodos, cagr: rec.cagr, sourcePath: found.path };
       renderPreview();
       setStatus('linkVisorStatus','Vinculado con "' + found.path + '"' + (found.count > 1 ? ' (la más reciente de ' + found.count + ' guardadas para este ticker)' : '') + '.','ok');
     }).catch(function (err) { setStatus('linkVisorStatus', err.message, 'bad'); }).finally(function () { btn.disabled = false; });
@@ -468,6 +474,12 @@
   // para refrescarlo si el usuario quiere.
   function checkLinkedValuationFreshness() {
     if (!state.linkedValuation || !state.ticker) return;
+    var openedId=state.id, linkedPath=state.linkedValuation.sourcePath;
+    if(linkedPath) fetchJsonFile(linkedPath).then(function(rec){
+      if(state.id!==openedId||!state.linkedValuation||state.linkedValuation.sourcePath!==linkedPath)return;
+      state.linkedValuation=Object.assign({},state.linkedValuation,{valorPresentePonderado:rec.valorPresentePonderado,descuentoMultiples:rec.descuentoMultiples,metodos:rec.metodos,objetivoPonderado:rec.objetivoPonderado});
+      renderPreview();
+    }).catch(function(){});
     listValoraciones().then(function (files) {
       var matches = files.filter(function (f) { return tickerFromValoracionName(f.name) === state.ticker; });
       if (!matches.length) return;
