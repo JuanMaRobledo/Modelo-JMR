@@ -270,6 +270,15 @@
     background:var(--surface-2);
   }
   .detail .full{grid-column:1 / -1;}
+  .valuation-panel{border:1px solid var(--border);border-radius:14px;padding:16px;background:linear-gradient(135deg,var(--surface),var(--accent-soft));}
+  .valuation-panel h3{font-family:"Fraunces",Georgia,serif;font-size:18px;margin:0 0 4px;}
+  .valuation-panel p{color:var(--ink-soft);font-size:11px;margin:0 0 12px;}
+  .valuation-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:8px;}
+  .valuation-cell{border:1px solid var(--border-soft);border-radius:10px;background:var(--surface);padding:10px;}
+  .valuation-cell strong{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-faint);}
+  .valuation-cell span{display:block;font:600 14px "IBM Plex Mono",monospace;margin-top:6px;}
+  .valuation-cell.featured{border-color:var(--accent);}
+  .valuation-chip{display:block;font:600 11px "IBM Plex Mono",monospace;color:var(--accent);margin-top:3px;}
   .dfield .dlbl{font-size:10.5px; text-transform:uppercase; letter-spacing:0.06em; color:var(--ink-faint); margin-bottom:3px;}
   .dfield .dval{font-size:13.5px; line-height:1.5; color:var(--ink);}
   .dfield .dval.mono{font-family:"IBM Plex Mono", monospace; font-size:12.5px;}
@@ -705,8 +714,18 @@
       '<svg viewBox="0 0 ' + W + ' ' + H + '" class="chart-svg" role="img" aria-label="Comparativo de precio, escenarios y zonas de valor">' + bars + targetLines + marker + '</svg></div>';
   }
 
+  function fmtVal(v){return typeof v === 'number' && isFinite(v) ? '$' + v.toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—';}
+  function valuationPanelHtml(v){
+    if(!v || !v.valorPresentePonderado) return '';
+    var dm=v.descuentoMultiples||{}, methods=v.metodos||[], sum=0, weighted={conservador:0,base:0,optimista:0};
+    methods.forEach(function(m){if(/DCF/i.test(m.nombre||''))return;var w=Number(m.peso)||0;sum+=w;Object.keys(weighted).forEach(function(k){weighted[k]+=w*(Number(m[k])||0);});});
+    if(sum) Object.keys(weighted).forEach(function(k){weighted[k]/=sum;});
+    var rows=[['DCF · valor intrínseco hoy',dm.dcfHoy],['Múltiplos · valor hoy',dm.multiplesHoy],['Ponderado · valor hoy',v.valorPresentePonderado],['Múltiplos · objetivo FY+3',sum?weighted:null],['Ponderado · objetivo FY+3',v.objetivoPonderado]];
+    return '<div class="dfield full valuation-panel"><h3>Valoración en dos horizontes</h3><p>USD por acción · conservador / base / optimista. FY+3 incluye los dividendos proyectados.</p><div class="valuation-grid">'+rows.filter(function(r){return r[1];}).map(function(r){return '<div class="valuation-cell'+(/Ponderado/.test(r[0])?' featured':'')+'"><strong>'+r[0]+'</strong><span>'+fmtVal(r[1].conservador)+' / '+fmtVal(r[1].base)+' / '+fmtVal(r[1].optimista)+'</span></div>';}).join('')+'</div>'+(v.hojaGoogle?'<p style="margin:12px 0 0"><a href="'+escapeHtml(v.hojaGoogle)+'" target="_blank" rel="noopener noreferrer">Abrir hoja con fórmulas →</a></p>':'')+'</div>';
+  }
   function detailFieldsHtml(d){
     var html = '';
+    html += valuationPanelHtml(d.valoracionActual);
     html += '<div class="dfield"><div class="dlbl">Múltiplo (' + escapeHtml(d.multP) + ')</div><div class="dval mono">Actual ' + escapeHtml(d.multA) + ' · Promedio histórico ' + escapeHtml(d.multH) + '</div></div>';
     html += '<div class="dfield"><div class="dlbl">Fecha de análisis</div><div class="dval mono">' + escapeHtml(d.fecha) + '</div></div>';
     html += '<div class="dfield full">' + buildComparativoChart(d) + '</div>';
@@ -724,7 +743,7 @@
     var expanded = state.expanded === d.n;
     var html = '';
     html += '<div class="row data" tabindex="0" role="button" aria-expanded="' + expanded + '" data-n="' + d.n + '">';
-    html += '<span class="c-ticker">' + escapeHtml(d.ticker) + '</span>';
+    html += '<span class="c-ticker">' + escapeHtml(d.ticker) + (d.valoracionActual && d.valoracionActual.valorPresentePonderado ? '<span class="valuation-chip">Hoy ' + fmtVal(d.valoracionActual.valorPresentePonderado.base) + '</span>' : '') + '</span>';
     html += '<span class="c-empresa" title="' + escapeHtml(d.empresa) + '">' + escapeHtml(d.empresa) + '</span>';
     html += '<span class="c-cat"><span class="chip ' + catClass(d.cat) + '">' + escapeHtml(d.cat) + '</span>' + (d.fromResearch ? '<span class="chip custom">Análisis Fundamental</span>' : '') + '</span>';
     html += '<span class="c-precio">' + escapeHtml(d.precio) + '</span>';
@@ -755,6 +774,7 @@
     html += '    <span class="c-cagr ' + cagrClass + '">' + escapeHtml(d.cagr) + '</span>';
     html += '  </div>';
     html += '  <div class="sc-empresa">' + escapeHtml(d.empresa) + '</div>';
+    if(d.valoracionActual && d.valoracionActual.valorPresentePonderado) html += '<div class="valuation-chip">Ponderado hoy · ' + fmtVal(d.valoracionActual.valorPresentePonderado.base) + '　|　FY+3 · ' + fmtVal((d.valoracionActual.objetivoPonderado || {}).base) + '</div>';
     html += '  <div class="sc-row">';
     html += '    <div class="sc-kv"><span class="k">Entrada</span><span class="v">' + escapeHtml(d.precio) + '</span></div>';
     html += '    <div class="sc-kv"><span class="k">Actual</span><span class="v' + (d.precioActual != null ? '' : ' stale') + '">' + (d.precioActual != null ? formatPrecioActual(d.precioActual) : '—') + '</span></div>';
@@ -1092,6 +1112,13 @@
       return [];
     });
   }
+  function loadValuations(){
+    return fetch(GH_API+'valoraciones',{headers:ghHeaders(getGhToken())}).then(function(res){if(!res.ok)throw new Error('HTTP '+res.status);return res.json();}).then(function(list){
+      return Promise.all((Array.isArray(list)?list:[]).filter(function(f){return /\.json$/i.test(f.name);}).map(function(f){
+        return fetch(f.url||GH_API+f.path,{headers:ghHeaders(getGhToken())}).then(function(r){return r.json();}).then(function(data){return JSON.parse(b64DecodeUnicode(data.content.replace(/\n/g,'')));}).catch(function(){return null;});
+      }));
+    }).then(function(records){var map={};records.forEach(function(v){if(v&&v.ticker&&(!map[v.ticker]||String(v.savedAt||'')>String(map[v.ticker].savedAt||'')))map[v.ticker]=v;});return map;}).catch(function(err){console.warn('No se pudieron leer las valoraciones:',err);return {};});
+  }
 
   // Un análisis de Research guardado sin GitHub conectado en ese momento
   // queda solo en localStorage — research.js ya intenta subirlo apenas se
@@ -1130,8 +1157,8 @@
   }
 
   function loadAndMergeAll(){
-    return pushLocalOnlyResearchToRemote().catch(function(){}).then(function(){ return Promise.all([loadCustomHipotesis(), loadResearchDerived()]); }).then(function(r){
-      var customRes = r[0], researchRecs = r[1];
+    return pushLocalOnlyResearchToRemote().catch(function(){}).then(function(){ return Promise.all([loadCustomHipotesis(), loadResearchDerived(), loadValuations()]); }).then(function(r){
+      var customRes = r[0], researchRecs = r[1], valuations=r[2];
       // Saca del DATA renderizado cualquier copia previa (por si se llama
       // más de una vez, p. ej. al conectar el token después de cargar) y
       // vuelve a agregar la lista fresca.
@@ -1154,6 +1181,7 @@
       researchRecs.map(buildRowFromResearch).forEach(function(rec){
         n++; rec.n = n; DATA.push(rec);
       });
+      DATA.forEach(function(d){d.valoracionActual=valuations[String(d.ticker||'').toUpperCase()]||null;});
       render();
 
       if (hadLegacyCopies && getGhToken()) saveCustomHipotesis().catch(function(){});
