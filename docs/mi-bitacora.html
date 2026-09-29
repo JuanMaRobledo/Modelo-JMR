@@ -1102,15 +1102,14 @@
       seen[ticker]=true;return true;
     }).sort(function(a,b){return a.ticker.localeCompare(b.ticker);});
     var now=new Date().toLocaleString('es-CO',{timeZone:'America/Bogota',dateStyle:'medium',timeStyle:'short'});
-    document.getElementById('printSheet').innerHTML='<h1>Mi Bitácora · activos estudiados</h1><p>Consulta: '+escapeHtml(now)+' (Colombia) · USD por acción · precios de Financial Modeling Prep con posible retraso. “—” indica cotización o valoración no disponible. Diferencia = (valor intrínseco base / precio − 1) × 100.</p>'+
+    document.getElementById('printSheet').innerHTML='<h1>Mi Bitácora · activos estudiados</h1><p>Impresión: '+escapeHtml(now)+' (Colombia) · USD por acción · precios consultados a Financial Modeling Prep con posible retraso. “—” indica cotización o valoración no disponible. Diferencia = (valor intrínseco base / precio − 1) × 100.</p>'+
       '<table><thead><tr><th>Ticker</th><th>Activo</th><th>Precio consultado</th><th>Valor intrínseco base hoy</th><th>Diferencia vs. precio</th><th>Hora de consulta</th></tr></thead><tbody>'+
       list.map(function(d){var delta=priceDifference(d);return '<tr><td>'+escapeHtml(d.ticker)+'</td><td>'+escapeHtml(d.empresa||'')+'</td><td>'+(d.precioActual?fmtVal(d.precioActual):'—')+'</td><td>'+fmtVal(intrinsicBase(d))+'</td><td>'+(delta===null?'—':(delta>=0?'+':'')+delta.toFixed(1)+'%')+'</td><td>'+(d.precioActualConsultado?escapeHtml(new Date(d.precioActualConsultado).toLocaleTimeString('es-CO',{timeZone:'America/Bogota'})):'—')+'</td></tr>';}).join('')+'</tbody></table>';
   }
   document.getElementById('printListBtn').addEventListener('click',function(){
     var button=this;button.disabled=true;button.textContent='Consultando precios…';
-    refreshPrices().then(function(ok){
+    refreshPrices().then(function(){
       button.disabled=false;button.textContent='Imprimir lista actualizada';
-      if(!ok)return;
       buildPrintSheet();window.print();
     });
   });
