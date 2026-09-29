@@ -164,8 +164,12 @@ Seguí este proceso, en este orden:
           Mediana de 5 y 10 años, percentiles 25 y 75, mínimo, máximo y LTM.
           Excluí y listá los atípicos: años con métrica negativa o ~0, múltiplos
           > 2,5× la mediana (burbuja) o < 0,4× (crisis puntual), salvo que sean el
-          régimen actual. Advertí si la empresa cambió de etapa (hipercrecimiento
-          → madurez): su historia sobreestima el múltiplo futuro.
+          régimen actual. Excluí también los cierres distorsionados por partidas no
+          recurrentes (ej. un beneficio tributario único que infla la utilidad) y
+          citá la fuente. Si la empresa cambió de etapa (hipercrecimiento → madurez,
+          o una re-valoración del sector), usá como A solo los cierres de la etapa
+          actual más el LTM y declará desde qué año y por qué. Si no queda ningún
+          cierre representativo, decilo: ese método se ancla en B y C.
        B. COMPARABLES ('Sector', filas 3-11: P/E en F, EV/FCF en G, P/FCF en H,
           EV/EBITDA en I, P/OCF en J; P/E forward en E). Mínimo 3 peers del mismo
           modelo de negocio, misma definición y fecha. Reportá mediana, rango y n.
@@ -180,25 +184,35 @@ Seguí este proceso, en este orden:
                         payout sostenible = 1 − g / ROE
             EV/EBITDA = EV/FCFF justificado × (FCFF / EBITDA de FY+3)
             P/OCF     = P/FCFE justificado × (FCFE / OCF de FY+3)
-          g = crecimiento de largo plazo prudente, NUNCA mayor al crecimiento de
-          los años 4-10 del escenario, siempre menor a Ke y a WACC. Si Ke − g es
-          muy chico y el resultado se dispara, decilo y dale menos peso a C.
+          g = punto medio entre el crecimiento promedio de los años 4-10 del
+          escenario y el de perpetuidad (nunca mayor al de los años 4-10); WACC =
+          promedio de los años 4-10; ROE = utilidad de FY+3 / patrimonio en libros
+          LTM. g siempre al menos 1 pp por debajo de Ke y de WACC: si no, C no se
+          calcula para ese escenario. Si Ke − g es chico y el resultado se dispara,
+          decilo y dale menos peso a C.
           Si cambiás supuestos de crecimiento/margen/tasa, recalculá SOLO el ancla C.
 
    6.3 Regla para fijar los tres escenarios:
-       - BASE (J19): partí del ancla de mercado = promedio de la mediana histórica
-         depurada de 5 años (A) y la mediana ajustada de peers (B). Movela hacia el
-         justificado (C) solo en la medida en que la empresa de FY+3 vaya a ser
-         distinta de la de hoy, diciendo cuánto y por qué. Control: el Base tiene
-         que quedar DENTRO del rango [mín(A,B,C); máx(A,B,C)]; si queda afuera es
-         una excepción que justificás con evidencia concreta.
-       - CONSERVADOR (J8): el múltiplo coherente con el escenario Conservador del
-         DCF (menos crecimiento, margen sin mejora): percentil 25 de la historia
-         depurada, cuartil bajo de peers y justificado con la g conservadora. NO
-         uses "Base × 0,9" por inercia.
-       - OPTIMISTA (J30): coherente con el escenario Optimista: percentil 75 de la
-         historia depurada, cuartil alto de peers y justificado con la g
-         optimista. No superes el máximo histórico depurado sin justificarlo.
+       - BASE (J19) = (1 − λ) × promedio(A, B) + λ × C_base.
+         λ (entre 0 y 1) dice cuánto se acerca el Base al justificado: poco (0-0,25)
+         si la empresa de FY+3 se parece a la de hoy o si C es inestable; más si la
+         empresa de FY+3 va a ser claramente distinta. Declará λ y su motivo. Si A
+         no tiene cierres representativos, usá B en lugar de promedio(A, B).
+         Control: el Base tiene que quedar DENTRO del rango [mín(A,B,C);
+         máx(A,B,C)]; si queda afuera es una excepción que justificás con
+         evidencia concreta.
+       - CONSERVADOR (J8) = Base × promedio de las dispersiones a la baja de cada
+         ancla: P25/mediana de A, P25/mediana de los peers y C_conservador/C_base.
+         Así el escenario Conservador sale de la misma lógica que el Base (menor
+         crecimiento, múltiplos del cuartil bajo). NO uses "Base × 0,9" por inercia.
+       - OPTIMISTA (J30) = Base × promedio de las dispersiones al alza: P75/mediana
+         de A, P75/mediana de los peers y C_optimista/C_base. No superes el máximo
+         de toda la historia depurada sin justificarlo.
+       - Peers: excluí y justificá los que no son comparables en la etapa o en la
+         métrica (en declive, en dificultades, con margen GAAP negativo o
+         distorsionado por compensación en acciones) y los megacaps de otro perfil.
+         El ajuste sobre la mediana de peers (en %) resume diferencias de
+         crecimiento, margen, ROIC y riesgo, con cada componente explicado.
        - Siempre Conservador < Base < Optimista. Escribí los tres valores en
          J8/J19/J30 con 2 decimales (explícitos, sin depender de reglas
          automáticas de la plantilla).
@@ -353,7 +367,7 @@ análisis.
 
 | Paso | v2 | v3 |
 |---|---|---|
-| 6. Múltiplos | Si el historial cruzaba de negativo a positivo, el múltiplo objetivo se calculaba como implícito del DCF (Equity DCF / Utilidad, EV DCF / EBITDA); si no, MIN de 4 años con ±10% | Tres anclas obligatorias (historia depurada, peers ajustados, múltiplo justificado por fundamentales); regla explícita para Base, Conservador y Optimista; prohibido derivar del DCF o ajustar después de verlo; chequeo de independencia; documentación en la hoja |
+| 6. Múltiplos (reglas precisadas tras el piloto ADBE/DUOL del 29-sep-2026: etapa actual, cierres no recurrentes, g del justificado, λ y Conservador/Optimista por dispersión) | Si el historial cruzaba de negativo a positivo, el múltiplo objetivo se calculaba como implícito del DCF (Equity DCF / Utilidad, EV DCF / EBITDA); si no, MIN de 4 años con ±10% | Tres anclas obligatorias (historia depurada, peers ajustados, múltiplo justificado por fundamentales); regla explícita para Base, Conservador y Optimista; prohibido derivar del DCF o ajustar después de verlo; chequeo de independencia; documentación en la hoja |
 | 7. Valor presente | No existía | Hoja «Descuento de múltiplos»: VP a 1, 2 y 3 años, consolidado y ponderado con el DCF hoy; chequeo VP3 < FY+3 |
 | 8. Ponderación | Ajustar la tabla compartida si la categoría no calza | Primero elegir otra categoría; si se cambia la tabla, registrarlo y avisar a qué valoraciones afecta |
 | 10-11. Entregables | Valor DCF y precio objetivo ponderado | DCF hoy, múltiplos hoy y ponderado hoy por separado, tabla de origen de los múltiplos, sensibilidad y control de calidad |
