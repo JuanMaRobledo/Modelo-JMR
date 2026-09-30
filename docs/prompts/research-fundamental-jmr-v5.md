@@ -539,7 +539,7 @@ Ubica a la empresa en su tramo de tamaño (ventas LTM) en las tasas base de crec
 2. **Márgenes:** GAAP frente a normalizado (sin cargos de una vez, integración, litigios y amortización de compras, cada ajuste explicado) y un comparable maduro del mismo negocio como referencia de largo plazo, explicando la brecha de margen bruto y de escala.
 3. **Reinversión y retorno:** orgánico (capex, capital de trabajo, sales-to-capital) y comprado (precio pagado frente a ventas y NOPAT de lo comprado: retorno sobre lo pagado frente al costo de capital). El capital invertido debe incluir todo lo que financió el negocio. Cierra con el **moat y el ROIC después del año 10** ('Input sheet'!B49/B50). Clasifica el moat con evidencia (fuentes, ROIC frente al costo de capital en los últimos 5 años, peso de las historias de erosión):
   - **Ancho:** el ROIC terminal es el menor entre el ROIC actual y el de la industria de Damodaran.
-  - **Estrecho:** es el punto medio entre el costo de capital terminal y ese valor.
+  - **Estrecho:** es el punto medio entre el costo de capital terminal y ese valor. Exige al menos una fuente estructural (costos de cambio, efectos de red, escala o costo, licencias o regulación, patentes que se renuevan). La marca sola no alcanza en consumo discrecional, moda o apps de consumo con bajo costo de cambio: ahí el moat es «sin moat» salvo que haya otra fuente estructural.
   - **Sin moat:** es igual al costo de capital.
 
 Si la industria no es representativa, usa la industria madura más cercana. Nunca es mayor que el ROIC actual ni menor que el costo de capital. Muestra el ROIC actual, el de la industria, el costo de capital terminal, el valor que usa la hoja y el DCF Base con y sin el ajuste; si no aplica, di qué condición falla.
