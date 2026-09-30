@@ -799,7 +799,7 @@
         <div class="stat"><div class="lbl">Value</div><div class="rng" id="zValue">—</div></div>
         <div class="stat"><div class="lbl">Deep Value</div><div class="rng" id="zDeep">—</div></div>
         <div class="stat"><div class="lbl">Valoración histórica</div><div class="rng" id="zHist">—</div></div>
-        <div class="stat"><div class="lbl">Precio con MOS · DCF Base</div><div class="rng" id="zMOS">—</div></div>
+        <div class="stat"><div class="lbl">Precio con MOS sobre el DCF</div><div class="rng" id="zMOS">—</div></div>
       </div>
 
       <p class="section-title">Gráficos</p>
@@ -989,7 +989,7 @@
         <p class="section-title">Resultado recalculado (hipotético — no cambia la valoración guardada)</p>
         <div class="grid4">
           <div class="stat"><div class="lbl">Precio con este supuesto</div><div class="big" id="rcPrice">—</div></div>
-          <div class="stat"><div class="lbl">Precio con MOS · DCF Base</div><div class="big" id="rcPrecioMOS">—</div></div>
+          <div class="stat"><div class="lbl">Precio con MOS sobre el DCF</div><div class="big" id="rcPrecioMOS">—</div></div>
           <div class="stat"><div class="lbl">CAGR promedio (Base)</div><div class="big" id="rcCagrB">—</div></div>
           <div class="stat"><div class="lbl">Potencial vs. precio actual (Base)</div><div class="big" id="rcPotB">—</div></div>
         </div>
@@ -1004,7 +1004,7 @@
           <div class="stat"><div class="lbl">Value</div><div class="rng" id="rcZValue">—</div></div>
           <div class="stat"><div class="lbl">Deep Value</div><div class="rng" id="rcZDeep">—</div></div>
           <div class="stat"><div class="lbl">Valoración histórica</div><div class="rng" id="rcZHist">—</div></div>
-          <div class="stat"><div class="lbl">Precio con MOS · DCF Base</div><div class="rng" id="rcZMOS">—</div></div>
+          <div class="stat"><div class="lbl">Precio con MOS sobre el DCF</div><div class="rng" id="rcZMOS">—</div></div>
         </div>
       </div>
     </div>
@@ -1194,9 +1194,19 @@
     try { v = localStorage.getItem(HEADLINE_KEY); } catch(e){}
     return HEADLINE_INFO[v] ? v : 'dcfHoy';
   }
+  // Read the authoritative four-story family when importing the updated native ADBE workbook.
+  function readUnifiedStories(wb){
+    var ws=wb && wb.Sheets && wb.Sheets['Escenarios e historias'];
+    if(!ws || typeof cellVal(ws,'H10')!=='number') return null;
+    var hs=[];
+    for(var row=5;row<=8;row++) hs.push({id:String.fromCharCode(60+row),nombre:cellVal(ws,'A'+row),probabilidad:cellVal(ws,'B'+row),crecimiento:cellVal(ws,'C'+row),margen:cellVal(ws,'D'+row),salesToCapital:cellVal(ws,'E'+row),salesToCapital2:cellVal(ws,'F'+row),roicTerminal:row===6||row===7?'costo_capital':cellVal(ws,'G'+row),valor:cellVal(ws,'H'+row)});
+    return {valor:cellVal(ws,'H10'),valorCentral:cellVal(ws,'H11'),historias:hs,escenariosUnificados:true,historiaCentralId:'A',rango:{min:cellVal(ws,'H12'),max:cellVal(ws,'H13')}};
+  }
   function headlineValues(key){
     var r = currentResumen || {}, dm = r.descuentoMultiples || {};
     var map = { ponderadoHoy: dm.ponderadoHoy || r.valorPresentePonderado, dcfHoy: dm.dcfHoy, multHoy: dm.multiplesHoy, fy3: r.objetivoPonderado };
+    var unified = r.valorEsperado && r.valorEsperado.escenariosUnificados;
+    if (key === 'dcfHoy' && unified) { var hs=r.valorEsperado.historias; return {conservador:Math.min.apply(null,hs.map(function(x){return x.valor;})),base:r.valorEsperado.valor,optimista:Math.max.apply(null,hs.map(function(x){return x.valor;}))}; }
     var t = map[key];
     return (t && typeof t.base === 'number' && isFinite(t.base)) ? t : null;
   }
@@ -1205,7 +1215,8 @@
     var key = headlineChoice(), vals = headlineValues(key), fallback = false;
     if(!vals && key !== 'fy3'){ vals = headlineValues('fy3'); key = 'fy3'; fallback = true; }
     var info = HEADLINE_INFO[key];
-    return { key: key, titulo: info.titulo, hoy: info.hoy, desc: info.desc, valores: vals || {}, fallback: fallback };
+    var unified = key === 'dcfHoy' && currentResumen.valorEsperado && currentResumen.valorEsperado.escenariosUnificados;
+    return { key: key, titulo: unified ? 'Valor intrínseco esperado hoy (DCF)' : info.titulo, hoy: info.hoy, desc: unified ? 'Promedio de los cuatro DCF ponderados por probabilidades. Escenarios e historias son la misma familia; el rango muestra sus desenlaces.' : info.desc, valores: vals || {}, fallback: fallback, unified: unified };
   }
   function fmtVsPrecio(target, basePrice){
     if(typeof target !== 'number' || !isFinite(target) || typeof basePrice !== 'number' || !isFinite(basePrice) || !basePrice) return '—';
@@ -1305,6 +1316,7 @@
       ? JmrValueBoard.veBox(JmrValueBoard.fromRecord(currentResumen, { precio: currentResumen.precio, precioLbl: 'Precio de hoy' })) : '';
     var sel = document.getElementById('headlineSel');
     var h = headlineData();
+    ['hlC','hlB','hlO'].forEach(function(id,i){document.getElementById(id).parentElement.querySelector('.lbl').textContent=h.unified?['Mínimo de historias','DCF esperado','Máximo de historias'][i]:['Conservador','Base','Optimista'][i];});
     ['dcfHoy','ponderadoHoy','multHoy'].forEach(function(k){
       var opt = sel.querySelector('option[value="' + k + '"]');
       if(opt) opt.disabled = !headlineValues(k);
@@ -1327,7 +1339,7 @@
   // Ponderado" de la tabla — misma escala visual, ahora como gráfico. Una
   // línea punteada marca el precio actual para ver de un vistazo cuánto
   // recorrido implica cada escenario.
-  function buildScenarioChart(precioActual, obj){
+  function buildScenarioChart(precioActual, obj, storyRange){
     if(!obj || typeof obj.conservador !== 'number' || typeof obj.base !== 'number' || typeof obj.optimista !== 'number'){
       return '<div class="chart-empty">Sin datos suficientes.</div>';
     }
@@ -1341,7 +1353,7 @@
     var barW = 54, gap = 18;
     var totalW = barW * 3 + gap * 2;
     var startX = (W - totalW) / 2;
-    var labels = ['Conservador', 'Base', 'Optimista'];
+    var labels = storyRange ? ['Mínimo', 'Esperado', 'Máximo'] : ['Conservador', 'Base', 'Optimista'];
     var fills = [
       'color-mix(in oklab, var(--accent) 28%, var(--surface))',
       'color-mix(in oklab, var(--accent) 58%, var(--surface))',
@@ -1433,7 +1445,7 @@
     var sel = headlineData();
     var t = document.getElementById('chartScenariosTitle');
     if(t) t.textContent = sel.titulo + ' por escenario';
-    scEl.innerHTML = buildScenarioChart(currentResumen.precio, sel.valores);
+    scEl.innerHTML = buildScenarioChart(currentResumen.precio, sel.valores, sel.unified);
     zEl.innerHTML = buildZonesChart(currentResumen.precio, currentResumen.zonas, sel.valores);
   }
 
@@ -1632,6 +1644,7 @@
       valorPresentePonderado: valorHoy,
       descuentoMultiples: descuento,
       crecimientoImplicito: readCrecimientoImplicito(wb),
+      valorEsperado: readUnifiedStories(wb),
       precioMOSHoy: { conservador: cellVal(res,'C36'), base: cellVal(res,'D36'), optimista: cellVal(res,'E36') },
       cagr: { conservador: cellVal(res,'C13'), base: cellVal(res,'D13'), optimista: cellVal(res,'E13') },
       zonas: {
@@ -1641,6 +1654,7 @@
         conMOS: { min: cellVal(res,'C19'), max: cellVal(res,'B19') }
       }
     };
+    if(currentResumen.valorEsperado && currentResumen.valorEsperado.escenariosUnificados){ currentResumen.precioMOS=currentResumen.valorEsperado.valor*(1-mos); currentResumen.precioMOSMax=currentResumen.precioMOS; currentResumen.baseMOS='valorEsperado'; }
     sheetHtmlCache = {};
     cualitativoOverride = null;
     fundamentalOverride = null;
@@ -2842,7 +2856,7 @@
     var box = document.getElementById('valueBoard');
     if(!box || !boardParts || typeof JmrValueBoard === 'undefined') return;
     var r = currentResumen || {};
-    var d = JmrValueBoard.fromParts(Object.assign({}, boardParts, { precio: r.precio, precioLbl: 'Precio de hoy', mos: r.mos, hoja: r.hojaGoogle }));
+    var d = JmrValueBoard.fromParts(Object.assign({}, boardParts, { precio: r.precio, precioLbl: 'Precio de hoy', mos: r.mos, hoja: r.hojaGoogle, ve: r.valorEsperado }));
     box.innerHTML = JmrValueBoard.html(d, { hero: false });
   }
   function renderPresentValue(dm, vp, metodosFY3, objetivoFY3){

@@ -939,7 +939,7 @@
 
   function visualCardHtml(d){
     var fam=BASIS_INFO[valueBasis].fam, fv=familyValues(d,fam), present=fv.hoy, future=fv.fy3;
-    var famLbl=fam==='dcf'?'DCF':fam==='multiplos'?'Múltiplos':'Ponderado';
+    var famLbl=fam==='dcf'?(d.valoracionActual && d.valoracionActual.valorEsperado && d.valoracionActual.valorEsperado.escenariosUnificados?'DCF esperado':'DCF'):fam==='multiplos'?'Múltiplos':'Ponderado';
     var pr=priceRef(d), price=pr.price;
     var validPrice=!!price;
     var scale=Math.max(present||0,future||0,validPrice?price:0,1)*1.1;
@@ -952,9 +952,9 @@
     var upHoy=pctVs(present,d), upFy3=pctVs(future,d);
     var expanded=state.expanded===d.n;
     return '<article class="visual-card'+(expanded?' expanded':'')+'"><div class="visual-head"><div><span class="c-ticker">'+escapeHtml(d.ticker)+'</span><h3>'+escapeHtml(d.empresa||d.ticker)+'</h3><div class="visual-sub">'+escapeHtml(d.fecha||'')+(d.fromResearch?' · Análisis fundamental':'')+'</div></div><span class="chip '+catClass(d.cat)+'">'+escapeHtml(d.cat)+'</span></div>'+
-      '<div class="visual-numbers"><div class="visual-number'+(BASIS_INFO[valueBasis].hz==='hoy'?' today':'')+'"><span>'+famLbl+' hoy</span><strong>'+fmtVal(present)+'</strong><small class="vs">vs. precio '+fmtPctSpan(upHoy)+'</small></div><div class="visual-number'+(BASIS_INFO[valueBasis].hz==='fy3'?' today':'')+'"><span>'+famLbl+' FY+3</span><strong>'+fmtVal(future)+'</strong><small class="vs">vs. precio '+fmtPctSpan(upFy3)+'</small></div></div>'+
+      '<div class="visual-numbers"><div class="visual-number'+(BASIS_INFO[valueBasis].hz==='hoy'?' today':'')+'"><span>'+famLbl+' hoy</span><strong>'+fmtVal(present)+'</strong><small class="vs">vs. precio '+fmtPctSpan(upHoy)+'</small></div><div class="visual-number'+(BASIS_INFO[valueBasis].hz==='fy3'?' today':'')+'"><span>'+(famLbl==='DCF esperado'?'Historia central A':famLbl+' FY+3')+'</span><strong>'+fmtVal(famLbl==='DCF esperado'?d.valoracionActual.valorEsperado.valorCentral:future)+'</strong><small class="vs">vs. precio '+fmtPctSpan(famLbl==='DCF esperado'?pctVs(d.valoracionActual.valorEsperado.valorCentral,d):upFy3)+'</small></div></div>'+
       '<div class="visual-chart"><div class="visual-price">'+(validPrice?'│ '+(pr.live?'Precio actual ':'Precio guardado ')+fmtVal(price):'Entrada histórica '+escapeHtml(d.precio||'—')+' · precio actual pendiente')+'</div>'+bar('Hoy',present,'')+bar('FY+3',future,'future')+'</div>'+
-      '<div class="visual-footer"><span class="visual-upside neutral">CAGR base '+escapeHtml(d.cagr||'—')+'</span><button type="button" class="visual-more" data-visual-n="'+d.n+'" aria-expanded="'+expanded+'">'+(expanded?'Ocultar detalle':'Ver análisis')+' →</button></div>'+
+      '<div class="visual-footer"><span class="visual-upside neutral">'+(famLbl==='DCF esperado'?'Cuatro escenarios DCF':('CAGR base '+escapeHtml(d.cagr||'—')))+'</span><button type="button" class="visual-more" data-visual-n="'+d.n+'" aria-expanded="'+expanded+'">'+(expanded?'Ocultar detalle':'Ver análisis')+' →</button></div>'+
       (expanded?'<div class="visual-detail">'+detailFieldsHtml(d)+'</div>':'')+'</article>';
   }
 
@@ -977,6 +977,7 @@
     var hoy=null, fy3=null;
     if(fam==='ponderado'){ hoy=num((v.valorPresentePonderado||{}).base); fy3=num((v.objetivoPonderado||{}).base); }
     else if(fam==='dcf'){
+      if(v.valorEsperado && v.valorEsperado.escenariosUnificados) return {hoy:num(v.valorEsperado.valor),fy3:null};
       hoy=num((dm.dcfHoy||{}).base);
       methods.forEach(function(m){ if(/DCF/i.test(m.nombre||'')) fy3=num(m.base); });
     } else {
@@ -1011,16 +1012,17 @@
   function pairHtml(d){
     var f=familyValues(d,BASIS_INFO[valueBasis].fam);
     if(f.hoy===null&&f.fy3===null) return '';
+    if(BASIS_INFO[valueBasis].fam==='dcf' && d.valoracionActual && d.valoracionActual.valorEsperado && d.valoracionActual.valorEsperado.escenariosUnificados) return 'DCF esperado hoy '+fmtVal(f.hoy)+' ('+fmtPctSpan(pctVs(f.hoy,d))+')';
     return 'Hoy '+fmtVal(f.hoy)+' ('+fmtPctSpan(pctVs(f.hoy,d))+') · FY+3 '+fmtVal(f.fy3)+' ('+fmtPctSpan(pctVs(f.fy3,d))+')';
   }
   function summaryHtml(d){
     var pr=priceRef(d), f=familyValues(d,BASIS_INFO[valueBasis].fam), fam=BASIS_INFO[valueBasis].fam;
-    var famLbl=fam==='dcf'?'DCF':fam==='multiplos'?'Múltiplos':'Ponderado';
+    var famLbl=fam==='dcf'?(d.valoracionActual && d.valoracionActual.valorEsperado && d.valoracionActual.valorEsperado.escenariosUnificados?'DCF esperado':'DCF'):fam==='multiplos'?'Múltiplos':'Ponderado';
     var open=state.expanded===d.n;
     return '<div class="summary-block'+(open?' open':'')+'"><div class="summary-item" data-summary-row="'+d.n+'" tabindex="0" role="button" aria-expanded="'+open+'"><div class="identity"><strong>'+escapeHtml(d.ticker)+' · '+escapeHtml(d.empresa||d.ticker)+decisionBadge(d)+'</strong><small>'+escapeHtml(d.fecha||'')+'</small></div>'+
       '<div class="num"><small>'+(pr.live?'Precio consultado':'Precio guardado')+'</small>'+(pr.price?fmtVal(pr.price):'Pendiente')+'</div>'+
-      '<div class="num"><small>'+famLbl+' hoy (base)</small>'+fmtVal(f.hoy)+'<span class="pair"><b>vs. precio</b>'+fmtPctSpan(pctVs(f.hoy,d))+'</span></div>'+
-      '<div class="num"><small>'+famLbl+' FY+3 (base)</small>'+fmtVal(f.fy3)+'<span class="pair"><b>vs. precio</b>'+fmtPctSpan(pctVs(f.fy3,d))+'</span></div>'+
+      '<div class="num"><small>'+famLbl+(famLbl==='DCF esperado'?' hoy':' hoy (base)')+'</small>'+fmtVal(f.hoy)+'<span class="pair"><b>vs. precio</b>'+fmtPctSpan(pctVs(f.hoy,d))+'</span></div>'+
+      (f.fy3===null && famLbl==='DCF esperado' ? '<div class="num"><small>Historia central A</small>'+fmtVal(d.valoracionActual.valorEsperado.valorCentral)+'</div>' : '<div class="num"><small>'+famLbl+' FY+3 (base)</small>'+fmtVal(f.fy3)+'<span class="pair"><b>vs. precio</b>'+fmtPctSpan(pctVs(f.fy3,d))+'</span></div>')+
       '<button type="button" data-summary-n="'+d.n+'">'+(open?'Cerrar':'Ver detalle')+'</button></div>'+
       (open?'<section class="company-panel" id="panel-'+d.n+'">'+companyPanelHtml(d)+'</section>':'')+'</div>';
   }
@@ -1335,7 +1337,7 @@
       seen[ticker]=true;return true;
     }).sort(function(a,b){return a.ticker.localeCompare(b.ticker);});
     var now=new Date().toLocaleString('es-CO',{timeZone:'America/Bogota',dateStyle:'medium',timeStyle:'short'});
-    document.getElementById('printSheet').innerHTML='<h1>Mi Bitácora · activos estudiados</h1><p>Impresión: '+escapeHtml(now)+' (Colombia) · USD por acción · precios consultados a Financial Modeling Prep con posible retraso. “—” indica cotización o valoración no disponible. Valores base de: '+escapeHtml(BASIS_INFO[valueBasis].label)+' (hoy y FY+3 de esa misma familia). Diferencia = (valor / precio − 1) × 100.</p>'+
+    document.getElementById('printSheet').innerHTML='<h1>Mi Bitácora · activos estudiados</h1><p>Impresión: '+escapeHtml(now)+' (Colombia) · USD por acción · precios consultados a Financial Modeling Prep con posible retraso. “—” indica cotización o valoración no disponible. Lectura: '+escapeHtml(BASIS_INFO[valueBasis].label)+'. ADBE usa el DCF esperado de las cuatro historias; su FY+3 queda sin proyección. Diferencia = (valor / precio − 1) × 100.</p>'+
       '<table><thead><tr><th>Ticker</th><th>Activo</th><th>Precio consultado</th><th>Valor hoy</th><th>Dif. hoy</th><th>Valor FY+3</th><th>Dif. FY+3</th><th>Hora de consulta</th></tr></thead><tbody>'+
       list.map(function(d){var f=familyValues(d,BASIS_INFO[valueBasis].fam),a=pctVs(f.hoy,d),b=pctVs(f.fy3,d),pc=function(x){return x===null?'—':(x>=0?'+':'')+x.toFixed(1)+'%';};return '<tr><td>'+escapeHtml(d.ticker)+'</td><td>'+escapeHtml(d.empresa||'')+'</td><td>'+(d.precioActual?fmtVal(d.precioActual):'—')+'</td><td>'+fmtVal(f.hoy)+'</td><td>'+pc(a)+'</td><td>'+fmtVal(f.fy3)+'</td><td>'+pc(b)+'</td><td>'+(d.precioActualConsultado?escapeHtml(new Date(d.precioActualConsultado).toLocaleTimeString('es-CO',{timeZone:'America/Bogota'})):'—')+'</td></tr>';}).join('')+'</tbody></table>';
   }
