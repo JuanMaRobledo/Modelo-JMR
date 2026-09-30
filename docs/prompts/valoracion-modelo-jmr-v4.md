@@ -302,9 +302,15 @@ Seguí este proceso, en este orden:
        corré scripts/implied_growth.py {TICKER} (escribe la pestaña 'Crecimiento
        implícito' de la hoja, el JSON de reference/multiplos_v3 y el campo
        crecimientoImplicito de la valoración guardada).
-       - Múltiplos: para cada múltiplo Base, el crecimiento perpetuo después de
-         FY+3 que supone (las fórmulas de C despejadas para g) frente al g del DCF
-         (punto medio años 4-10 / perpetuidad). Diferencia > 2 pp = alerta.
+       - Múltiplos: cada múltiplo Base se compara con el MÚLTIPLO QUE IMPLICA EL
+         DCF en FY+3 (el que, con la misma métrica FY+3, deuda neta, acciones y
+         dividendos de la hoja, da el DCF llevado a FY+3). Los dos pasan por la
+         misma fórmula de crecimiento perpetuo (las de C despejadas para g), así
+         que el sesgo de la fórmula —supone el ROE de FY+3 para siempre, mientras
+         el DCF lleva el retorno al costo de capital después del año 10— se
+         cancela. Alerta: diferencia > 2 pp en crecimiento implícito o > 25% en
+         valor (con múltiplos altos el crecimiento de Gordon se acerca al costo
+         de capital en los dos casos y deja de distinguir diferencias grandes).
        - DCF inverso: el crecimiento de ingresos de los años 1-5 que justifica el
          precio de hoy frente al del DCF.
        - Ante una alerta, decidí con evidencia cuál historia es la correcta y

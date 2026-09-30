@@ -1083,9 +1083,18 @@
       var u=ci.umbral||0.02, di=ci.dcfInverso;
       growth='<div class="cp-growth"><h4>Coherencia del crecimiento · criterio Damodaran</h4><p>El precio de '+fmtVal(ci.precio)+' supone que los ingresos crecen <b>'+pc(di.gImplicito)+'</b> al año en los años 1-5; el DCF supone <b>'+pc(di.gDcf)+'</b>. '+escapeHtml(di.lectura||'')+'</p><div class="cp-chips">'+
         (ci.multiplos||[]).map(function(m){
+          // v2 (30-sep-2026): el múltiplo frente al que implica el DCF en FY+3; la lectura ya trae el criterio
+          if(m.multiploDcf!=null||/^(Coherente|Revisar)/.test(m.lectura||'')){
+            var st2=m.aplica===false?'na':(/^Coherente/.test(m.lectura||'')?'ok':(/^Revisar/.test(m.lectura||'')?'warn':'na'));
+            var mx=function(x){return typeof x==='number'&&isFinite(x)?x.toFixed(1)+'x':'—';};
+            var arrow=st2==='warn'&&typeof m.difValor==='number'?(m.difValor>0?' ↑':' ↓'):'';
+            return '<span class="cp-chip '+st2+'" title="'+escapeHtml(m.lectura||'')+'">'+escapeHtml(m.metodo)+' · '+mx(m.multiplo)+' vs '+mx(m.multiploDcf)+arrow+'</span>';
+          }
           var st=m.aplica===false?'na':(typeof m.dif==='number'?(Math.abs(m.dif)<=u?'ok':'warn'):'na');
           return '<span class="cp-chip '+st+'">'+escapeHtml(m.metodo)+' · '+pc(m.gImplicito)+(st==='warn'?(m.dif>0?' ↑':' ↓'):'')+'</span>';
-        }).join('')+'</div><p class="cp-note">Crecimiento perpetuo después de FY+3 que supone cada múltiplo Base, frente a '+pc(((ci.gDcf||{}).puntoMedio))+' del DCF. ↑/↓ = más/menos crecimiento que el DCF (más de '+Math.round(u*100)+' pp).</p></div>';
+        }).join('')+'</div><p class="cp-note">'+((ci.multiplos||[]).some(function(m){return m.multiploDcf!=null;})
+          ?'Cada múltiplo Base frente al múltiplo que implica el DCF en FY+3. ↑/↓ = el múltiplo vale más/menos que el DCF (alerta con más de '+Math.round(u*100)+' pp de diferencia en crecimiento implícito o más de 25% en valor).'
+          :'Crecimiento perpetuo después de FY+3 que supone cada múltiplo Base, frente a '+pc(((ci.gDcf||{}).puntoMedio))+' del DCF. ↑/↓ = más/menos crecimiento que el DCF (más de '+Math.round(u*100)+' pp).')+'</p></div>';
     }
     var links=(v.__path?'<a href="visor.html?path='+encodeURIComponent(v.__path)+'">Abrir en el Visor →</a>':'')+
       (v.hojaGoogle?'<a href="'+escapeHtml(v.hojaGoogle)+'" target="_blank" rel="noopener noreferrer">Hoja con fórmulas →</a>':'')+

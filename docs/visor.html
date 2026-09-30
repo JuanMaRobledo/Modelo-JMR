@@ -754,7 +754,7 @@
         <p class="growth-lead" id="growthLead"></p>
         <div class="methods-scroll">
           <table class="methods">
-            <thead><tr><th>Múltiplo Base FY+3</th><th>Múltiplo</th><th>Crecimiento implícito</th><th>Crecimiento del DCF</th><th>Diferencia</th><th>Lectura</th></tr></thead>
+            <thead><tr><th>Múltiplo Base FY+3</th><th>Múltiplo</th><th>Múltiplo que implica el DCF</th><th>Diferencia de valor</th><th>Crecimiento implícito</th><th>Crecimiento implícito del DCF</th><th>Diferencia</th><th>Lectura</th></tr></thead>
             <tbody id="growthBody"></tbody>
           </table>
         </div>
@@ -1191,7 +1191,7 @@
       if(!lbl) continue;
       var lect = String(cellVal(ws, 'F' + r) || '');
       out.multiplos.push({ metodo: lbl.split(' ')[0], multiplo: n('B' + r), gImplicito: n('C' + r), gDcf: n('D' + r), dif: n('E' + r),
-        aplica: !/^No aplica/.test(lect), lectura: lect });
+        multiploDcf: n('G' + r), difValor: n('H' + r), aplica: !/^No aplica/.test(lect), lectura: lect });
     }
     return out;
   }
@@ -1210,22 +1210,38 @@
     document.getElementById('growthLead').innerHTML = 'DCF inverso: el precio ' + (ci.precio != null ? fmtMoney(ci.precio) + ' ' : '') +
       'supone que los ingresos crecen <b>' + pctTxt(di.gImplicito) + '</b> al año en los años 1-5; el DCF supone <b>' + pctTxt(di.gDcf) + '</b> ' +
       flag(di.dif) + '<br>' + escapeHtml(di.lectura || '');
+    // v2 (30-sep-2026): cada múltiplo se compara con el múltiplo que implica el DCF en FY+3, los dos por la
+    // misma fórmula de crecimiento; la lectura (Coherente / Revisar) viene calculada con el mismo criterio.
+    var v2 = (ci.multiplos || []).some(function(m){ return m.multiploDcf != null; });
+    var mflag = function(m){
+      if(m.aplica === false) return '<span class="growth-flag na">No aplica</span>';
+      var l = String(m.lectura || '');
+      if(/^Coherente/.test(l)) return '<span class="growth-flag ok">Coherente</span>';
+      if(/^Revisar/.test(l)) return '<span class="growth-flag warn">Revisar</span>';
+      return v2 ? '<span class="growth-flag na">—</span>' : flag(m.dif, m.aplica);
+    };
     var growthNote = function(m){
       if(m.aplica === false) return escapeHtml(String(m.lectura || '').replace(/^No aplica:\s*/, ''));
+      if(v2){ var t = String(m.lectura || '').replace(/^(Coherente con el DCF\.?\s*|Revisar:\s*)/, ''); return t ? escapeHtml(t.charAt(0).toUpperCase() + t.slice(1)) : 'Cuenta la misma historia que el DCF'; }
       if(!(typeof m.dif === 'number' && isFinite(m.dif))) return 'Sin dato';
       if(Math.abs(m.dif) <= u) return 'Cuenta la misma historia que el DCF';
       return m.dif > 0 ? 'Supone más crecimiento que el DCF' : 'Supone menos crecimiento que el DCF';
     };
+    var xTxt = function(x){ return (typeof x === 'number' && isFinite(x)) ? x.toFixed(1) + 'x' : '—'; };
+    var vTxt = function(x){ return (typeof x === 'number' && isFinite(x)) ? (x >= 0 ? '+' : '−') + Math.abs(x*100).toFixed(0) + '%' : '—'; };
     var body = document.getElementById('growthBody');
     body.innerHTML = '';
     (ci.multiplos || []).forEach(function(m){
       var tr = document.createElement('tr');
-      tr.innerHTML = '<td>' + escapeHtml(m.metodo) + '</td><td>' + ((typeof m.multiplo === 'number') ? m.multiplo.toFixed(1) + 'x' : '—') + '</td><td>' + pctTxt(m.gImplicito) +
-        '</td><td>' + pctTxt(m.gDcf) + '</td><td>' + ppTxt(m.dif) + '</td><td class="growth-read">' + flag(m.dif, m.aplica) + ' ' + growthNote(m) + '</td>';
+      tr.innerHTML = '<td>' + escapeHtml(m.metodo) + '</td><td>' + xTxt(m.multiplo) + '</td><td>' + xTxt(m.multiploDcf) + '</td><td>' + vTxt(m.difValor) +
+        '</td><td>' + pctTxt(m.gImplicito) + '</td><td>' + pctTxt(m.gDcf) + '</td><td>' + ppTxt(m.dif) + '</td><td class="growth-read">' + mflag(m) + ' ' + growthNote(m) + '</td>';
       body.appendChild(tr);
     });
-    document.getElementById('growthNote').textContent = 'Crecimiento implícito de cada múltiplo = crecimiento perpetuo después de FY+3 que ese múltiplo supone con el Ke, el WACC, el ROE y la conversión a caja del escenario Base; se compara con el del DCF (punto medio entre los años 4-10 y la perpetuidad). Más de ' +
-      Math.round(u*100) + ' pp de diferencia = el múltiplo o el precio cuentan otra historia de crecimiento que el DCF.' + (ci.fecha ? ' Calculado el ' + ci.fecha + '.' : '');
+    document.getElementById('growthNote').textContent = (v2
+      ? 'Cada múltiplo Base se compara con el múltiplo que implica el DCF llevado a FY+3 (misma métrica, deuda neta, acciones y dividendos). Los dos pasan por la misma fórmula de crecimiento perpetuo (Ke, WACC, ROE y conversión a caja de FY+3), así que el sesgo de la fórmula se cancela. Alerta: más de ' +
+        Math.round(u*100) + ' pp de diferencia en crecimiento o más de 25% en valor.'
+      : 'Crecimiento implícito de cada múltiplo = crecimiento perpetuo después de FY+3 que ese múltiplo supone con el Ke, el WACC, el ROE y la conversión a caja del escenario Base; se compara con el del DCF (punto medio entre los años 4-10 y la perpetuidad). Más de ' +
+        Math.round(u*100) + ' pp de diferencia = el múltiplo o el precio cuentan otra historia de crecimiento que el DCF.') + (ci.fecha ? ' Calculado el ' + ci.fecha + '.' : '');
   }
 
   // Precio con margen de seguridad sobre el valor intrínseco (DCF de hoy).

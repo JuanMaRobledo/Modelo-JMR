@@ -322,6 +322,14 @@ Desde el prompt de valoración v4 y el de análisis fundamental v5:
 - **El valor intrínseco es el DCF de hoy.** Es la cifra por defecto en el Visor y en Mi Bitácora.
 - **Los múltiplos son precio relativo y van por aparte.** Siguen eligiéndose con las tres anclas y
   pasan el chequeo de crecimiento implícito (pestaña «Crecimiento implícito»). El ponderado DCF +
+
+**Chequeo de crecimiento implícito, v2 (30-sep-2026).** Cada múltiplo Base se compara con el múltiplo que
+implica el DCF llevado a FY+3 (misma métrica, deuda neta, acciones y dividendos de la hoja), y los dos pasan
+por la misma fórmula de crecimiento perpetuo. La versión anterior comparaba el crecimiento implícito del
+múltiplo —calculado con el ROE de FY+3 para siempre— con el crecimiento del DCF, cuyo valor supone que el
+retorno sobre el capital baja al costo de capital después del año 10; en empresas de ROE alto eso marcaba
+como «menos crecimiento que el DCF» múltiplos que en valor coincidían con él (UBER). Alerta: más de 2 pp de
+diferencia en crecimiento implícito o más de 25% en valor.
   múltiplos, con los pesos de la categoría de empresa, es una lectura opcional en la app.
 - **Primero la historia, el precio al final.** Cada supuesto sale de una historia (posible, plausible,
   probable) contrastada con las tasas base de crecimiento por tamaño (Mauboussin); el crecimiento se
