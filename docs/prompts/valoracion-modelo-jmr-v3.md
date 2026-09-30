@@ -4,6 +4,7 @@
 >
 > 1. **Los múltiplos objetivo ya no se derivan del DCF.** Se eligen con un protocolo razonado (historia depurada de la empresa, comparables ajustados y múltiplo justificado por fundamentales), independiente del resultado del DCF, y queda documentado de dónde sale cada uno.
 > 2. **Los resultados se presentan por separado:** DCF hoy, múltiplos consolidados traídos a hoy (a 1, 2 y 3 años) y valor intrínseco ponderado, además del precio FY+3.
+> 3. **Criterio Damodaran (30-sep-2026):** el valor intrínseco principal es el **DCF hoy**; los múltiplos son precio relativo. El ponderado se usa solo si los múltiplos pasan el chequeo de crecimiento implícito (6.5), y el DCF inverso dice qué crecimiento supone el precio de hoy.
 >
 > Pensado para pegarse tal cual (reemplazando `{TICKER}`).
 
@@ -242,7 +243,25 @@ Seguí este proceso, en este orden:
        - Diferencia < ±5% en la mayoría de los métodos: confirmá expresamente que
          los múltiplos salieron de A, B y C y no del DCF.
 
-   6.5 Documentación en la hoja:
+   6.5 Chequeo de crecimiento implícito (criterio Damodaran), OBLIGATORIO:
+       corré scripts/implied_growth.py {TICKER} (escribe la pestaña 'Crecimiento
+       implícito' de la hoja, el JSON de reference/multiplos_v3 y el campo
+       crecimientoImplicito de la valoración guardada).
+       - Múltiplos: para cada múltiplo Base, el crecimiento perpetuo después de
+         FY+3 que supone (las fórmulas de C despejadas para g) frente al g del DCF
+         (punto medio años 4-10 / perpetuidad). Diferencia > 2 pp = alerta.
+       - DCF inverso: el crecimiento de ingresos de los años 1-5 que justifica el
+         precio de hoy frente al del DCF.
+       - Ante una alerta, decidí con evidencia cuál historia es la correcta y
+         alineá los supuestos: si la evidencia sostiene más crecimiento, subilo en
+         el DCF (y C sube solo); si no (historial de otra etapa, crecimiento
+         comprado con adquisiciones, historial corto), acercá el múltiplo al
+         justificado subiendo λ (0,5 o más) y dejá el histórico solo como tope del
+         Optimista. Nunca muevas uno para que se parezca al otro sin esa decisión.
+       - El crecimiento por adquisiciones no es gratis: separá orgánico de
+         comprado y tratá las compras como reinversión.
+
+   6.6 Documentación en la hoja:
        - 'Supuestos de los Múltiplos'!A3: síntesis de 3-5 líneas (regla usada,
          anclas principales, ajustes, excepciones). Aclará que J8/J19/J30 se
          fijaron con este protocolo aunque los rótulos de la fila 5 digan
@@ -330,7 +349,7 @@ Seguí este proceso, en este orden:
        4. Múltiplos: la tabla de origen del paso 10.d y un párrafo por método que
           explique por qué ese múltiplo es razonable en FY+3, qué atípicos se
           excluyeron y qué lo haría cambiar; cierre con el chequeo de
-          independencia (6.4).
+          independencia (6.4) y el chequeo de crecimiento implícito (6.5).
        5. Resultados: precio FY+3 por método y escenario; los 15 valores presente
           por escenario (5 métodos × 1, 2, 3 años); consolidado por método; DCF
           hoy; ponderado hoy; MOS; y el chequeo VP3 < FY+3.

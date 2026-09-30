@@ -613,9 +613,9 @@
   <div class="mobile-sort">
     <label for="valueBasisSelect">Valor</label>
     <select id="valueBasisSelect">
-      <option value="ponderadoHoy">Ponderado hoy (DCF + múltiplos)</option>
-      <option value="dcfHoy">Solo DCF hoy</option>
-      <option value="multHoy">Solo múltiplos hoy</option>
+      <option value="dcfHoy">Valor intrínseco hoy · DCF</option>
+      <option value="ponderadoHoy">Ponderado hoy · DCF + múltiplos</option>
+      <option value="multHoy">Precio relativo hoy · múltiplos</option>
       <option value="multFy3">Múltiplos a 3 años (FY+3)</option>
       <option value="ponderadoFy3">Ponderado a 3 años (FY+3)</option>
     </select>
@@ -918,14 +918,14 @@
   // diferencia % contra el precio de su valor HOY y de su valor a FY+3 (de
   // la misma familia: ponderado, DCF o múltiplos).
   var BASIS_INFO = {
-    ponderadoHoy: {fam:'ponderado', hz:'hoy', label:'Ponderado hoy', note:'Valor intrínseco de hoy: DCF de hoy × su peso + múltiplos traídos a hoy × su peso.'},
-    dcfHoy:       {fam:'dcf', hz:'hoy', label:'DCF hoy', note:'Solo el DCF de Damodaran, en valor de hoy. Su FY+3 es el DCF de hoy × (1 + Ke)³.'},
-    multHoy:      {fam:'multiplos', hz:'hoy', label:'Múltiplos hoy', note:'Solo los 5 múltiplos, con el precio de FY+1 a FY+3 más dividendos traído a hoy con Ke.'},
+    dcfHoy:       {fam:'dcf', hz:'hoy', label:'DCF hoy', note:'Valor intrínseco (criterio Damodaran): el DCF en valor de hoy. Su FY+3 es el DCF de hoy × (1 + Ke)³.'},
+    ponderadoHoy: {fam:'ponderado', hz:'hoy', label:'Ponderado hoy', note:'DCF de hoy × su peso + múltiplos traídos a hoy × su peso. Mezcla valor y precio relativo: úsalo cuando los múltiplos pasan el chequeo de crecimiento implícito.'},
+    multHoy:      {fam:'multiplos', hz:'hoy', label:'Múltiplos hoy', note:'Precio relativo: lo que pagaría el mercado según los 5 múltiplos (precio de FY+1 a FY+3 más dividendos, traído a hoy con Ke).'},
     multFy3:      {fam:'multiplos', hz:'fy3', label:'Múltiplos FY+3', note:'Solo los múltiplos, al cierre de FY+3 (precio + dividendos, sin descontar).'},
     ponderadoFy3: {fam:'ponderado', hz:'fy3', label:'Ponderado FY+3', note:'Precio objetivo a 3 años: DCF llevado a FY+3 + múltiplos con dividendos, sin descontar.'}
   };
-  var valueBasis = 'ponderadoHoy';
-  try{ var savedBasis = localStorage.getItem('jmr-bitacora-valor'); if(BASIS_INFO[savedBasis]) valueBasis = savedBasis; }catch(err){}
+  var valueBasis = 'dcfHoy';
+  try{ var savedBasis = localStorage.getItem('jmr-bitacora-valor-v2'); if(BASIS_INFO[savedBasis]) valueBasis = savedBasis; }catch(err){}
   function num(x){ return typeof x==='number'&&isFinite(x)?x:null; }
   function familyValues(d, fam){
     var v=d.valoracionActual||{}, dm=v.descuentoMultiples||{}, methods=v.metodos||[];
@@ -1105,8 +1105,8 @@
   function updateBasisNote(){ document.getElementById("valueBasisNote").textContent = BASIS_INFO[valueBasis].note + " Cada caso muestra la diferencia % contra el precio de su valor hoy y de su valor a FY+3."; }
   basisSel.value = valueBasis; updateBasisNote();
   basisSel.addEventListener("change", function(e){
-    valueBasis = BASIS_INFO[e.target.value] ? e.target.value : 'ponderadoHoy';
-    try{ localStorage.setItem('jmr-bitacora-valor', valueBasis); }catch(err){}
+    valueBasis = BASIS_INFO[e.target.value] ? e.target.value : 'dcfHoy';
+    try{ localStorage.setItem('jmr-bitacora-valor-v2', valueBasis); }catch(err){}
     updateBasisNote(); render();
   });
   document.getElementById("mobileSortSelect").addEventListener("change", function(e){

@@ -171,6 +171,14 @@
   .headline-card .stat .rng{font-size:12px; color:var(--ink-soft); margin-top:4px;}
   .headline-card .stat .rng .pos{color:var(--positive); font-weight:600;}
   .headline-card .stat .rng .neg{color:var(--negative); font-weight:600;}
+  .growth-card{background:var(--surface); border:1px solid var(--border-soft); border-radius:12px; padding:14px 16px;}
+  .growth-lead{font-size:13.5px; line-height:1.5; margin:0 0 10px;}
+  .growth-lead b{font-family:"IBM Plex Mono",monospace;}
+  #growthBody td.growth-read{text-align:left; font-family:"Public Sans",sans-serif; font-size:12.5px; color:var(--ink-soft); white-space:normal; min-width:220px;}
+  .growth-flag{display:inline-block; padding:2px 8px; border-radius:999px; font-size:11px; font-weight:700;}
+  .growth-flag.ok{background:var(--positive-soft); color:var(--positive);}
+  .growth-flag.warn{background:var(--negative-soft); color:var(--negative);}
+  .growth-flag.na{background:var(--surface-2); color:var(--ink-faint);}
   .stat .lbl{font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-faint); margin-bottom:6px;}
   .stat .big{font-family:"IBM Plex Mono", monospace; font-weight:600; font-size:18px; font-variant-numeric:tabular-nums;}
 
@@ -685,12 +693,12 @@
 
     <div class="headline-card" id="headlineCard">
       <div class="headline-top">
-        <p class="section-title" id="hlTitle" style="margin:0;">Valor intrínseco hoy</p>
+        <p class="section-title" id="hlTitle" style="margin:0;">Valor intrínseco hoy (DCF)</p>
         <label class="headline-sel">Valor principal
           <select id="headlineSel" aria-label="Qué valor mostrar como principal">
-            <option value="ponderadoHoy">Valor intrínseco hoy (ponderado)</option>
-            <option value="dcfHoy">DCF hoy (valor presente)</option>
-            <option value="multHoy">Múltiplos hoy (valor presente)</option>
+            <option value="dcfHoy">Valor intrínseco hoy · DCF</option>
+            <option value="ponderadoHoy">Ponderado hoy · DCF + múltiplos</option>
+            <option value="multHoy">Precio relativo hoy · múltiplos</option>
             <option value="fy3">Precio objetivo FY+3 (sin descontar)</option>
           </select>
         </label>
@@ -743,6 +751,20 @@
         </div>
       </div>
       <p class="meta" id="presentNote" style="font-size:12px;color:var(--ink-faint);margin:8px 0 0;"></p>
+    </div>
+
+    <div id="growthSection" hidden>
+      <p class="section-title">Coherencia del crecimiento · criterio Damodaran (escenario Base)</p>
+      <div class="growth-card">
+        <p class="growth-lead" id="growthLead"></p>
+        <div class="methods-scroll">
+          <table class="methods">
+            <thead><tr><th>Múltiplo Base FY+3</th><th>Múltiplo</th><th>Crecimiento implícito</th><th>Crecimiento del DCF</th><th>Diferencia</th><th>Lectura</th></tr></thead>
+            <tbody id="growthBody"></tbody>
+          </table>
+        </div>
+        <p class="meta" id="growthNote" style="font-size:12px;color:var(--ink-faint);margin:8px 0 0;"></p>
+      </div>
     </div>
 
     <p class="section-title">Precio objetivo al cierre FY+3 (sin descontar)</p>
@@ -1128,21 +1150,23 @@
   // Valor principal (30-sep-2026). Por defecto, el valor intrínseco de HOY
   // (ponderado DCF + múltiplos traídos a valor presente); el selector lo
   // cambia y la elección se recuerda en este navegador.
-  var HEADLINE_KEY = 'jmr-valor-principal';
+  // v2 (30-sep-2026): el valor por defecto pasa a ser el DCF de hoy (criterio
+  // Damodaran: valor intrínseco = DCF; los múltiplos son precio relativo).
+  var HEADLINE_KEY = 'jmr-valor-principal-v2';
   var HEADLINE_INFO = {
-    ponderadoHoy: { titulo: 'Valor intrínseco hoy', hoy: true,
-      desc: 'Lo que vale la acción hoy: DCF de hoy × peso del DCF + múltiplos traídos a hoy × peso de los múltiplos. Se compara con el precio de hoy.' },
-    dcfHoy: { titulo: 'DCF hoy', hoy: true,
-      desc: 'Valor de hoy según el DCF de Damodaran (flujos de caja descontados), sin múltiplos. Se compara con el precio de hoy.' },
-    multHoy: { titulo: 'Múltiplos hoy', hoy: true,
-      desc: 'Valor de hoy según los 5 múltiplos: el precio a FY+1, FY+2 y FY+3 más los dividendos, traído a hoy con el costo del patrimonio (Ke). Se compara con el precio de hoy.' },
+    dcfHoy: { titulo: 'Valor intrínseco hoy (DCF)', hoy: true,
+      desc: 'Lo que vale la acción hoy según sus flujos de caja (DCF de Damodaran). Es el valor intrínseco: no depende de cuánto paga hoy el mercado por empresas parecidas. Se compara con el precio de hoy.' },
+    ponderadoHoy: { titulo: 'Ponderado hoy (DCF + múltiplos)', hoy: true,
+      desc: 'DCF de hoy × peso del DCF + múltiplos traídos a hoy × peso de los múltiplos. Mezcla valor (DCF) y precio relativo (múltiplos): úsalo solo si los múltiplos pasan el chequeo de crecimiento implícito. Se compara con el precio de hoy.' },
+    multHoy: { titulo: 'Precio relativo hoy (múltiplos)', hoy: true,
+      desc: 'Lo que pagaría el mercado según los 5 múltiplos: precio a FY+1, FY+2 y FY+3 más dividendos, traído a hoy con el costo del patrimonio (Ke). Es precio, no valor intrínseco. Se compara con el precio de hoy.' },
     fy3: { titulo: 'Precio objetivo FY+3', hoy: false,
       desc: 'Precio esperado al cierre FY+3, sin descontar: DCF llevado a FY+3 con Ke + múltiplos con dividendos. No es un valor de hoy: se compara con el precio del análisis y se resume en el CAGR a 3 años.' }
   };
   function headlineChoice(){
     var v = null;
     try { v = localStorage.getItem(HEADLINE_KEY); } catch(e){}
-    return HEADLINE_INFO[v] ? v : 'ponderadoHoy';
+    return HEADLINE_INFO[v] ? v : 'dcfHoy';
   }
   function headlineValues(key){
     var r = currentResumen || {}, dm = r.descuentoMultiples || {};
@@ -1162,16 +1186,69 @@
     var d = target/basePrice - 1;
     return '<span class="' + (d >= 0 ? 'pos' : 'neg') + '">' + (d >= 0 ? '+' : '') + fmtPct(d) + '</span>';
   }
+  // Crecimiento implícito (pestaña 'Crecimiento implícito' de la hoja, escrita
+  // por scripts/implied_growth.py; en una valoración guardada viene en
+  // rec.crecimientoImplicito con la misma forma).
+  function readCrecimientoImplicito(wb){
+    var ws = wb && wb.Sheets && wb.Sheets['Crecimiento implícito'];
+    if(!ws) return null;
+    var n = function(a){ var v = cellVal(ws, a); return (typeof v === 'number' && isFinite(v)) ? v : null; };
+    var nota = String(cellVal(ws, 'A2') || ''), fm = nota.match(/(\d{4}-\d{2}-\d{2})/);
+    var out = { fecha: fm ? fm[1] : null, umbral: 0.02, precio: n('B5'),
+      dcfInverso: { gImplicito: n('C5'), gDcf: n('D5'), dif: n('E5'), lectura: String(cellVal(ws, 'F5') || '') },
+      multiplos: [], nota: String(cellVal(ws, 'A13') || '') };
+    for(var r = 7; r <= 11; r++){
+      var lbl = String(cellVal(ws, 'A' + r) || '');
+      if(!lbl) continue;
+      var lect = String(cellVal(ws, 'F' + r) || '');
+      out.multiplos.push({ metodo: lbl.split(' ')[0], multiplo: n('B' + r), gImplicito: n('C' + r), gDcf: n('D' + r), dif: n('E' + r),
+        aplica: !/^No aplica/.test(lect), lectura: lect });
+    }
+    return out;
+  }
+  function renderCrecimiento(ci){
+    var sec = document.getElementById('growthSection');
+    if(!ci || !ci.dcfInverso){ sec.hidden = true; return; }
+    sec.hidden = false;
+    var u = ci.umbral || 0.02, di = ci.dcfInverso;
+    var pctTxt = function(x){ return (typeof x === 'number' && isFinite(x)) ? fmtPct(x) : '—'; };
+    var ppTxt = function(x){ return (typeof x === 'number' && isFinite(x)) ? (x >= 0 ? '+' : '−') + (Math.abs(x)*100).toFixed(1) + ' pp' : '—'; };
+    var flag = function(d, aplica){
+      if(aplica === false) return '<span class="growth-flag na">No aplica</span>';
+      if(!(typeof d === 'number' && isFinite(d))) return '<span class="growth-flag na">—</span>';
+      return Math.abs(d) <= u ? '<span class="growth-flag ok">Coherente</span>' : '<span class="growth-flag warn">Revisar</span>';
+    };
+    document.getElementById('growthLead').innerHTML = 'DCF inverso: el precio ' + (ci.precio != null ? fmtMoney(ci.precio) + ' ' : '') +
+      'supone que los ingresos crecen <b>' + pctTxt(di.gImplicito) + '</b> al año en los años 1-5; el DCF supone <b>' + pctTxt(di.gDcf) + '</b> ' +
+      flag(di.dif) + '<br>' + escapeHtml(di.lectura || '');
+    var growthNote = function(m){
+      if(m.aplica === false) return escapeHtml(String(m.lectura || '').replace(/^No aplica:\s*/, ''));
+      if(!(typeof m.dif === 'number' && isFinite(m.dif))) return 'Sin dato';
+      if(Math.abs(m.dif) <= u) return 'Cuenta la misma historia que el DCF';
+      return m.dif > 0 ? 'Supone más crecimiento que el DCF' : 'Supone menos crecimiento que el DCF';
+    };
+    var body = document.getElementById('growthBody');
+    body.innerHTML = '';
+    (ci.multiplos || []).forEach(function(m){
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td>' + escapeHtml(m.metodo) + '</td><td>' + ((typeof m.multiplo === 'number') ? m.multiplo.toFixed(1) + 'x' : '—') + '</td><td>' + pctTxt(m.gImplicito) +
+        '</td><td>' + pctTxt(m.gDcf) + '</td><td>' + ppTxt(m.dif) + '</td><td class="growth-read">' + flag(m.dif, m.aplica) + ' ' + growthNote(m) + '</td>';
+      body.appendChild(tr);
+    });
+    document.getElementById('growthNote').textContent = 'Crecimiento implícito de cada múltiplo = crecimiento perpetuo después de FY+3 que ese múltiplo supone con el Ke, el WACC, el ROE y la conversión a caja del escenario Base; se compara con el del DCF (punto medio entre los años 4-10 y la perpetuidad). Más de ' +
+      Math.round(u*100) + ' pp de diferencia = el múltiplo o el precio cuentan otra historia de crecimiento que el DCF.' + (ci.fecha ? ' Calculado el ' + ci.fecha + '.' : '');
+  }
+
   function renderHeadline(){
     if(!currentResumen) return;
     var sel = document.getElementById('headlineSel');
     var h = headlineData();
-    ['ponderadoHoy','dcfHoy','multHoy'].forEach(function(k){
+    ['dcfHoy','ponderadoHoy','multHoy'].forEach(function(k){
       var opt = sel.querySelector('option[value="' + k + '"]');
       if(opt) opt.disabled = !headlineValues(k);
     });
     sel.value = h.key;
-    document.getElementById('hlTitle').textContent = h.titulo + ' (valor principal)';
+    document.getElementById('hlTitle').textContent = h.titulo + ' · valor principal';
     document.getElementById('hlDesc').textContent = h.desc + (h.fallback ? ' Esta valoración no tiene valor de hoy guardado; se muestra el objetivo FY+3.' : '');
     var cagr = currentResumen.cagr || {};
     [['conservador','hlC','potC'], ['base','hlB','potB'], ['optimista','hlO','potO']].forEach(function(x){
@@ -1489,6 +1566,7 @@
       objetivoPonderado: { conservador: cellVal(res,'C12'), base: cellVal(res,'D12'), optimista: cellVal(res,'E12') },
       valorPresentePonderado: valorHoy,
       descuentoMultiples: descuento,
+      crecimientoImplicito: readCrecimientoImplicito(wb),
       precioMOSHoy: { conservador: cellVal(res,'C36'), base: cellVal(res,'D36'), optimista: cellVal(res,'E36') },
       cagr: { conservador: cellVal(res,'C13'), base: cellVal(res,'D13'), optimista: cellVal(res,'E13') },
       zonas: {
@@ -1503,6 +1581,7 @@
     fundamentalOverride = null;
     resetTabs();
     renderHeadline();
+    renderCrecimiento(currentResumen.crecimientoImplicito);
 
     result.classList.add('show');
     maybeAutoFetchLive();
@@ -2805,6 +2884,7 @@
     currentResumen = rec;
     currentTicker = rec.ticker || null;
     renderHeadline();
+    renderCrecimiento(rec.crecimientoImplicito);
     // Precarga lo que se haya escrito a mano en Cualitativo (incluida
     // Gobierno Corporativo) y en Análisis Fundamental la última vez que se
     // guardó esta valoración, para poder seguir editándolos desde aquí.

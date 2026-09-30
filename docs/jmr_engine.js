@@ -262,5 +262,62 @@ function calcularModeloJMR(inp){
           valorPresente: valorPresente};
 }
 
+// Crecimiento implícito (30-sep-2026, criterio Damodaran).
+//
+// 1) DCF inverso: qué crecimiento anual de ingresos en los años 1-5 (luego
+//    converge a la perpetuidad, igual que el DCF) justifica el precio de hoy,
+//    con el resto de supuestos del escenario sin cambiar. Se calibra contra el
+//    DCF de la hoja: valor(g) = dcfHoja × runDCF(g) / runDCF(gRef), donde gRef
+//    es el crecimiento promedio de los años 1-5 de la hoja. Devuelve null si
+//    ningún crecimiento entre −20% y 80% alcanza el precio.
+function crecimientoImplicitoDCF(inp, margenObjetivo, gRef, dcfHoja, precio){
+  var ref = runDCF(inp, gRef, margenObjetivo);
+  if(!(ref > 0) || !(dcfHoja > 0) || !(precio > 0)) return null;
+  var f = function(g){ return dcfHoja*runDCF(inp, g, margenObjetivo)/ref - precio; };
+  var best = null, prevG = -0.20, prevF = f(prevG);
+  for(var g = -0.195; g <= 0.80001; g += 0.005){
+    var fg = f(g);
+    if((prevF <= 0 && fg >= 0) || (prevF >= 0 && fg <= 0)){
+      var lo = prevG, hi = g, flo = prevF;
+      for(var i = 0; i < 60; i++){
+        var mid = (lo+hi)/2, fm = f(mid);
+        if((flo <= 0 && fm <= 0) || (flo >= 0 && fm >= 0)){ lo = mid; flo = fm; } else { hi = mid; }
+      }
+      var root = (lo+hi)/2;
+      if(best === null || Math.abs(root-gRef) < Math.abs(best-gRef)) best = root;
+    }
+    prevG = g; prevF = fg;
+  }
+  return best;
+}
+
+// 2) Crecimiento perpetuo que implica un múltiplo de salida en FY+3 con los
+//    supuestos del escenario (las mismas fórmulas del múltiplo justificado,
+//    despejadas para g):
+//    EV/FCFF = (1+g)/(WACC−g)      →  g = (M·WACC − 1)/(M + 1)
+//    P/FCFE  = (1+g)/(Ke−g)        →  g = (M·Ke − 1)/(M + 1)
+//    P/E     = (1 − g/ROE)(1+g)/(Ke−g)  →  raíz de −g²/ROE + (1 − 1/ROE + M)·g + (1 − M·Ke) = 0
+//    EV/EBITDA y P/OCF se pasan a EV/FCFF y P/FCFE con FCFF/EBITDA y FCFE/OCF de FY+3.
+//    p = {ke, wacc, roe, fcffEbitda, fcfeOcf}
+function crecimientoImplicitoMultiplo(metodo, M, p){
+  if(!(M > 0) || !p) return null;
+  var gordon = function(mult, r){ return (r > 0) ? (mult*r - 1)/(mult + 1) : null; };
+  if(metodo === 'EV/FCFF') return gordon(M, p.wacc);
+  if(metodo === 'P/FCFE') return gordon(M, p.ke);
+  if(metodo === 'EV/EBITDA') return p.fcffEbitda > 0 ? gordon(M/p.fcffEbitda, p.wacc) : null;
+  if(metodo === 'P/OCF') return p.fcfeOcf > 0 ? gordon(M/p.fcfeOcf, p.ke) : null;
+  if(metodo === 'P/E'){
+    var R = p.roe, ke = p.ke;
+    if(!(R > 0) || !(ke > 0)) return null;
+    var a = -1/R, b = 1 - 1/R + M, c = 1 - M*ke, disc = b*b - 4*a*c;
+    if(disc < 0) return null;
+    var r1 = (-b + Math.sqrt(disc))/(2*a), r2 = (-b - Math.sqrt(disc))/(2*a);
+    var ok = [r1, r2].filter(function(g){ return g > -0.5 && g < ke; });
+    return ok.length ? Math.max.apply(null, ok) : null;
+  }
+  return null;
+}
+
 if(typeof module !== 'undefined') module.exports = {calcularModeloJMR: calcularModeloJMR, JMR_WEIGHTS: JMR_WEIGHTS,
-  valorPresenteMultiplo: valorPresenteMultiplo, consolidarHorizontes: consolidarHorizontes};
+  valorPresenteMultiplo: valorPresenteMultiplo, consolidarHorizontes: consolidarHorizontes,
+  crecimientoImplicitoDCF: crecimientoImplicitoDCF, crecimientoImplicitoMultiplo: crecimientoImplicitoMultiplo, runDCF: runDCF};
