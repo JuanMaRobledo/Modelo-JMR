@@ -25,7 +25,7 @@
   var state = freshState();
 
   function freshState() {
-    return { id: '', title: '', ticker: '', company: '', date: new Date().toISOString().slice(0, 10), logo: '', price: null, priceFetchedAt: '', html: '', sourceName: '', valuationHtml: '', linkedValuation: null, news: '', remotePath: '', remoteSha: '' };
+    return { id: '', title: '', ticker: '', company: '', date: new Date().toISOString().slice(0, 10), logo: '', price: null, priceFetchedAt: '', html: '', sourceName: '', valuationHtml: '', linkedValuation: null, news: '', remotePath: '', remoteSha: '', decision: null };
   }
   function el(id) { return document.getElementById(id); }
   function escapeHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
@@ -225,6 +225,31 @@
       '</div></section>';
   }
   var editing = false;
+  // Decisión del usuario (Comprar / Mantener / Vender) — decision.js. Se
+  // guarda dentro del mismo registro del análisis (local y en GitHub).
+  function renderDecision() {
+    var box = el('decisionBox');
+    if (!box || typeof JmrDecision === 'undefined') return;
+    if (!state.ticker || !state.html) { box.innerHTML = ''; return; }
+    box.innerHTML = JmrDecision.widget(state.decision, state.id || state.ticker);
+    var root = box.querySelector('.jmr-dec');
+    root.querySelector('.jmr-dec-save').addEventListener('click', function () {
+      var btn = this, v = JmrDecision.read(root);
+      state.decision = JmrDecision.build(state.decision, v.valor, v.nota, state.price);
+      if (!state.id) state.id = makeId();
+      state.updatedAt = new Date().toISOString();
+      var record = Object.assign({}, state);
+      btn.disabled = true; JmrDecision.setStatus(root, 'Guardando…');
+      try { upsertLocal(record); } catch (err) { btn.disabled = false; JmrDecision.setStatus(root, 'No cabe en el almacenamiento local.', false); return; }
+      remoteSave(record).then(function (saved) {
+        if (saved) { upsertLocal(saved); state.remotePath = saved.remotePath; state.remoteSha = saved.remoteSha; }
+        renderDecision(); renderLibrary();
+        var r2 = el('decisionBox').querySelector('.jmr-dec');
+        JmrDecision.setStatus(r2, saved ? 'Decisión guardada en tu repositorio de GitHub.' : 'Guardada solo en este navegador: conecta GitHub para que quede a salvo.', !!saved);
+      }).catch(function (err) { JmrDecision.setStatus(root, 'Guardada localmente, pero GitHub falló: ' + err.message, false); btn.disabled = false; });
+    });
+  }
+
   function renderPreview() {
     el('previewCompany').textContent = state.company || state.title || 'Nuevo análisis';
     el('previewTicker').textContent = state.ticker || '—';
@@ -239,6 +264,7 @@
     // otro campo (ticker, empresa, etc., que también llaman a
     // renderPreview vía syncFields) borraría cualquier edición todavía
     // no aplicada.
+    renderDecision();
     if (editing) return;
     var body = el('previewBody');
     el('editorToolbar').hidden = !(state.html || state.valuationHtml || state.linkedValuation || state.news);
@@ -918,7 +944,7 @@
       var logo=logoSrc?'<img class="mini-logo" src="'+escapeHtml(logoSrc)+'" data-ticker="'+escapeHtml(r.ticker||'?')+'" alt="Logo de '+escapeHtml(r.company||r.ticker||'empresa')+'">':'<span class="mini-logo mini-fallback">'+escapeHtml((r.ticker||'?').slice(0,2))+'</span>';
       var excerpt=recordExcerpt(r);
       var visorLink=(r.linkedValuation&&r.linkedValuation.sourcePath)?'<a class="btn" href="visor.html?path='+encodeURIComponent(r.linkedValuation.sourcePath)+'">Ver en el Visor</a>':'';
-      return '<article class="analysis-card" data-id="'+escapeHtml(r.id)+'"><div class="card-head">'+logo+'<div class="card-title"><strong>'+escapeHtml(r.title||r.company)+'</strong><span class="ticker">'+escapeHtml(r.ticker||'—')+' · '+escapeHtml(r.company||'')+'</span></div></div>'+(excerpt?'<p class="card-excerpt">'+escapeHtml(excerpt)+'</p>':'')+'<div class="card-meta"><span>'+escapeHtml(r.date||'Sin fecha')+'</span><span>'+(r.remotePath?'GitHub + local':'Solo local')+'</span></div><div class="card-actions"><button class="btn" data-action="open" type="button">Abrir</button>'+visorLink+'<button class="btn danger" data-action="delete" type="button">Borrar</button></div></article>';
+      return '<article class="analysis-card" data-id="'+escapeHtml(r.id)+'"><div class="card-head">'+logo+'<div class="card-title"><strong>'+escapeHtml(r.title||r.company)+(typeof JmrDecision!=='undefined'?JmrDecision.badge(r.decision):'')+'</strong><span class="ticker">'+escapeHtml(r.ticker||'—')+' · '+escapeHtml(r.company||'')+'</span></div></div>'+(excerpt?'<p class="card-excerpt">'+escapeHtml(excerpt)+'</p>':'')+'<div class="card-meta"><span>'+escapeHtml(r.date||'Sin fecha')+'</span><span>'+(r.remotePath?'GitHub + local':'Solo local')+'</span></div><div class="card-actions"><button class="btn" data-action="open" type="button">Abrir</button>'+visorLink+'<button class="btn danger" data-action="delete" type="button">Borrar</button></div></article>';
     }).join('');
     wireLogoFallbacks(holder);
     setStatus('libraryStatus',list.length+' análisis · '+(getGhToken()?'GitHub disponible':'almacenamiento local'));

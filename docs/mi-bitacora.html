@@ -675,6 +675,7 @@
       <option value="descuento:1">Diferencia valor elegido vs. precio: menor primero</option>
       <option value="difHoy:-1">Diferencia hoy vs. precio: mayor primero</option>
       <option value="difFy3:-1">Diferencia FY+3 vs. precio: mayor primero</option>
+      <option value="decision:1">Mi decisión: comprar, mantener, vender</option>
       <option value="fecha:-1">Fecha del análisis: más reciente primero</option>
       <option value="fecha:1">Fecha del análisis: más antigua primero</option>
       <option value="precio:-1">Precio de entrada: mayor a menor</option>
@@ -720,6 +721,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="market_data.js"></script>
 <script src="gh_oauth.js"></script>
+<script src="decision.js"></script>
 <script>
 (function(){
   var DATA = [];
@@ -868,7 +870,7 @@
   }
   function detailFieldsHtml(d, enPanel){
     if(enPanel) return panelFieldsHtml(d);
-    var html = '';
+    var html = '<div class="dfield full">' + decisionWidget(d) + '</div>';
     html += valuationPanelHtml(d.valoracionActual, !!enPanel);
     html += '<div class="dfield"><div class="dlbl">Múltiplo (' + escapeHtml(d.multP) + ')</div><div class="dval mono">Actual ' + escapeHtml(d.multA) + ' · Promedio histórico ' + escapeHtml(d.multH) + '</div></div>';
     html += '<div class="dfield"><div class="dlbl">Fecha de análisis</div><div class="dval mono">' + escapeHtml(d.fecha) + '</div></div>';
@@ -1014,7 +1016,7 @@
     var pr=priceRef(d), f=familyValues(d,BASIS_INFO[valueBasis].fam), fam=BASIS_INFO[valueBasis].fam;
     var famLbl=fam==='dcf'?'DCF':fam==='multiplos'?'Múltiplos':'Ponderado';
     var open=state.expanded===d.n;
-    return '<div class="summary-block'+(open?' open':'')+'"><div class="summary-item" data-summary-row="'+d.n+'" tabindex="0" role="button" aria-expanded="'+open+'"><div class="identity"><strong>'+escapeHtml(d.ticker)+' · '+escapeHtml(d.empresa||d.ticker)+'</strong><small>'+escapeHtml(d.fecha||'')+'</small></div>'+
+    return '<div class="summary-block'+(open?' open':'')+'"><div class="summary-item" data-summary-row="'+d.n+'" tabindex="0" role="button" aria-expanded="'+open+'"><div class="identity"><strong>'+escapeHtml(d.ticker)+' · '+escapeHtml(d.empresa||d.ticker)+decisionBadge(d)+'</strong><small>'+escapeHtml(d.fecha||'')+'</small></div>'+
       '<div class="num"><small>'+(pr.live?'Precio consultado':'Precio guardado')+'</small>'+(pr.price?fmtVal(pr.price):'Pendiente')+'</div>'+
       '<div class="num"><small>'+famLbl+' hoy (base)</small>'+fmtVal(f.hoy)+'<span class="pair"><b>vs. precio</b>'+fmtPctSpan(pctVs(f.hoy,d))+'</span></div>'+
       '<div class="num"><small>'+famLbl+' FY+3 (base)</small>'+fmtVal(f.fy3)+'<span class="pair"><b>vs. precio</b>'+fmtPctSpan(pctVs(f.fy3,d))+'</span></div>'+
@@ -1024,6 +1026,30 @@
 
   // Panel de detalle a todo el ancho (30-sep-2026): encabezado, valores de hoy
   // y FY+3 por método, coherencia del crecimiento y el análisis completo.
+  // Decisión (Comprar / Mantener / Vender) — decision.js. En los casos que
+  // vienen de Análisis Fundamental se guarda en el JSON del análisis; en los
+  // casos propios, en bitacora/hipotesis.json.
+  function decisionWidget(d){ return typeof JmrDecision === 'undefined' ? '' : JmrDecision.widget(d.decision, String(d.n)); }
+  function decisionBadge(d){ return typeof JmrDecision === 'undefined' ? '' : JmrDecision.badge(d.decision); }
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.jmr-dec-save'); if(!btn) return;
+    e.stopPropagation();
+    var root = btn.closest('.jmr-dec'), n = Number(root.dataset.decKey);
+    var d = DATA.find(function(x){ return x.n === n; }); if(!d) return;
+    var v = JmrDecision.read(root), pr = priceRef(d);
+    var dec = JmrDecision.build(d.decision, v.valor, v.nota, pr.price);
+    btn.disabled = true; JmrDecision.setStatus(root, 'Guardando…');
+    var p;
+    if(d.fromResearch && d.researchPath) p = JmrDecision.saveToResearchFile(GH_API, d.researchPath, dec);
+    else if(d.custom){ var prev = d.decision; d.decision = dec; p = saveCustomHipotesis().catch(function(err){ d.decision = prev; throw err; }); }
+    else p = Promise.reject(new Error('Este caso de referencia no admite decisión.'));
+    p.then(function(){
+      d.decision = dec; render();
+      var r2 = document.querySelector('.jmr-dec[data-dec-key="' + n + '"]');
+      if(r2) JmrDecision.setStatus(r2, 'Decisión guardada: ' + JmrDecision.label(dec.valor) + '.', true);
+    }).catch(function(err){ btn.disabled = false; JmrDecision.setStatus(root, 'No se guardó: ' + err.message, false); });
+  }, true);
+
   // Campos del análisis dentro del panel: solo los que tienen contenido real.
   function panelFieldsHtml(d){
     var html = valuationPanelHtml(d.valoracionActual, true);
@@ -1080,7 +1106,7 @@
       (v.hojaGoogle?'<a href="'+escapeHtml(v.hojaGoogle)+'" target="_blank" rel="noopener noreferrer">Hoja con fórmulas →</a>':'')+
       (d.fromResearch?'<a href="research.html?ticker='+encodeURIComponent(d.ticker)+'">Análisis fundamental →</a>':'');
     return '<header class="cp-head"><div><span class="c-ticker">'+escapeHtml(d.ticker)+'</span><h3>'+escapeHtml(d.empresa||d.ticker)+'</h3><span class="cp-date">'+escapeHtml(d.fecha||'')+' · <span class="chip '+catClass(d.cat)+'">'+escapeHtml(d.cat)+'</span></span></div><nav class="cp-links">'+links+'</nav></header>'+
-      tiles+growth+'<div class="cp-body">'+detailFieldsHtml(d,true)+'</div>';
+      decisionWidget(d)+tiles+growth+'<div class="cp-body">'+detailFieldsHtml(d,true)+'</div>';
   }
 
   function applyView(){
@@ -1108,6 +1134,7 @@
       else if(key === "descuento"){ av = priceDifference(a); bv = priceDifference(b); }
       else if(key === "difHoy" || key === "difFy3"){ var hz = key === "difHoy" ? "hoy" : "fy3", fm = BASIS_INFO[valueBasis].fam; av = pctVs(familyValues(a,fm)[hz], a); bv = pctVs(familyValues(b,fm)[hz], b); }
       else if(key === "fecha"){ av = a.fecha || ""; bv = b.fecha || ""; }
+      else if(key === "decision"){ var ord = {comprar:1, mantener:2, vender:3}; av = ord[(a.decision||{}).valor] || null; bv = ord[(b.decision||{}).valor] || null; }
       else if(key === "n"){ av = a.n; bv = b.n; }
       else { av = (a[key]||"").toLowerCase(); bv = (b[key]||"").toLowerCase(); }
       var aMissing = av === null || av === undefined || av === "" || (typeof av === "number" && isNaN(av));
@@ -1142,10 +1169,11 @@
       // hermano de la fila) — sin este chequeo, hacer clic en "Eliminar"
       // también colapsaría la tarjeta por burbujeo del evento.
       el.addEventListener("click", function(e){
-        if(e.target.closest("[data-del-custom]")) return;
+        if(e.target.closest("[data-del-custom]") || e.target.closest(".jmr-dec")) return;
         toggleExpand(Number(el.dataset.n));
       });
       el.addEventListener("keydown", function(e){
+        if(e.target.closest(".jmr-dec")) return;
         if(e.key === "Enter" || e.key === " "){ e.preventDefault(); toggleExpand(Number(el.dataset.n)); }
       });
     });
@@ -1363,7 +1391,9 @@
   function saveCustomHipotesis(){
     var token = getGhToken();
     if(!token) return Promise.reject(new Error('Falta el token de GitHub.'));
-    var body = { message: 'Actualizar Mi Bitácora', content: b64EncodeUnicode(JSON.stringify(customList, null, 2)) };
+    var TRANSIENT = { valoracionActual: 1, n: 1, custom: 1, precioActual: 1, precioActualConsultado: 1 };
+    var clean = customList.map(function(r){ var c = {}; Object.keys(r).forEach(function(k){ if(!TRANSIENT[k]) c[k] = r[k]; }); return c; });
+    var body = { message: 'Actualizar Mi Bitácora', content: b64EncodeUnicode(JSON.stringify(clean, null, 2)) };
     if(customSha) body.sha = customSha;
     return fetch(GH_API + HYP_PATH, {
       method: 'PUT',
@@ -1461,6 +1491,7 @@
       conclusion: 'Análisis completo en research.html?ticker=' + encodeURIComponent(rec.ticker),
       actualizacion: 'Ver Análisis Fundamental para el detalle completo',
       fromResearch: true,
+      decision: rec.decision || null,
       researchId: rec.id,
       researchPath: rec.remotePath || null
     };

@@ -1,4 +1,4 @@
-const CACHE = "modelo-jmr-v105";
+const CACHE = "modelo-jmr-v106";
 const APP_SHELL = [
   "index.html",
   "visor.html",
@@ -11,6 +11,7 @@ const APP_SHELL = [
   "mi-bitacora.html",
   "jmr-theme.css",
   "gh_oauth.js",
+  "decision.js",
   "oauth-callback.html",
   "prompts/research-fundamental-jmr-v5.md",
   "prompts/valoracion-modelo-jmr-v4.md",
