@@ -232,6 +232,46 @@
   .visual-grid[hidden],.table-scroll[hidden],.card-list[hidden]{display:none!important;}
   .summary-list[hidden],.print-sheet{display:none!important;}
   .summary-list{display:grid;gap:8px;}
+  .summary-item{cursor:pointer;}
+  .summary-block.open{border:1px solid var(--accent);border-radius:14px;box-shadow:var(--shadow);background:var(--surface);scroll-margin-top:12px;}
+  .summary-block.open .summary-item{border:0;border-bottom:1px solid var(--border-soft);border-radius:14px 14px 0 0;}
+  .company-panel{padding:18px 20px 22px;}
+  .cp-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
+  .cp-head h3{font-family:"Fraunces",Georgia,serif;font-size:24px;margin:2px 0 4px;}
+  .cp-date{font-size:12px;color:var(--ink-faint);}
+  .cp-links{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;font-weight:600;}
+  .cp-links a{color:var(--accent-ink);text-decoration:none;}
+  .cp-links a:hover{text-decoration:underline;}
+  .cp-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:8px;}
+  .cp-tile{border:1px solid var(--border-soft);border-radius:12px;padding:11px 12px;background:var(--surface-2);display:flex;flex-direction:column;gap:2px;min-width:0;}
+  .cp-tile.sel{border-color:var(--accent);background:var(--accent-soft);}
+  .cp-tile.price{background:var(--surface);}
+  .cp-lbl{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-faint);}
+  .cp-sub{font-size:11px;color:var(--ink-faint);}
+  .cp-tile strong{font:700 18px "IBM Plex Mono",monospace;margin-top:4px;}
+  .cp-vs{font:500 11.5px "IBM Plex Mono",monospace;color:var(--ink-soft);}
+  .cp-tri{font:500 11px "IBM Plex Mono",monospace;color:var(--ink-faint);overflow-wrap:anywhere;}
+  .cp-tri b{color:var(--ink-soft);}
+  .cp-note{font-size:11.5px;color:var(--ink-faint);margin:6px 0 0;}
+  .cp-growth{margin-top:16px;border:1px solid var(--border-soft);border-radius:12px;padding:12px 14px;background:var(--surface);}
+  .cp-growth h4{margin:0 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-faint);}
+  .cp-growth p{margin:0 0 8px;font-size:13.5px;line-height:1.5;}
+  .cp-chips{display:flex;flex-wrap:wrap;gap:6px;}
+  .cp-chip{font:600 12px "IBM Plex Mono",monospace;padding:4px 10px;border-radius:999px;background:var(--surface-2);color:var(--ink-soft);}
+  .cp-chip.ok{background:var(--positive-soft);color:var(--positive);}
+  .cp-chip.warn{background:var(--negative-soft);color:var(--negative);}
+  .cp-body{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px 22px;margin-top:18px;}
+  .cp-body .full{grid-column:1/-1;}
+  .cp-body > *, .company-panel, .summary-block{min-width:0;}
+  .cp-body table.valuation-methods{width:100%;border-collapse:collapse;font-size:13px;}
+  .cp-body table.valuation-methods th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-faint);font-weight:700;padding:8px 10px;border-bottom:1px solid var(--border-soft);background:var(--surface-2);}
+  .cp-body table.valuation-methods td{padding:8px 10px;border-bottom:1px solid var(--border-soft);font-family:"IBM Plex Mono",monospace;font-size:12.5px;white-space:nowrap;}
+  .cp-body table.valuation-methods td:first-child{font-family:"Public Sans",sans-serif;font-weight:600;}
+  .cp-body .chart-card{max-width:760px;}
+  .visual-card.expanded{grid-column:1/-1;}
+  .visual-card.expanded .visual-detail{grid-template-columns:repeat(3,minmax(0,1fr));}
+  @media(max-width:900px){.cp-body,.visual-card.expanded .visual-detail{grid-template-columns:1fr 1fr;}}
+  @media(max-width:620px){.company-panel{padding:14px 12px 18px;}.cp-body,.visual-card.expanded .visual-detail{grid-template-columns:1fr;}.cp-tiles{grid-template-columns:1fr 1fr;}}
   .summary-item{display:grid;grid-template-columns:minmax(140px,2fr) repeat(3,minmax(110px,1fr)) auto;align-items:center;gap:12px;padding:12px 16px;background:var(--surface);border:1px solid var(--border-soft);border-radius:12px;}
   .summary-item strong{display:block;font-size:14px;}.summary-item small{display:block;color:var(--ink-faint);font-size:11px;}
   .summary-item .num{font:600 13px "IBM Plex Mono",monospace;}.summary-item .positive{color:var(--positive);}.summary-item .negative{color:var(--negative);}
@@ -806,7 +846,7 @@
   }
 
   function fmtVal(v){return typeof v === 'number' && isFinite(v) ? '$' + v.toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—';}
-  function valuationPanelHtml(v){
+  function valuationPanelHtml(v, soloMetodos){
     if(!v || !v.valorPresentePonderado) return '';
     var dm=v.descuentoMultiples||{}, methods=v.metodos||[], sum=0, weighted={conservador:0,base:0,optimista:0};
     methods.forEach(function(m){if(/DCF/i.test(m.nombre||''))return;var w=Number(m.peso)||0;sum+=w;Object.keys(weighted).forEach(function(k){weighted[k]+=w*(Number(m[k])||0);});});
@@ -823,11 +863,13 @@
       var ks=['conservador','base','optimista'];
       return '<tr><td>'+escapeHtml(m.nombre)+'</td><td>'+((Number(m.peso)||0)*100).toFixed(0)+'%</td><td>'+ks.map(function(k){return fmtVal(presentMethod(m,k));}).join(' / ')+'</td><td>'+ks.map(function(k){return fmtVal(m[k]);}).join(' / ')+'</td></tr>';
     }).join('')+'</tbody></table></div>':'';
+    if(soloMetodos) return methodTable?'<div class="dfield full"><div class="dlbl">Cada método · hoy y FY+3 (conservador / base / optimista)</div>'+methodTable+'</div>':'';
     return '<div class="dfield full valuation-panel"><h3>Valoración en dos horizontes</h3><p>USD por acción · conservador / base / optimista. FY+3 incluye los dividendos proyectados. Los múltiplos se descuentan con el costo del patrimonio; el DCF ya está expresado a hoy.</p><div class="valuation-grid">'+rows.filter(function(r){return r[1];}).map(function(r){return '<div class="valuation-cell'+(/Ponderado/.test(r[0])?' featured':'')+'"><strong>'+r[0]+'</strong><span>'+fmtVal(r[1].conservador)+' / '+fmtVal(r[1].base)+' / '+fmtVal(r[1].optimista)+'</span></div>';}).join('')+'</div>'+methodTable+(v.hojaGoogle?'<p style="margin:12px 0 0"><a href="'+escapeHtml(v.hojaGoogle)+'" target="_blank" rel="noopener noreferrer">Abrir hoja con fórmulas →</a></p>':'')+'</div>';
   }
-  function detailFieldsHtml(d){
+  function detailFieldsHtml(d, enPanel){
+    if(enPanel) return panelFieldsHtml(d);
     var html = '';
-    html += valuationPanelHtml(d.valoracionActual);
+    html += valuationPanelHtml(d.valoracionActual, !!enPanel);
     html += '<div class="dfield"><div class="dlbl">Múltiplo (' + escapeHtml(d.multP) + ')</div><div class="dval mono">Actual ' + escapeHtml(d.multA) + ' · Promedio histórico ' + escapeHtml(d.multH) + '</div></div>';
     html += '<div class="dfield"><div class="dlbl">Fecha de análisis</div><div class="dval mono">' + escapeHtml(d.fecha) + '</div></div>';
     html += '<div class="dfield full">' + buildComparativoChart(d) + '</div>';
@@ -906,7 +948,7 @@
     }
     var upHoy=pctVs(present,d), upFy3=pctVs(future,d);
     var expanded=state.expanded===d.n;
-    return '<article class="visual-card"><div class="visual-head"><div><span class="c-ticker">'+escapeHtml(d.ticker)+'</span><h3>'+escapeHtml(d.empresa||d.ticker)+'</h3><div class="visual-sub">'+escapeHtml(d.fecha||'')+(d.fromResearch?' · Análisis fundamental':'')+'</div></div><span class="chip '+catClass(d.cat)+'">'+escapeHtml(d.cat)+'</span></div>'+
+    return '<article class="visual-card'+(expanded?' expanded':'')+'"><div class="visual-head"><div><span class="c-ticker">'+escapeHtml(d.ticker)+'</span><h3>'+escapeHtml(d.empresa||d.ticker)+'</h3><div class="visual-sub">'+escapeHtml(d.fecha||'')+(d.fromResearch?' · Análisis fundamental':'')+'</div></div><span class="chip '+catClass(d.cat)+'">'+escapeHtml(d.cat)+'</span></div>'+
       '<div class="visual-numbers"><div class="visual-number'+(BASIS_INFO[valueBasis].hz==='hoy'?' today':'')+'"><span>'+famLbl+' hoy</span><strong>'+fmtVal(present)+'</strong><small class="vs">vs. precio '+fmtPctSpan(upHoy)+'</small></div><div class="visual-number'+(BASIS_INFO[valueBasis].hz==='fy3'?' today':'')+'"><span>'+famLbl+' FY+3</span><strong>'+fmtVal(future)+'</strong><small class="vs">vs. precio '+fmtPctSpan(upFy3)+'</small></div></div>'+
       '<div class="visual-chart"><div class="visual-price">'+(validPrice?'│ '+(pr.live?'Precio actual ':'Precio guardado ')+fmtVal(price):'Entrada histórica '+escapeHtml(d.precio||'—')+' · precio actual pendiente')+'</div>'+bar('Hoy',present,'')+bar('FY+3',future,'future')+'</div>'+
       '<div class="visual-footer"><span class="visual-upside neutral">CAGR base '+escapeHtml(d.cagr||'—')+'</span><button type="button" class="visual-more" data-visual-n="'+d.n+'" aria-expanded="'+expanded+'">'+(expanded?'Ocultar detalle':'Ver análisis')+' →</button></div>'+
@@ -971,11 +1013,74 @@
   function summaryHtml(d){
     var pr=priceRef(d), f=familyValues(d,BASIS_INFO[valueBasis].fam), fam=BASIS_INFO[valueBasis].fam;
     var famLbl=fam==='dcf'?'DCF':fam==='multiplos'?'Múltiplos':'Ponderado';
-    return '<div class="summary-item"><div class="identity"><strong>'+escapeHtml(d.ticker)+' · '+escapeHtml(d.empresa||d.ticker)+'</strong><small>'+escapeHtml(d.fecha||'')+'</small></div>'+
+    var open=state.expanded===d.n;
+    return '<div class="summary-block'+(open?' open':'')+'"><div class="summary-item" data-summary-row="'+d.n+'" tabindex="0" role="button" aria-expanded="'+open+'"><div class="identity"><strong>'+escapeHtml(d.ticker)+' · '+escapeHtml(d.empresa||d.ticker)+'</strong><small>'+escapeHtml(d.fecha||'')+'</small></div>'+
       '<div class="num"><small>'+(pr.live?'Precio consultado':'Precio guardado')+'</small>'+(pr.price?fmtVal(pr.price):'Pendiente')+'</div>'+
       '<div class="num"><small>'+famLbl+' hoy (base)</small>'+fmtVal(f.hoy)+'<span class="pair"><b>vs. precio</b>'+fmtPctSpan(pctVs(f.hoy,d))+'</span></div>'+
       '<div class="num"><small>'+famLbl+' FY+3 (base)</small>'+fmtVal(f.fy3)+'<span class="pair"><b>vs. precio</b>'+fmtPctSpan(pctVs(f.fy3,d))+'</span></div>'+
-      '<button type="button" data-summary-n="'+d.n+'">Ver completo</button></div>';
+      '<button type="button" data-summary-n="'+d.n+'">'+(open?'Cerrar':'Ver detalle')+'</button></div>'+
+      (open?'<section class="company-panel" id="panel-'+d.n+'">'+companyPanelHtml(d)+'</section>':'')+'</div>';
+  }
+
+  // Panel de detalle a todo el ancho (30-sep-2026): encabezado, valores de hoy
+  // y FY+3 por método, coherencia del crecimiento y el análisis completo.
+  // Campos del análisis dentro del panel: solo los que tienen contenido real.
+  function panelFieldsHtml(d){
+    var html = valuationPanelHtml(d.valoracionActual, true);
+    var f = function(lbl, val, full, mono){
+      if(!val || !String(val).trim()) return '';
+      return '<div class="dfield'+(full?' full':'')+'"><div class="dlbl">'+lbl+'</div><div class="dval'+(mono?' mono':'')+'">'+escapeHtml(val)+'</div></div>';
+    };
+    if(d.multP || d.multA || d.multH) html += f('Múltiplo ('+(d.multP||'—')+')', 'Actual '+(d.multA||'—')+' · Promedio histórico '+(d.multH||'—'), false, true);
+    html += '<div class="dfield full">' + buildComparativoChart(d) + '</div>';
+    html += f('Moat', d.moat, true);
+    html += f('Riesgos clave', d.riesgos, true);
+    if(!d.fromResearch){
+      html += f('Conclusión / acción', d.conclusion, true);
+      html += f('Última actualización / retorno', d.actualizacion, true);
+    }
+    html += '<div class="dfield full"><button class="gh-btn danger" type="button" data-del-custom="' + d.n + '">Eliminar este caso</button></div>';
+    return html;
+  }
+
+  function companyPanelHtml(d){
+    var v=d.valoracionActual||{}, dm=v.descuentoMultiples||{}, pr=priceRef(d);
+    var tri=function(t){return t?fmtVal(t.conservador)+' · <b>'+fmtVal(t.base)+'</b> · '+fmtVal(t.optimista):'—';};
+    var fy3dcf=null, wm={conservador:0,base:0,optimista:0}, ws=0;
+    (v.metodos||[]).forEach(function(m){
+      if(/DCF/i.test(m.nombre||'')){fy3dcf={conservador:m.conservador,base:m.base,optimista:m.optimista};return;}
+      var w=Number(m.peso)||0; if(num(m.base)===null)return; ws+=w; ['conservador','base','optimista'].forEach(function(k){wm[k]+=w*(Number(m[k])||0);});
+    });
+    if(ws)['conservador','base','optimista'].forEach(function(k){wm[k]/=ws;});
+    var tile=function(lbl,sub,t,sel){
+      var b=t&&num(t.base);
+      return '<div class="cp-tile'+(sel?' sel':'')+'"><span class="cp-lbl">'+lbl+'</span><span class="cp-sub">'+sub+'</span><strong>'+fmtVal(b)+'</strong><span class="cp-vs">vs. precio '+fmtPctSpan(pctVs(b,d))+'</span><span class="cp-tri">'+tri(t)+'</span></div>';
+    };
+    var bk=valueBasis;
+    var tiles='<div class="cp-tiles">'+
+      '<div class="cp-tile price"><span class="cp-lbl">'+(pr.live?'Precio consultado':'Precio guardado')+'</span><span class="cp-sub">referencia</span><strong>'+(pr.price?fmtVal(pr.price):'—')+'</strong><span class="cp-tri">Entrada histórica '+escapeHtml(d.precio||'—')+'</span></div>'+
+      tile('DCF hoy','valor intrínseco',dm.dcfHoy,bk==='dcfHoy')+
+      tile('Ponderado hoy','DCF + múltiplos',v.valorPresentePonderado,bk==='ponderadoHoy')+
+      tile('Múltiplos hoy','precio relativo',dm.multiplesHoy,bk==='multHoy')+
+      tile('DCF FY+3','× (1 + Ke)³',fy3dcf,false)+
+      tile('Múltiplos FY+3','sin descontar',ws?wm:null,bk==='multFy3')+
+      tile('Ponderado FY+3','objetivo a 3 años',v.objetivoPonderado,bk==='ponderadoFy3')+
+      '</div><p class="cp-note">Base en grande; debajo, conservador · base · optimista (USD por acción).</p>';
+    var ci=v.crecimientoImplicito, growth='';
+    if(ci&&ci.dcfInverso){
+      var pc=function(x){return typeof x==='number'&&isFinite(x)?(x*100).toFixed(1)+'%':'—';};
+      var u=ci.umbral||0.02, di=ci.dcfInverso;
+      growth='<div class="cp-growth"><h4>Coherencia del crecimiento · criterio Damodaran</h4><p>El precio de '+fmtVal(ci.precio)+' supone que los ingresos crecen <b>'+pc(di.gImplicito)+'</b> al año en los años 1-5; el DCF supone <b>'+pc(di.gDcf)+'</b>. '+escapeHtml(di.lectura||'')+'</p><div class="cp-chips">'+
+        (ci.multiplos||[]).map(function(m){
+          var st=m.aplica===false?'na':(typeof m.dif==='number'?(Math.abs(m.dif)<=u?'ok':'warn'):'na');
+          return '<span class="cp-chip '+st+'">'+escapeHtml(m.metodo)+' · '+pc(m.gImplicito)+(st==='warn'?(m.dif>0?' ↑':' ↓'):'')+'</span>';
+        }).join('')+'</div><p class="cp-note">Crecimiento perpetuo después de FY+3 que supone cada múltiplo Base, frente a '+pc(((ci.gDcf||{}).puntoMedio))+' del DCF. ↑/↓ = más/menos crecimiento que el DCF (más de '+Math.round(u*100)+' pp).</p></div>';
+    }
+    var links=(v.__path?'<a href="visor.html?path='+encodeURIComponent(v.__path)+'">Abrir en el Visor →</a>':'')+
+      (v.hojaGoogle?'<a href="'+escapeHtml(v.hojaGoogle)+'" target="_blank" rel="noopener noreferrer">Hoja con fórmulas →</a>':'')+
+      (d.fromResearch?'<a href="research.html?ticker='+encodeURIComponent(d.ticker)+'">Análisis fundamental →</a>':'');
+    return '<header class="cp-head"><div><span class="c-ticker">'+escapeHtml(d.ticker)+'</span><h3>'+escapeHtml(d.empresa||d.ticker)+'</h3><span class="cp-date">'+escapeHtml(d.fecha||'')+' · <span class="chip '+catClass(d.cat)+'">'+escapeHtml(d.cat)+'</span></span></div><nav class="cp-links">'+links+'</nav></header>'+
+      tiles+growth+'<div class="cp-body">'+detailFieldsHtml(d,true)+'</div>';
   }
 
   function applyView(){
@@ -1065,11 +1170,25 @@
   visualEl.addEventListener('click',function(e){
     var btn=e.target.closest('[data-visual-n]');if(btn)toggleExpand(Number(btn.dataset.visualN));
   });
-  summaryEl.addEventListener('click',function(e){
-    var btn=e.target.closest('[data-summary-n]');if(!btn)return;
-    state.expanded=Number(btn.dataset.summaryN);state.view='visual';
-    try{localStorage.setItem('jmr-bitacora-view',state.view);}catch(err){}
+  function openSummary(n){
+    state.expanded=(state.expanded===n)?null:n;
     render();
+    if(state.expanded!==null){
+      var el=document.getElementById('panel-'+n);
+      if(el&&el.parentNode){
+        var top=document.querySelector('header.top'), h=top?top.getBoundingClientRect().height:0;
+        window.scrollTo({top:el.parentNode.getBoundingClientRect().top+window.pageYOffset-h-10,behavior:'smooth'});
+      }
+    }
+  }
+  summaryEl.addEventListener('click',function(e){
+    if(e.target.closest('.company-panel')&&!e.target.closest('[data-summary-n]'))return;
+    var row=e.target.closest('[data-summary-n]')||e.target.closest('[data-summary-row]');if(!row)return;
+    openSummary(Number(row.dataset.summaryN||row.dataset.summaryRow));
+  });
+  summaryEl.addEventListener('keydown',function(e){
+    var row=e.target.closest('[data-summary-row]');if(!row||e.target!==row)return;
+    if(e.key==='Enter'||e.key===' '){e.preventDefault();openSummary(Number(row.dataset.summaryRow));}
   });
   document.querySelector('.view-switch').addEventListener('click',function(e){
     var btn=e.target.closest('[data-view]');if(!btn)return;
@@ -1368,7 +1487,7 @@
   function loadValuations(){
     return fetch(GH_API+'valoraciones',{headers:ghHeaders(getGhToken())}).then(function(res){if(!res.ok)throw new Error('HTTP '+res.status);return res.json();}).then(function(list){
       return Promise.all((Array.isArray(list)?list:[]).filter(function(f){return /\.json$/i.test(f.name);}).map(function(f){
-        return fetch(f.url||GH_API+f.path,{headers:ghHeaders(getGhToken())}).then(function(r){return r.json();}).then(function(data){return JSON.parse(b64DecodeUnicode(data.content.replace(/\n/g,'')));}).catch(function(){return null;});
+        return fetch(f.url||GH_API+f.path,{headers:ghHeaders(getGhToken())}).then(function(r){return r.json();}).then(function(data){var rec=JSON.parse(b64DecodeUnicode(data.content.replace(/\n/g,'')));rec.__path=f.path;return rec;}).catch(function(){return null;});
       }));
     }).then(function(records){var map={};records.forEach(function(v){if(v&&v.ticker&&(!map[v.ticker]||String(v.savedAt||'')>String(map[v.ticker].savedAt||'')))map[v.ticker]=v;});return map;}).catch(function(err){console.warn('No se pudieron leer las valoraciones:',err);return {};});
   }
