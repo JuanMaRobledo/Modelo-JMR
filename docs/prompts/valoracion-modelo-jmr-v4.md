@@ -143,12 +143,14 @@ Seguí este proceso, en este orden:
      (Damodaran); cuánto tiempo lo logra depende de su ventaja competitiva. La
      plantilla supone por defecto que en la etapa estable gana exactamente su
      costo de capital (B49 = "No"). Clasificá el moat con evidencia:
-       * ANCHO: dos o más fuentes de ventaja (marca, efectos de red, costos de
-         cambio, escala, licencias o patentes que se renuevan) o una muy fuerte
-         (efectos de red, costos de cambio); ROIC ('Valuation output'!B42 y la
-         pestaña 'Eficiencia de capital') por encima del costo de capital
-         terminal (M14) en cada uno de los últimos 5 años; las historias de
-         erosión de la ventaja suman menos de 40% de probabilidad.
+       * ANCHO: dos o más fuentes ESTRUCTURALES (efectos de red, costos de
+         cambio, escala o costo, licencias o patentes que se renuevan; la marca
+         solo suma como complemento) o una muy fuerte (efectos de red, costos
+         de cambio); ROIC ('Valuation output'!B42 y la pestaña 'Eficiencia de
+         capital') por encima del costo de capital terminal (M14) en cada uno
+         de los últimos 5 años; las historias de erosión de la ventaja suman
+         menos de 40% de probabilidad (con 40% o más es ESTRECHO aunque las
+         fuentes sean fuertes, como GOOG).
          → B50 = el MENOR entre el ROIC actual y el de su industria en Damodaran.
        * ESTRECHO: al menos una fuente ESTRUCTURAL identificable (costos de
          cambio, efectos de red, escala o costo, licencias/regulación, patentes
@@ -156,7 +158,9 @@ Seguí este proceso, en este orden:
          erosión ≥ 40%); ROIC por encima del costo de capital al menos 3 años
          seguidos. La marca sola NO alcanza en consumo discrecional, moda o apps
          de consumo con bajo costo de cambio: ahí es SIN MOAT salvo que haya
-         otra fuente estructural (regla del 30-sep-2026, aplicada a DUOL y ONON). → B50 = punto medio entre el costo de capital
+         otra fuente estructural (regla del 30-sep-2026: DUOL, ONON, CMG y LULU
+         quedaron sin moat; DPZ, con una sola fuente estructural, estrecho).
+         → B50 = punto medio entre el costo de capital
          terminal y ese menor valor (los retornos excedentes se desvanecen en
          parte: por convención, un moat estrecho dura ~10 años y uno ancho ~20,
          y el valor terminal empieza en el año 11).

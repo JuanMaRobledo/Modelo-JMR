@@ -277,7 +277,7 @@ la empresa gana más que su costo de capital, y la ventaja competitiva dice por 
 
 | Moat | Evidencia | ROIC terminal |
 |---|---|---|
-| Ancho | 2+ fuentes de ventaja (o efectos de red / costos de cambio); ROIC > costo de capital en cada uno de los últimos 5 años; historias de erosión < 40% | Menor entre ROIC actual e industria (Damodaran) |
+| Ancho | 2+ fuentes estructurales (la marca solo como complemento), o efectos de red / costos de cambio muy fuertes; ROIC > costo de capital en cada uno de los últimos 5 años; historias de erosión < 40% (con 40% o más es estrecho) | Menor entre ROIC actual e industria (Damodaran) |
 | Estrecho | Al menos una fuente estructural (costos de cambio, efectos de red, escala/costo, licencias, patentes que se renuevan), o una fuerte bajo presión (historias de erosión ≥ 40%); ROIC > costo de capital al menos 3 años seguidos. La marca sola no alcanza en consumo discrecional, moda o apps de consumo con bajo costo de cambio | Punto medio entre el costo de capital terminal y ese valor |
 | Sin moat | Sin fuente durable o ROIC no sostenido por encima del costo de capital (con la plusvalía de las compras) | Costo de capital |
 
