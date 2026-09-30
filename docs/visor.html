@@ -16,6 +16,7 @@
 <script src="market_data.js"></script>
 <script src="jmr_engine.js"></script>
 <script src="gh_oauth.js"></script>
+<script src="valuation-board.js"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
   :root{
@@ -172,6 +173,9 @@
   .headline-card .stat .rng .pos{color:var(--positive); font-weight:600;}
   .headline-card .stat .rng .neg{color:var(--negative); font-weight:600;}
   .stat.pv-main{border-color:var(--accent); background:var(--accent-soft);}
+  .horizon-details{margin-top:4px; border:1px solid var(--border-soft); border-radius:12px; background:var(--surface); padding:10px 14px;}
+  .horizon-details > summary{cursor:pointer; font-size:12.5px; font-weight:600; color:var(--ink-soft);}
+  .horizon-details[open] > summary{margin-bottom:10px;}
   .growth-card{background:var(--surface); border:1px solid var(--border-soft); border-radius:12px; padding:14px 16px;}
   .growth-lead{font-size:13.5px; line-height:1.5; margin:0 0 10px;}
   .growth-lead b{font-family:"IBM Plex Mono",monospace;}
@@ -730,28 +734,18 @@
       </div>
 
     <div id="presentSection" hidden>
-      <p class="section-title">Valor intrínseco hoy (DCF) y lecturas secundarias · escenario Base</p>
-      <div class="grid3">
-        <div class="stat pv-main"><div class="lbl">Valor intrínseco · DCF</div><div class="big" id="pvDcf">—</div><div class="rng" id="pvDcfRng"></div></div>
-        <div class="stat"><div class="lbl">Múltiplos · precio relativo (secundario)</div><div class="big" id="pvMult">—</div><div class="rng" id="pvMultRng"></div></div>
-        <div class="stat"><div class="lbl">Ponderado DCF + múltiplos (secundario)</div><div class="big" id="pvPond">—</div><div class="rng" id="pvPondRng"></div></div>
-      </div>
-      <div class="methods-scroll" style="margin-top:12px;">
-        <table class="methods">
-          <thead><tr><th>Método (valor hoy)</th><th>Peso</th><th>Conservador</th><th>Base</th><th>Optimista</th></tr></thead>
-          <tbody id="presentBody"></tbody>
-        </table>
-      </div>
-      <div id="horizonWrap" hidden>
-        <p class="section-title">Múltiplos a 1, 2 y 3 años traídos a hoy (escenario Base)</p>
+      <p class="section-title">Valoración · el DCF primero, las lecturas secundarias a un clic</p>
+      <div id="valueBoard"></div>
+      <details class="horizon-details" id="horizonWrap" hidden>
+        <summary>Detalle de los múltiplos: precio a 1, 2 y 3 años traído a hoy (escenario Base)</summary>
         <div class="methods-scroll">
           <table class="methods">
             <thead><tr><th>Método</th><th>FY+3 sin descontar</th><th>VP 1 año</th><th>VP 2 años</th><th>VP 3 años</th><th>Consolidado hoy</th><th>VP3 &lt; FY+3</th></tr></thead>
             <tbody id="horizonBody"></tbody>
           </table>
         </div>
-      </div>
-      <p class="meta" id="presentNote" style="font-size:12px;color:var(--ink-faint);margin:8px 0 0;"></p>
+        <p class="meta" id="presentNote" style="font-size:12px;color:var(--ink-faint);margin:8px 0 0;"></p>
+      </details>
     </div>
 
     <div id="growthSection" hidden>
@@ -768,6 +762,7 @@
       </div>
     </div>
 
+    <div id="fy3Legacy" hidden>
     <p class="section-title">Precio objetivo al cierre FY+3 (sin descontar)</p>
       <p class="meta" style="font-size:12px;color:var(--ink-faint);margin:-4px 0 8px;">Todo en la fecha FY+3: el DCF de esta tabla es el <b>DCF de hoy llevado a FY+3</b> (× (1 + Ke)³), no otro DCF; los múltiplos son el precio a FY+3 más los dividendos. Para el valor de hoy, mira la sección de arriba.</p>
       <div class="methods-scroll">
@@ -777,7 +772,8 @@
         </table>
       </div>
 
-      <div class="grid3" style="margin-top:18px;">
+    </div>
+      <div class="grid3" style="margin-top:18px;" title="Crecimiento anual del precio de hoy al objetivo FY+3 ponderado (lectura secundaria)">
         <div class="stat"><div class="lbl">CAGR mínimo (Conservador)</div><div class="big" id="cagrC">—</div></div>
         <div class="stat"><div class="lbl">CAGR promedio (Base)</div><div class="big" id="cagrB">—</div></div>
         <div class="stat"><div class="lbl">CAGR máximo (Optimista)</div><div class="big" id="cagrO">—</div></div>
@@ -961,18 +957,10 @@
           <div class="stat"><div class="lbl">CAGR promedio (Base)</div><div class="big" id="rcCagrB">—</div></div>
           <div class="stat"><div class="lbl">Potencial vs. precio actual (Base)</div><div class="big" id="rcPotB">—</div></div>
         </div>
-        <div class="methods-scroll">
-          <table class="methods">
-            <thead><tr><th>Método</th><th>Peso</th><th>Conservador</th><th>Base</th><th>Optimista</th></tr></thead>
-            <tbody id="rcMethodsBody"></tbody>
-          </table>
-        </div>
-        <p class="section-title">Valor intrínseco hoy (DCF) y lecturas secundarias</p>
-        <div class="methods-scroll">
-          <table class="methods">
-            <thead><tr><th>Método (valor hoy)</th><th>Peso</th><th>Conservador</th><th>Base</th><th>Optimista</th></tr></thead>
-            <tbody id="rc_pvBody"></tbody>
-          </table>
+        <div id="rcBoard"></div>
+        <div hidden>
+          <table class="methods"><tbody id="rcMethodsBody"></tbody></table>
+          <table class="methods"><tbody id="rc_pvBody"></tbody></table>
         </div>
         <p class="meta" id="rc_pvNote" style="font-size:12px;color:var(--ink-faint);margin:6px 0 0;"></p>
         <p class="section-title">Zonas de valor (escalonar entradas; sobre el objetivo FY+3 ponderado, lectura secundaria)</p>
@@ -1249,6 +1237,7 @@
   function renderHeadline(){
     if(!currentResumen) return;
     renderMosDcf();
+    renderValueBoard();
     var sel = document.getElementById('headlineSel');
     var h = headlineData();
     ['dcfHoy','ponderadoHoy','multHoy'].forEach(function(k){
@@ -1539,7 +1528,8 @@
     tbody.appendChild(totRow);
     var descuento = readDescuentoMultiples(wb, res);
     var valorHoy = { conservador: cellVal(res,'C34'), base: cellVal(res,'D34'), optimista: cellVal(res,'E34') };
-    renderPresentValue(descuento, valorHoy);
+    var metodosFY3 = methods.map(function(m){ return { nombre: m[0], peso: cellVal(res,'B'+m[1]), conservador: cellVal(res,'C'+m[1]), base: cellVal(res,'D'+m[1]), optimista: cellVal(res,'E'+m[1]) }; });
+    renderPresentValue(descuento, valorHoy, metodosFY3, { conservador: cellVal(res,'C12'), base: cellVal(res,'D12'), optimista: cellVal(res,'E12') });
 
     document.getElementById('cagrC').textContent = fmtPct(cellVal(res,'C13'));
     document.getElementById('cagrB').textContent = fmtPct(cellVal(res,'D13'));
@@ -2775,44 +2765,32 @@
     };
   }
 
-  function renderPresentValue(dm, vp, metodosFY3){
+  // Tablero de valoración (valuation-board.js): DCF primero; múltiplos juntos,
+  // por método y ponderado a un clic, hoy o al cierre FY+3. El precio de
+  // referencia es el de currentResumen, así que se vuelve a dibujar cuando
+  // cambia (renderHeadline).
+  var boardParts = null;
+  function renderValueBoard(){
+    var box = document.getElementById('valueBoard');
+    if(!box || !boardParts || typeof JmrValueBoard === 'undefined') return;
+    var r = currentResumen || {};
+    var d = JmrValueBoard.fromParts(Object.assign({}, boardParts, { precio: r.precio, precioLbl: 'Precio de hoy', mos: r.mos, hoja: r.hojaGoogle }));
+    box.innerHTML = JmrValueBoard.html(d, { hero: false });
+  }
+  function renderPresentValue(dm, vp, metodosFY3, objetivoFY3){
     var sec = document.getElementById('presentSection');
     dm = dm || {};
-    var dcf = dm.dcfHoy, mult = dm.multiplesHoy, pond = dm.ponderadoHoy || vp;
-    if(!dcf || !mult || !pond || typeof pond.base !== 'number'){ sec.hidden = true; return; }
-    sec.hidden = false;
-    var rng = function(t){ return 'Cons ' + fmtMoney(t.conservador) + ' · Opt ' + fmtMoney(t.optimista); };
-    document.getElementById('pvDcf').textContent = fmtMoney(dcf.base);
-    document.getElementById('pvDcfRng').textContent = rng(dcf);
-    document.getElementById('pvMult').textContent = fmtMoney(mult.base);
-    document.getElementById('pvMultRng').textContent = rng(mult);
-    document.getElementById('pvPond').textContent = fmtMoney(pond.base);
-    document.getElementById('pvPondRng').textContent = rng(pond);
-
-    var pesoDcf = dm.pesoDcf, pesoMult = dm.pesoMultiplos;
-    if(pesoDcf == null && metodosFY3){
-      pesoDcf = 0; pesoMult = 0;
-      metodosFY3.forEach(function(m){ if(/DCF/i.test(m.nombre || '')) pesoDcf += Number(m.peso) || 0; else pesoMult += Number(m.peso) || 0; });
-    }
-    var body = document.getElementById('presentBody');
-    body.innerHTML = '';
-    var row = function(label, peso, t, cls){
-      var tr = document.createElement('tr');
-      if(cls) tr.className = cls;
-      tr.innerHTML = '<td>' + label + '</td><td>' + (peso == null ? '—' : fmtPct(peso)) + '</td><td>' + fmtMoney(t.conservador) + '</td><td>' + fmtMoney(t.base) + '</td><td>' + fmtMoney(t.optimista) + '</td>';
-      body.appendChild(tr);
-    };
-    row('DCF hoy (valor presente)', pesoDcf, dcf);
-    (dm.metodos || []).forEach(function(m){
-      row('&nbsp;&nbsp;' + escapeHtml(String(m.nombre || '')), m.peso,
-          { conservador: m.conservador && m.conservador.consolidado, base: m.base && m.base.consolidado, optimista: m.optimista && m.optimista.consolidado });
-    });
-    row('Múltiplos consolidados (secundario)', pesoMult, mult);
-    row('Ponderado hoy (secundario)', (pesoDcf != null && pesoMult != null) ? pesoDcf + pesoMult : null, pond, 'total');
+    boardParts = { dm: dm, vp: vp, metodosFY3: metodosFY3 || [], objetivoFY3: objetivoFY3 };
+    var hasHoy = dm.dcfHoy && typeof dm.dcfHoy.base === 'number';
+    var hasFy3 = (metodosFY3 || []).some(function(m){ return typeof m.base === 'number'; });
+    sec.hidden = !(hasHoy || hasFy3);
+    if(sec.hidden) return;
+    renderValueBoard();
 
     var hw = document.getElementById('horizonWrap'), hb = document.getElementById('horizonBody');
     hb.innerHTML = '';
     hw.hidden = !(dm.metodos && dm.metodos.length);
+    if(hw.hidden) return;
     var hrow = function(label, d, chk, cls){
       if(!d) return;
       var tr = document.createElement('tr');
@@ -2873,7 +2851,7 @@
     var op = rec.objetivoPonderado || {};
     totRow.innerHTML = '<td>Ponderado FY+3 (secundario; incluye dividendos)</td><td>100%</td><td class="total-cons">'+fmtMoney(op.conservador)+'</td><td class="total-base">'+fmtMoney(op.base)+'</td><td class="total-opt">'+fmtMoney(op.optimista)+'</td>';
     tbody.appendChild(totRow);
-    renderPresentValue(rec.descuentoMultiples, rec.valorPresentePonderado, rec.metodos);
+    renderPresentValue(rec.descuentoMultiples, rec.valorPresentePonderado, rec.metodos, rec.objetivoPonderado);
     var cagr = rec.cagr || {};
     document.getElementById('cagrC').textContent = fmtPct(cagr.conservador);
     document.getElementById('cagrB').textContent = fmtPct(cagr.base);
@@ -3491,6 +3469,19 @@
       fmtMoney(v.chequeo.base.multiplosVP3) + ' vs ' + fmtMoney(v.chequeo.base.multiplosFY3SinDescontar) + '): ' + (ok ? 'OK' : 'REVISAR') + '.';
   }
 
+  // Tablero de valoración con el resultado recalculado (misma vista que el Resumen).
+  function rcRenderBoard(inp, r){
+    var box = document.getElementById('rcBoard');
+    if(!box || typeof JmrValueBoard === 'undefined') return;
+    var v = r.valorPresente || {}, t = function(x){ return x ? { conservador: x.cons, base: x.base, optimista: x.opt } : null; };
+    var pairs = [['evEbitda','EV/EBITDA'], ['evFcff','EV/FCFF'], ['pe','P/E'], ['pfcfe','P/FCFE'], ['pocf','P/OCF']];
+    var cons = function(m, k){ return m && m[k] && { consolidado: m[k].consolidado }; };
+    var dm = { dcfHoy: t(v.dcf), multiplesHoy: t(v.multiplos), ponderadoHoy: t(v.ponderado), pesoDcf: v.pesoDcf, pesoMultiplos: v.pesoMultiplos, costoPatrimonio: v.tasaDescuento,
+      metodos: pairs.map(function(p){ var m = (v.metodos || {})[p[0]]; return { nombre: p[1], peso: r.pesos[p[0]], conservador: cons(m,'cons'), base: cons(m,'base'), optimista: cons(m,'opt') }; }) };
+    var fy3 = [['dcf','DCF Damodaran']].concat(pairs).map(function(p){ var x = r.precios[p[0]] || {}; return { nombre: p[1], peso: r.pesos[p[0]], conservador: x.cons, base: x.base, optimista: x.opt }; });
+    var d = JmrValueBoard.fromParts({ dm: dm, metodosFY3: fy3, objetivoFY3: t(r.precioObjetivo), precio: inp.precioActual, precioLbl: 'Precio con este supuesto', mos: inp.mos });
+    box.innerHTML = JmrValueBoard.html(d, { hero: true });
+  }
   function rcRenderResult(inp, r){
     document.getElementById('rcPrice').textContent = fmtMoney(inp.precioActual);
     document.getElementById('rcPrecioMOS').textContent = fmtMoney(r.precioConMOS.cons) + ' – ' + fmtMoney(r.precioConMOS.base);
@@ -3511,6 +3502,7 @@
     totRow.innerHTML = '<td>Precio Objetivo Ponderado</td><td>100%</td><td class="total-cons">' + fmtMoney(r.precioObjetivo.cons) + '</td><td class="total-base">' + fmtMoney(r.precioObjetivo.base) + '</td><td class="total-opt">' + fmtMoney(r.precioObjetivo.opt) + '</td>';
     tbody.appendChild(totRow);
     rcRenderValorPresente(r.valorPresente, r.pesos);
+    rcRenderBoard(inp, r);
 
     function zoneText(z){ return fmtMoney(z.min) + ' – ' + fmtMoney(z.max); }
     document.getElementById('rcZValue').textContent = zoneText(r.zonas.value);

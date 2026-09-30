@@ -54,6 +54,23 @@ body.research-page .wrap{max-width:none;padding-inline:clamp(16px,2.5vw,48px)}bo
 @media(max-width:600px){.research-document th,.research-document td{padding:4px;font-size:clamp(9px,2.5vw,12px);line-height:1.35}}
 @media print{.research-document th,.research-document td{padding:4px;font-size:10px}}
 .pdf-header img{width:52px;height:auto;flex:none}
+/* Tablas del análisis (30-sep-2026): contenedor redondeado, encabezado sobrio,
+   filas alternas suaves y números alineados a la derecha (research.js marca
+   las celdas numéricas con .num). El tablero de valoración (.jvb-table) tiene
+   su propio estilo. */
+.research-document table:not(.jvb-table){border-collapse:separate;border-spacing:0;border:1px solid var(--border-soft);border-radius:12px;overflow:hidden;background:var(--surface);margin:18px 0 22px;box-shadow:var(--shadow)}
+.research-document table:not(.jvb-table) th,.research-document table:not(.jvb-table) td{border:0;border-bottom:1px solid var(--border-soft);padding:9px 12px;line-height:1.45}
+.research-document table:not(.jvb-table) thead th{background:var(--surface-2);font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-faint);vertical-align:bottom}
+.research-document table:not(.jvb-table) tbody th{background:transparent;font-size:inherit;font-weight:650;color:var(--ink)}
+.research-document table:not(.jvb-table) tbody tr:last-child>*{border-bottom:0}
+.research-document table:not(.jvb-table) tbody tr:nth-child(even)>*{background:color-mix(in oklab,var(--surface-2) 45%,var(--surface))}
+.research-document table:not(.jvb-table) tbody tr:hover>*{background:var(--accent-soft)}
+.research-document table:not(.jvb-table) .num{text-align:right;font-family:"IBM Plex Mono",monospace;font-size:12.5px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow-wrap:normal}
+.research-document table:not(.jvb-table) thead th.num{font-family:inherit;font-size:10.5px;white-space:normal;overflow-wrap:normal}
+@media(min-width:601px){.research-document table:not(.jvb-table){table-layout:auto}.research-document table:not(.jvb-table) th,.research-document table:not(.jvb-table) td{overflow-wrap:normal}}
+.research-document table:not(.jvb-table) td strong{color:var(--ink)}
+@media(max-width:600px){.valuation-block{padding:12px 10px}.research-document table:not(.jvb-table) th,.research-document table:not(.jvb-table) td{padding:6px 7px;font-size:clamp(10px,2.8vw,12.5px)}.research-document table:not(.jvb-table) .num{font-size:clamp(10px,2.7vw,12px);white-space:normal}}
+@media print{.research-document table:not(.jvb-table){box-shadow:none;border-radius:0}.research-document table:not(.jvb-table) tbody tr:hover>*{background:none}}
 .pdf-header .pdf-header-text strong{display:block;font-size:16px;color:var(--ink)}
 .pdf-header .pdf-header-text span{font-size:12px;color:var(--ink-faint)}
 </style>
@@ -141,6 +158,7 @@ body.research-page .wrap{max-width:none;padding-inline:clamp(16px,2.5vw,48px)}bo
 <script src="market_data.js"></script>
 <script src="gh_oauth.js"></script>
 <script src="decision.js"></script>
+<script src="valuation-board.js"></script>
 <script src="research.js"></script>
 <script>
 if("serviceWorker" in navigator){

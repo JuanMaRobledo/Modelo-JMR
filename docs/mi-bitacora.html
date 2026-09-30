@@ -743,6 +743,7 @@
 <script src="market_data.js"></script>
 <script src="gh_oauth.js"></script>
 <script src="decision.js"></script>
+<script src="valuation-board.js"></script>
 <script>
 (function(){
   var DATA = [];
@@ -869,43 +870,18 @@
   }
 
   function fmtVal(v){return typeof v === 'number' && isFinite(v) ? '$' + v.toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—';}
-  function valuationPanelHtml(v, soloMetodos){
-    if(!v || !v.valorPresentePonderado) return '';
-    var dm=v.descuentoMultiples||{}, methods=v.metodos||[], sum=0, weighted={conservador:0,base:0,optimista:0};
-    methods.forEach(function(m){if(/DCF/i.test(m.nombre||''))return;var w=Number(m.peso)||0;sum+=w;Object.keys(weighted).forEach(function(k){weighted[k]+=w*(Number(m[k])||0);});});
-    if(sum) Object.keys(weighted).forEach(function(k){weighted[k]/=sum;});
-    var rows=[['DCF · valor intrínseco hoy',dm.dcfHoy],['Múltiplos · valor hoy',dm.multiplesHoy],['Ponderado · valor hoy',v.valorPresentePonderado],['Múltiplos · objetivo FY+3',sum?weighted:null],['Ponderado · objetivo FY+3',v.objetivoPonderado]];
-    var rate=Number(dm.costoPatrimonio),years=Number(dm.horizonteAnios)||3,div=dm.dividendosAnualesPorAccion||[];
-    var divSum=div.reduce(function(a,b){return a+(Number(b)||0);},0);
-    var divPv=div.reduce(function(a,b,i){return a+(Number(b)||0)/Math.pow(1+rate,i+1);},0);
-    function presentMethod(m,k){
-      if(/DCF/i.test(m.nombre||''))return dm.dcfHoy&&dm.dcfHoy[k];
-      return isFinite(rate)&&typeof m[k]==='number'?(m[k]-divSum)/Math.pow(1+rate,years)+divPv:null;
-    }
-    var ks=['conservador','base','optimista'];
-    var methodTable=methods.length?'<div class="vm-scroll"><table class="valuation-methods"><thead>'+
-      '<tr><th rowspan="2">Método</th><th rowspan="2" class="num">Peso</th><th colspan="3" class="grp">Hoy (valor presente)</th><th colspan="3" class="grp">Al cierre FY+3</th></tr>'+
-      '<tr><th class="num">Cons.</th><th class="num">Base</th><th class="num">Opt.</th><th class="num">Cons.</th><th class="num">Base</th><th class="num">Opt.</th></tr></thead><tbody>'+
-      methods.map(function(m){
-        var dcf=/DCF/i.test(m.nombre||'');
-        return '<tr'+(dcf?' class="dcf"':'')+'><td>'+escapeHtml(dcf?'DCF Damodaran':m.nombre)+'</td><td class="num">'+((Number(m.peso)||0)*100).toFixed(0)+'%</td>'+
-          ks.map(function(k){return '<td class="num'+(k==='base'?' b':'')+'">'+fmtVal(presentMethod(m,k))+'</td>';}).join('')+
-          ks.map(function(k){return '<td class="num'+(k==='base'?' b':'')+'">'+fmtVal(m[k])+'</td>';}).join('')+'</tr>';
-      }).join('')+'</tbody></table></div><p class="vm-note">El DCF de la columna FY+3 es el DCF de hoy llevado a FY+3 con el costo del patrimonio. Los múltiplos son precio relativo; FY+3 incluye dividendos.</p>':'';
-    if(soloMetodos) return methodTable?'<div class="dfield full"><div class="dlbl">Cada método · hoy y al cierre FY+3</div>'+methodTable+'</div>':'';
-    var dcfFy3=null; methods.forEach(function(m){ if(/DCF/i.test(m.nombre||'')) dcfFy3={conservador:m.conservador,base:m.base,optimista:m.optimista}; });
-    var cellHtml=function(t,cls){return '<div class="valuation-cell'+cls+'"><strong>'+t[0]+'</strong><em>'+t[1]+'</em><span class="vb">'+fmtVal(t[2].base)+'</span><span class="vr">Cons. '+fmtVal(t[2].conservador)+' · Opt. '+fmtVal(t[2].optimista)+'</span></div>';};
-    var main=[['Valor intrínseco hoy · DCF','el valor que manda',dm.dcfHoy],['DCF llevado a FY+3','× (1 + Ke)³',dcfFy3]].filter(function(t){return t[2];});
-    var sec=[['Múltiplos hoy','precio relativo',dm.multiplesHoy],['Ponderado hoy','DCF + múltiplos',v.valorPresentePonderado],
-             ['Múltiplos FY+3','sin descontar',sum?weighted:null],['Ponderado FY+3','objetivo a 3 años',v.objetivoPonderado]].filter(function(t){return t[2];});
-    return '<div class="dfield full valuation-panel"><h3>Valoración</h3><p>USD por acción. Base en grande; debajo, conservador y optimista. <b>El valor intrínseco es el DCF</b>; múltiplos y ponderado son lecturas secundarias.</p>'+
-      '<div class="valuation-grid main">'+main.map(function(t,i){return cellHtml(t,i===0?' featured':'');}).join('')+'</div>'+
-      (sec.length?'<p class="vm-sec">Lecturas secundarias</p><div class="valuation-grid secondary">'+sec.map(function(t){return cellHtml(t,' secondary');}).join('')+'</div>':'')+
-      methodTable+(v.hojaGoogle?'<p style="margin:12px 0 0"><a href="'+escapeHtml(v.hojaGoogle)+'" target="_blank" rel="noopener noreferrer">Abrir hoja con fórmulas →</a></p>':'')+'</div>';
+  // Tablero de valoración compartido (valuation-board.js): DCF primero;
+  // múltiplos juntos, por método y ponderado a un clic; hoy o FY+3.
+  function valuationPanelHtml(v, soloMetodos, d){
+    if(soloMetodos || !v || typeof JmrValueBoard === 'undefined') return '';
+    var pr = d ? priceRef(d) : {};
+    var data = JmrValueBoard.fromRecord(v, { precio: pr.price || v.precio, precioLbl: pr.live ? 'Precio consultado' : 'Precio guardado' });
+    if(!JmrValueBoard.hasData(data)) return '';
+    return '<div class="dfield full valuation-panel"><h3>Valoración</h3>' + JmrValueBoard.html(data, { hero: true }) + '</div>';
   }
   function detailFieldsHtml(d, enPanel){
     if(enPanel) return panelFieldsHtml(d);
-    return '<div class="dfield full">' + decisionWidget(d) + '</div>' + valuationPanelHtml(d.valoracionActual, false) + analysisFieldsHtml(d);
+    return '<div class="dfield full">' + decisionWidget(d) + '</div>' + valuationPanelHtml(d.valoracionActual, false, d) + analysisFieldsHtml(d);
   }
 
   function rowHtml(d, idx){
@@ -1098,29 +1074,9 @@
   }
 
   function companyPanelHtml(d){
-    var v=d.valoracionActual||{}, dm=v.descuentoMultiples||{}, pr=priceRef(d);
-    var tri=function(t){return t?fmtVal(t.conservador)+' · <b>'+fmtVal(t.base)+'</b> · '+fmtVal(t.optimista):'—';};
-    var fy3dcf=null, wm={conservador:0,base:0,optimista:0}, ws=0;
-    (v.metodos||[]).forEach(function(m){
-      if(/DCF/i.test(m.nombre||'')){fy3dcf={conservador:m.conservador,base:m.base,optimista:m.optimista};return;}
-      var w=Number(m.peso)||0; if(num(m.base)===null)return; ws+=w; ['conservador','base','optimista'].forEach(function(k){wm[k]+=w*(Number(m[k])||0);});
-    });
-    if(ws)['conservador','base','optimista'].forEach(function(k){wm[k]/=ws;});
-    var tile=function(lbl,sub,t,sel,extra){
-      var b=t&&num(t.base);
-      return '<div class="cp-tile'+(sel?' sel':'')+(extra||'')+'"><span class="cp-lbl">'+lbl+'</span><span class="cp-sub">'+sub+'</span><strong>'+fmtVal(b)+'</strong><span class="cp-vs">vs. precio '+fmtPctSpan(pctVs(b,d))+'</span><span class="cp-tri">'+tri(t)+'</span></div>';
-    };
-    var bk=valueBasis;
-    var tiles='<div class="cp-tiles">'+
-      tile('Valor intrínseco hoy · DCF','el valor que manda',dm.dcfHoy,bk==='dcfHoy',' main')+
-      tile('DCF llevado a FY+3','× (1 + Ke)³',fy3dcf,false,' main')+
-      '<div class="cp-tile price"><span class="cp-lbl">'+(pr.live?'Precio consultado':'Precio guardado')+'</span><span class="cp-sub">referencia</span><strong>'+(pr.price?fmtVal(pr.price):'—')+'</strong><span class="cp-tri">Entrada histórica '+escapeHtml(d.precio||'—')+'</span></div>'+
-      '</div><p class="cp-sec">Lecturas secundarias</p><div class="cp-tiles">'+
-      tile('Múltiplos hoy','precio relativo',dm.multiplesHoy,bk==='multHoy',' secondary')+
-      tile('Ponderado hoy','DCF + múltiplos',v.valorPresentePonderado,bk==='ponderadoHoy',' secondary')+
-      tile('Múltiplos FY+3','sin descontar',ws?wm:null,bk==='multFy3',' secondary')+
-      tile('Ponderado FY+3','objetivo a 3 años',v.objetivoPonderado,bk==='ponderadoFy3',' secondary')+
-      '</div><p class="cp-note">Base en grande; debajo, conservador · base · optimista (USD por acción). El valor intrínseco es el DCF.</p>';
+    var v=d.valoracionActual||{}, pr=priceRef(d);
+    var board=(typeof JmrValueBoard!=='undefined')?JmrValueBoard.fromRecord(v,{precio:pr.price||v.precio,precioLbl:pr.live?'Precio consultado':'Precio guardado'}):null;
+    var tiles=board&&JmrValueBoard.hasData(board)?'<div class="cp-board">'+JmrValueBoard.html(board,{hero:true})+'</div>':'<p class="cp-note">Esta empresa todavía no tiene una valoración guardada en el Visor.</p>';
     var ci=v.crecimientoImplicito, growth='';
     if(ci&&ci.dcfInverso){
       var pc=function(x){return typeof x==='number'&&isFinite(x)?(x*100).toFixed(1)+'%':'—';};

@@ -203,30 +203,39 @@
   // ticker (ver linkVisorValuation) — reutiliza los mismos campos que
   // guarda saveValoracion() en visor.html, así que no depende de re-tipear
   // nada ni de mantener sincronizada una tabla subida a mano aparte.
+  // Marca como .num las celdas numéricas de las tablas del análisis (montos,
+  // porcentajes, múltiplos) para alinearlas a la derecha; si la mayoría de una
+  // columna es numérica, también su encabezado.
+  var NUM_CELL = /^[\s(]*[~≈≥≤<>]?\s*[-−+]?\s*(US\$|R\$|DKK|CHF|€|\$)?\s*[-−+]?\d[\d.,]*\s*(%|x|pp|pb|M|MM|mill\.?|millones)?\s*\)?(\s*\([^)]{0,24}\))?\s*$/i;
+  function markNumericCells(root) {
+    if (!root) return;
+    root.querySelectorAll('table:not(.jvb-table)').forEach(function (t) {
+      var cols = {};
+      t.querySelectorAll('tbody tr').forEach(function (tr) {
+        Array.prototype.forEach.call(tr.children, function (c, i) {
+          var txt = c.textContent.trim(), isNum = txt.length > 0 && txt.length < 32 && NUM_CELL.test(txt);
+          if (isNum) c.classList.add('num');
+          cols[i] = cols[i] || { n: 0, t: 0 };
+          if (txt && txt !== '—') { cols[i].t++; if (isNum) cols[i].n++; }
+        });
+      });
+      var head = t.querySelector('thead tr');
+      if (head) Array.prototype.forEach.call(head.children, function (th, i) { if (i > 0 && cols[i] && cols[i].t && cols[i].n / cols[i].t >= 0.6) th.classList.add('num'); });
+    });
+  }
   function buildLinkedValuationHtml(lv) {
     function money(v) { return v == null || !isFinite(v) ? '—' : '$' + Number(v).toLocaleString('es-CO', {minimumFractionDigits:2, maximumFractionDigits:2}); }
     function kv(label, value) { return '<div class="linked-kv"><span>' + escapeHtml(label) + '</span><strong>' + value + '</strong></div>'; }
     function zoneKv(label, z) { return z ? kv(label, money(z.min) + ' – ' + money(z.max)) : ''; }
-    var op = lv.objetivoPonderado || {}, vp = lv.valorPresentePonderado || {}, z = lv.zonas || {}, dm=lv.descuentoMultiples||{};
-    var methods=lv.metodos||[], sum=0, fy3={conservador:0,base:0,optimista:0};
-    methods.forEach(function(m){if(/DCF/i.test(m.nombre||''))return;var w=Number(m.peso)||0;sum+=w;Object.keys(fy3).forEach(function(k){fy3[k]+=w*(Number(m[k])||0);});});
-    if(sum)Object.keys(fy3).forEach(function(k){fy3[k]/=sum;});
-    function scenarios(label,v,featured){return v&&v.base!=null?'<div class="linked-scenario'+(featured?' featured':'')+'"><span>'+escapeHtml(label)+'</span><strong>'+money(v.base)+'</strong><small>Cons '+money(v.conservador)+' · Opt '+money(v.optimista)+'</small></div>':'';}
-    // Criterio Damodaran: el valor intrínseco es el DCF; múltiplos y ponderado
-    // son lecturas secundarias y se muestran aparte.
-    var dcfFy3=null; methods.forEach(function(m){ if(/DCF/i.test(m.nombre||'')) dcfFy3={conservador:m.conservador,base:m.base,optimista:m.optimista}; });
-    var dcf=dm.dcfHoy||{}, mos=Number(lv.mos);
+    var z = lv.zonas || {};
+    // Tablero compartido (valuation-board.js): el DCF es el valor intrínseco y
+    // va primero; múltiplos juntos, por método y ponderado, hoy o FY+3.
+    var board = typeof JmrValueBoard !== 'undefined' ? JmrValueBoard.fromRecord(lv, { precioLbl: 'Precio del análisis' }) : null;
+    var boardHtml = board && JmrValueBoard.hasData(board) ? JmrValueBoard.html(board, { hero: true }) : '';
     var visorLink = lv.sourcePath ? '<a class="linked-visor-link" href="visor.html?path=' + encodeURIComponent(lv.sourcePath) + '">Ver en el Visor →</a>' : '';
+    var zones = zoneKv('Zona Value (sobre el objetivo FY+3)', z.value) + zoneKv('Zona Deep Value', z.deepValue) + zoneKv('Zona histórica', z.historica);
     return '<section class="valuation-block linked-valuation"><span class="linked-tag">✓ Vinculado con el Visor · ' + escapeHtml(lv.sourcePath || '') + '</span>' + visorLink + '<h2>Valoración cuantitativa (Visor)</h2>' +
-      '<p class="linked-note"><strong>Valor intrínseco: el DCF.</strong> Los múltiplos (precio relativo) y el ponderado son lecturas secundarias.</p>' +
-      '<div class="linked-scenarios">' + scenarios('Valor intrínseco hoy · DCF',dcf.base!=null?dcf:null,true) + scenarios('DCF llevado a FY+3',dcfFy3) + '</div>' +
-      '<p class="linked-note">Lecturas secundarias</p><div class="linked-scenarios secondary">' +
-      scenarios('Múltiplos · hoy',dm.multiplesHoy) + scenarios('Ponderado · hoy',vp.base!=null?vp:null) + scenarios('Múltiplos · FY+3',sum?fy3:null) + scenarios('Ponderado · FY+3',op.base!=null?op:null) + '</div><div class="linked-grid">' +
-      kv('Precio', money(lv.precio)) +
-      kv('Fecha del análisis', escapeHtml(lv.fecha || '—')) +
-      (dcf.base != null && isFinite(mos) ? kv('Precio con MOS sobre el DCF (' + Math.round(mos*100) + '%)', money(dcf.base*(1-mos))) : '') +
-      zoneKv('Zona Value (sobre el objetivo FY+3)', z.value) + zoneKv('Zona Deep Value', z.deepValue) + zoneKv('Zona histórica', z.historica) +
-      '</div></section>';
+      boardHtml + '<div class="linked-grid">' + kv('Fecha del análisis', escapeHtml(lv.fecha || '—')) + zones + '</div></section>';
   }
   var editing = false;
   // Decisión del usuario (Comprar / Mantener / Vender) — decision.js. Se
@@ -278,6 +287,7 @@
     var val = state.valuationHtml ? '<section class="valuation-block"><h2>Valoración cuantitativa (tabla subida)</h2>' + state.valuationHtml + '</section>' : '';
     var analysis = navigableAnalysis(state.html, 'principal');
     body.innerHTML = '<div class="research-document">' + title + analysis.toc + '<div id="editableContent">' + analysis.body + '</div>' + linked + val + renderNews() + '</div>';
+    markNumericCells(body);
     renderEditorToolbar();
   }
 
@@ -490,7 +500,7 @@
       return fetchJsonFile(matches[0].path).then(function (rec) { return { rec: rec, path: matches[0].path, count: matches.length }; });
     }).then(function (found) {
       var rec = found.rec;
-      state.linkedValuation = { precio: rec.precio, fecha: rec.fecha, zonas: rec.zonas, objetivoPonderado: rec.objetivoPonderado, valorPresentePonderado: rec.valorPresentePonderado, descuentoMultiples: rec.descuentoMultiples, metodos: rec.metodos, cagr: rec.cagr, sourcePath: found.path };
+      state.linkedValuation = { precio: rec.precio, fecha: rec.fecha, zonas: rec.zonas, objetivoPonderado: rec.objetivoPonderado, valorPresentePonderado: rec.valorPresentePonderado, descuentoMultiples: rec.descuentoMultiples, metodos: rec.metodos, cagr: rec.cagr, mos: rec.mos, hojaGoogle: rec.hojaGoogle, sourcePath: found.path };
       renderPreview();
       setStatus('linkVisorStatus','Vinculado con "' + found.path + '"' + (found.count > 1 ? ' (la más reciente de ' + found.count + ' guardadas para este ticker)' : '') + '.','ok');
     }).catch(function (err) { setStatus('linkVisorStatus', err.message, 'bad'); }).finally(function () { btn.disabled = false; });
@@ -507,7 +517,7 @@
     var openedId=state.id, linkedPath=state.linkedValuation.sourcePath;
     if(linkedPath) fetchJsonFile(linkedPath).then(function(rec){
       if(state.id!==openedId||!state.linkedValuation||state.linkedValuation.sourcePath!==linkedPath)return;
-      state.linkedValuation=Object.assign({},state.linkedValuation,{valorPresentePonderado:rec.valorPresentePonderado,descuentoMultiples:rec.descuentoMultiples,metodos:rec.metodos,objetivoPonderado:rec.objetivoPonderado});
+      state.linkedValuation=Object.assign({},state.linkedValuation,{valorPresentePonderado:rec.valorPresentePonderado,descuentoMultiples:rec.descuentoMultiples,metodos:rec.metodos,objetivoPonderado:rec.objetivoPonderado,mos:rec.mos,hojaGoogle:rec.hojaGoogle});
       renderPreview();
     }).catch(function(){});
     listValoraciones().then(function (files) {
@@ -995,6 +1005,7 @@
     var b = list.find(function (r) { return r.id === el('compareB').value; });
     if (!a || !b) { setStatus('compareStatus','Elegí dos análisis guardados para comparar.','bad'); el('compareOutput').innerHTML = '<div class="compare-empty">Elegí dos empresas arriba para verlas lado a lado.</div>'; return; }
     el('compareOutput').innerHTML = buildCompareColumnHtml(a) + buildCompareColumnHtml(b);
+    markNumericCells(el('compareOutput'));
     setStatus('compareStatus','Comparando "' + (a.ticker || a.title) + '" vs. "' + (b.ticker || b.title) + '".','ok');
   });
   el('comparePrintBtn').addEventListener('click', function () { window.print(); });
