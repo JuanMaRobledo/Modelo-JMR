@@ -278,6 +278,10 @@ Seguí este proceso, en este orden:
           calcula para ese escenario. Si Ke − g es chico y el resultado se dispara,
           decilo y dale menos peso a C.
           Si cambiás supuestos de crecimiento/margen/tasa, recalculá SOLO el ancla C.
+          Hacelo en el mismo momento en que cambiás el DCF, no después
+          (JMR-valuation: scripts/multiples_anchors.py --solo-justificado <anclas>),
+          y volvé a aplicar 6.3: un C calculado con supuestos viejos contradice al
+          DCF vigente sin que se note en la tabla.
 
    6.3 Regla para fijar los tres escenarios:
        - BASE (J19) = (1 − λ) × promedio(A, B) + λ × C_base.
