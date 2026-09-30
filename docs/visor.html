@@ -16,6 +16,7 @@
 <script src="market_data.js"></script>
 <script src="jmr_engine.js"></script>
 <script src="gh_oauth.js"></script>
+<script src="valuation-board.js"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
   :root{
@@ -159,6 +160,30 @@
   .chart-legend-swatch.chart-ref-base-sw{background:color-mix(in oklab, var(--accent) 70%, var(--surface));}
   .chart-legend-swatch.chart-ref-opt-sw{background:var(--accent);}
   .stat{background:var(--surface); border:1px solid var(--border-soft); border-radius:12px; padding:14px 16px;}
+  /* Valor principal (30-sep-2026): por defecto el valor intrínseco de HOY;
+     el selector permite cambiarlo y se recuerda en este navegador. */
+  .headline-card{background:var(--surface); border:1px solid var(--border-soft); border-radius:14px; padding:16px 18px; box-shadow:var(--shadow); margin-bottom:22px;}
+  .headline-top{display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;}
+  .headline-sel{display:flex; align-items:center; gap:8px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint);}
+  .headline-sel select{font:500 13px "Public Sans",sans-serif; text-transform:none; letter-spacing:0; color:var(--ink); background:var(--surface-2); border:1px solid var(--border-soft); border-radius:8px; padding:6px 8px; max-width:100%;}
+  .headline-desc{font-size:12.5px; color:var(--ink-soft); margin:8px 0 12px; line-height:1.45;}
+  .headline-card .stat .big{font-size:22px;}
+  .headline-card .stat.hl-base{border-color:var(--accent); background:var(--accent-soft);}
+  .headline-card .stat .rng{font-size:12px; color:var(--ink-soft); margin-top:4px;}
+  .headline-card .stat .rng .pos{color:var(--positive); font-weight:600;}
+  .headline-card .stat .rng .neg{color:var(--negative); font-weight:600;}
+  .stat.pv-main{border-color:var(--accent); background:var(--accent-soft);}
+  .horizon-details{margin-top:4px; border:1px solid var(--border-soft); border-radius:12px; background:var(--surface); padding:10px 14px;}
+  .horizon-details > summary{cursor:pointer; font-size:12.5px; font-weight:600; color:var(--ink-soft);}
+  .horizon-details[open] > summary{margin-bottom:10px;}
+  .growth-card{background:var(--surface); border:1px solid var(--border-soft); border-radius:12px; padding:14px 16px;}
+  .growth-lead{font-size:13.5px; line-height:1.5; margin:0 0 10px;}
+  .growth-lead b{font-family:"IBM Plex Mono",monospace;}
+  #growthBody td.growth-read{text-align:left; font-family:"Public Sans",sans-serif; font-size:12.5px; color:var(--ink-soft); white-space:normal; min-width:220px;}
+  .growth-flag{display:inline-block; padding:2px 8px; border-radius:999px; font-size:11px; font-weight:700;}
+  .growth-flag.ok{background:var(--positive-soft); color:var(--positive);}
+  .growth-flag.warn{background:var(--negative-soft); color:var(--negative);}
+  .growth-flag.na{background:var(--surface-2); color:var(--ink-faint);}
   .stat .lbl{font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-faint); margin-bottom:6px;}
   .stat .big{font-family:"IBM Plex Mono", monospace; font-weight:600; font-size:18px; font-variant-numeric:tabular-nums;}
 
@@ -227,6 +252,20 @@
   .scen-table th:first-child{text-align:left;}
   .scen-table td{padding:4px 6px;}
   .scen-table td:first-child{font-size:13px; color:var(--ink-soft); font-weight:600;}
+  .scen-scroll{overflow-x:auto; -webkit-overflow-scrolling:touch;}
+  .scen-table-4{min-width:520px;} .scen-table-3{min-width:380px;}
+  .gs-row input{flex:1; min-width:0;}
+  .gh-btn.gh-primary{background:var(--ink); color:var(--bg); border-color:var(--ink);}
+  details.upload-alt{margin-top:14px; border-top:1px solid var(--border); padding-top:10px;}
+  details.upload-alt summary{cursor:pointer; font-size:13px; color:var(--ink-soft);}
+  details.upload-alt .dropzone{margin-top:10px;}
+  .rc-source{display:flex; flex-wrap:wrap; align-items:center; gap:8px 12px; padding:10px 14px; margin:0 0 14px; border:1px solid var(--border); border-radius:12px; background:var(--surface, var(--bg)); font-size:13px; color:var(--ink-soft);}
+  .rc-source-dot{width:8px; height:8px; border-radius:50%; background:var(--positive, #1f8a4c); flex:none;}
+  .rc-source.loading .rc-source-dot{background:var(--ink-faint); animation:rcPulse 1s infinite alternate;}
+  .rc-source.error .rc-source-dot{background:var(--negative, #b42318);}
+  .rc-source a{color:inherit; font-weight:600;}
+  .rc-source .gh-btn{margin-left:auto;}
+  @keyframes rcPulse{from{opacity:.3}to{opacity:1}}
   .scen-table input{width:100%; font:inherit; font-size:13px; padding:6px 8px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--ink); text-align:right; font-family:"IBM Plex Mono",monospace;}
 
   details.advanced{margin-top:8px;}
@@ -622,7 +661,7 @@
 
 <div class="wrap">
   <h1>Valoración - Modelo JMR</h1>
-  <p class="subtitle">Sube tu Excel del Modelo JMR (DCF Damodaran + 5 múltiplos) ya lleno para un ticker, y lo verás resumido aquí — sin abrir Excel.</p>
+  <p class="subtitle">Importa la hoja de Google del Modelo JMR (DCF Damodaran + 5 múltiplos) o abre una valoración guardada, y la verás resumida aquí.</p>
 
   <div class="pdf-header">
     <img src="assets/jmr-sello-grabado.png" alt="JMR">
@@ -671,11 +710,24 @@
       </table>
     </div>
 
-    <p class="section-title">Potencial vs. precio del análisis</p>
-    <div class="grid3" style="margin-bottom:22px;">
-      <div class="stat"><div class="lbl">Conservador</div><div class="big" id="potC">—</div></div>
-      <div class="stat"><div class="lbl">Base</div><div class="big" id="potB">—</div></div>
-      <div class="stat"><div class="lbl">Optimista</div><div class="big" id="potO">—</div></div>
+    <div class="headline-card" id="headlineCard">
+      <div class="headline-top">
+        <p class="section-title" id="hlTitle" style="margin:0;">Valor intrínseco hoy (DCF)</p>
+        <label class="headline-sel">Valor principal
+          <select id="headlineSel" aria-label="Qué valor mostrar como principal">
+            <option value="dcfHoy">Valor intrínseco hoy · DCF</option>
+            <option value="ponderadoHoy">Ponderado hoy · DCF + múltiplos</option>
+            <option value="multHoy">Precio relativo hoy · múltiplos</option>
+            <option value="fy3">Precio objetivo FY+3 (sin descontar)</option>
+          </select>
+        </label>
+      </div>
+      <p class="headline-desc" id="hlDesc"></p>
+      <div class="grid3" style="margin-bottom:0;">
+        <div class="stat"><div class="lbl">Conservador</div><div class="big" id="hlC">—</div><div class="rng" id="potC">—</div></div>
+        <div class="stat hl-base"><div class="lbl">Base</div><div class="big" id="hlB">—</div><div class="rng" id="potB">—</div></div>
+        <div class="stat"><div class="lbl">Optimista</div><div class="big" id="hlO">—</div><div class="rng" id="potO">—</div></div>
+      </div>
     </div>
 
     <div class="tabs" id="mainTabs">
@@ -692,10 +744,41 @@
       <div class="grid3">
         <div class="stat"><div class="lbl">Tipo de empresa</div><div class="big" id="rTipo" style="font-family:'Public Sans',sans-serif;font-size:15px;">—</div></div>
         <div class="stat"><div class="lbl">Margen de seguridad (MOS)</div><div class="big" id="rMOS">—</div></div>
-        <div class="stat"><div class="lbl">Precio con MOS (valor hoy)</div><div class="big" id="rPrecioMOS">—</div></div>
+        <div class="stat"><div class="lbl">Precio con MOS sobre el DCF</div><div class="big" id="rPrecioMOS">—</div></div>
       </div>
 
-    <p class="section-title">Valoración por escenarios (6 métodos)</p>
+    <div id="presentSection" hidden>
+      <p class="section-title">Valoración · el DCF primero, las lecturas secundarias a un clic</p>
+      <div id="valueBoard"></div>
+      <details class="horizon-details" id="horizonWrap" hidden>
+        <summary>Detalle de los múltiplos: precio a 1, 2 y 3 años traído a hoy (escenario Base)</summary>
+        <div class="methods-scroll">
+          <table class="methods">
+            <thead><tr><th>Método</th><th>FY+3 sin descontar</th><th>VP 1 año</th><th>VP 2 años</th><th>VP 3 años</th><th>Consolidado hoy</th><th>VP3 &lt; FY+3</th></tr></thead>
+            <tbody id="horizonBody"></tbody>
+          </table>
+        </div>
+        <p class="meta" id="presentNote" style="font-size:12px;color:var(--ink-faint);margin:8px 0 0;"></p>
+      </details>
+    </div>
+
+    <div id="growthSection" hidden>
+      <p class="section-title">Coherencia del crecimiento · criterio Damodaran (escenario Base)</p>
+      <div class="growth-card">
+        <p class="growth-lead" id="growthLead"></p>
+        <div class="methods-scroll">
+          <table class="methods">
+            <thead><tr><th>Múltiplo Base FY+3</th><th>Múltiplo</th><th>Múltiplo que implica el DCF</th><th>Diferencia de valor</th><th>Crecimiento implícito</th><th>Crecimiento implícito del DCF</th><th>Diferencia</th><th>Lectura</th></tr></thead>
+            <tbody id="growthBody"></tbody>
+          </table>
+        </div>
+        <p class="meta" id="growthNote" style="font-size:12px;color:var(--ink-faint);margin:8px 0 0;"></p>
+      </div>
+    </div>
+
+    <div id="fy3Legacy" hidden>
+    <p class="section-title">Precio objetivo al cierre FY+3 (sin descontar)</p>
+      <p class="meta" style="font-size:12px;color:var(--ink-faint);margin:-4px 0 8px;">Todo en la fecha FY+3: el DCF de esta tabla es el <b>DCF de hoy llevado a FY+3</b> (× (1 + Ke)³), no otro DCF; los múltiplos son el precio a FY+3 más los dividendos. Para el valor de hoy, mira la sección de arriba.</p>
       <div class="methods-scroll">
         <table class="methods">
           <thead><tr><th>Método</th><th>Peso</th><th>Conservador</th><th>Base</th><th>Optimista</th></tr></thead>
@@ -703,13 +786,14 @@
         </table>
       </div>
 
-      <div class="grid3" style="margin-top:18px;">
+    </div>
+      <div class="grid3" style="margin-top:18px;" title="Crecimiento anual del precio de hoy al objetivo FY+3 ponderado (lectura secundaria)">
         <div class="stat"><div class="lbl">CAGR mínimo (Conservador)</div><div class="big" id="cagrC">—</div></div>
         <div class="stat"><div class="lbl">CAGR promedio (Base)</div><div class="big" id="cagrB">—</div></div>
         <div class="stat"><div class="lbl">CAGR máximo (Optimista)</div><div class="big" id="cagrO">—</div></div>
       </div>
 
-      <p class="section-title">Zonas de valor (escalonar entradas)</p>
+      <p class="section-title">Zonas de valor (escalonar entradas; sobre el objetivo FY+3 ponderado, lectura secundaria)</p>
       <div class="grid4">
         <div class="stat"><div class="lbl">Value</div><div class="rng" id="zValue">—</div></div>
         <div class="stat"><div class="lbl">Deep Value</div><div class="rng" id="zDeep">—</div></div>
@@ -720,7 +804,7 @@
       <p class="section-title">Gráficos</p>
       <div class="charts-grid">
         <div class="chart-card">
-          <div class="chart-title">Precio objetivo por escenario</div>
+          <div class="chart-title" id="chartScenariosTitle">Precio objetivo por escenario</div>
           <div id="chartScenarios"></div>
         </div>
         <div class="chart-card">
@@ -731,7 +815,7 @@
 
       <div class="gh-section">
         <h3>Guardar esta valoración</h3>
-        <p class="sub">Guarda esta valoración — el resumen, el análisis cualitativo, el análisis fundamental y las hojas crudas de Estados Financieros, Valoración y Análisis — en tu base de datos (repo <code>Modelo-JMR-datos</code>) para consultarla después sin volver a subir el Excel. Si el archivo es muy grande, algunas partes se omiten para poder guardar el resto.</p>
+        <p class="sub">Guarda esta valoración — el resumen, el análisis cualitativo, el análisis fundamental y las hojas crudas de Estados Financieros, Valoración y Análisis — en tu base de datos (repo <code>Modelo-JMR-datos</code>) para consultarla después sin volver a importar la hoja. Si el archivo es muy grande, algunas partes se omiten para poder guardar el resto.</p>
         <div id="saveBlock"></div>
       </div>
     </div>
@@ -763,8 +847,14 @@
 
     <div class="tab-panel" data-panel="recalcular">
       <p class="field-help" style="margin-bottom:14px;">
-        Ajusta cualquier supuesto y recalcula con el mismo motor DCF Damodaran + 5 múltiplos de tu Excel (validado celda por celda). Esto <b>no reemplaza</b> el resumen de la pestaña "Resumen" (ese sigue siendo lo que dice tu Excel) — es una copia hipotética para explorar "¿y si cambio esto?". Todos los campos se precargan leyendo directo las hojas de tu Excel (Input sheet, Valuation output, Financials Multiples, EV/EBITDA, EV/FCFF, P/E, P/FCFE, P/OCF) — salvo las razones D&amp;A/CapEx/ΔNWC/etc., que el Excel varía año a año con un promedio móvil de 3 años y aquí se aproximan con un solo porcentaje (el del año FY+1). Revisa todo antes de confiar en el resultado; si algún campo no se pudo leer, queda con su valor de ejemplo.
-      </p>
+        Ajusta cualquier supuesto y recalcula con el mismo motor de la hoja de Google (DCF Damodaran + 5 múltiplos). Los campos se precargan leyendo la hoja de Google de esta valoración (Input sheet, Valuation output, Financials Multiples y las pestañas de cada múltiplo); sin cambiar nada, el resultado es el mismo de la hoja. Esto <b>no reemplaza</b> la valoración guardada: es una copia hipotética para explorar "¿y si cambio esto?".</p>
+
+      <div class="rc-source" id="rcSource" hidden>
+        <span class="rc-source-dot" aria-hidden="true"></span>
+        <span id="rcSourceText">Hoja de Google</span>
+        <a id="rcSourceLink" href="#" target="_blank" rel="noopener noreferrer">Abrir hoja</a>
+        <button type="button" class="gh-btn" id="rcSourceReload">Actualizar desde la hoja</button>
+      </div>
 
       <form id="rcForm">
         <fieldset>
@@ -808,6 +898,7 @@
             <div class="frow"><label for="rc_minorityInterests">Intereses minoritarios</label><input id="rc_minorityInterests" type="number" step="0.01" value="0"></div>
             <div class="frow"><label for="rc_probFailure">Probabilidad de fracaso</label><input id="rc_probFailure" type="number" step="0.01" value="0"></div>
             <div class="frow"><label for="rc_recoveryPct">Recuperación si fracasa (% del valor)</label><input id="rc_recoveryPct" type="number" step="0.01" value="50"></div>
+            <div class="frow"><label for="rc_roicTerminal">ROIC después del año 10 (vacío = costo de capital)</label><input id="rc_roicTerminal" type="number" step="0.01" value=""></div>
           </details>
           <p class="field-help">Tasas en %.</p>
         </fieldset>
@@ -815,23 +906,30 @@
         <fieldset>
           <legend>DCF — costo de capital</legend>
           <div class="frow"><label for="rc_wacc">WACC (años 1-5)</label><input id="rc_wacc" type="number" step="0.01" value="9.38"></div>
-          <div class="frow"><label for="rc_riskFreeRate">Tasa libre de riesgo (= crecimiento terminal)</label><input id="rc_riskFreeRate" type="number" step="0.01" value="4.62"></div>
+          <div class="frow"><label for="rc_costoPatrimonio">Costo del patrimonio (Ke) — descuenta los múltiplos a hoy</label><input id="rc_costoPatrimonio" type="number" step="0.01" placeholder="vacío = WACC"></div>
+          <div class="frow"><label for="rc_criterioConsolidacion">Consolidar cada múltiplo con</label><select id="rc_criterioConsolidacion"><option value="promedio">Promedio de 1, 2 y 3 años</option><option value="solo3">Solo el de 3 años</option></select></div>
+          <div class="frow"><label for="rc_riskFreeRate">Tasa libre de riesgo</label><input id="rc_riskFreeRate" type="number" step="0.01" value="4.62"></div>
           <div class="frow"><label for="rc_matureMarketERP">Prima de riesgo de mercado maduro</label><input id="rc_matureMarketERP" type="number" step="0.01" value="4.23"></div>
-          <div class="frow"><label for="rc_salesToCapital">Sales-to-capital ratio (reinversión)</label><input id="rc_salesToCapital" type="number" step="any" value="1.5432"></div>
+          <div class="frow"><label for="rc_terminalGrowth">Crecimiento a perpetuidad (vacío = tasa libre de riesgo)</label><input id="rc_terminalGrowth" type="number" step="0.01" value=""></div>
+          <div class="frow"><label for="rc_salesToCapital">Sales-to-capital, años 1-5</label><input id="rc_salesToCapital" type="number" step="any" value="1.5432"></div>
+          <div class="frow"><label for="rc_salesToCapital2">Sales-to-capital, años 6-10 (vacío = el de 1-5)</label><input id="rc_salesToCapital2" type="number" step="any" value=""></div>
           <p class="field-help">WACC terminal = tasa libre de riesgo + prima de mercado maduro. Tasas en %.</p>
         </fieldset>
 
         <fieldset>
           <legend>Crecimiento y margen EBIT objetivo por escenario</legend>
-          <table class="scen-table">
-            <thead><tr><th>Escenario</th><th>Crecimiento ingresos (años 1-5)</th><th>Margen EBIT objetivo</th></tr></thead>
+          <div class="scen-scroll">
+          <table class="scen-table scen-table-4">
+            <thead><tr><th>Escenario</th><th>Crecimiento año 1</th><th>Crecimiento años 2-5</th><th>Margen EBIT año 1</th><th>Margen EBIT objetivo</th></tr></thead>
             <tbody>
-              <tr><td>Conservador</td><td><input id="rc_growthCons" type="number" step="0.01" value="6.99"></td><td><input id="rc_marginCons" type="number" step="0.01" value="32.25"></td></tr>
-              <tr><td>Base</td><td><input id="rc_growthBase" type="number" step="0.01" value="11.5"></td><td><input id="rc_marginBase" type="number" step="0.01" value="36.1"></td></tr>
-              <tr><td>Optimista</td><td><input id="rc_growthOpt" type="number" step="0.01" value="15.04"></td><td><input id="rc_marginOpt" type="number" step="0.01" value="38.42"></td></tr>
+              <tr><td>Conservador</td><td><input id="rc_growthY1Cons" type="number" step="0.01" aria-label="Crecimiento año 1, Conservador"></td><td><input id="rc_growthCons" type="number" step="0.01" value="6.99" aria-label="Crecimiento años 2-5, Conservador"></td><td><input id="rc_marginY1Cons" type="number" step="0.01" aria-label="Margen año 1, Conservador"></td><td><input id="rc_marginCons" type="number" step="0.01" value="32.25" aria-label="Margen objetivo, Conservador"></td></tr>
+              <tr><td>Base</td><td><input id="rc_growthY1Base" type="number" step="0.01" aria-label="Crecimiento año 1, Base"></td><td><input id="rc_growthBase" type="number" step="0.01" value="11.5" aria-label="Crecimiento años 2-5, Base"></td><td><input id="rc_marginY1Base" type="number" step="0.01" aria-label="Margen año 1, Base"></td><td><input id="rc_marginBase" type="number" step="0.01" value="36.1" aria-label="Margen objetivo, Base"></td></tr>
+              <tr><td>Optimista</td><td><input id="rc_growthY1Opt" type="number" step="0.01" aria-label="Crecimiento año 1, Optimista"></td><td><input id="rc_growthOpt" type="number" step="0.01" value="15.04" aria-label="Crecimiento años 2-5, Optimista"></td><td><input id="rc_marginY1Opt" type="number" step="0.01" aria-label="Margen año 1, Optimista"></td><td><input id="rc_marginOpt" type="number" step="0.01" value="38.42" aria-label="Margen objetivo, Optimista"></td></tr>
             </tbody>
           </table>
-          <p class="field-help">Tasas en %. El margen converge linealmente desde el margen actual (EBIT LTM / Ingresos LTM) hasta este objetivo en 5 años.</p>
+          </div>
+          <div class="frow"><label for="rc_convergenceYear">Año en que el margen llega al objetivo</label><input id="rc_convergenceYear" type="number" step="1" min="1" max="10" value="5"></div>
+          <p class="field-help">Tasas en %. Vacío en el año 1 = igual a los años 2-5 (crecimiento) o al margen actual (margen). Del año 6 al 10 el crecimiento baja en línea recta hasta la perpetuidad.</p>
           <div class="hist-scroll">
           <table class="scen-table hist-ref hist-stats" id="rcHistGrowthMargin" style="display:none;">
             <thead>
@@ -844,25 +942,34 @@
         </fieldset>
 
         <fieldset>
-          <legend>Razones para proyectar los múltiplos (compartidas entre escenarios)</legend>
+          <legend>Razones para proyectar los múltiplos</legend>
+          <p class="field-help" style="margin-top:0">Se muestran las del escenario Base. Cada escenario usa las de su bloque de la hoja mientras no cambies el valor; si lo cambias, se aplica a los tres.</p>
           <div class="frow"><label for="rc_daPctRevenue">D&amp;A, % de ingresos</label><input id="rc_daPctRevenue" type="number" step="0.01" value="3.97"></div>
           <div class="frow"><label for="rc_capexPctRevenue">CapEx, % de ingresos (negativo)</label><input id="rc_capexPctRevenue" type="number" step="0.01" value="-1.15"></div>
           <div class="frow"><label for="rc_nwcPctDeltaRevenue">Δ Capital de trabajo, % del Δ ingresos</label><input id="rc_nwcPctDeltaRevenue" type="number" step="0.01" value="-25.13"></div>
           <div class="frow"><label for="rc_interestOtherPctEBIT">Intereses/otros, % del EBIT</label><input id="rc_interestOtherPctEBIT" type="number" step="0.01" value="1.79"></div>
-          <div class="frow"><label for="rc_netBorrowingPctRevenue">Endeudamiento neto, % de ingresos</label><input id="rc_netBorrowingPctRevenue" type="number" step="0.01" value="2.93"></div>
+          <div class="frow"><label for="rc_netBorrowingPctDeltaRevenue">Endeudamiento neto, % del Δ ingresos</label><input id="rc_netBorrowingPctDeltaRevenue" type="number" step="0.01" value="0"></div>
           <div class="frow"><label for="rc_buybackRate">Recompra/dilución de acciones, % anual</label><input id="rc_buybackRate" type="number" step="0.01" value="-2.84"></div>
-          <div class="frow"><label for="rc_dividendPerShare">Dividendo anual por acción</label><input id="rc_dividendPerShare" type="number" step="0.01" value="0"></div>
-          <p class="field-help">Todas en %, salvo el dividendo.</p>
+          <div class="frow"><label for="rc_dividendPerShare">Dividendo por acción en FY+1</label><input id="rc_dividendPerShare" type="number" step="0.01" value="0"></div>
+          <div class="frow"><label for="rc_dividendGrowth">Crecimiento anual del dividendo</label><input id="rc_dividendGrowth" type="number" step="0.01" value="0"></div>
+          <p class="field-help">Todas en %, salvo el dividendo. D&amp;A: la hoja usa el promedio móvil de 3 años; si cambias el %, se usa ese % fijo.</p>
         </fieldset>
 
         <fieldset>
-          <legend>Múltiplos relativos — múltiplo base (año actual)</legend>
-          <div class="frow"><label for="rc_evEbitdaBase">EV/EBITDA</label><input id="rc_evEbitdaBase" type="number" step="0.01" value="13.89"></div>
-          <div class="frow"><label for="rc_evFcffBase">EV/FCFF</label><input id="rc_evFcffBase" type="number" step="0.01" value="15.20"></div>
-          <div class="frow"><label for="rc_peBase">P/E</label><input id="rc_peBase" type="number" step="0.01" value="18.54"></div>
-          <div class="frow"><label for="rc_pfcfeBase">P/FCFE</label><input id="rc_pfcfeBase" type="number" step="0.01" value="14.34"></div>
-          <div class="frow"><label for="rc_pocfBase">P/OCF</label><input id="rc_pocfBase" type="number" step="0.01" value="14.85"></div>
-          <p class="field-help">El escenario Conservador usa 0.9× este múltiplo y el Optimista 1.1×.</p>
+          <legend>Múltiplos de salida (FY+1 a FY+3)</legend>
+          <div class="scen-scroll">
+          <table class="scen-table scen-table-3">
+            <thead><tr><th>Método</th><th>Conservador</th><th>Base</th><th>Optimista</th></tr></thead>
+            <tbody>
+              <tr><td>EV/EBITDA</td><td><input id="rc_evEbitdaCons" type="number" step="0.01" aria-label="EV/EBITDA Conservador"></td><td><input id="rc_evEbitdaBase" type="number" step="0.01" value="13.89" aria-label="EV/EBITDA Base"></td><td><input id="rc_evEbitdaOpt" type="number" step="0.01" aria-label="EV/EBITDA Optimista"></td></tr>
+              <tr><td>EV/FCFF</td><td><input id="rc_evFcffCons" type="number" step="0.01" aria-label="EV/FCFF Conservador"></td><td><input id="rc_evFcffBase" type="number" step="0.01" value="15.20" aria-label="EV/FCFF Base"></td><td><input id="rc_evFcffOpt" type="number" step="0.01" aria-label="EV/FCFF Optimista"></td></tr>
+              <tr><td>P/E</td><td><input id="rc_peCons" type="number" step="0.01" aria-label="P/E Conservador"></td><td><input id="rc_peBase" type="number" step="0.01" value="18.54" aria-label="P/E Base"></td><td><input id="rc_peOpt" type="number" step="0.01" aria-label="P/E Optimista"></td></tr>
+              <tr><td>P/FCFE</td><td><input id="rc_pfcfeCons" type="number" step="0.01" aria-label="P/FCFE Conservador"></td><td><input id="rc_pfcfeBase" type="number" step="0.01" value="14.34" aria-label="P/FCFE Base"></td><td><input id="rc_pfcfeOpt" type="number" step="0.01" aria-label="P/FCFE Optimista"></td></tr>
+              <tr><td>P/OCF</td><td><input id="rc_pocfCons" type="number" step="0.01" aria-label="P/OCF Conservador"></td><td><input id="rc_pocfBase" type="number" step="0.01" value="14.85" aria-label="P/OCF Base"></td><td><input id="rc_pocfOpt" type="number" step="0.01" aria-label="P/OCF Optimista"></td></tr>
+            </tbody>
+          </table>
+          </div>
+          <p class="field-help">Vacío en Conservador u Optimista = 0,9× y 1,1× el Base. Los múltiplos EV/EBITDA y EV/FCFF restan la deuda neta, como en la hoja.</p>
           <div class="hist-scroll">
           <table class="scen-table hist-ref hist-stats" id="rcHistMultiples" style="display:none;">
             <thead>
@@ -878,20 +985,20 @@
       </form>
 
       <div id="rcResult" style="display:none;">
-        <p class="section-title">Resultado recalculado (hipotético — no es lo que dice tu Excel)</p>
+        <p class="section-title">Resultado recalculado (hipotético — no cambia la valoración guardada)</p>
         <div class="grid4">
           <div class="stat"><div class="lbl">Precio con este supuesto</div><div class="big" id="rcPrice">—</div></div>
           <div class="stat"><div class="lbl">Precio con MOS</div><div class="big" id="rcPrecioMOS">—</div></div>
           <div class="stat"><div class="lbl">CAGR promedio (Base)</div><div class="big" id="rcCagrB">—</div></div>
           <div class="stat"><div class="lbl">Potencial vs. precio actual (Base)</div><div class="big" id="rcPotB">—</div></div>
         </div>
-        <div class="methods-scroll">
-          <table class="methods">
-            <thead><tr><th>Método</th><th>Peso</th><th>Conservador</th><th>Base</th><th>Optimista</th></tr></thead>
-            <tbody id="rcMethodsBody"></tbody>
-          </table>
+        <div id="rcBoard"></div>
+        <div hidden>
+          <table class="methods"><tbody id="rcMethodsBody"></tbody></table>
+          <table class="methods"><tbody id="rc_pvBody"></tbody></table>
         </div>
-        <p class="section-title">Zonas de valor (escalonar entradas)</p>
+        <p class="meta" id="rc_pvNote" style="font-size:12px;color:var(--ink-faint);margin:6px 0 0;"></p>
+        <p class="section-title">Zonas de valor (escalonar entradas; sobre el objetivo FY+3 ponderado, lectura secundaria)</p>
         <div class="grid4">
           <div class="stat"><div class="lbl">Value</div><div class="rng" id="rcZValue">—</div></div>
           <div class="stat"><div class="lbl">Deep Value</div><div class="rng" id="rcZDeep">—</div></div>
@@ -912,7 +1019,7 @@
     </div>
     <div class="gh-row" style="margin:0; align-items:baseline;">
       <button class="gh-btn" id="refreshLiveBtn" type="button" hidden>Actualizar a precio en vivo</button>
-      <a href="#" id="toggleKeyLink" style="font-size:12px; color:var(--ink-faint);">¿Precio más reciente que el de tu Excel? Configura una API key gratis de FMP (opcional — el logo y el precio de "Input sheet" ya funcionan sin ella)</a>
+      <a href="#" id="toggleKeyLink" style="font-size:12px; color:var(--ink-faint);">¿Precio más reciente que el de la hoja? Configura una API key gratis de FMP (opcional — el logo y el precio de "Input sheet" ya funcionan sin ella)</a>
       <span class="gh-status" id="livePriceStatus" style="margin:0;"></span>
     </div>
   </div>
@@ -920,29 +1027,30 @@
   <p class="section-title" id="loadDataTitle">Cargar datos</p>
   <div class="data-grid" id="loadDataGrid">
     <div class="gh-section">
-      <h3>Subir un Excel nuevo</h3>
-      <p class="sub">Sube tu Excel del Modelo JMR (DCF Damodaran + 5 múltiplos) ya lleno para un ticker, o un CSV exportado desde este mismo visor — y lo verás resumido arriba, sin abrir Excel.</p>
-      <label class="dropzone" id="dropzone">
-        <input type="file" id="fileInput" accept=".xlsx,.csv">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
-        <div class="main">Arrastra tu .xlsx o .csv aquí, o haz clic para elegir el archivo</div>
-        <div class="hint">Se procesa en tu navegador — el archivo nunca se sube a ningún servidor</div>
-      </label>
-
-      <div class="upload-or"><span>o desde Google Sheets</span></div>
-      <div class="gh-row">
-        <input id="driveLinkInput" type="url" inputmode="url" placeholder="Pega el enlace de una hoja de Google Sheets compartida" autocomplete="off" spellcheck="false">
-        <button class="gh-btn" id="driveLinkBtn" type="button">Importar hoja</button>
+      <h3>Importar desde Google Sheets</h3>
+      <p class="sub">Pega el enlace de la hoja de Google del Modelo JMR (DCF Damodaran + 5 múltiplos). Es la fuente de verdad: el visor la lee tal como está hoy y Recalcular parte de sus supuestos.</p>
+      <div class="gh-row gs-row">
+        <input id="driveLinkInput" type="url" inputmode="url" placeholder="https://docs.google.com/spreadsheets/d/…" autocomplete="off" spellcheck="false">
+        <button class="gh-btn gh-primary" id="driveLinkBtn" type="button">Importar hoja</button>
       </div>
       <p class="gh-status" id="driveStatus"></p>
-      <a href="#" id="driveDownloadLink" target="_blank" rel="noopener" class="field-help" style="display:none; margin:2px 0 0;">Descargar como Excel para subirlo manualmente arriba →</a>
+      <a href="#" id="driveDownloadLink" target="_blank" rel="noopener" class="field-help" style="display:none; margin:2px 0 0;">Descargar la hoja como archivo para subirla abajo →</a>
+      <p class="privacy-note">La hoja debe tener acceso "Cualquier persona con el enlace". No se pide acceso a tu cuenta de Google: el navegador le pide a Google la exportación pública de la hoja y la procesa aquí mismo.</p>
 
-      <p class="privacy-note">Lee la hoja "Resumen de Valoración" para el resumen, y las demás hojas del Modelo JMR involucradas en la valoración para las pestañas de detalle. El archivo no se envía a ningún lado. Para importar por enlace, la hoja de Google Sheets debe tener acceso "Cualquier persona con el enlace" — no se solicita ni se envía acceso a tu cuenta de Google, solo se pide a Google que la exporte como Excel.</p>
+      <details class="upload-alt">
+        <summary>¿Sin conexión a Google? Sube un archivo .xlsx o .csv</summary>
+        <label class="dropzone" id="dropzone">
+          <input type="file" id="fileInput" accept=".xlsx,.csv">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+          <div class="main">Arrastra el archivo aquí, o haz clic para elegirlo</div>
+          <div class="hint">Se procesa en tu navegador. Una copia descargada puede quedar desactualizada frente a la hoja de Google.</div>
+        </label>
+      </details>
     </div>
 
     <div class="gh-section" id="savedSection">
       <h3>Valoraciones guardadas</h3>
-      <p class="sub">Consulta valoraciones que hayas guardado antes desde este visor — no necesitas volver a subir el Excel, ni conectar nada para verlas. Solo hace falta pegar tu Personal Access Token de GitHub (<code>Modelo-JMR-datos</code>) si querés guardar, archivar o borrar una — el navegador lo recuerda después, no hace falta volver a escribirlo.</p>
+      <p class="sub">Consulta valoraciones que hayas guardado antes desde este visor — no necesitas volver a importar la hoja, ni conectar nada para verlas. Solo hace falta pegar tu Personal Access Token de GitHub (<code>Modelo-JMR-datos</code>) si querés guardar, archivar o borrar una — el navegador lo recuerda después, no hace falta volver a escribirlo.</p>
       <div id="ghConnect"></div>
       <div class="gh-row">
         <button class="gh-btn" id="loadSavedBtn" type="button">Cargar lista</button>
@@ -954,9 +1062,9 @@
   </div>
 
   <footer>
-    Este visor lee los resultados ya calculados por tu Excel (Modelo JMR); no recalcula el DCF ni los múltiplos por sí mismo.
+    Este visor lee los resultados ya calculados por la hoja de Google (Modelo JMR). La pestaña Recalcular usa un motor que reproduce la hoja para explorar otros supuestos.
     El nombre y el logo se toman de la hoja "Input sheet" y de Financial Modeling Prep respectivamente; el "Precio actual" se consulta en vivo con la misma API key de la Calculadora y la Bitácora — si no hay key o el ticker no se encuentra, se muestra el precio que quedó guardado en el Excel al momento de llenarlo, marcado como tal.
-    Las pestañas "Estados Financieros", "Valoración" y "Análisis" muestran, tal cual, las hojas de tu Excel involucradas en la valoración (no las tablas fijas de referencia de la plantilla — primas de riesgo país, promedios de industria, convertidores, etc. — que son iguales para cualquier empresa).
+    Las pestañas "Estados Financieros", "Valoración" y "Análisis" muestran, tal cual, las pestañas de la hoja involucradas en la valoración (no las tablas fijas de referencia de la plantilla — primas de riesgo país, promedios de industria, convertidores, etc. — que son iguales para cualquier empresa).
     Guardar una valoración la sube como un archivo JSON a tu repositorio en GitHub (<code>Modelo-JMR-datos</code>) usando un Personal Access Token que solo tú generas y que se guarda únicamente en este navegador — nunca se envía a ningún servidor propio. Leer valoraciones ya guardadas no requiere ese token (el repo es público); solo hace falta para guardar, archivar o borrar.
     Para valorar una empresa nueva sin Excel, usa la <a href="calculadora.html" style="color:inherit;">Calculadora DCF</a>.
     Contenido con fines educativos y de organización personal — no constituye asesoría financiera.
@@ -1056,6 +1164,149 @@
     if(typeof target !== 'number' || !isFinite(target)) return '—';
     if(typeof basePrice !== 'number' || !isFinite(basePrice) || basePrice === 0) return '—';
     return fmtPct(target/basePrice - 1);
+  }
+
+  // En la tabla FY+3 el DCF es el DCF de hoy × (1 + Ke)^3 (misma fecha que
+  // los múltiplos): se rotula así para no confundirlo con el DCF de hoy.
+  function fy3Label(nombre){
+    return /^DCF/i.test(String(nombre || '')) ? 'DCF Damodaran (llevado a FY+3)' : escapeHtml(String(nombre || ''));
+  }
+
+  // Valor principal (30-sep-2026). Por defecto, el valor intrínseco de HOY
+  // (el DCF; múltiplos y ponderado son lecturas secundarias); el selector lo
+  // cambia y la elección se recuerda en este navegador.
+  // v2 (30-sep-2026): el valor por defecto pasa a ser el DCF de hoy (criterio
+  // Damodaran: valor intrínseco = DCF; los múltiplos son precio relativo).
+  var HEADLINE_KEY = 'jmr-valor-principal-v2';
+  var HEADLINE_INFO = {
+    dcfHoy: { titulo: 'Valor intrínseco hoy (DCF)', hoy: true,
+      desc: 'Lo que vale la acción hoy según sus flujos de caja (DCF de Damodaran). Es el valor intrínseco: no depende de cuánto paga hoy el mercado por empresas parecidas. Se compara con el precio de hoy.' },
+    ponderadoHoy: { titulo: 'Ponderado hoy (DCF + múltiplos)', hoy: true,
+      desc: 'DCF de hoy × peso del DCF + múltiplos traídos a hoy × peso de los múltiplos. Mezcla valor (DCF) y precio relativo (múltiplos): úsalo solo si los múltiplos pasan el chequeo de crecimiento implícito. Se compara con el precio de hoy.' },
+    multHoy: { titulo: 'Precio relativo hoy (múltiplos)', hoy: true,
+      desc: 'Lo que pagaría el mercado según los 5 múltiplos: precio a FY+1, FY+2 y FY+3 más dividendos, traído a hoy con el costo del patrimonio (Ke). Es precio, no valor intrínseco. Se compara con el precio de hoy.' },
+    fy3: { titulo: 'Precio objetivo FY+3', hoy: false,
+      desc: 'Precio esperado al cierre FY+3, sin descontar: DCF llevado a FY+3 con Ke + múltiplos con dividendos. No es un valor de hoy: se compara con el precio del análisis y se resume en el CAGR a 3 años.' }
+  };
+  function headlineChoice(){
+    var v = null;
+    try { v = localStorage.getItem(HEADLINE_KEY); } catch(e){}
+    return HEADLINE_INFO[v] ? v : 'dcfHoy';
+  }
+  function headlineValues(key){
+    var r = currentResumen || {}, dm = r.descuentoMultiples || {};
+    var map = { ponderadoHoy: dm.ponderadoHoy || r.valorPresentePonderado, dcfHoy: dm.dcfHoy, multHoy: dm.multiplesHoy, fy3: r.objetivoPonderado };
+    var t = map[key];
+    return (t && typeof t.base === 'number' && isFinite(t.base)) ? t : null;
+  }
+  // Devuelve la opción elegida, o FY+3 si la valoración no tiene valor de hoy.
+  function headlineData(){
+    var key = headlineChoice(), vals = headlineValues(key), fallback = false;
+    if(!vals && key !== 'fy3'){ vals = headlineValues('fy3'); key = 'fy3'; fallback = true; }
+    var info = HEADLINE_INFO[key];
+    return { key: key, titulo: info.titulo, hoy: info.hoy, desc: info.desc, valores: vals || {}, fallback: fallback };
+  }
+  function fmtVsPrecio(target, basePrice){
+    if(typeof target !== 'number' || !isFinite(target) || typeof basePrice !== 'number' || !isFinite(basePrice) || !basePrice) return '—';
+    var d = target/basePrice - 1;
+    return '<span class="' + (d >= 0 ? 'pos' : 'neg') + '">' + (d >= 0 ? '+' : '') + fmtPct(d) + '</span>';
+  }
+  // Crecimiento implícito (pestaña 'Crecimiento implícito' de la hoja, escrita
+  // por scripts/implied_growth.py; en una valoración guardada viene en
+  // rec.crecimientoImplicito con la misma forma).
+  function readCrecimientoImplicito(wb){
+    var ws = wb && wb.Sheets && wb.Sheets['Crecimiento implícito'];
+    if(!ws) return null;
+    var n = function(a){ var v = cellVal(ws, a); return (typeof v === 'number' && isFinite(v)) ? v : null; };
+    var nota = String(cellVal(ws, 'A2') || ''), fm = nota.match(/(\d{4}-\d{2}-\d{2})/);
+    var out = { fecha: fm ? fm[1] : null, umbral: 0.02, precio: n('B5'),
+      dcfInverso: { gImplicito: n('C5'), gDcf: n('D5'), dif: n('E5'), lectura: String(cellVal(ws, 'F5') || '') },
+      multiplos: [], nota: String(cellVal(ws, 'A13') || '') };
+    for(var r = 7; r <= 11; r++){
+      var lbl = String(cellVal(ws, 'A' + r) || '');
+      if(!lbl) continue;
+      var lect = String(cellVal(ws, 'F' + r) || '');
+      out.multiplos.push({ metodo: lbl.split(' ')[0], multiplo: n('B' + r), gImplicito: n('C' + r), gDcf: n('D' + r), dif: n('E' + r),
+        multiploDcf: n('G' + r), difValor: n('H' + r), aplica: !/^No aplica/.test(lect), lectura: lect });
+    }
+    return out;
+  }
+  function renderCrecimiento(ci){
+    var sec = document.getElementById('growthSection');
+    if(!ci || !ci.dcfInverso){ sec.hidden = true; return; }
+    sec.hidden = false;
+    var u = ci.umbral || 0.02, di = ci.dcfInverso;
+    var pctTxt = function(x){ return (typeof x === 'number' && isFinite(x)) ? fmtPct(x) : '—'; };
+    var ppTxt = function(x){ return (typeof x === 'number' && isFinite(x)) ? (x >= 0 ? '+' : '−') + (Math.abs(x)*100).toFixed(1) + ' pp' : '—'; };
+    var flag = function(d, aplica){
+      if(aplica === false) return '<span class="growth-flag na">No aplica</span>';
+      if(!(typeof d === 'number' && isFinite(d))) return '<span class="growth-flag na">—</span>';
+      return Math.abs(d) <= u ? '<span class="growth-flag ok">Coherente</span>' : '<span class="growth-flag warn">Revisar</span>';
+    };
+    document.getElementById('growthLead').innerHTML = 'DCF inverso: el precio ' + (ci.precio != null ? fmtMoney(ci.precio) + ' ' : '') +
+      'supone que los ingresos crecen <b>' + pctTxt(di.gImplicito) + '</b> al año en los años 1-5; el DCF supone <b>' + pctTxt(di.gDcf) + '</b> ' +
+      flag(di.dif) + '<br>' + escapeHtml(di.lectura || '');
+    // v2 (30-sep-2026): cada múltiplo se compara con el múltiplo que implica el DCF en FY+3, los dos por la
+    // misma fórmula de crecimiento; la lectura (Coherente / Revisar) viene calculada con el mismo criterio.
+    var v2 = (ci.multiplos || []).some(function(m){ return m.multiploDcf != null; });
+    var mflag = function(m){
+      if(m.aplica === false) return '<span class="growth-flag na">No aplica</span>';
+      var l = String(m.lectura || '');
+      if(/^Coherente/.test(l)) return '<span class="growth-flag ok">Coherente</span>';
+      if(/^Revisar/.test(l)) return '<span class="growth-flag warn">Revisar</span>';
+      return v2 ? '<span class="growth-flag na">—</span>' : flag(m.dif, m.aplica);
+    };
+    var growthNote = function(m){
+      if(m.aplica === false) return escapeHtml(String(m.lectura || '').replace(/^No aplica:\s*/, ''));
+      if(v2){ var t = String(m.lectura || '').replace(/^(Coherente con el DCF\.?\s*|Revisar:\s*)/, ''); return t ? escapeHtml(t.charAt(0).toUpperCase() + t.slice(1)) : 'Cuenta la misma historia que el DCF'; }
+      if(!(typeof m.dif === 'number' && isFinite(m.dif))) return 'Sin dato';
+      if(Math.abs(m.dif) <= u) return 'Cuenta la misma historia que el DCF';
+      return m.dif > 0 ? 'Supone más crecimiento que el DCF' : 'Supone menos crecimiento que el DCF';
+    };
+    var xTxt = function(x){ return (typeof x === 'number' && isFinite(x)) ? x.toFixed(1) + 'x' : '—'; };
+    var vTxt = function(x){ return (typeof x === 'number' && isFinite(x)) ? (x >= 0 ? '+' : '−') + Math.abs(x*100).toFixed(0) + '%' : '—'; };
+    var body = document.getElementById('growthBody');
+    body.innerHTML = '';
+    (ci.multiplos || []).forEach(function(m){
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td>' + escapeHtml(m.metodo) + '</td><td>' + xTxt(m.multiplo) + '</td><td>' + xTxt(m.multiploDcf) + '</td><td>' + vTxt(m.difValor) +
+        '</td><td>' + pctTxt(m.gImplicito) + '</td><td>' + pctTxt(m.gDcf) + '</td><td>' + ppTxt(m.dif) + '</td><td class="growth-read">' + mflag(m) + ' ' + growthNote(m) + '</td>';
+      body.appendChild(tr);
+    });
+    document.getElementById('growthNote').textContent = (v2
+      ? 'Cada múltiplo Base se compara con el múltiplo que implica el DCF llevado a FY+3 (misma métrica, deuda neta, acciones y dividendos). Los dos pasan por la misma fórmula de crecimiento perpetuo (Ke, WACC, ROE y conversión a caja de FY+3), así que el sesgo de la fórmula se cancela. Alerta: más de ' +
+        Math.round(u*100) + ' pp de diferencia en crecimiento o más de 25% en valor.'
+      : 'Crecimiento implícito de cada múltiplo = crecimiento perpetuo después de FY+3 que ese múltiplo supone con el Ke, el WACC, el ROE y la conversión a caja del escenario Base; se compara con el del DCF (punto medio entre los años 4-10 y la perpetuidad). Más de ' +
+        Math.round(u*100) + ' pp de diferencia = el múltiplo o el precio cuentan otra historia de crecimiento que el DCF.') + (ci.fecha ? ' Calculado el ' + ci.fecha + '.' : '');
+  }
+
+  // Precio con margen de seguridad sobre el valor intrínseco (DCF de hoy).
+  function renderMosDcf(){
+    var r = currentResumen || {}, d = (r.descuentoMultiples || {}).dcfHoy, mos = Number(r.mos);
+    var elM = document.getElementById('rPrecioMOS');
+    if(d && typeof d.base === 'number' && isFinite(mos)) elM.textContent = fmtMoney(d.conservador*(1-mos)) + ' – ' + fmtMoney(d.base*(1-mos));
+  }
+  function renderHeadline(){
+    if(!currentResumen) return;
+    renderMosDcf();
+    renderValueBoard();
+    var sel = document.getElementById('headlineSel');
+    var h = headlineData();
+    ['dcfHoy','ponderadoHoy','multHoy'].forEach(function(k){
+      var opt = sel.querySelector('option[value="' + k + '"]');
+      if(opt) opt.disabled = !headlineValues(k);
+    });
+    sel.value = h.key;
+    document.getElementById('hlTitle').textContent = h.titulo + ' · valor principal';
+    document.getElementById('hlDesc').textContent = h.desc + (h.fallback ? ' Esta valoración no tiene valor de hoy guardado; se muestra el objetivo FY+3.' : '');
+    var cagr = currentResumen.cagr || {};
+    [['conservador','hlC','potC'], ['base','hlB','potB'], ['optimista','hlO','potO']].forEach(function(x){
+      var v = h.valores[x[0]];
+      document.getElementById(x[1]).textContent = fmtMoney(v);
+      document.getElementById(x[2]).innerHTML = h.hoy
+        ? 'vs. precio de hoy ' + fmtVsPrecio(v, currentResumen.precio)
+        : 'vs. precio del análisis ' + fmtVsPrecio(v, currentPrecioAnalisis) + ' · CAGR ' + fmtPct(cagr[x[0]]);
+    });
   }
 
   // Barras verticales Conservador/Base/Optimista con el mismo tinte
@@ -1166,8 +1417,11 @@
     var scEl = document.getElementById('chartScenarios');
     var zEl = document.getElementById('chartZones');
     if(!scEl || !zEl || !currentResumen) return;
-    scEl.innerHTML = buildScenarioChart(currentResumen.precio, currentResumen.objetivoPonderado);
-    zEl.innerHTML = buildZonesChart(currentResumen.precio, currentResumen.zonas, currentResumen.objetivoPonderado);
+    var sel = headlineData();
+    var t = document.getElementById('chartScenariosTitle');
+    if(t) t.textContent = sel.titulo + ' por escenario';
+    scEl.innerHTML = buildScenarioChart(currentResumen.precio, sel.valores);
+    zEl.innerHTML = buildZonesChart(currentResumen.precio, currentResumen.zonas, sel.valores);
   }
 
   // Actualiza la mini-tabla "Precio de hoy vs. precio al día del análisis" —
@@ -1293,7 +1547,8 @@
       fechaTxt = 'Análisis del ' + d.toLocaleDateString('es-CO', {day:'2-digit', month:'short', year:'numeric'});
     }
     document.getElementById('rMeta').textContent = fechaTxt || 'Modelo JMR — DCF Damodaran + múltiplos';
-    document.getElementById('rSheetLink').hidden = true;
+    document.getElementById('rSheetLink').hidden = !currentHojaGoogle;
+    if(currentHojaGoogle) document.getElementById('rSheetLink').href = currentHojaGoogle;
     document.getElementById('rPrice').textContent = fmtMoney(precio);
     document.getElementById('rPriceNote').textContent = (precio === precioExcelD1 ? 'Del Excel (Input sheet)' : 'Precio al día del análisis') + (hasApiKey() ? ' — actualizando al precio de hoy…' : '');
     currentPrecioAnalisis = (typeof precioAnalisis === 'number' && isFinite(precioAnalisis)) ? precioAnalisis : null;
@@ -1314,7 +1569,7 @@
       var base = cellVal(res, 'D'+row);
       var opt = cellVal(res, 'E'+row);
       var tr = document.createElement('tr');
-      tr.innerHTML = '<td>'+m[0]+'</td><td>'+fmtPct(peso)+'</td><td>'+fmtMoney(cons)+'</td><td>'+fmtMoney(base)+'</td><td>'+fmtMoney(opt)+'</td>';
+      tr.innerHTML = '<td>'+fy3Label(m[0])+'</td><td>'+fmtPct(peso)+'</td><td>'+fmtMoney(cons)+'</td><td>'+fmtMoney(base)+'</td><td>'+fmtMoney(opt)+'</td>';
       tbody.appendChild(tr);
     });
     var futureMultiples={conservador:0,base:0,optimista:0}, futureWeight=0;
@@ -1322,24 +1577,17 @@
     if(futureWeight){var fy3Row=document.createElement('tr');fy3Row.innerHTML='<td>Múltiplos ponderados FY+3</td><td>'+fmtPct(futureWeight)+'</td>'+Object.keys(futureMultiples).map(function(k){return '<td>'+fmtMoney(futureMultiples[k]/futureWeight)+'</td>';}).join('');tbody.appendChild(fy3Row);}
     var totRow = document.createElement('tr');
     totRow.className = 'total';
-    totRow.innerHTML = '<td>Combinado FY+3 (incluye dividendos)</td><td>100%</td><td class="total-cons">'+fmtMoney(cellVal(res,'C12'))+'</td><td class="total-base">'+fmtMoney(cellVal(res,'D12'))+'</td><td class="total-opt">'+fmtMoney(cellVal(res,'E12'))+'</td>';
+    totRow.innerHTML = '<td>Ponderado FY+3 (secundario; incluye dividendos)</td><td>100%</td><td class="total-cons">'+fmtMoney(cellVal(res,'C12'))+'</td><td class="total-base">'+fmtMoney(cellVal(res,'D12'))+'</td><td class="total-opt">'+fmtMoney(cellVal(res,'E12'))+'</td>';
     tbody.appendChild(totRow);
-    [['DCF a valor de hoy',32],['Múltiplos descontados a hoy',33]].forEach(function(item){if(typeof cellVal(res,'D'+item[1])!=='number')return;var tr=document.createElement('tr');tr.innerHTML='<td>'+item[0]+'</td><td>—</td>'+['C','D','E'].map(function(col){return '<td>'+fmtMoney(cellVal(res,col+item[1]))+'</td>';}).join('');tbody.appendChild(tr);});
-    if(typeof cellVal(res,'D34') === 'number'){
-      var todayRow = document.createElement('tr');
-      todayRow.className = 'total';
-      todayRow.innerHTML = '<td>Combinado a valor de hoy</td><td>100%</td><td class="total-cons">'+fmtMoney(cellVal(res,'C34'))+'</td><td class="total-base">'+fmtMoney(cellVal(res,'D34'))+'</td><td class="total-opt">'+fmtMoney(cellVal(res,'E34'))+'</td>';
-      tbody.appendChild(todayRow);
-    }
+    var descuento = readDescuentoMultiples(wb, res);
+    var valorHoy = { conservador: cellVal(res,'C34'), base: cellVal(res,'D34'), optimista: cellVal(res,'E34') };
+    var metodosFY3 = methods.map(function(m){ return { nombre: m[0], peso: cellVal(res,'B'+m[1]), conservador: cellVal(res,'C'+m[1]), base: cellVal(res,'D'+m[1]), optimista: cellVal(res,'E'+m[1]) }; });
+    renderPresentValue(descuento, valorHoy, metodosFY3, { conservador: cellVal(res,'C12'), base: cellVal(res,'D12'), optimista: cellVal(res,'E12') });
 
     document.getElementById('cagrC').textContent = fmtPct(cellVal(res,'C13'));
     document.getElementById('cagrB').textContent = fmtPct(cellVal(res,'D13'));
     document.getElementById('cagrO').textContent = fmtPct(cellVal(res,'E13'));
 
-    var potBase = currentPrecioAnalisis;
-    document.getElementById('potC').textContent = fmtPotencial(cellVal(res,'C12'), potBase);
-    document.getElementById('potB').textContent = fmtPotencial(cellVal(res,'D12'), potBase);
-    document.getElementById('potO').textContent = fmtPotencial(cellVal(res,'E12'), potBase);
 
     function zoneText(row){
       var max = cellVal(res, 'B'+row), min = cellVal(res, 'C'+row);
@@ -1354,6 +1602,7 @@
     currentTicker = ticker;
     currentResumen = {
       ticker: ticker,
+      hojaGoogle: currentHojaGoogle || null,
       nombreActivo: nombreActivo || null,
       fecha: fechaTxt || null,
       precio: precio,
@@ -1367,8 +1616,9 @@
         return { nombre: m[0], peso: cellVal(res,'B'+row), conservador: cellVal(res,'C'+row), base: cellVal(res,'D'+row), optimista: cellVal(res,'E'+row) };
       }),
       objetivoPonderado: { conservador: cellVal(res,'C12'), base: cellVal(res,'D12'), optimista: cellVal(res,'E12') },
-      valorPresentePonderado: { conservador: cellVal(res,'C34'), base: cellVal(res,'D34'), optimista: cellVal(res,'E34') },
-      descuentoMultiples: { horizonteAnios: 3, costoPatrimonio: cellVal(wb.Sheets['Descuento de múltiplos'],'D2'), dcfHoy: { conservador: cellVal(res,'C32'), base: cellVal(res,'D32'), optimista: cellVal(res,'E32') }, multiplesHoy: { conservador: cellVal(res,'C33'), base: cellVal(res,'D33'), optimista: cellVal(res,'E33') } },
+      valorPresentePonderado: valorHoy,
+      descuentoMultiples: descuento,
+      crecimientoImplicito: readCrecimientoImplicito(wb),
       precioMOSHoy: { conservador: cellVal(res,'C36'), base: cellVal(res,'D36'), optimista: cellVal(res,'E36') },
       cagr: { conservador: cellVal(res,'C13'), base: cellVal(res,'D13'), optimista: cellVal(res,'E13') },
       zonas: {
@@ -1382,6 +1632,8 @@
     cualitativoOverride = null;
     fundamentalOverride = null;
     resetTabs();
+    renderHeadline();
+    renderCrecimiento(currentResumen.crecimientoImplicito);
 
     result.classList.add('show');
     maybeAutoFetchLive();
@@ -2310,6 +2562,11 @@
     renderCharts();
   }
 
+  document.getElementById('headlineSel').addEventListener('change', function(){
+    try { localStorage.setItem(HEADLINE_KEY, this.value); } catch(e){}
+    renderHeadline();
+    renderCharts();
+  });
   document.getElementById('mainTabs').addEventListener('click', function(e){
     var btn = e.target.closest('button[data-tab]');
     if(!btn) return;
@@ -2412,6 +2669,7 @@
         if(!wb.SheetNames || !wb.SheetNames.length){
           throw new Error('no se reconoció ninguna hoja (¿le faltan los encabezados "[Nombre de Hoja]" al CSV?)');
         }
+        currentHojaGoogle = null;
         render(wb);
       }catch(err){
         showError('No pude leer este archivo. Verifica que sea un .xlsx válido del Modelo JMR, o un CSV exportado desde este visor. Detalle técnico: ' + err.message);
@@ -2519,6 +2777,98 @@
     });
   }
 
+  // Hoja «Descuento de múltiplos» (29-sep-2026): cada múltiplo se trae a
+  // valor presente en 1, 2 y 3 años — VP_n = (precio FY+n + dividendos
+  // acumulados) ÷ (1 + Ke)^n — y se consolida por método (promedio simple
+  // de los tres horizontes, o solo el de 3 años según la celda C6). Las
+  // hojas anteriores solo tenían el puente a 3 años (Ke en D2): se leen
+  // igual, sin el detalle por horizonte.
+  var DM_SCEN = [['conservador', 11], ['base', 20], ['optimista', 29]];
+  function readDescuentoMultiples(wb, res){
+    var s = wb.Sheets['Descuento de múltiplos'];
+    var trio = function(sheet, row){ return { conservador: cellVal(sheet,'C'+row), base: cellVal(sheet,'D'+row), optimista: cellVal(sheet,'E'+row) }; };
+    var num = function(v){ return (typeof v === 'number' && isFinite(v)) ? v : null; };
+    if(!s || String(cellVal(s,'A5') || '').indexOf('Tasa de descuento') !== 0){
+      return { horizonteAnios: 3, costoPatrimonio: s ? cellVal(s,'D2') : null, dcfHoy: trio(res, 32), multiplesHoy: trio(res, 33) };
+    }
+    var metodos = [];
+    for(var i = 0; i < 5; i++){
+      var m = { nombre: cellVal(s,'A'+(11+i)), peso: num(cellVal(s,'B'+(11+i))), pesoMultiplos: num(cellVal(s,'C'+(11+i))) };
+      DM_SCEN.forEach(function(sc){
+        var r = sc[1] + i;
+        m[sc[0]] = { fy: ['D','E','F'].map(function(c){ return num(cellVal(s,c+r)); }),
+                     vp: ['G','H','I'].map(function(c){ return num(cellVal(s,c+r)); }),
+                     consolidado: num(cellVal(s,'J'+r)), chequeo: cellVal(s,'K'+r) || null };
+      });
+      metodos.push(m);
+    }
+    var consolidado = {};
+    DM_SCEN.forEach(function(sc){
+      var r = sc[1] + 5;
+      consolidado[sc[0]] = { fy: ['D','E','F'].map(function(c){ return num(cellVal(s,c+r)); }),
+                             vp: ['G','H','I'].map(function(c){ return num(cellVal(s,c+r)); }),
+                             consolidado: num(cellVal(s,'J'+r)) };
+    });
+    return {
+      version: 2, horizontes: [1, 2, 3], horizonteAnios: 3,
+      costoPatrimonio: cellVal(s,'B5'), criterio: cellVal(s,'B6') || 'Promedio 1-3 años',
+      formula: 'VP_n = (Precio FY+n + Dividendos FY+1..FY+n) / (1 + Ke)^n',
+      dcfHoy: trio(s, 38), multiplesHoy: trio(s, 39), ponderadoHoy: trio(s, 40),
+      pesoDcf: num(cellVal(s,'B38')), pesoMultiplos: num(cellVal(s,'B39')),
+      metodos: metodos, consolidado: consolidado,
+      chequeo: { multiplosFY3SinDescontar: trio(s, 47), multiplosVP3: trio(s, 48), resultado: trio(s, 49) }
+    };
+  }
+
+  // Tablero de valoración (valuation-board.js): DCF primero; múltiplos juntos,
+  // por método y ponderado a un clic, hoy o al cierre FY+3. El precio de
+  // referencia es el de currentResumen, así que se vuelve a dibujar cuando
+  // cambia (renderHeadline).
+  var boardParts = null;
+  function renderValueBoard(){
+    var box = document.getElementById('valueBoard');
+    if(!box || !boardParts || typeof JmrValueBoard === 'undefined') return;
+    var r = currentResumen || {};
+    var d = JmrValueBoard.fromParts(Object.assign({}, boardParts, { precio: r.precio, precioLbl: 'Precio de hoy', mos: r.mos, hoja: r.hojaGoogle }));
+    box.innerHTML = JmrValueBoard.html(d, { hero: false });
+  }
+  function renderPresentValue(dm, vp, metodosFY3, objetivoFY3){
+    var sec = document.getElementById('presentSection');
+    dm = dm || {};
+    boardParts = { dm: dm, vp: vp, metodosFY3: metodosFY3 || [], objetivoFY3: objetivoFY3 };
+    var hasHoy = dm.dcfHoy && typeof dm.dcfHoy.base === 'number';
+    var hasFy3 = (metodosFY3 || []).some(function(m){ return typeof m.base === 'number'; });
+    sec.hidden = !(hasHoy || hasFy3);
+    if(sec.hidden) return;
+    renderValueBoard();
+
+    var hw = document.getElementById('horizonWrap'), hb = document.getElementById('horizonBody');
+    hb.innerHTML = '';
+    hw.hidden = !(dm.metodos && dm.metodos.length);
+    if(hw.hidden) return;
+    var hrow = function(label, d, chk, cls){
+      if(!d) return;
+      var tr = document.createElement('tr');
+      if(cls) tr.className = cls;
+      tr.innerHTML = '<td>' + label + '</td><td>' + fmtMoney(d.fy && d.fy[2]) + '</td>' + (d.vp || []).map(function(v){ return '<td>' + fmtMoney(v) + '</td>'; }).join('') +
+        '<td>' + fmtMoney(d.consolidado) + '</td><td>' + escapeHtml(String(chk || '—')) + '</td>';
+      hb.appendChild(tr);
+    };
+    (dm.metodos || []).forEach(function(m){ hrow(escapeHtml(String(m.nombre || '')), m.base, m.base && m.base.chequeo); });
+    if(dm.consolidado) hrow('Múltiplos consolidados', dm.consolidado.base, dm.chequeo && dm.chequeo.resultado && dm.chequeo.resultado.base, 'total');
+
+    var note = [];
+    if(typeof dm.costoPatrimonio === 'number') note.push('Tasa de descuento (Ke): ' + fmtPct(dm.costoPatrimonio));
+    if(dm.version >= 2){
+      note.push('VP = (precio FY+n + dividendos acumulados) ÷ (1 + Ke)^n');
+      note.push('consolidado por método: ' + (dm.criterio || 'Promedio 1-3 años'));
+      note.push('ponderado = DCF × peso DCF + múltiplos × peso múltiplos');
+    } else {
+      note.push('Valoración guardada con el puente anterior (solo 3 años)');
+    }
+    document.getElementById('presentNote').textContent = note.join(' · ') + '.';
+  }
+
   function displaySavedRecord(rec){
     document.getElementById('rTicker').textContent = rec.ticker || '—';
     document.getElementById('tickerOverride').value = rec.ticker || '';
@@ -2540,7 +2890,7 @@
     tbody.innerHTML = '';
     (rec.metodos || []).forEach(function(m){
       var tr = document.createElement('tr');
-      tr.innerHTML = '<td>'+m.nombre+'</td><td>'+fmtPct(m.peso)+'</td><td>'+fmtMoney(m.conservador)+'</td><td>'+fmtMoney(m.base)+'</td><td>'+fmtMoney(m.optimista)+'</td>';
+      tr.innerHTML = '<td>'+fy3Label(m.nombre)+'</td><td>'+fmtPct(m.peso)+'</td><td>'+fmtMoney(m.conservador)+'</td><td>'+fmtMoney(m.base)+'</td><td>'+fmtMoney(m.optimista)+'</td>';
       tbody.appendChild(tr);
     });
     var weightedMultiples={conservador:0,base:0,optimista:0}, weightMultiples=0;
@@ -2554,24 +2904,13 @@
     var totRow = document.createElement('tr');
     totRow.className = 'total';
     var op = rec.objetivoPonderado || {};
-    totRow.innerHTML = '<td>Combinado FY+3 (incluye dividendos)</td><td>100%</td><td class="total-cons">'+fmtMoney(op.conservador)+'</td><td class="total-base">'+fmtMoney(op.base)+'</td><td class="total-opt">'+fmtMoney(op.optimista)+'</td>';
+    totRow.innerHTML = '<td>Ponderado FY+3 (secundario; incluye dividendos)</td><td>100%</td><td class="total-cons">'+fmtMoney(op.conservador)+'</td><td class="total-base">'+fmtMoney(op.base)+'</td><td class="total-opt">'+fmtMoney(op.optimista)+'</td>';
     tbody.appendChild(totRow);
-    var dm=rec.descuentoMultiples||{};
-    [['DCF a valor de hoy',dm.dcfHoy],['Múltiplos descontados a hoy',dm.multiplesHoy]].forEach(function(pair){if(!pair[1])return;var tr=document.createElement('tr');tr.innerHTML='<td>'+pair[0]+'</td><td>—</td><td>'+fmtMoney(pair[1].conservador)+'</td><td>'+fmtMoney(pair[1].base)+'</td><td>'+fmtMoney(pair[1].optimista)+'</td>';tbody.appendChild(tr);});
-    var vp = rec.valorPresentePonderado;
-    if(vp && typeof vp.base === 'number'){
-      var todayRow = document.createElement('tr');
-      todayRow.className = 'total';
-      todayRow.innerHTML = '<td>Combinado a valor de hoy</td><td>100%</td><td class="total-cons">'+fmtMoney(vp.conservador)+'</td><td class="total-base">'+fmtMoney(vp.base)+'</td><td class="total-opt">'+fmtMoney(vp.optimista)+'</td>';
-      tbody.appendChild(todayRow);
-    }
+    renderPresentValue(rec.descuentoMultiples, rec.valorPresentePonderado, rec.metodos, rec.objetivoPonderado);
     var cagr = rec.cagr || {};
     document.getElementById('cagrC').textContent = fmtPct(cagr.conservador);
     document.getElementById('cagrB').textContent = fmtPct(cagr.base);
     document.getElementById('cagrO').textContent = fmtPct(cagr.optimista);
-    document.getElementById('potC').textContent = fmtPotencial(op.conservador, currentPrecioAnalisis);
-    document.getElementById('potB').textContent = fmtPotencial(op.base, currentPrecioAnalisis);
-    document.getElementById('potO').textContent = fmtPotencial(op.optimista, currentPrecioAnalisis);
     function zoneText(z){ if(!z) return '—'; return fmtMoney(z.min) + ' – ' + fmtMoney(z.max); }
     var z = rec.zonas || {};
     document.getElementById('zValue').textContent = zoneText(z.value);
@@ -2583,8 +2922,11 @@
     // original — las hojas crudas se muestran desde lo que se guardó junto
     // con la valoración (rec.hojas), si lo hay.
     currentWb = null;
+    currentHojaGoogle = /^https:\/\/docs\.google\.com\/spreadsheets\/d\/[\w-]+/.test(rec.hojaGoogle || '') ? rec.hojaGoogle : null;
     currentResumen = rec;
     currentTicker = rec.ticker || null;
+    renderHeadline();
+    renderCrecimiento(rec.crecimientoImplicito);
     // Precarga lo que se haya escrito a mano en Cualitativo (incluida
     // Gobierno Corporativo) y en Análisis Fundamental la última vez que se
     // guardó esta valoración, para poder seguir editándolos desde aquí.
@@ -2970,7 +3312,7 @@
         document.getElementById('rPrice').textContent = fmtMoney(q.price);
         note.textContent = 'En vivo · ' + new Date().toLocaleTimeString();
         renderPriceCompare(currentPrecioAnalisis, q.price);
-        if(currentResumen){ currentResumen.precio = q.price; renderCharts(); }
+        if(currentResumen){ currentResumen.precio = q.price; renderHeadline(); renderCharts(); }
       } else {
         note.textContent = 'Dato del Excel (FMP no reportó precio para este ticker)';
       }
@@ -3021,13 +3363,24 @@
   // con supuestos editables — resultado hipotético, separado del resumen que
   // lee tu Excel. Precio actual/tipo de empresa/MOS se precargan del Excel;
   // el resto parte de valores de ejemplo (los mismos que la Calculadora).
-  function rcNum(id){ return parseFloat(document.getElementById(id).value) || 0; }
+  // Los campos precargados desde la hoja guardan el valor exacto (data-exact); mientras el campo muestre
+  // lo mismo que se precargó, se usa ese valor y no el redondeado a 2 decimales.
+  function rcNum(id){
+    var el = document.getElementById(id);
+    if(el.dataset.exact !== undefined && el.value === el.dataset.shown) return parseFloat(el.dataset.exact);
+    return parseFloat(el.value) || 0;
+  }
   function rcPct(id){ return rcNum(id) / 100; }
+  function rcBlank(id){ return String(document.getElementById(id).value).trim() === ''; }
+  function rcOptPct(id){ return rcBlank(id) ? undefined : rcPct(id); }
+  function rcOptNum(id){ return rcBlank(id) ? undefined : rcNum(id); }
+  function rcChanged(id){ var el = document.getElementById(id); return el.dataset.shown === undefined || el.value !== el.dataset.shown; }
 
   function rcFillField(id, val, cls){
     var el = document.getElementById(id);
     if(!el || val === undefined || val === null || isNaN(val)) return false;
     el.value = Math.round(val * 100) / 100;
+    delete el.dataset.exact; delete el.dataset.shown;
     el.classList.remove('src-auto', 'src-derived');
     el.classList.add(cls);
     el.addEventListener('input', function once(){
@@ -3096,6 +3449,13 @@
         rcRenderHistorical(null);
         return;
       }
+      // Datos nuevos de FMP: ya no aplican los de la hoja (bloques por escenario, múltiplos por escenario, pesos).
+      rcHoja = null;
+      ['rc_growthY1Cons', 'rc_growthY1Base', 'rc_growthY1Opt', 'rc_marginY1Cons', 'rc_marginY1Base', 'rc_marginY1Opt',
+       'rc_terminalGrowth', 'rc_salesToCapital2', 'rc_evEbitdaCons', 'rc_evEbitdaOpt', 'rc_evFcffCons', 'rc_evFcffOpt',
+       'rc_peCons', 'rc_peOpt', 'rc_pfcfeCons', 'rc_pfcfeOpt', 'rc_pocfCons', 'rc_pocfOpt'].forEach(rcClear);
+      rcSetNum('rc_convergenceYear', 5);
+      rcSetSource('none', '');
       var autoCount = 0, derivedCount = 0;
       r.auto.forEach(function(f){ if(rcFillField('rc_' + f, r.values[f], 'src-auto')) autoCount++; });
       r.derived.forEach(function(f){ if(rcFillField('rc_' + f, r.values[f], 'src-derived')) derivedCount++; });
@@ -3119,8 +3479,15 @@
     if(e.key === 'Enter'){ e.preventDefault(); rcRunLookup(); }
   });
 
+  // Insumos para el motor: parte de lo leído de la hoja (rcHoja: incluye lo que no está en el formulario,
+  // como los bloques de cada escenario en 'Financials Multiples' y los pesos) y aplica lo que diga el formulario.
+  var RC_POR_ESCENARIO = {rc_interestOtherPctEBIT: 'interestOtherPctEBIT', rc_capexPctRevenue: 'capexPctRevenue',
+    rc_nwcPctDeltaRevenue: 'nwcPctDeltaRevenue', rc_netBorrowingPctDeltaRevenue: 'netBorrowingPctDeltaRevenue',
+    rc_buybackRate: 'buybackRate', rc_dividendPerShare: 'dividendPerShare', rc_dividendGrowth: 'dividendGrowth'};
   function rcReadInputs(){
-    return {
+    var inp = rcHoja ? JSON.parse(JSON.stringify(rcHoja)) : {};
+    var roic = rcOptPct('rc_roicTerminal');
+    var form = {
       precioActual: rcNum('rc_precioActual'),
       tipoEmpresa: document.getElementById('rc_tipoEmpresa').value,
       mos: rcPct('rc_mos'),
@@ -3135,28 +3502,96 @@
       minorityInterests: rcNum('rc_minorityInterests'),
       probFailure: rcPct('rc_probFailure'),
       recoveryPct: rcPct('rc_recoveryPct'),
+      roicTerminal: roic > 0 ? roic : 0,
       wacc: rcPct('rc_wacc'),
+      costoPatrimonio: rcOptPct('rc_costoPatrimonio'),
+      criterioConsolidacion: document.getElementById('rc_criterioConsolidacion').value,
       riskFreeRate: rcPct('rc_riskFreeRate'),
       matureMarketERP: rcPct('rc_matureMarketERP'),
+      terminalGrowth: rcOptPct('rc_terminalGrowth'),
       salesToCapital: rcNum('rc_salesToCapital'),
-      growthCons: rcPct('rc_growthCons'), marginCons: rcPct('rc_marginCons'),
-      growthBase: rcPct('rc_growthBase'), marginBase: rcPct('rc_marginBase'),
-      growthOpt: rcPct('rc_growthOpt'), marginOpt: rcPct('rc_marginOpt'),
+      salesToCapital2: rcOptNum('rc_salesToCapital2'),
+      convergenceYear: rcOptNum('rc_convergenceYear'),
+      growthY1Cons: rcOptPct('rc_growthY1Cons'), growthCons: rcPct('rc_growthCons'), marginY1Cons: rcOptPct('rc_marginY1Cons'), marginCons: rcPct('rc_marginCons'),
+      growthY1Base: rcOptPct('rc_growthY1Base'), growthBase: rcPct('rc_growthBase'), marginY1Base: rcOptPct('rc_marginY1Base'), marginBase: rcPct('rc_marginBase'),
+      growthY1Opt: rcOptPct('rc_growthY1Opt'), growthOpt: rcPct('rc_growthOpt'), marginY1Opt: rcOptPct('rc_marginY1Opt'), marginOpt: rcPct('rc_marginOpt'),
       daPctRevenue: rcPct('rc_daPctRevenue'),
       capexPctRevenue: rcPct('rc_capexPctRevenue'),
       nwcPctDeltaRevenue: rcPct('rc_nwcPctDeltaRevenue'),
       interestOtherPctEBIT: rcPct('rc_interestOtherPctEBIT'),
-      netBorrowingPctRevenue: rcPct('rc_netBorrowingPctRevenue'),
+      netBorrowingPctDeltaRevenue: rcPct('rc_netBorrowingPctDeltaRevenue'),
       buybackRate: rcPct('rc_buybackRate'),
       dividendPerShare: rcNum('rc_dividendPerShare'),
+      dividendGrowth: rcPct('rc_dividendGrowth'),
       evEbitdaBase: rcNum('rc_evEbitdaBase'),
       evFcffBase: rcNum('rc_evFcffBase'),
       peBase: rcNum('rc_peBase'),
       pfcfeBase: rcNum('rc_pfcfeBase'),
       pocfBase: rcNum('rc_pocfBase')
     };
+    Object.keys(form).forEach(function(k){ inp[k] = form[k]; });
+    // Terminal: sin crecimiento a perpetuidad explícito, la tasa libre de riesgo; el WACC terminal sale de rf + prima.
+    delete inp.terminalWacc;
+    // Múltiplos por escenario (vacío = 0,9× / 1,1× el Base).
+    inp.multiplos = {};
+    [['evEbitda', 'EvEbitda'], ['evFcff', 'EvFcff'], ['pe', 'Pe'], ['pfcfe', 'Pfcfe'], ['pocf', 'Pocf']].forEach(function(m){
+      var id = 'rc_' + m[0];
+      inp.multiplos[m[0]] = {cons: rcOptNum(id + 'Cons'), base: rcNum(id + 'Base'), opt: rcOptNum(id + 'Opt')};
+    });
+    if(rcHoja){
+      // Pesos de la hoja mientras no cambie el tipo de empresa.
+      if(inp.tipoEmpresa !== rcHoja.tipoEmpresa) delete inp.pesos;
+      // Razones de 'Financials Multiples': cada escenario usa las de su bloque salvo que se cambie el campo.
+      var esc = inp.porEscenario || {};
+      Object.keys(RC_POR_ESCENARIO).forEach(function(id){
+        if(!rcChanged(id)) return;
+        Object.keys(esc).forEach(function(s){ esc[s][RC_POR_ESCENARIO[id]] = null; if(id === 'rc_nwcPctDeltaRevenue') esc[s].nwcModo = null; });
+      });
+      if(rcChanged('rc_daPctRevenue')){ inp.daRatiosHist = null; Object.keys(esc).forEach(function(s){ esc[s].daRatiosHist = null; }); }
+      // Si cambia el crecimiento o el margen, los ajustes del bloque siguen como diferencia con la trayectoria.
+    } else {
+      delete inp.porEscenario; delete inp.pesos;
+    }
+    return inp;
   }
 
+  // Valor presente (29-sep-2026): DCF (ya en valor de hoy), cada múltiplo
+  // traído a hoy en 1, 2 y 3 años y consolidado, y el ponderado final.
+  function rcRenderValorPresente(v, pesos){
+    var body = document.getElementById('rc_pvBody');
+    body.innerHTML = '';
+    var add = function(label, peso, t, cls){
+      var tr = document.createElement('tr');
+      if(cls) tr.className = cls;
+      tr.innerHTML = '<td>' + label + '</td><td>' + (peso == null ? '—' : fmtPct(peso)) + '</td><td>' + fmtMoney(t.cons) + '</td><td>' + fmtMoney(t.base) + '</td><td>' + fmtMoney(t.opt) + '</td>';
+      body.appendChild(tr);
+    };
+    add('DCF hoy (valor presente)', v.pesoDcf, v.dcf);
+    [['evEbitda','EV/EBITDA'], ['evFcff','EV/FCFF'], ['pe','P/E'], ['pfcfe','P/FCFE'], ['pocf','P/OCF']].forEach(function(pair){
+      var m = v.metodos[pair[0]];
+      add('&nbsp;&nbsp;' + pair[1], pesos[pair[0]], {cons: m.cons.consolidado, base: m.base.consolidado, opt: m.opt.consolidado});
+    });
+    add('Múltiplos consolidados', v.pesoMultiplos, v.multiplos);
+    add('Ponderado hoy (secundario)', v.pesoDcf + v.pesoMultiplos, v.ponderado, 'total');
+    var ok = ['cons','base','opt'].every(function(k){ return v.chequeo[k].ok; });
+    document.getElementById('rc_pvNote').textContent = 'VP = (precio FY+n + dividendos acumulados) ÷ (1 + ' + fmtPct(v.tasaDescuento) + ')^n, n = 1, 2, 3; ' +
+      (v.criterio === 'solo3' ? 'solo el de 3 años' : 'promedio de los 3 horizontes') + ' por método. Chequeo VP 3 años < FY+3 sin descontar (Base ' +
+      fmtMoney(v.chequeo.base.multiplosVP3) + ' vs ' + fmtMoney(v.chequeo.base.multiplosFY3SinDescontar) + '): ' + (ok ? 'OK' : 'REVISAR') + '.';
+  }
+
+  // Tablero de valoración con el resultado recalculado (misma vista que el Resumen).
+  function rcRenderBoard(inp, r){
+    var box = document.getElementById('rcBoard');
+    if(!box || typeof JmrValueBoard === 'undefined') return;
+    var v = r.valorPresente || {}, t = function(x){ return x ? { conservador: x.cons, base: x.base, optimista: x.opt } : null; };
+    var pairs = [['evEbitda','EV/EBITDA'], ['evFcff','EV/FCFF'], ['pe','P/E'], ['pfcfe','P/FCFE'], ['pocf','P/OCF']];
+    var cons = function(m, k){ return m && m[k] && { consolidado: m[k].consolidado }; };
+    var dm = { dcfHoy: t(v.dcf), multiplesHoy: t(v.multiplos), ponderadoHoy: t(v.ponderado), pesoDcf: v.pesoDcf, pesoMultiplos: v.pesoMultiplos, costoPatrimonio: v.tasaDescuento,
+      metodos: pairs.map(function(p){ var m = (v.metodos || {})[p[0]]; return { nombre: p[1], peso: r.pesos[p[0]], conservador: cons(m,'cons'), base: cons(m,'base'), optimista: cons(m,'opt') }; }) };
+    var fy3 = [['dcf','DCF Damodaran']].concat(pairs).map(function(p){ var x = r.precios[p[0]] || {}; return { nombre: p[1], peso: r.pesos[p[0]], conservador: x.cons, base: x.base, optimista: x.opt }; });
+    var d = JmrValueBoard.fromParts({ dm: dm, metodosFY3: fy3, objetivoFY3: t(r.precioObjetivo), precio: inp.precioActual, precioLbl: 'Precio con este supuesto', mos: inp.mos });
+    box.innerHTML = JmrValueBoard.html(d, { hero: true });
+  }
   function rcRenderResult(inp, r){
     document.getElementById('rcPrice').textContent = fmtMoney(inp.precioActual);
     document.getElementById('rcPrecioMOS').textContent = fmtMoney(r.precioConMOS.cons) + ' – ' + fmtMoney(r.precioConMOS.base);
@@ -3165,7 +3600,7 @@
 
     var tbody = document.getElementById('rcMethodsBody');
     tbody.innerHTML = '';
-    var order = [['dcf','DCF Damodaran'], ['evEbitda','EV/EBITDA'], ['evFcff','EV/FCFF'], ['pe','P/E'], ['pfcfe','P/FCFE'], ['pocf','P/OCF']];
+    var order = [['dcf','DCF Damodaran (llevado a FY+3)'], ['evEbitda','EV/EBITDA'], ['evFcff','EV/FCFF'], ['pe','P/E'], ['pfcfe','P/FCFE'], ['pocf','P/OCF']];
     order.forEach(function(pair){
       var key = pair[0], label = pair[1];
       var tr = document.createElement('tr');
@@ -3176,6 +3611,8 @@
     totRow.className = 'total';
     totRow.innerHTML = '<td>Precio Objetivo Ponderado</td><td>100%</td><td class="total-cons">' + fmtMoney(r.precioObjetivo.cons) + '</td><td class="total-base">' + fmtMoney(r.precioObjetivo.base) + '</td><td class="total-opt">' + fmtMoney(r.precioObjetivo.opt) + '</td>';
     tbody.appendChild(totRow);
+    rcRenderValorPresente(r.valorPresente, r.pesos);
+    rcRenderBoard(inp, r);
 
     function zoneText(z){ return fmtMoney(z.min) + ' – ' + fmtMoney(z.max); }
     document.getElementById('rcZValue').textContent = zoneText(r.zonas.value);
@@ -3210,69 +3647,94 @@
     // Redondeado a 2 decimales: coincide con el step="0.01" de estos campos
     // (un valor con más decimales falla la validación HTML5 en silencio y
     // bloquea el submit sin ningún error visible).
-    document.getElementById(id).value = Math.round(frac * 100 * 100) / 100;
+    var el = document.getElementById(id);
+    el.value = Math.round(frac * 100 * 100) / 100;
+    el.dataset.exact = String(frac * 100); el.dataset.shown = el.value;
   }
   function rcSetNum(id, v){
     if(v == null) return;
-    document.getElementById(id).value = Math.round(v * 100) / 100;
+    var el = document.getElementById(id);
+    el.value = Math.round(v * 100) / 100;
+    el.dataset.exact = String(v); el.dataset.shown = el.value;
+  }
+  function rcClear(id){ var el = document.getElementById(id); el.value = ''; el.dataset.shown = ''; delete el.dataset.exact; }
+
+  // Precarga Recalcular con los insumos de la hoja (misma lectura que usa el motor para reproducirla).
+  var rcHoja = null;
+  function rcExtractFromExcel(wb){
+    var cel = function(h, a){ var ws = wb.Sheets[h]; var c = ws && ws[a]; return c ? c.v : null; };
+    var inp = insumosDesdeHoja(cel);
+    rcHoja = inp;
+    var b = (inp.porEscenario && inp.porEscenario.base) || {};
+    var pick = function(k){ return b[k] != null ? b[k] : inp[k]; };
+    rcSetNum('rc_revenue0', inp.revenue0);
+    rcSetNum('rc_ebit0', inp.ebit0);
+    rcSetPct('rc_taxEffective', inp.taxEffective);
+    rcSetPct('rc_taxMarginal', inp.taxMarginal);
+    rcSetNum('rc_shares0', inp.shares0);
+    rcSetNum('rc_cash', inp.cash);
+    rcSetNum('rc_debt', inp.debt);
+    rcSetNum('rc_nonOperatingAssets', inp.nonOperatingAssets);
+    rcSetNum('rc_minorityInterests', inp.minorityInterests);
+    rcSetPct('rc_probFailure', inp.probFailure);
+    rcSetPct('rc_recoveryPct', inp.recoveryPct);
+    if(inp.roicTerminal > 0) rcSetPct('rc_roicTerminal', inp.roicTerminal); else rcClear('rc_roicTerminal');
+    rcSetPct('rc_wacc', inp.wacc);
+    rcSetPct('rc_costoPatrimonio', inp.costoPatrimonio);
+    rcSetPct('rc_riskFreeRate', inp.riskFreeRate);
+    rcSetPct('rc_matureMarketERP', inp.matureMarketERP);
+    rcSetPct('rc_terminalGrowth', inp.terminalGrowth);
+    rcSetNum('rc_salesToCapital', inp.salesToCapital);
+    rcSetNum('rc_salesToCapital2', inp.salesToCapital2);
+    rcSetNum('rc_convergenceYear', inp.convergenceYear);
+    ['Cons', 'Base', 'Opt'].forEach(function(k){
+      rcSetPct('rc_growthY1' + k, inp['growthY1' + k]);
+      rcSetPct('rc_growth' + k, inp['growth' + k]);
+      rcSetPct('rc_marginY1' + k, inp['marginY1' + k]);
+      rcSetPct('rc_margin' + k, inp['margin' + k]);
+    });
+    rcSetPct('rc_daPctRevenue', b.daRatiosHist ? (b.daRatiosHist[0] + b.daRatiosHist[1] + b.daRatiosHist[2]) / 3 : inp.daPctRevenue);
+    rcSetPct('rc_capexPctRevenue', pick('capexPctRevenue'));
+    rcSetPct('rc_nwcPctDeltaRevenue', pick('nwcPctDeltaRevenue'));
+    rcSetPct('rc_interestOtherPctEBIT', pick('interestOtherPctEBIT'));
+    rcSetPct('rc_netBorrowingPctDeltaRevenue', pick('netBorrowingPctDeltaRevenue'));
+    rcSetPct('rc_buybackRate', pick('buybackRate'));
+    rcSetNum('rc_dividendPerShare', pick('dividendPerShare'));
+    rcSetPct('rc_dividendGrowth', pick('dividendGrowth'));
+    [['evEbitda', 'EvEbitda'], ['evFcff', 'EvFcff'], ['pe', 'Pe'], ['pfcfe', 'Pfcfe'], ['pocf', 'Pocf']].forEach(function(m){
+      var v = inp.multiplos[m[0]] || {};
+      rcSetNum('rc_' + m[0] + 'Cons', v.cons); rcSetNum('rc_' + m[0] + 'Base', v.base); rcSetNum('rc_' + m[0] + 'Opt', v.opt);
+    });
+    if(inp.tipoEmpresa){
+      var sel = document.getElementById('rc_tipoEmpresa');
+      if(Array.prototype.some.call(sel.options, function(o){ return o.value === inp.tipoEmpresa; })) sel.value = inp.tipoEmpresa;
+    }
+    if(typeof inp.mos === 'number') rcSetPct('rc_mos', inp.mos);
   }
 
-  function rcExtractFromExcel(wb){
-    var inputSheet = wb.Sheets['Input sheet'];
-    var valOut = wb.Sheets['Valuation output'];
-    var finMult = wb.Sheets['Financials Multiples'];
-
-    rcSetNum('rc_revenue0', rcCellNum(inputSheet, 'B12'));
-    rcSetNum('rc_ebit0', rcCellNum(valOut, 'B7'));
-    rcSetPct('rc_taxEffective', rcCellNum(inputSheet, 'B24'));
-    rcSetPct('rc_taxMarginal', rcCellNum(inputSheet, 'B25'));
-    rcSetNum('rc_shares0', rcCellNum(inputSheet, 'B22'));
-    rcSetNum('rc_cash', rcCellNum(inputSheet, 'B19'));
-    rcSetNum('rc_debt', rcCellNum(inputSheet, 'B16'));
-    rcSetNum('rc_nonOperatingAssets', rcCellNum(inputSheet, 'B20'));
-    rcSetNum('rc_minorityInterests', rcCellNum(inputSheet, 'B21'));
-
-    var overrideFailure = inputSheet && inputSheet['B52'] && inputSheet['B52'].v;
-    var probFailure = (overrideFailure === 'Yes' || overrideFailure === 'Sí') ? rcCellNum(inputSheet, 'B53') : 0;
-    rcSetPct('rc_probFailure', probFailure);
-    rcSetPct('rc_recoveryPct', rcCellNum(inputSheet, 'B55'));
-
-    rcSetPct('rc_wacc', rcCellNum(inputSheet, 'B36'));
-    var riskFree = rcCellNum(inputSheet, 'B35');
-    rcSetPct('rc_riskFreeRate', riskFree);
-    var terminalWacc = rcCellNum(valOut, 'M14');
-    if(riskFree != null && terminalWacc != null) rcSetPct('rc_matureMarketERP', terminalWacc - riskFree);
-    rcSetNum('rc_salesToCapital', rcCellNum(inputSheet, 'B32'));
-
-    rcSetPct('rc_growthCons', rcCellNum(valOut, 'C55'));
-    rcSetPct('rc_marginCons', rcCellNum(valOut, 'G57'));
-    rcSetPct('rc_growthBase', rcCellNum(valOut, 'C4'));
-    rcSetPct('rc_marginBase', rcCellNum(valOut, 'G6'));
-    rcSetPct('rc_growthOpt', rcCellNum(valOut, 'C106'));
-    rcSetPct('rc_marginOpt', rcCellNum(valOut, 'G108'));
-
-    // Razones para proyectar los múltiplos: el Excel las varía año a año
-    // (promedio móvil de 3 años); aquí se aproximan con el año FY+1 sobre
-    // ingresos/EBIT de ese mismo año — la Calculadora ya documenta esta
-    // simplificación frente al Excel original.
-    var e4 = rcCellNum(finMult, 'E4'), d4 = rcCellNum(finMult, 'D4');
-    var e6 = rcCellNum(finMult, 'E6');
-    if(e4){
-      rcSetPct('rc_daPctRevenue', rcCellNum(finMult, 'E20') / e4);
-      rcSetPct('rc_capexPctRevenue', rcCellNum(finMult, 'E21') / e4);
-      rcSetPct('rc_netBorrowingPctRevenue', rcCellNum(finMult, 'E28') / e4);
-      if(d4 != null) rcSetPct('rc_nwcPctDeltaRevenue', rcCellNum(finMult, 'E22') / (e4 - d4));
-    }
-    if(e6) rcSetPct('rc_interestOtherPctEBIT', rcCellNum(finMult, 'E10') / e6);
-    var e31 = rcCellNum(finMult, 'E31'), f31 = rcCellNum(finMult, 'F31');
-    if(e31 && f31 != null) rcSetPct('rc_buybackRate', (f31 / e31) - 1);
-    rcSetNum('rc_dividendPerShare', rcCellNum(finMult, 'E35'));
-
-    rcSetNum('rc_evEbitdaBase', rcCellNum(wb.Sheets['EVEBITDA'], 'E8'));
-    rcSetNum('rc_evFcffBase', rcCellNum(wb.Sheets['EVFCFF'], 'E8'));
-    rcSetNum('rc_peBase', rcCellNum(wb.Sheets['PE'], 'E8'));
-    rcSetNum('rc_pfcfeBase', rcCellNum(wb.Sheets['PFCFE'], 'E8'));
-    rcSetNum('rc_pocfBase', rcCellNum(wb.Sheets['POCF'], 'E8'));
+  // Hoja de Google de la valoración vigente (enlace de la valoración guardada o el importado por enlace).
+  var currentHojaGoogle = null;
+  function rcSetSource(state, text){
+    var box = document.getElementById('rcSource');
+    box.hidden = state === 'none' || (!currentHojaGoogle && state !== 'excel');
+    box.classList.toggle('loading', state === 'loading');
+    box.classList.toggle('error', state === 'error');
+    document.getElementById('rcSourceText').textContent = text;
+    var link = document.getElementById('rcSourceLink');
+    link.hidden = !currentHojaGoogle; if(currentHojaGoogle) link.href = currentHojaGoogle;
+    document.getElementById('rcSourceReload').hidden = !currentHojaGoogle;
+  }
+  function rcLoadFromGoogle(){
+    var id = googleSheetId(currentHojaGoogle);
+    if(!id) return;
+    rcSetSource('loading', 'Leyendo la hoja de Google…');
+    fetchGoogleSheetWb(id).then(function(wb){
+      rcExtractFromExcel(wb);
+      if(currentResumen && typeof currentResumen.precio === 'number') rcSetNum('rc_precioActual', currentResumen.precio);
+      rcSetSource('ok', 'Datos leídos de la hoja de Google a las ' + new Date().toLocaleTimeString('es-CO', {hour: '2-digit', minute: '2-digit'}));
+    }).catch(function(){
+      rcSetSource('error', 'No se pudo leer la hoja de Google (debe estar compartida como "Cualquier persona con el enlace").');
+    });
   }
 
   function rcPrefillFromExcel(){
@@ -3286,8 +3748,15 @@
       }
       if(typeof currentResumen.mos === 'number' && isFinite(currentResumen.mos)) document.getElementById('rc_mos').value = (currentResumen.mos * 100).toFixed(2);
     }
-    if(currentWb) rcExtractFromExcel(currentWb);
+    if(currentWb){
+      rcExtractFromExcel(currentWb);
+      rcSetSource(currentHojaGoogle ? 'ok' : 'excel', currentHojaGoogle ? 'Datos leídos de la hoja de Google' : 'Datos leídos del archivo subido. Para trabajar siempre con la versión vigente, importa la hoja de Google.');
+    } else {
+      rcHoja = null;
+      if(currentHojaGoogle) rcLoadFromGoogle(); else rcSetSource('none', '');
+    }
   }
+  document.getElementById('rcSourceReload').addEventListener('click', rcLoadFromGoogle);
 
   input.addEventListener('change', function(e){ handleFile(e.target.files[0]); });
   dz.addEventListener('dragover', function(e){ e.preventDefault(); dz.classList.add('drag'); });
@@ -3319,6 +3788,19 @@
   function googleSheetExportUrl(id){
     return 'https://docs.google.com/spreadsheets/d/' + encodeURIComponent(id) + '/export?format=xlsx';
   }
+  function fetchGoogleSheetWb(id){
+    return fetch(googleSheetExportUrl(id), { method: 'GET', mode: 'cors', credentials: 'omit', redirect: 'follow' })
+      .then(function(res){
+        if(!res.ok) throw new Error('Google respondió ' + res.status);
+        return res.arrayBuffer();
+      })
+      .then(function(buf){
+        if(!buf || buf.byteLength < 100) throw new Error('la exportación llegó vacía');
+        var wb = parseWorkbookFromBytes(new Uint8Array(buf), 'sheet.xlsx');
+        if(!wb.SheetNames || !wb.SheetNames.length) throw new Error('no se reconoció ninguna hoja');
+        return wb;
+      });
+  }
   function setDriveStatus(msg, isError){
     var el = document.getElementById('driveStatus');
     if(!el) return;
@@ -3342,15 +3824,10 @@
     var btn = document.getElementById('driveLinkBtn');
     btn.disabled = true;
     setDriveStatus('Solicitando la hoja a Google…');
-    fetch(exportUrl, { method: 'GET', mode: 'cors', credentials: 'omit', redirect: 'follow' })
-      .then(function(res){
-        if(!res.ok) throw new Error('Google respondió ' + res.status);
-        return res.arrayBuffer();
-      })
-      .then(function(buf){
-        if(!buf || buf.byteLength < 100) throw new Error('la exportación llegó vacía');
-        var wb = parseWorkbookFromBytes(new Uint8Array(buf), 'sheet.xlsx');
-        if(!wb.SheetNames || !wb.SheetNames.length) throw new Error('no se reconoció ninguna hoja');
+    fetchGoogleSheetWb(id)
+      .then(function(wb){
+        currentHojaGoogle = 'https://docs.google.com/spreadsheets/d/' + id + '/edit';
+        try { localStorage.setItem('jmr-ultima-hoja-google', currentHojaGoogle); } catch(e){}
         render(wb);
         setDriveStatus('Importado ✓');
       })

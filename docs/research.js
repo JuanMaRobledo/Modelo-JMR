@@ -4,7 +4,7 @@
   var LOCAL_KEY = 'jmr-research-library-v1';
   // Clave nueva: los cambios locales del antiguo prompt de 21 secciones
   // no deben ocultar la versión maestra v4 al actualizar la aplicación.
-  var PROMPT_KEY = 'jmr-research-prompt-v4';
+  var PROMPT_KEY = 'jmr-research-prompt-v5';
   var GH_REPO_API = 'https://api.github.com/repos/JuanMaRobledo/Modelo-JMR-datos/';
   var GH_API = GH_REPO_API + 'contents/';
   // Algunos logos del CDN de FMP desaparecen aunque la empresa siga
@@ -18,14 +18,14 @@
     'Resumen ejecutivo', 'Modelo de negocio', 'Segmentos y geografía',
     'Industria y crecimiento', 'Calidad del negocio', 'Ventaja competitiva',
     'Competencia', 'Gestión y asignación de capital', 'Catalizadores',
-    'Riesgos', 'Bulls say / Bears say', 'Filosofías de inversión',
+    'Riesgos', 'Bulls say / Bears say', 'Valor con criterio Damodaran', 'Filosofías de inversión',
     'Noticias y eventos recientes', 'Qué vigilar', 'Preguntas abiertas',
     'Fuentes', 'Control de calidad final'
   ];
   var state = freshState();
 
   function freshState() {
-    return { id: '', title: '', ticker: '', company: '', date: new Date().toISOString().slice(0, 10), logo: '', price: null, priceFetchedAt: '', html: '', sourceName: '', valuationHtml: '', linkedValuation: null, news: '', remotePath: '', remoteSha: '' };
+    return { id: '', title: '', ticker: '', company: '', date: new Date().toISOString().slice(0, 10), logo: '', price: null, priceFetchedAt: '', html: '', sourceName: '', valuationHtml: '', linkedValuation: null, news: '', remotePath: '', remoteSha: '', decision: null };
   }
   function el(id) { return document.getElementById(id); }
   function escapeHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
@@ -203,28 +203,66 @@
   // ticker (ver linkVisorValuation) — reutiliza los mismos campos que
   // guarda saveValoracion() en visor.html, así que no depende de re-tipear
   // nada ni de mantener sincronizada una tabla subida a mano aparte.
+  // Marca como .num las celdas numéricas de las tablas del análisis (montos,
+  // porcentajes, múltiplos) para alinearlas a la derecha; si la mayoría de una
+  // columna es numérica, también su encabezado.
+  var NUM_CELL = /^[\s(]*[~≈≥≤<>]?\s*[-−+]?\s*(US\$|R\$|DKK|CHF|€|\$)?\s*[-−+]?\d[\d.,]*\s*(%|x|pp|pb|M|MM|mill\.?|millones)?\s*\)?(\s*\([^)]{0,24}\))?\s*$/i;
+  function markNumericCells(root) {
+    if (!root) return;
+    root.querySelectorAll('table:not(.jvb-table)').forEach(function (t) {
+      var cols = {};
+      t.querySelectorAll('tbody tr').forEach(function (tr) {
+        Array.prototype.forEach.call(tr.children, function (c, i) {
+          var txt = c.textContent.trim(), isNum = txt.length > 0 && txt.length < 32 && NUM_CELL.test(txt);
+          if (isNum) c.classList.add('num');
+          cols[i] = cols[i] || { n: 0, t: 0 };
+          if (txt && txt !== '—') { cols[i].t++; if (isNum) cols[i].n++; }
+        });
+      });
+      var head = t.querySelector('thead tr');
+      if (head) Array.prototype.forEach.call(head.children, function (th, i) { if (i > 0 && cols[i] && cols[i].t && cols[i].n / cols[i].t >= 0.6) th.classList.add('num'); });
+    });
+  }
   function buildLinkedValuationHtml(lv) {
     function money(v) { return v == null || !isFinite(v) ? '—' : '$' + Number(v).toLocaleString('es-CO', {minimumFractionDigits:2, maximumFractionDigits:2}); }
     function kv(label, value) { return '<div class="linked-kv"><span>' + escapeHtml(label) + '</span><strong>' + value + '</strong></div>'; }
     function zoneKv(label, z) { return z ? kv(label, money(z.min) + ' – ' + money(z.max)) : ''; }
-    var op = lv.objetivoPonderado || {}, vp = lv.valorPresentePonderado || {}, z = lv.zonas || {}, dm=lv.descuentoMultiples||{};
-    var methods=lv.metodos||[], sum=0, fy3={conservador:0,base:0,optimista:0};
-    methods.forEach(function(m){if(/DCF/i.test(m.nombre||''))return;var w=Number(m.peso)||0;sum+=w;Object.keys(fy3).forEach(function(k){fy3[k]+=w*(Number(m[k])||0);});});
-    if(sum)Object.keys(fy3).forEach(function(k){fy3[k]/=sum;});
-    function scenarios(label,v,featured){return v&&v.base!=null?'<div class="linked-scenario'+(featured?' featured':'')+'"><span>'+escapeHtml(label)+'</span><strong>'+money(v.base)+'</strong><small>Cons '+money(v.conservador)+' · Opt '+money(v.optimista)+'</small></div>':'';}
+    var z = lv.zonas || {};
+    // Tablero compartido (valuation-board.js): el DCF es el valor intrínseco y
+    // va primero; múltiplos juntos, por método y ponderado, hoy o FY+3.
+    var board = typeof JmrValueBoard !== 'undefined' ? JmrValueBoard.fromRecord(lv, { precioLbl: 'Precio del análisis' }) : null;
+    var boardHtml = board && JmrValueBoard.hasData(board) ? JmrValueBoard.html(board, { hero: true }) : '';
     var visorLink = lv.sourcePath ? '<a class="linked-visor-link" href="visor.html?path=' + encodeURIComponent(lv.sourcePath) + '">Ver en el Visor →</a>' : '';
-    return '<section class="valuation-block linked-valuation"><span class="linked-tag">✓ Vinculado con el Visor · ' + escapeHtml(lv.sourcePath || '') + '</span>' + visorLink + '<h2>Valoración cuantitativa (Visor)</h2><div class="linked-scenarios">' +
-      scenarios('DCF · valor intrínseco hoy',dm.dcfHoy) + scenarios('Múltiplos · valor hoy',dm.multiplesHoy) + scenarios('Ponderado · valor hoy',vp,true) + scenarios('Múltiplos · objetivo FY+3',sum?fy3:null) + scenarios('Ponderado · objetivo FY+3',op,true) + '</div><div class="linked-grid">' +
-      kv('Precio', money(lv.precio)) +
-      kv('Fecha del análisis', escapeHtml(lv.fecha || '—')) +
-      (vp.base != null ? kv('Valor hoy conservador', money(vp.conservador)) + kv('Valor hoy base', money(vp.base)) + kv('Valor hoy optimista', money(vp.optimista)) : '') +
-      kv('Combinado FY+3 conservador', money(op.conservador)) +
-      kv('Combinado FY+3 base', money(op.base)) +
-      kv('Combinado FY+3 optimista', money(op.optimista)) +
-      zoneKv('Zona Value', z.value) + zoneKv('Zona Deep Value', z.deepValue) + zoneKv('Zona histórica', z.historica) +
-      '</div></section>';
+    var zones = zoneKv('Zona Value (sobre el objetivo FY+3)', z.value) + zoneKv('Zona Deep Value', z.deepValue) + zoneKv('Zona histórica', z.historica);
+    return '<section class="valuation-block linked-valuation"><span class="linked-tag">✓ Vinculado con el Visor · ' + escapeHtml(lv.sourcePath || '') + '</span>' + visorLink + '<h2>Valoración cuantitativa (Visor)</h2>' +
+      boardHtml + '<div class="linked-grid">' + kv('Fecha del análisis', escapeHtml(lv.fecha || '—')) + zones + '</div></section>';
   }
   var editing = false;
+  // Decisión del usuario (Comprar / Mantener / Vender) — decision.js. Se
+  // guarda dentro del mismo registro del análisis (local y en GitHub).
+  function renderDecision() {
+    var box = el('decisionBox');
+    if (!box || typeof JmrDecision === 'undefined') return;
+    if (!state.ticker || !state.html) { box.innerHTML = ''; return; }
+    box.innerHTML = JmrDecision.widget(state.decision, state.id || state.ticker);
+    var root = box.querySelector('.jmr-dec');
+    root.querySelector('.jmr-dec-save').addEventListener('click', function () {
+      var btn = this, v = JmrDecision.read(root);
+      state.decision = JmrDecision.build(state.decision, v.valor, v.nota, state.price);
+      if (!state.id) state.id = makeId();
+      state.updatedAt = new Date().toISOString();
+      var record = Object.assign({}, state);
+      btn.disabled = true; JmrDecision.setStatus(root, 'Guardando…');
+      try { upsertLocal(record); } catch (err) { btn.disabled = false; JmrDecision.setStatus(root, 'No cabe en el almacenamiento local.', false); return; }
+      remoteSave(record).then(function (saved) {
+        if (saved) { upsertLocal(saved); state.remotePath = saved.remotePath; state.remoteSha = saved.remoteSha; }
+        renderDecision(); renderLibrary();
+        var r2 = el('decisionBox').querySelector('.jmr-dec');
+        JmrDecision.setStatus(r2, saved ? 'Decisión guardada en tu repositorio de GitHub.' : 'Guardada solo en este navegador: conecta GitHub para que quede a salvo.', !!saved);
+      }).catch(function (err) { JmrDecision.setStatus(root, 'Guardada localmente, pero GitHub falló: ' + err.message, false); btn.disabled = false; });
+    });
+  }
+
   function renderPreview() {
     el('previewCompany').textContent = state.company || state.title || 'Nuevo análisis';
     el('previewTicker').textContent = state.ticker || '—';
@@ -239,6 +277,7 @@
     // otro campo (ticker, empresa, etc., que también llaman a
     // renderPreview vía syncFields) borraría cualquier edición todavía
     // no aplicada.
+    renderDecision();
     if (editing) return;
     var body = el('previewBody');
     el('editorToolbar').hidden = !(state.html || state.valuationHtml || state.linkedValuation || state.news);
@@ -248,6 +287,7 @@
     var val = state.valuationHtml ? '<section class="valuation-block"><h2>Valoración cuantitativa (tabla subida)</h2>' + state.valuationHtml + '</section>' : '';
     var analysis = navigableAnalysis(state.html, 'principal');
     body.innerHTML = '<div class="research-document">' + title + analysis.toc + '<div id="editableContent">' + analysis.body + '</div>' + linked + val + renderNews() + '</div>';
+    markNumericCells(body);
     renderEditorToolbar();
   }
 
@@ -460,7 +500,7 @@
       return fetchJsonFile(matches[0].path).then(function (rec) { return { rec: rec, path: matches[0].path, count: matches.length }; });
     }).then(function (found) {
       var rec = found.rec;
-      state.linkedValuation = { precio: rec.precio, fecha: rec.fecha, zonas: rec.zonas, objetivoPonderado: rec.objetivoPonderado, valorPresentePonderado: rec.valorPresentePonderado, descuentoMultiples: rec.descuentoMultiples, metodos: rec.metodos, cagr: rec.cagr, sourcePath: found.path };
+      state.linkedValuation = { precio: rec.precio, fecha: rec.fecha, zonas: rec.zonas, objetivoPonderado: rec.objetivoPonderado, valorPresentePonderado: rec.valorPresentePonderado, descuentoMultiples: rec.descuentoMultiples, metodos: rec.metodos, cagr: rec.cagr, mos: rec.mos, hojaGoogle: rec.hojaGoogle, sourcePath: found.path };
       renderPreview();
       setStatus('linkVisorStatus','Vinculado con "' + found.path + '"' + (found.count > 1 ? ' (la más reciente de ' + found.count + ' guardadas para este ticker)' : '') + '.','ok');
     }).catch(function (err) { setStatus('linkVisorStatus', err.message, 'bad'); }).finally(function () { btn.disabled = false; });
@@ -477,7 +517,7 @@
     var openedId=state.id, linkedPath=state.linkedValuation.sourcePath;
     if(linkedPath) fetchJsonFile(linkedPath).then(function(rec){
       if(state.id!==openedId||!state.linkedValuation||state.linkedValuation.sourcePath!==linkedPath)return;
-      state.linkedValuation=Object.assign({},state.linkedValuation,{valorPresentePonderado:rec.valorPresentePonderado,descuentoMultiples:rec.descuentoMultiples,metodos:rec.metodos,objetivoPonderado:rec.objetivoPonderado});
+      state.linkedValuation=Object.assign({},state.linkedValuation,{valorPresentePonderado:rec.valorPresentePonderado,descuentoMultiples:rec.descuentoMultiples,metodos:rec.metodos,objetivoPonderado:rec.objetivoPonderado,mos:rec.mos,hojaGoogle:rec.hojaGoogle});
       renderPreview();
     }).catch(function(){});
     listValoraciones().then(function (files) {
@@ -918,7 +958,7 @@
       var logo=logoSrc?'<img class="mini-logo" src="'+escapeHtml(logoSrc)+'" data-ticker="'+escapeHtml(r.ticker||'?')+'" alt="Logo de '+escapeHtml(r.company||r.ticker||'empresa')+'">':'<span class="mini-logo mini-fallback">'+escapeHtml((r.ticker||'?').slice(0,2))+'</span>';
       var excerpt=recordExcerpt(r);
       var visorLink=(r.linkedValuation&&r.linkedValuation.sourcePath)?'<a class="btn" href="visor.html?path='+encodeURIComponent(r.linkedValuation.sourcePath)+'">Ver en el Visor</a>':'';
-      return '<article class="analysis-card" data-id="'+escapeHtml(r.id)+'"><div class="card-head">'+logo+'<div class="card-title"><strong>'+escapeHtml(r.title||r.company)+'</strong><span class="ticker">'+escapeHtml(r.ticker||'—')+' · '+escapeHtml(r.company||'')+'</span></div></div>'+(excerpt?'<p class="card-excerpt">'+escapeHtml(excerpt)+'</p>':'')+'<div class="card-meta"><span>'+escapeHtml(r.date||'Sin fecha')+'</span><span>'+(r.remotePath?'GitHub + local':'Solo local')+'</span></div><div class="card-actions"><button class="btn" data-action="open" type="button">Abrir</button>'+visorLink+'<button class="btn danger" data-action="delete" type="button">Borrar</button></div></article>';
+      return '<article class="analysis-card" data-id="'+escapeHtml(r.id)+'"><div class="card-head">'+logo+'<div class="card-title"><strong>'+escapeHtml(r.title||r.company)+(typeof JmrDecision!=='undefined'?JmrDecision.badge(r.decision):'')+'</strong><span class="ticker">'+escapeHtml(r.ticker||'—')+' · '+escapeHtml(r.company||'')+'</span></div></div>'+(excerpt?'<p class="card-excerpt">'+escapeHtml(excerpt)+'</p>':'')+'<div class="card-meta"><span>'+escapeHtml(r.date||'Sin fecha')+'</span><span>'+(r.remotePath?'GitHub + local':'Solo local')+'</span></div><div class="card-actions"><button class="btn" data-action="open" type="button">Abrir</button>'+visorLink+'<button class="btn danger" data-action="delete" type="button">Borrar</button></div></article>';
     }).join('');
     wireLogoFallbacks(holder);
     setStatus('libraryStatus',list.length+' análisis · '+(getGhToken()?'GitHub disponible':'almacenamiento local'));
@@ -965,6 +1005,7 @@
     var b = list.find(function (r) { return r.id === el('compareB').value; });
     if (!a || !b) { setStatus('compareStatus','Elegí dos análisis guardados para comparar.','bad'); el('compareOutput').innerHTML = '<div class="compare-empty">Elegí dos empresas arriba para verlas lado a lado.</div>'; return; }
     el('compareOutput').innerHTML = buildCompareColumnHtml(a) + buildCompareColumnHtml(b);
+    markNumericCells(el('compareOutput'));
     setStatus('compareStatus','Comparando "' + (a.ticker || a.title) + '" vs. "' + (b.ticker || b.title) + '".','ok');
   });
   el('comparePrintBtn').addEventListener('click', function () { window.print(); });
@@ -976,14 +1017,37 @@
   });
 
   function download(name,text,type){var blob=new Blob([text],{type:type||'text/plain'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url);},1000);}
-  var defaultPrompt='';
-  function loadPrompt(force) {
-    fetch('prompts/research-fundamental-jmr-v4.md',{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.text();}).then(function(text){defaultPrompt=text;var saved='';try{saved=localStorage.getItem(PROMPT_KEY)||'';}catch(e){}el('promptText').value=force||!saved?text:saved;}).catch(function(err){setStatus('promptStatus','No se pudo cargar el prompt: '+err.message,'bad');});
+  // Dos prompts maestros: el de Research fundamental (v4) y el de valoración
+  // del Modelo JMR (v3, que reemplazó a la v2: múltiplos elegidos con anclas
+  // documentadas e independientes del DCF). Cada uno guarda sus cambios aparte.
+  var PROMPTS = {
+    research: { file: 'prompts/research-fundamental-jmr-v5.md', key: PROMPT_KEY, download: 'JMR - PROMPT Research VIGENTE v5.md',
+      title: 'Prompt maestro v5 · 18 secciones · criterio Damodaran', btn: 'promptKindResearch',
+      help: 'Úsalo en ChatGPT o Claude junto con la tabla del Modelo JMR. El esquema fijo hace que ambos produzcan documentos comparables.',
+      note: 'Adjunta la tabla JMR y los informes disponibles. La v5 agrega la sección 12, «Valor con criterio Damodaran»: historia, tasas base, piezas del valor, historias con probabilidades y el precio solo al final, con un registro de decisión.' },
+    valuation: { file: 'prompts/valoracion-modelo-jmr-v4.md', key: 'jmr-valuation-prompt-v4', download: 'JMR - PROMPT Valoracion VIGENTE v4.md',
+      title: 'Prompt de valoración v4 · criterio Damodaran', btn: 'promptKindValuation',
+      help: 'Arma el Modelo JMR de punta a punta (SEC EDGAR, costo de capital, supuestos anclados, bugs conocidos, guardado en Drive) y elige los múltiplos con tres anclas documentadas: historia depurada, peers ajustados y múltiplo justificado.',
+      note: 'El valor intrínseco es el DCF; los múltiplos (con sus tres anclas) son precio relativo y se ponderan solo si se quiere, según el tipo de empresa. Historia y tasas base primero, historias con probabilidades y el precio al final.' }
+  };
+  var promptKind = 'research', defaultPrompts = {};
+  try { if (localStorage.getItem('jmr-prompt-kind') === 'valuation') promptKind = 'valuation'; } catch (e) {}
+  function currentPrompt(){ return PROMPTS[promptKind]; }
+  function showPromptMeta(){
+    var p = currentPrompt();
+    el('promptTitle').textContent = p.title; el('promptHelp').textContent = p.help; el('promptNote').textContent = p.note;
+    Object.keys(PROMPTS).forEach(function(k){ var b = el(PROMPTS[k].btn); b.classList.toggle('primary', k === promptKind); b.setAttribute('aria-pressed', String(k === promptKind)); });
   }
+  function loadPrompt(force) {
+    var kind = promptKind, p = PROMPTS[kind];
+    showPromptMeta();
+    fetch(p.file,{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.text();}).then(function(text){if(kind!==promptKind)return;defaultPrompts[kind]=text;var saved='';try{saved=localStorage.getItem(p.key)||'';}catch(e){}el('promptText').value=force||!saved?text:saved;setStatus('promptStatus','','');}).catch(function(err){setStatus('promptStatus','No se pudo cargar el prompt: '+err.message,'bad');});
+  }
+  Object.keys(PROMPTS).forEach(function(k){ el(PROMPTS[k].btn).addEventListener('click', function(){ if (k === promptKind) return; promptKind = k; try { localStorage.setItem('jmr-prompt-kind', k); } catch (e) {} loadPrompt(false); }); });
   el('copyPromptBtn').addEventListener('click',function(){navigator.clipboard.writeText(el('promptText').value).then(function(){setStatus('promptStatus','Prompt copiado.','ok');}).catch(function(){el('promptText').select();document.execCommand('copy');setStatus('promptStatus','Prompt copiado.','ok');});});
-  el('savePromptBtn').addEventListener('click',function(){try{localStorage.setItem(PROMPT_KEY,el('promptText').value);setStatus('promptStatus','Cambios guardados en este navegador.','ok');}catch(e){setStatus('promptStatus','No fue posible guardar el prompt.','bad');}});
-  el('downloadPromptBtn').addEventListener('click',function(){download('prompt-research-fundamental-modelo-jmr-v4.md',el('promptText').value,'text/markdown');});
-  el('resetPromptBtn').addEventListener('click',function(){if(defaultPrompt){el('promptText').value=defaultPrompt;try{localStorage.removeItem(PROMPT_KEY);}catch(e){}setStatus('promptStatus','Prompt restaurado.','ok');}else loadPrompt(true);});
+  el('savePromptBtn').addEventListener('click',function(){try{localStorage.setItem(currentPrompt().key,el('promptText').value);setStatus('promptStatus','Cambios guardados en este navegador.','ok');}catch(e){setStatus('promptStatus','No fue posible guardar el prompt.','bad');}});
+  el('downloadPromptBtn').addEventListener('click',function(){download(currentPrompt().download,el('promptText').value,'text/markdown');});
+  el('resetPromptBtn').addEventListener('click',function(){var d=defaultPrompts[promptKind];if(d){el('promptText').value=d;try{localStorage.removeItem(currentPrompt().key);}catch(e){}setStatus('promptStatus','Prompt restaurado.','ok');}else loadPrompt(true);});
 
   // Enlace inverso desde "Valoraciones guardadas" del Visor: llega acá
   // como research.html?ticker=XXX — precarga la búsqueda con ese ticker

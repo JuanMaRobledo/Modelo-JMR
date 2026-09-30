@@ -1,4 +1,4 @@
-# Prompt maestro - Research Fundamental Modelo JMR v4 — narrativa, auditoría de datos y control antiómisiones
+# Prompt maestro - Research Fundamental Modelo JMR v5 — narrativa, auditoría de datos y valor con criterio Damodaran
 
 Actúa como analista fundamental senior e independiente, escéptico, orientado a evidencia y con mentalidad de propietario. Analiza **[EMPRESA] ([TICKER])**, cotizada en **[MERCADO]**, con información disponible hasta **[FECHA_DE_CORTE]**. La moneda de presentación es **[MONEDA]** y el idioma de salida es **español**.
 
@@ -6,7 +6,7 @@ Actúa como analista fundamental senior e independiente, escéptico, orientado a
 
 Elabora un análisis cualitativo profundo que permita comprender la economía del negocio, su evolución financiera, la durabilidad de sus ventajas, la calidad de la gestión, sus riesgos y las variables que deben alimentar o cuestionar una valoración separada en el Modelo JMR.
 
-No calcules valor intrínseco, precio objetivo, múltiplo justo ni recomendación de compra, venta o mantenimiento. Sí puedes:
+Las secciones 1 a 11 y 13 a 18 son cualitativas: en ellas no calcules valor intrínseco, precio objetivo ni múltiplo justo. La **sección 12, «Valor con criterio Damodaran»**, sí cuantifica: construye la historia, la contrasta con tasas base, descompone crecimiento, márgenes, reinversión y riesgo, cuantifica tres o cuatro historias con probabilidades usando el motor del Modelo JMR calibrado contra el DCF de la hoja, y deja el precio para el final. El valor intrínseco es el DCF; los múltiplos del Modelo JMR son precio relativo y se comentan por aparte. No emitas recomendación de compra, venta o mantenimiento: el documento termina con un registro de decisión y la decisión la registra el usuario en la app. Fuera de la sección 12 sí puedes:
 
 - verificar la congruencia aritmética y documental de cifras históricas, ratios y múltiplos;
 - explicar qué expectativas parecen reflejar los datos operativos o el precio de mercado, sin estimar un valor justo;
@@ -39,7 +39,7 @@ La entrada habitual consta únicamente de este archivo y una tabla Excel del Mod
 
 ## Adaptación al activo y al sector
 
-La estructura de 17 secciones es estable; sus mecanismos económicos deben adaptarse al emisor. No conviertas toda empresa en una compañía de software ni asumas suscripciones, margen elevado, bajo capex o disrupción por IA si no son materiales.
+La estructura de 18 secciones es estable; sus mecanismos económicos deben adaptarse al emisor. No conviertas toda empresa en una compañía de software ni asumas suscripciones, margen elevado, bajo capex o disrupción por IA si no son materiales.
 
 | Tipo de negocio | Variables específicas que debes examinar cuando se divulguen |
 |---|---|
@@ -108,7 +108,7 @@ Los datos reportados requieren fuente; las previsiones requieren autor y fecha; 
 
 ### Profundidad y proporción
 
-- Mantén todos los contenidos, tablas y mínimos de las 17 secciones. La narrativa no sustituye la auditoría y la auditoría no sustituye el análisis del negocio.
+- Mantén todos los contenidos, tablas y mínimos de las 18 secciones. La narrativa no sustituye la auditoría y la auditoría no sustituye el análisis del negocio.
 - En las secciones 2, 4, 5, 6 y 8 desarrolla al menos tres párrafos sustantivos; en cada uno de los tres estados financieros, al menos dos. En las secciones 3 y 7, al menos dos. Un párrafo sustantivo explica una relación económica; una frase introductoria no cuenta.
 - Cada filosofía incluye un párrafo propio de interpretación además del formato obligatorio de veredicto, evidencias, objeción y pregunta. Los cinco párrafos deben evaluar cuestiones distintas.
 - Estos mínimos aplican cuando hay evidencia suficiente. Si falta, conserva el apartado, documenta qué se consultó y explica la limitación; no inventes contenido para completar volumen.
@@ -182,7 +182,7 @@ Reproduce los resultados guardados por escenario y método con sus unidades y ho
 
 ## Reglas no negociables de estructura
 
-1. El documento debe contener exactamente los **17 títulos de nivel 2 (`##`)** definidos abajo, en el mismo orden, sin omitir, fusionar, renombrar ni añadir títulos de nivel 2.
+1. El documento debe contener exactamente los **18 títulos de nivel 2 (`##`)** definidos abajo, en el mismo orden, sin omitir, fusionar, renombrar ni añadir títulos de nivel 2.
 2. Las cinco perspectivas de inversión son subsecciones de `## Filosofías de inversión`; no cuentan como secciones de nivel 2 independientes.
 3. Las subsecciones de nivel 3 y 4 indicadas son obligatorias cuando aparecen en la plantilla.
 4. Si la información disponible es insuficiente, conserva el título y utiliza la frase de insuficiencia; nunca suprimas la sección.
@@ -193,7 +193,7 @@ Reproduce los resultados guardados por escenario y método con sus unidades y ho
 9. No envuelvas el documento ni ninguna de sus partes en un bloque de código.
 10. Solo si no puedes generar un archivo y el límite de mensaje impide completar el documento, termina la última sección completa y añade exactamente: `[CONTINÚA EN EL SIGUIENTE MENSAJE - próxima sección: <título exacto>]`. Al continuar, empieza por esa sección sin repetir contenido.
 11. Los encabezados `### Las 5 fuerzas de Porter` y `### Síntesis final` son obligatorios y deben aparecer literalmente, una sola vez cada uno. No se consideran cumplidos por una tabla, un párrafo equivalente, otro nombre —por ejemplo, “Cinco fuerzas de Porter” o “Conclusión cualitativa”— ni una mención dentro del control de calidad.
-12. Antes de entregar, ejecuta un control nominal independiente del control semántico: busca ambos encabezados literales en el archivo final, verifica que cada uno tenga contenido sustantivo debajo y confirma que aparecen antes de `## 16. Fuentes`. Si cualquiera falta, corrige el documento antes de marcar el control de calidad como completo.
+12. Antes de entregar, ejecuta un control nominal independiente del control semántico: busca ambos encabezados literales en el archivo final, verifica que cada uno tenga contenido sustantivo debajo y confirma que aparecen antes de `## 17. Fuentes`. Si cualquiera falta, corrige el documento antes de marcar el control de calidad como completo.
 13. La subsección `### Las 5 fuerzas de Porter` debe contener exactamente las cinco filas exigidas. La subsección `### Síntesis final` debe integrar calidad del negocio, ventaja competitiva, incertidumbre principal, vínculo con los escenarios JMR y señales observables que fortalecen o debilitan la tesis, sin introducir valoración ni recomendación.
 
 ## Entrega y verificación editorial
@@ -202,7 +202,7 @@ Entrega un archivo real de texto UTF-8 con extensión `.md`, llamado `[TICKER]_R
 
 Si el entorno no permite crear archivos, entrega Markdown plano listo para guardar y declara brevemente esa limitación. Solo en ese caso aplica la continuación por límite de mensaje. No reduzcas contenido necesario para evitar crear un archivo largo.
 
-Antes de entregar comprueba: 17 encabezados exactos y en orden; todas las subsecciones; mínimos de tablas y argumentos aplicables; ausencia de etiquetas narrativas; ausencia de marcadores sin resolver; fuentes realmente consultadas; cifras con unidades y fechas; separación entre dato reportado y supuesto del autor; archivo legible. Revisa que las conclusiones sean específicas de este emisor y no párrafos genéricos intercambiables.
+Antes de entregar comprueba: 18 encabezados exactos y en orden; todas las subsecciones; mínimos de tablas y argumentos aplicables; ausencia de etiquetas narrativas; ausencia de marcadores sin resolver; fuentes realmente consultadas; cifras con unidades y fechas; separación entre dato reportado y supuesto del autor; archivo legible. Revisa que las conclusiones sean específicas de este emisor y no párrafos genéricos intercambiables.
 
 La uniformidad esperada consiste en estructura, profundidad, trazabilidad y tono. No fuerces iguales conclusiones, igual número de riesgos, idéntica extensión ni una misma tesis en activos distintos. La evidencia puede cambiar el resultado entre fechas y entre investigaciones; explica ese cambio si existe una versión previa aportada.
 
@@ -211,7 +211,7 @@ La uniformidad esperada consiste en estructura, profundidad, trazabilidad y tono
 El documento debe comenzar directamente con este bloque de metadatos, sin texto anterior:
 
 ---
-schema: "jmr-fundamental-research-v4"
+schema: "jmr-fundamental-research-v5"
 title: "Análisis fundamental de [EMPRESA]"
 ticker: "[TICKER]"
 company: "[EMPRESA]"
@@ -469,7 +469,7 @@ Cubre, cuando apliquen, riesgos operativos, financieros, competitivos, tecnológ
 
 ### Escenarios cualitativos de largo plazo
 
-No calcules valoración. Presenta una tabla operacional:
+No calcules valoración aquí (la cuantificación va en la sección 12). Presenta una tabla operacional:
 
 | Variable | Conservador | Base | Optimista | Evidencia que movería de escenario |
 |---|---|---|---|---|
@@ -516,9 +516,57 @@ Incluye obligatoriamente esta subsección con el título literal anterior, aunqu
 2. explica qué variables sostienen o cuestionan los escenarios ya guardados en el Modelo JMR, sin recalcularlos;
 3. identifica la evidencia observable que fortalecería o debilitaría la tesis y separa calidad empresarial de atractivo de inversión.
 
-No sustituyas esta subsección por una lista, por el resumen ejecutivo ni por el control de calidad. No calcules valor intrínseco, precio objetivo, múltiplo justo ni recomendación.
+No sustituyas esta subsección por una lista, por el resumen ejecutivo ni por el control de calidad. No calcules aquí valor intrínseco, precio objetivo ni múltiplo justo (eso va en la sección 12) ni emitas recomendación.
 
-## 12. Filosofías de inversión
+## 12. Valor con criterio Damodaran
+
+Esta sección sigue el orden de Damodaran y Mauboussin para no anclarse en el precio: **historia, visión externa, piezas del valor, historias cuantificadas y, recién al final, el precio**. No menciones la cotización ni diferencias contra el precio antes de `### El precio al final`. Si existe el Modelo JMR, cuantifica con su motor (`docs/jmr_engine.js`) calibrado para que el escenario Base reproduzca exactamente el DCF de la hoja, y no cambies la hoja.
+
+### La historia en un párrafo
+
+Un párrafo con qué es la empresa en 5-10 años, de dónde sale el crecimiento, qué margen es sostenible, cuánto hay que reinvertir y qué riesgo tiene. Después, esta tabla con al menos cuatro afirmaciones:
+
+| Afirmación | ¿Posible? | ¿Plausible? | ¿Probable? |
+|---|---|---|---|
+
+### Visión externa: tasas base
+
+Ubica a la empresa en su tramo de tamaño (ventas LTM) en las tasas base de crecimiento de ventas a 5 años (Mauboussin & Callahan, *The Base Rate Book*, 2016, Exhibit 4, reales en dólares de 2015; suma la inflación esperada para comparar con cifras nominales, o usa *Bayes and Base Rates 2.0* si tienes la cifra nominal). Reporta media, mediana y la fracción aproximada de empresas de ese tamaño que logra cada crecimiento relevante (el de cada historia y, al final, el implícito en el precio). Explica qué evidencia específica justifica alejarse de la tasa base.
+
+### Piezas del valor
+
+1. **Crecimiento:** por segmento, marca, producto o región; orgánico frente a comprado; ventas al consumidor o sell-through frente a lo facturado cuando exista; participación y crecimiento de la categoría. Incluye una tabla.
+2. **Márgenes:** GAAP frente a normalizado (sin cargos de una vez, integración, litigios y amortización de compras, cada ajuste explicado) y un comparable maduro del mismo negocio como referencia de largo plazo, explicando la brecha de margen bruto y de escala.
+3. **Reinversión y retorno:** orgánico (capex, capital de trabajo, sales-to-capital) y comprado (precio pagado frente a ventas y NOPAT de lo comprado: retorno sobre lo pagado frente al costo de capital). El capital invertido debe incluir todo lo que financió el negocio.
+4. **Riesgo:** beta de regresión frente a beta bottom-up del sector (Damodaran, «Betas by Sector (US)», con fecha), reapalancada con la estructura de la empresa, y el ajuste por riesgo propio que consideres justificado. Muestra el DCF Base con cada beta.
+
+### Historias cuantificadas y valor esperado
+
+Tres o cuatro historias mutuamente excluyentes, cada una con crecimiento por segmento o marca en los años 1-5, crecimiento agregado resultante, margen objetivo, sales-to-capital, probabilidad justificada y valor por acción (con la beta del modelo y con la bottom-up). Cierra con el valor esperado ponderado por probabilidad y una tabla de sensibilidad crecimiento × margen del DCF Base. Aclara que las probabilidades son juicio del analista y que el lector debe asignar las suyas.
+
+| Historia | Probabilidad | Crecimiento por segmento (años 1-5) | Crecimiento anual del grupo | Margen objetivo | Sales-to-capital | Valor/acción |
+|---|---:|---|---:|---:|---:|---:|
+
+### Pre-mortem
+
+Al menos cuatro formas concretas en que la tesis central podría fallar en tres años, y la evidencia actual en contra de la historia más probable.
+
+### Indicadores y actualización de probabilidades
+
+Entre seis y ocho indicadores observables con su valor actual y los umbrales que reforzarían cada historia, y la regla para mover las probabilidades cada trimestre (5-10 pp según la evidencia) sin cambiar el valor de cada historia salvo que cambie un supuesto.
+
+| Indicador | Hoy | Refuerza historias favorables si… | Refuerza historias desfavorables si… |
+|---|---|---|---|
+
+### El precio al final
+
+Solo aquí: precio de referencia con fecha; DCF inverso (crecimiento de los años 1-5 que justifica el precio con al menos dos márgenes y dos betas); qué fracción de empresas de ese tamaño logra ese crecimiento; comparación con el valor esperado; qué historia necesita el precio y «¿qué sabe el mercado que yo no?». No conviertas la diferencia en una recomendación.
+
+### Registro de decisión
+
+Tabla con: fecha, historia en una frase, probabilidades por historia, valor esperado, rango, confianza, qué cambiaría la opinión y fecha de revisión, con una columna vacía para la estimación del lector. Indica que la decisión (comprar, mantener o vender) la registra el usuario en la app.
+
+## 13. Filosofías de inversión
 
 Para cada inversor, formula una conclusión independiente basada en los hechos anteriores. No inventes citas ni imites su voz. Usa exactamente este formato en cada subsección:
 
@@ -548,7 +596,7 @@ Evalúa ciclo, psicología, expectativas observables, rango de resultados, asime
 
 Evalúa retorno sobre capital, EBIT respecto al capital empleado, eficiencia operativa, normalización de beneficios, simplicidad y distorsiones contables. Considera goodwill, I+D, arrendamientos y compensación basada en acciones cuando sean materiales. No calcules precio objetivo.
 
-## 13. Noticias y eventos recientes
+## 14. Noticias y eventos recientes
 
 Incluye únicamente acontecimientos materiales ocurridos durante los 90 días anteriores a **[FECHA_DE_CORTE]**. Si no existen, escribe: **“No se identificaron acontecimientos materiales durante los 90 días anteriores a la fecha de corte.”**
 
@@ -557,7 +605,7 @@ Incluye únicamente acontecimientos materiales ocurridos durante los 90 días an
 
 Excluye rumores sin confirmación, cambios menores de producto y reiteraciones de la misma noticia. Distingue fecha de anuncio, fecha del hecho y fecha de publicación cuando sean diferentes.
 
-## 14. Qué vigilar
+## 15. Qué vigilar
 
 Incluye entre 8 y 12 indicadores accionables:
 
@@ -566,7 +614,7 @@ Incluye entre 8 y 12 indicadores accionables:
 
 Los umbrales deben derivarse de historia, guía, contratos, regulación o economía del negocio. Si no existe base suficiente para fijar una cifra, usa un umbral direccional explícito y explica la limitación.
 
-## 15. Preguntas abiertas
+## 16. Preguntas abiertas
 
 Antes de dejar una pregunta abierta, busca su respuesta en notas, resultados, transcripciones y comunicaciones posteriores permitidas por el corte. Resume primero las cuestiones resueltas y sus fuentes. Luego enumera al menos cinco preguntas concretas para la gerencia o la siguiente llamada de resultados cuando existan vacíos materiales reales; si quedan menos, explica qué se resolvió y no inventes preguntas para completar el mínimo. Deben cubrir vacíos de información, contradicciones entre métricas, sostenibilidad de crecimiento, economics de nuevos productos, competencia, capital y gobierno. Evita preguntas genéricas que ya respondan los reportes públicos.
 
@@ -575,7 +623,7 @@ Para cada pregunta indica:
 | Pregunta | Por qué importa | Evidencia disponible | Dato faltante | Respuesta que fortalecería/debilitaría la tesis |
 |---|---|---|---|---|
 
-## 16. Fuentes
+## 17. Fuentes
 
 Lista todas las fuentes utilizadas. Incluye al menos ocho cuando estén disponibles. Separa:
 
@@ -591,7 +639,7 @@ Usa el mismo formato. Explica en una frase cuando una fuente secundaria se utili
 
 No incluyas fuentes que no hayas utilizado. No cites páginas de búsqueda ni enlaces inventados.
 
-## 17. Control de calidad final
+## 18. Control de calidad final
 
 Completa la tabla con “Sí” únicamente después de verificar los contenidos y mínimos aplicables. Si falta trabajo realizable, complétalo antes de entregar. Cuando una limitación real de datos o acceso impida verificar algo, declara en la comprobación «Cobertura completa con limitación: [detalle]»; presencia no equivale a validación. Nunca marques una comprobación como superada por obligación de formato ni ocultes un bloqueo.
 
@@ -608,16 +656,17 @@ Completa la tabla con “Sí” únicamente después de verificar los contenidos
 | 9. Catalizadores | Sí/No | Al menos cuatro con horizonte y confirmación |
 | 10. Riesgos | Sí/No | Al menos seis, escenarios y FODA |
 | 11. Bulls say / Bears say | Sí/No | Al menos cinco argumentos fuertes por lado, conclusión cualitativa y “Síntesis final” explícita |
-| 12. Filosofías de inversión | Sí/No | Cinco marcos con formato completo e independiente |
-| 13. Noticias y eventos recientes | Sí/No | Solo 90 días, materialidad y efecto en tesis |
-| 14. Qué vigilar | Sí/No | 8-12 indicadores con umbrales |
-| 15. Preguntas abiertas | Sí/No | Al menos cinco preguntas específicas |
-| 16. Fuentes | Sí/No | Primarias/secundarias, fechas y enlaces directos |
-| 17. Control de calidad final | Sí/No | Tabla completa y confirmaciones inferiores |
+| 12. Valor con criterio Damodaran | Sí/No | Historia y filtro, tasas base del tamaño, piezas del valor, 3-4 historias con probabilidades y valor esperado, pre-mortem, indicadores, precio solo al final y registro de decisión |
+| 13. Filosofías de inversión | Sí/No | Cinco marcos con formato completo e independiente |
+| 14. Noticias y eventos recientes | Sí/No | Solo 90 días, materialidad y efecto en tesis |
+| 15. Qué vigilar | Sí/No | 8-12 indicadores con umbrales |
+| 16. Preguntas abiertas | Sí/No | Al menos cinco preguntas específicas |
+| 17. Fuentes | Sí/No | Primarias/secundarias, fechas y enlaces directos |
+| 18. Control de calidad final | Sí/No | Tabla completa y confirmaciones inferiores |
 
 Debajo de la tabla incluye estas ocho confirmaciones, cada una en una línea separada. Deben ser veraces: si una limitación impide afirmar alguna literalmente, conserva su número y sustituye la frase por el alcance realmente comprobado y la limitación concreta.
 
-1. No calculé valoración, precio objetivo, múltiplo justo ni recomendación de compra/venta.
+1. Fuera de la sección 12 no calculé valoración, precio objetivo ni múltiplo justo; en la sección 12 el precio aparece solo al final y no emití recomendación de compra, mantener o venta.
 2. Cada cifra y afirmación material tiene fuente y fecha.
 3. Los datos reportados, las previsiones y los supuestos del Modelo JMR se distinguen por atribución y contexto, sin etiquetas de hechos o inferencias en la narrativa.
 4. Los cinco marcos de inversión tienen conclusiones independientes, no imitaciones ni citas inventadas.

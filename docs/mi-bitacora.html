@@ -215,6 +215,13 @@
   .visual-upside{font:600 12px "IBM Plex Mono",monospace;color:var(--positive);}
   .visual-upside.negative{color:var(--negative);}
   .visual-upside.neutral{color:var(--ink-soft);}
+  .basis-note{font-size:11.5px;color:var(--ink-faint);margin:-8px 0 12px;max-width:720px;line-height:1.4;}
+  .pct-pos{color:var(--positive);} .pct-neg{color:var(--negative);}
+  .visual-number .vs{display:block;margin-top:4px;font:500 11px "IBM Plex Mono",monospace;color:var(--ink-soft);}
+  .visual-number .vs span{display:inline;font-size:inherit;text-transform:none;letter-spacing:0;font-weight:700;}
+  .visual-number .vs .pct-pos{color:var(--positive);} .visual-number .vs .pct-neg{color:var(--negative);}
+  .summary-item .num .pair{display:block;font-size:12px;}
+  .summary-item .num .pair b{font-weight:600;color:var(--ink-faint);font-family:"Public Sans",sans-serif;font-size:10.5px;margin-right:4px;}
   .visual-more{font-family:inherit;font-size:12px;font-weight:600;color:var(--accent);background:none;border:0;cursor:pointer;padding:6px;}
   .visual-more:focus-visible{outline:2px solid var(--focus);border-radius:5px;}
   .visual-detail{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:15px;padding-top:14px;border-top:1px solid var(--border-soft);}
@@ -225,7 +232,43 @@
   .visual-grid[hidden],.table-scroll[hidden],.card-list[hidden]{display:none!important;}
   .summary-list[hidden],.print-sheet{display:none!important;}
   .summary-list{display:grid;gap:8px;}
-  .summary-item{display:grid;grid-template-columns:minmax(140px,2fr) repeat(3,minmax(95px,1fr)) auto;align-items:center;gap:12px;padding:12px 16px;background:var(--surface);border:1px solid var(--border-soft);border-radius:12px;}
+  .summary-item{cursor:pointer;}
+  .summary-block.open{border:1px solid var(--accent);border-radius:14px;box-shadow:var(--shadow);background:var(--surface);scroll-margin-top:12px;}
+  .summary-block.open .summary-item{border:0;border-bottom:1px solid var(--border-soft);border-radius:14px 14px 0 0;}
+  .company-panel{padding:18px 20px 22px;}
+  .cp-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
+  .cp-head h3{font-family:"Fraunces",Georgia,serif;font-size:24px;margin:2px 0 4px;}
+  .cp-date{font-size:12px;color:var(--ink-faint);}
+  .cp-links{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;font-weight:600;}
+  .cp-links a{color:var(--accent-ink);text-decoration:none;}
+  .cp-links a:hover{text-decoration:underline;}
+  .cp-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:8px;}
+  .cp-tile{border:1px solid var(--border-soft);border-radius:12px;padding:11px 12px;background:var(--surface-2);display:flex;flex-direction:column;gap:2px;min-width:0;}
+  .cp-tile.sel{border-color:var(--accent);background:var(--accent-soft);}
+  .cp-tile.price{background:var(--surface);}
+  .cp-lbl{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-faint);}
+  .cp-sub{font-size:11px;color:var(--ink-faint);}
+  .cp-tile strong{font:700 18px "IBM Plex Mono",monospace;margin-top:4px;}
+  .cp-vs{font:500 11.5px "IBM Plex Mono",monospace;color:var(--ink-soft);}
+  .cp-tri{font:500 11px "IBM Plex Mono",monospace;color:var(--ink-faint);overflow-wrap:anywhere;}
+  .cp-tri b{color:var(--ink-soft);}
+  .cp-note{font-size:11.5px;color:var(--ink-faint);margin:6px 0 0;}
+  .cp-growth{margin-top:16px;border:1px solid var(--border-soft);border-radius:12px;padding:12px 14px;background:var(--surface);}
+  .cp-growth h4{margin:0 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-faint);}
+  .cp-growth p{margin:0 0 8px;font-size:13.5px;line-height:1.5;}
+  .cp-chips{display:flex;flex-wrap:wrap;gap:6px;}
+  .cp-chip{font:600 12px "IBM Plex Mono",monospace;padding:4px 10px;border-radius:999px;background:var(--surface-2);color:var(--ink-soft);}
+  .cp-chip.ok{background:var(--positive-soft);color:var(--positive);}
+  .cp-chip.warn{background:var(--negative-soft);color:var(--negative);}
+  .cp-body{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px 22px;margin-top:18px;}
+  .cp-body .full{grid-column:1/-1;}
+  .cp-body > *, .company-panel, .summary-block{min-width:0;}
+  .cp-body .chart-card{max-width:760px;}
+  .visual-card.expanded{grid-column:1/-1;}
+  .visual-card.expanded .visual-detail{grid-template-columns:repeat(3,minmax(0,1fr));}
+  @media(max-width:900px){.cp-body,.visual-card.expanded .visual-detail{grid-template-columns:1fr 1fr;}}
+  @media(max-width:620px){.company-panel{padding:14px 12px 18px;}.cp-body,.visual-card.expanded .visual-detail{grid-template-columns:1fr;}.cp-tiles{grid-template-columns:1fr 1fr;}}
+  .summary-item{display:grid;grid-template-columns:minmax(140px,2fr) repeat(3,minmax(110px,1fr)) auto;align-items:center;gap:12px;padding:12px 16px;background:var(--surface);border:1px solid var(--border-soft);border-radius:12px;}
   .summary-item strong{display:block;font-size:14px;}.summary-item small{display:block;color:var(--ink-faint);font-size:11px;}
   .summary-item .num{font:600 13px "IBM Plex Mono",monospace;}.summary-item .positive{color:var(--positive);}.summary-item .negative{color:var(--negative);}
   .summary-item button{font:600 12px inherit;border:0;background:var(--accent-soft);color:var(--accent-ink);padding:8px;border-radius:7px;cursor:pointer;}
@@ -330,9 +373,34 @@
   .valuation-panel h3{font-family:"Fraunces",Georgia,serif;font-size:18px;margin:0 0 4px;}
   .valuation-panel p{color:var(--ink-soft);font-size:11px;margin:0 0 12px;}
   .valuation-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:8px;}
+  @media(max-width:620px){.valuation-grid{grid-template-columns:1fr 1fr;}.valuation-cell .vb{font-size:16px;}}
   .valuation-cell{border:1px solid var(--border-soft);border-radius:10px;background:var(--surface);padding:10px;}
   .valuation-cell strong{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-faint);}
-  .valuation-cell span{display:block;font:600 14px "IBM Plex Mono",monospace;margin-top:6px;}
+  .valuation-cell em{display:block;font-style:normal;font-size:11px;color:var(--ink-faint);margin-top:2px;}
+  .valuation-cell .vb{display:block;font:700 19px "IBM Plex Mono",monospace;margin-top:6px;}
+  .valuation-cell .vr{display:block;font:500 11px "IBM Plex Mono",monospace;color:var(--ink-soft);margin-top:3px;}
+  .visual-detail > *, .detail > *, .sc-detail > *, .valuation-panel{min-width:0;}
+  .vm-scroll{max-width:100%;overflow-x:auto;margin-top:12px;border:1px solid var(--border-soft);border-radius:10px;background:var(--surface);}
+  table.valuation-methods{width:100%;border-collapse:collapse;font-size:13px;}
+  table.valuation-methods th{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-faint);font-weight:700;padding:7px 10px;background:var(--surface-2);border-bottom:1px solid var(--border-soft);text-align:left;white-space:nowrap;}
+  table.valuation-methods th.grp{text-align:center;border-left:1px solid var(--border-soft);}
+  table.valuation-methods td{padding:7px 10px;border-bottom:1px solid var(--border-soft);white-space:nowrap;}
+  table.valuation-methods tr:last-child td{border-bottom:0;}
+  table.valuation-methods .num{text-align:right;font-family:"IBM Plex Mono",monospace;font-size:12.5px;}
+  table.valuation-methods th.num{font-family:inherit;font-size:10.5px;}
+  table.valuation-methods td.b{font-weight:700;}
+  table.valuation-methods tr.dcf td{background:color-mix(in oklab,var(--accent) 7%,transparent);}
+  table.valuation-methods td:first-child{font-weight:600;}
+  .vm-note{font-size:11px;color:var(--ink-faint);margin:6px 0 0;}
+  .valuation-grid.main{grid-template-columns:repeat(auto-fit,minmax(200px,1fr));}
+  .valuation-grid.main .valuation-cell .vb{font-size:24px;}
+  .vm-sec{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-faint);margin:12px 0 6px;}
+  .valuation-cell.secondary{background:var(--surface-2);}
+  .valuation-cell.secondary .vb{font-size:15px;}
+  .cp-sec{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-faint);margin:12px 0 6px;}
+  .cp-tile.secondary{background:var(--surface);}
+  .cp-tile.secondary strong{font-size:15px;}
+  .cp-tile.main strong{font-size:24px;}
   .valuation-cell.featured{border-color:var(--accent);}
   .valuation-chip{display:block;font:600 11px "IBM Plex Mono",monospace;color:var(--accent);margin-top:3px;}
   .dfield .dlbl{font-size:10.5px; text-transform:uppercase; letter-spacing:0.06em; color:var(--ink-faint); margin-bottom:3px;}
@@ -377,7 +445,7 @@
   }
   .sc-detail .dfield .dlbl{margin-bottom:3px;}
 
-  .mobile-sort{display:none; align-items:center; gap:8px; margin-bottom:14px;}
+  .mobile-sort{display:flex; align-items:center; gap:8px; margin-bottom:14px; max-width:420px;}
   .mobile-sort label{font-size:12px; color:var(--ink-faint); font-weight:600; flex:none;}
   .mobile-sort select{
     flex:1 1 auto; min-width:0; font:inherit; font-size:13px; padding:8px 10px; border-radius:9px;
@@ -389,7 +457,6 @@
     .stats{grid-template-columns:repeat(2, 1fr);}
     .table-scroll{display:none;}
     .card-list{display:flex;}
-    .mobile-sort{display:flex;}
   }
 
   footer{
@@ -604,10 +671,17 @@
 
   <div class="stats" id="stats"></div>
   <div class="view-controls"><p class="result-line" id="resultLine"></p><div class="view-switch" role="group" aria-label="Vista de la bitácora"><button type="button" data-view="summary" aria-pressed="true">Resumen</button><button type="button" data-view="visual" aria-pressed="false">Vista completa</button><button type="button" data-view="table" aria-pressed="false">Tabla</button></div><button class="print-btn" id="printListBtn" type="button">Imprimir lista actualizada</button></div>
-  <div class="summary-list" id="summaryList"></div>
-  <div class="visual-grid" id="visualGrid"></div>
-  <div class="print-sheet" id="printSheet" aria-hidden="true"></div>
-
+  <div class="mobile-sort">
+    <label for="valueBasisSelect">Valor</label>
+    <select id="valueBasisSelect">
+      <option value="dcfHoy">Valor intrínseco hoy · DCF</option>
+      <option value="ponderadoHoy">Ponderado hoy · DCF + múltiplos</option>
+      <option value="multHoy">Precio relativo hoy · múltiplos</option>
+      <option value="multFy3">Múltiplos a 3 años (FY+3)</option>
+      <option value="ponderadoFy3">Ponderado a 3 años (FY+3)</option>
+    </select>
+  </div>
+  <p class="basis-note" id="valueBasisNote"></p>
   <div class="mobile-sort">
     <label for="mobileSortSelect">Ordenar por</label>
     <select id="mobileSortSelect">
@@ -616,10 +690,26 @@
       <option value="cagr:1">CAGR base: menor a mayor</option>
       <option value="precioActual:-1">Precio actual: mayor a menor</option>
       <option value="precioActual:1">Precio actual: menor a mayor</option>
+      <option value="valorHoy:-1">Valor elegido (base): mayor a menor</option>
+      <option value="valorHoy:1">Valor elegido (base): menor a mayor</option>
+      <option value="descuento:-1">Diferencia valor elegido vs. precio: mayor primero</option>
+      <option value="descuento:1">Diferencia valor elegido vs. precio: menor primero</option>
+      <option value="difHoy:-1">Diferencia hoy vs. precio: mayor primero</option>
+      <option value="difFy3:-1">Diferencia FY+3 vs. precio: mayor primero</option>
+      <option value="decision:1">Mi decisión: comprar, mantener, vender</option>
+      <option value="fecha:-1">Fecha del análisis: más reciente primero</option>
+      <option value="fecha:1">Fecha del análisis: más antigua primero</option>
+      <option value="precio:-1">Precio de entrada: mayor a menor</option>
+      <option value="precio:1">Precio de entrada: menor a mayor</option>
       <option value="ticker:1">Ticker A-Z</option>
+      <option value="ticker:-1">Ticker Z-A</option>
       <option value="empresa:1">Empresa A-Z</option>
     </select>
   </div>
+  <div class="summary-list" id="summaryList"></div>
+  <div class="visual-grid" id="visualGrid"></div>
+  <div class="print-sheet" id="printSheet" aria-hidden="true"></div>
+
 
   <div class="table-scroll">
     <div class="grid" id="grid">
@@ -652,6 +742,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="market_data.js"></script>
 <script src="gh_oauth.js"></script>
+<script src="decision.js"></script>
+<script src="valuation-board.js"></script>
 <script>
 (function(){
   var DATA = [];
@@ -778,37 +870,18 @@
   }
 
   function fmtVal(v){return typeof v === 'number' && isFinite(v) ? '$' + v.toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—';}
-  function valuationPanelHtml(v){
-    if(!v || !v.valorPresentePonderado) return '';
-    var dm=v.descuentoMultiples||{}, methods=v.metodos||[], sum=0, weighted={conservador:0,base:0,optimista:0};
-    methods.forEach(function(m){if(/DCF/i.test(m.nombre||''))return;var w=Number(m.peso)||0;sum+=w;Object.keys(weighted).forEach(function(k){weighted[k]+=w*(Number(m[k])||0);});});
-    if(sum) Object.keys(weighted).forEach(function(k){weighted[k]/=sum;});
-    var rows=[['DCF · valor intrínseco hoy',dm.dcfHoy],['Múltiplos · valor hoy',dm.multiplesHoy],['Ponderado · valor hoy',v.valorPresentePonderado],['Múltiplos · objetivo FY+3',sum?weighted:null],['Ponderado · objetivo FY+3',v.objetivoPonderado]];
-    var rate=Number(dm.costoPatrimonio),years=Number(dm.horizonteAnios)||3,div=dm.dividendosAnualesPorAccion||[];
-    var divSum=div.reduce(function(a,b){return a+(Number(b)||0);},0);
-    var divPv=div.reduce(function(a,b,i){return a+(Number(b)||0)/Math.pow(1+rate,i+1);},0);
-    function presentMethod(m,k){
-      if(/DCF/i.test(m.nombre||''))return dm.dcfHoy&&dm.dcfHoy[k];
-      return isFinite(rate)&&typeof m[k]==='number'?(m[k]-divSum)/Math.pow(1+rate,years)+divPv:null;
-    }
-    var methodTable=methods.length?'<div style="overflow-x:auto"><table class="valuation-methods"><thead><tr><th>Método</th><th>Peso</th><th>Hoy C / B / O</th><th>FY+3 C / B / O</th></tr></thead><tbody>'+methods.map(function(m){
-      var ks=['conservador','base','optimista'];
-      return '<tr><td>'+escapeHtml(m.nombre)+'</td><td>'+((Number(m.peso)||0)*100).toFixed(0)+'%</td><td>'+ks.map(function(k){return fmtVal(presentMethod(m,k));}).join(' / ')+'</td><td>'+ks.map(function(k){return fmtVal(m[k]);}).join(' / ')+'</td></tr>';
-    }).join('')+'</tbody></table></div>':'';
-    return '<div class="dfield full valuation-panel"><h3>Valoración en dos horizontes</h3><p>USD por acción · conservador / base / optimista. FY+3 incluye los dividendos proyectados. Los múltiplos se descuentan con el costo del patrimonio; el DCF ya está expresado a hoy.</p><div class="valuation-grid">'+rows.filter(function(r){return r[1];}).map(function(r){return '<div class="valuation-cell'+(/Ponderado/.test(r[0])?' featured':'')+'"><strong>'+r[0]+'</strong><span>'+fmtVal(r[1].conservador)+' / '+fmtVal(r[1].base)+' / '+fmtVal(r[1].optimista)+'</span></div>';}).join('')+'</div>'+methodTable+(v.hojaGoogle?'<p style="margin:12px 0 0"><a href="'+escapeHtml(v.hojaGoogle)+'" target="_blank" rel="noopener noreferrer">Abrir hoja con fórmulas →</a></p>':'')+'</div>';
+  // Tablero de valoración compartido (valuation-board.js): DCF primero;
+  // múltiplos juntos, por método y ponderado a un clic; hoy o FY+3.
+  function valuationPanelHtml(v, soloMetodos, d){
+    if(soloMetodos || !v || typeof JmrValueBoard === 'undefined') return '';
+    var pr = d ? priceRef(d) : {};
+    var data = JmrValueBoard.fromRecord(v, { precio: pr.price || v.precio, precioLbl: pr.live ? 'Precio consultado' : 'Precio guardado' });
+    if(!JmrValueBoard.hasData(data)) return '';
+    return '<div class="dfield full valuation-panel"><h3>Valoración</h3>' + JmrValueBoard.html(data, { hero: true }) + '</div>';
   }
-  function detailFieldsHtml(d){
-    var html = '';
-    html += valuationPanelHtml(d.valoracionActual);
-    html += '<div class="dfield"><div class="dlbl">Múltiplo (' + escapeHtml(d.multP) + ')</div><div class="dval mono">Actual ' + escapeHtml(d.multA) + ' · Promedio histórico ' + escapeHtml(d.multH) + '</div></div>';
-    html += '<div class="dfield"><div class="dlbl">Fecha de análisis</div><div class="dval mono">' + escapeHtml(d.fecha) + '</div></div>';
-    html += '<div class="dfield full">' + buildComparativoChart(d) + '</div>';
-    html += '<div class="dfield full"><div class="dlbl">Moat</div><div class="dval">' + escapeHtml(d.moat) + '</div></div>';
-    html += '<div class="dfield full"><div class="dlbl">Riesgos clave</div><div class="dval">' + escapeHtml(d.riesgos) + '</div></div>';
-    html += '<div class="dfield full"><div class="dlbl">Conclusión / acción</div><div class="dval">' + escapeHtml(d.conclusion) + '</div></div>';
-    html += '<div class="dfield full"><div class="dlbl">Última actualización / retorno</div><div class="dval">' + escapeHtml(d.actualizacion) + '</div></div>';
-    html += '<div class="dfield full"><button class="gh-btn danger" type="button" data-del-custom="' + d.n + '">Eliminar este caso</button></div>';
-    return html;
+  function detailFieldsHtml(d, enPanel){
+    if(enPanel) return panelFieldsHtml(d);
+    return '<div class="dfield full">' + decisionWidget(d) + '</div>' + valuationPanelHtml(d.valoracionActual, false, d) + analysisFieldsHtml(d);
   }
 
   function rowHtml(d, idx){
@@ -817,7 +890,7 @@
     var expanded = state.expanded === d.n;
     var html = '';
     html += '<div class="row data" tabindex="0" role="button" aria-expanded="' + expanded + '" data-n="' + d.n + '">';
-    html += '<span class="c-ticker">' + escapeHtml(d.ticker) + (d.valoracionActual && d.valoracionActual.valorPresentePonderado ? '<span class="valuation-chip">Hoy ' + fmtVal(d.valoracionActual.valorPresentePonderado.base) + '</span>' : '') + '</span>';
+    html += '<span class="c-ticker">' + escapeHtml(d.ticker) + (pairHtml(d) ? '<span class="valuation-chip">' + pairHtml(d) + '</span>' : '') + '</span>';
     html += '<span class="c-empresa" title="' + escapeHtml(d.empresa) + '">' + escapeHtml(d.empresa) + '</span>';
     html += '<span class="c-cat"><span class="chip ' + catClass(d.cat) + '">' + escapeHtml(d.cat) + '</span>' + (d.fromResearch ? '<span class="chip custom">Análisis Fundamental</span>' : '') + '</span>';
     html += '<span class="c-precio">' + escapeHtml(d.precio) + '</span>';
@@ -848,7 +921,7 @@
     html += '    <span class="c-cagr ' + cagrClass + '">' + escapeHtml(d.cagr) + '</span>';
     html += '  </div>';
     html += '  <div class="sc-empresa">' + escapeHtml(d.empresa) + '</div>';
-    if(d.valoracionActual && d.valoracionActual.valorPresentePonderado) html += '<div class="valuation-chip">Ponderado hoy · ' + fmtVal(d.valoracionActual.valorPresentePonderado.base) + '　|　FY+3 · ' + fmtVal((d.valoracionActual.objetivoPonderado || {}).base) + '</div>';
+    if(pairHtml(d)) html += '<div class="valuation-chip">' + pairHtml(d) + '</div>';
     html += '  <div class="sc-row">';
     html += '    <div class="sc-kv"><span class="k">Entrada</span><span class="v">' + escapeHtml(d.precio) + '</span></div>';
     html += '    <div class="sc-kv"><span class="k">Actual</span><span class="v' + (d.precioActual != null ? '' : ' stale') + '">' + (d.precioActual != null ? formatPrecioActual(d.precioActual) : '—') + '</span></div>';
@@ -865,11 +938,10 @@
   }
 
   function visualCardHtml(d){
-    var v=d.valoracionActual||{}, present=v.valorPresentePonderado&&v.valorPresentePonderado.base;
-    var future=v.objetivoPonderado&&v.objetivoPonderado.base;
-    if(!(typeof future==='number'&&isFinite(future)))future=parseNum(d.oBase);
-    var price=d.precioActual;
-    var validPrice=typeof price==='number'&&isFinite(price)&&price>0;
+    var fam=BASIS_INFO[valueBasis].fam, fv=familyValues(d,fam), present=fv.hoy, future=fv.fy3;
+    var famLbl=fam==='dcf'?'DCF':fam==='multiplos'?'Múltiplos':'Ponderado';
+    var pr=priceRef(d), price=pr.price;
+    var validPrice=!!price;
     var scale=Math.max(present||0,future||0,validPrice?price:0,1)*1.1;
     var marker=validPrice?Math.min(100,Math.max(0,price/scale*100)):null;
     function bar(label,value,kind){
@@ -877,30 +949,158 @@
       var width=Math.min(100,Math.max(0,value/scale*100));
       return '<div class="visual-meter"><label>'+label+'</label><div class="visual-track"><span class="visual-fill '+kind+'" style="width:'+width.toFixed(2)+'%"></span>'+(marker!==null?'<span class="visual-marker" style="left:'+marker.toFixed(2)+'%" aria-hidden="true"></span>':'')+'</div><span class="value">'+fmtVal(value)+'</span></div>';
     }
-    var upside=validPrice&&typeof present==='number'?(present/price-1)*100:null;
+    var upHoy=pctVs(present,d), upFy3=pctVs(future,d);
     var expanded=state.expanded===d.n;
-    return '<article class="visual-card"><div class="visual-head"><div><span class="c-ticker">'+escapeHtml(d.ticker)+'</span><h3>'+escapeHtml(d.empresa||d.ticker)+'</h3><div class="visual-sub">'+escapeHtml(d.fecha||'')+(d.fromResearch?' · Análisis fundamental':'')+'</div></div><span class="chip '+catClass(d.cat)+'">'+escapeHtml(d.cat)+'</span></div>'+
-      '<div class="visual-numbers"><div class="visual-number today"><span>Ponderado hoy</span><strong>'+fmtVal(present)+'</strong></div><div class="visual-number"><span>Objetivo FY+3</span><strong>'+fmtVal(future)+'</strong></div></div>'+
-      '<div class="visual-chart"><div class="visual-price">'+(validPrice?'│ Precio actual '+fmtVal(price):'Entrada histórica '+escapeHtml(d.precio||'—')+' · precio actual pendiente')+'</div>'+bar('Hoy',present,'')+bar('FY+3',future,'future')+'</div>'+
-      '<div class="visual-footer"><span class="visual-upside'+(upside===null?' neutral':upside<0?' negative':'')+'">'+(upside!==null?(upside>=0?'+':'')+upside.toFixed(1)+'% vs. precio actual':'CAGR base '+escapeHtml(d.cagr||'—'))+'</span><button type="button" class="visual-more" data-visual-n="'+d.n+'" aria-expanded="'+expanded+'">'+(expanded?'Ocultar detalle':'Ver análisis')+' →</button></div>'+
+    return '<article class="visual-card'+(expanded?' expanded':'')+'"><div class="visual-head"><div><span class="c-ticker">'+escapeHtml(d.ticker)+'</span><h3>'+escapeHtml(d.empresa||d.ticker)+'</h3><div class="visual-sub">'+escapeHtml(d.fecha||'')+(d.fromResearch?' · Análisis fundamental':'')+'</div></div><span class="chip '+catClass(d.cat)+'">'+escapeHtml(d.cat)+'</span></div>'+
+      '<div class="visual-numbers"><div class="visual-number'+(BASIS_INFO[valueBasis].hz==='hoy'?' today':'')+'"><span>'+famLbl+' hoy</span><strong>'+fmtVal(present)+'</strong><small class="vs">vs. precio '+fmtPctSpan(upHoy)+'</small></div><div class="visual-number'+(BASIS_INFO[valueBasis].hz==='fy3'?' today':'')+'"><span>'+famLbl+' FY+3</span><strong>'+fmtVal(future)+'</strong><small class="vs">vs. precio '+fmtPctSpan(upFy3)+'</small></div></div>'+
+      '<div class="visual-chart"><div class="visual-price">'+(validPrice?'│ '+(pr.live?'Precio actual ':'Precio guardado ')+fmtVal(price):'Entrada histórica '+escapeHtml(d.precio||'—')+' · precio actual pendiente')+'</div>'+bar('Hoy',present,'')+bar('FY+3',future,'future')+'</div>'+
+      '<div class="visual-footer"><span class="visual-upside neutral">CAGR base '+escapeHtml(d.cagr||'—')+'</span><button type="button" class="visual-more" data-visual-n="'+d.n+'" aria-expanded="'+expanded+'">'+(expanded?'Ocultar detalle':'Ver análisis')+' →</button></div>'+
       (expanded?'<div class="visual-detail">'+detailFieldsHtml(d)+'</div>':'')+'</article>';
   }
 
-  function intrinsicBase(d){
-    var v=d.valoracionActual&&d.valoracionActual.valorPresentePonderado;
-    return v&&typeof v.base==='number'&&isFinite(v.base)?v.base:null;
+  // Valor elegido (30-sep-2026): el selector "Valor" decide qué cifra se usa
+  // para ordenar y comparar con el precio; cada caso muestra además la
+  // diferencia % contra el precio de su valor HOY y de su valor a FY+3 (de
+  // la misma familia: ponderado, DCF o múltiplos).
+  var BASIS_INFO = {
+    dcfHoy:       {fam:'dcf', hz:'hoy', label:'DCF hoy', note:'Valor intrínseco (criterio Damodaran): el DCF en valor de hoy. Su FY+3 es el DCF de hoy × (1 + Ke)³.'},
+    ponderadoHoy: {fam:'ponderado', hz:'hoy', label:'Ponderado hoy', note:'DCF de hoy × su peso + múltiplos traídos a hoy × su peso. Mezcla valor y precio relativo: úsalo cuando los múltiplos pasan el chequeo de crecimiento implícito.'},
+    multHoy:      {fam:'multiplos', hz:'hoy', label:'Múltiplos hoy', note:'Precio relativo: lo que pagaría el mercado según los 5 múltiplos (precio de FY+1 a FY+3 más dividendos, traído a hoy con Ke).'},
+    multFy3:      {fam:'multiplos', hz:'fy3', label:'Múltiplos FY+3', note:'Solo los múltiplos, al cierre de FY+3 (precio + dividendos, sin descontar).'},
+    ponderadoFy3: {fam:'ponderado', hz:'fy3', label:'Ponderado FY+3', note:'Precio objetivo a 3 años: DCF llevado a FY+3 + múltiplos con dividendos, sin descontar.'}
+  };
+  var valueBasis = 'dcfHoy';
+  try{ var savedBasis = localStorage.getItem('jmr-bitacora-valor-v2'); if(BASIS_INFO[savedBasis]) valueBasis = savedBasis; }catch(err){}
+  function num(x){ return typeof x==='number'&&isFinite(x)?x:null; }
+  function familyValues(d, fam){
+    var v=d.valoracionActual||{}, dm=v.descuentoMultiples||{}, methods=v.metodos||[];
+    var hoy=null, fy3=null;
+    if(fam==='ponderado'){ hoy=num((v.valorPresentePonderado||{}).base); fy3=num((v.objetivoPonderado||{}).base); }
+    else if(fam==='dcf'){
+      hoy=num((dm.dcfHoy||{}).base);
+      methods.forEach(function(m){ if(/DCF/i.test(m.nombre||'')) fy3=num(m.base); });
+    } else {
+      hoy=num((dm.multiplesHoy||{}).base);
+      var sum=0, w=0;
+      methods.forEach(function(m){ if(/DCF/i.test(m.nombre||''))return; var p=Number(m.peso)||0; if(num(m.base)===null)return; sum+=p*m.base; w+=p; });
+      fy3=w?sum/w:null;
+    }
+    if(fam==='ponderado'&&fy3===null) fy3=parseNum(d.oBase);
+    return {hoy:hoy, fy3:fy3};
   }
-  function priceDifference(d){
-    var value=intrinsicBase(d),price=d.precioActual;
-    return value!==null&&typeof price==='number'&&isFinite(price)&&price>0?(value/price-1)*100:null;
+  // Precio para comparar: el consultado hoy; si no se ha consultado, el
+  // guardado con la valoración.
+  function priceRef(d){
+    var p=d.precioActual;
+    if(typeof p==='number'&&isFinite(p)&&p>0) return {price:p, live:true};
+    var v=d.valoracionActual||{};
+    return num(v.precio)&&v.precio>0 ? {price:v.precio, live:false} : {price:null, live:false};
+  }
+  function pctVs(value, d){
+    var pr=priceRef(d).price;
+    return value!==null&&pr?(value/pr-1)*100:null;
+  }
+  function fmtPctSpan(x){
+    return x===null?'—':'<span class="'+(x<0?'pct-neg':'pct-pos')+'">'+(x>=0?'+':'')+x.toFixed(1)+'%</span>';
+  }
+  function intrinsicBase(d){
+    var b=BASIS_INFO[valueBasis], f=familyValues(d,b.fam);
+    return b.hz==='hoy'?f.hoy:f.fy3;
+  }
+  function priceDifference(d){ return pctVs(intrinsicBase(d), d); }
+  function pairHtml(d){
+    var f=familyValues(d,BASIS_INFO[valueBasis].fam);
+    if(f.hoy===null&&f.fy3===null) return '';
+    return 'Hoy '+fmtVal(f.hoy)+' ('+fmtPctSpan(pctVs(f.hoy,d))+') · FY+3 '+fmtVal(f.fy3)+' ('+fmtPctSpan(pctVs(f.fy3,d))+')';
   }
   function summaryHtml(d){
-    var price=d.precioActual,delta=priceDifference(d),valid=typeof price==='number'&&isFinite(price)&&price>0;
-    return '<div class="summary-item"><div class="identity"><strong>'+escapeHtml(d.ticker)+' · '+escapeHtml(d.empresa||d.ticker)+'</strong><small>'+escapeHtml(d.fecha||'')+'</small></div>'+
-      '<div class="num"><small>Precio consultado</small>'+(valid?fmtVal(price):'Pendiente')+'</div>'+
-      '<div class="num"><small>Valor intrínseco base</small>'+fmtVal(intrinsicBase(d))+'</div>'+
-      '<div class="num'+(delta===null?'':delta<0?' negative':' positive')+'"><small>Diferencia vs. precio</small>'+(delta===null?'—':(delta>=0?'+':'')+delta.toFixed(1)+'%')+'</div>'+
-      '<button type="button" data-summary-n="'+d.n+'">Ver completo</button></div>';
+    var pr=priceRef(d), f=familyValues(d,BASIS_INFO[valueBasis].fam), fam=BASIS_INFO[valueBasis].fam;
+    var famLbl=fam==='dcf'?'DCF':fam==='multiplos'?'Múltiplos':'Ponderado';
+    var open=state.expanded===d.n;
+    return '<div class="summary-block'+(open?' open':'')+'"><div class="summary-item" data-summary-row="'+d.n+'" tabindex="0" role="button" aria-expanded="'+open+'"><div class="identity"><strong>'+escapeHtml(d.ticker)+' · '+escapeHtml(d.empresa||d.ticker)+decisionBadge(d)+'</strong><small>'+escapeHtml(d.fecha||'')+'</small></div>'+
+      '<div class="num"><small>'+(pr.live?'Precio consultado':'Precio guardado')+'</small>'+(pr.price?fmtVal(pr.price):'Pendiente')+'</div>'+
+      '<div class="num"><small>'+famLbl+' hoy (base)</small>'+fmtVal(f.hoy)+'<span class="pair"><b>vs. precio</b>'+fmtPctSpan(pctVs(f.hoy,d))+'</span></div>'+
+      '<div class="num"><small>'+famLbl+' FY+3 (base)</small>'+fmtVal(f.fy3)+'<span class="pair"><b>vs. precio</b>'+fmtPctSpan(pctVs(f.fy3,d))+'</span></div>'+
+      '<button type="button" data-summary-n="'+d.n+'">'+(open?'Cerrar':'Ver detalle')+'</button></div>'+
+      (open?'<section class="company-panel" id="panel-'+d.n+'">'+companyPanelHtml(d)+'</section>':'')+'</div>';
+  }
+
+  // Panel de detalle a todo el ancho (30-sep-2026): encabezado, valores de hoy
+  // y FY+3 por método, coherencia del crecimiento y el análisis completo.
+  // Decisión (Comprar / Mantener / Vender) — decision.js. En los casos que
+  // vienen de Análisis Fundamental se guarda en el JSON del análisis; en los
+  // casos propios, en bitacora/hipotesis.json.
+  function decisionWidget(d){ return typeof JmrDecision === 'undefined' ? '' : JmrDecision.widget(d.decision, String(d.n)); }
+  function decisionBadge(d){ return typeof JmrDecision === 'undefined' ? '' : JmrDecision.badge(d.decision); }
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.jmr-dec-save'); if(!btn) return;
+    e.stopPropagation();
+    var root = btn.closest('.jmr-dec'), n = Number(root.dataset.decKey);
+    var d = DATA.find(function(x){ return x.n === n; }); if(!d) return;
+    var v = JmrDecision.read(root), pr = priceRef(d);
+    var dec = JmrDecision.build(d.decision, v.valor, v.nota, pr.price);
+    btn.disabled = true; JmrDecision.setStatus(root, 'Guardando…');
+    var p;
+    if(d.fromResearch && d.researchPath) p = JmrDecision.saveToResearchFile(GH_API, d.researchPath, dec);
+    else if(d.custom){ var prev = d.decision; d.decision = dec; p = saveCustomHipotesis().catch(function(err){ d.decision = prev; throw err; }); }
+    else p = Promise.reject(new Error('Este caso de referencia no admite decisión.'));
+    p.then(function(){
+      d.decision = dec; render();
+      var r2 = document.querySelector('.jmr-dec[data-dec-key="' + n + '"]');
+      if(r2) JmrDecision.setStatus(r2, 'Decisión guardada: ' + JmrDecision.label(dec.valor) + '.', true);
+    }).catch(function(err){ btn.disabled = false; JmrDecision.setStatus(root, 'No se guardó: ' + err.message, false); });
+  }, true);
+
+  // Campos del análisis dentro del panel: solo los que tienen contenido real.
+  function panelFieldsHtml(d){
+    return valuationPanelHtml(d.valoracionActual, true) + analysisFieldsHtml(d);
+  }
+  function analysisFieldsHtml(d){
+    var html = '';
+    var f = function(lbl, val, full, mono){
+      if(!val || !String(val).trim()) return '';
+      return '<div class="dfield'+(full?' full':'')+'"><div class="dlbl">'+lbl+'</div><div class="dval'+(mono?' mono':'')+'">'+escapeHtml(val)+'</div></div>';
+    };
+    if(d.multP || d.multA || d.multH) html += f('Múltiplo ('+(d.multP||'—')+')', 'Actual '+(d.multA||'—')+' · Promedio histórico '+(d.multH||'—'), false, true);
+    html += '<div class="dfield full">' + buildComparativoChart(d) + '</div>';
+    html += f('Moat', d.moat, true);
+    html += f('Riesgos clave', d.riesgos, true);
+    if(!d.fromResearch){
+      html += f('Conclusión / acción', d.conclusion, true);
+      html += f('Última actualización / retorno', d.actualizacion, true);
+    }
+    html += '<div class="dfield full"><button class="gh-btn danger" type="button" data-del-custom="' + d.n + '">Eliminar este caso</button></div>';
+    return html;
+  }
+
+  function companyPanelHtml(d){
+    var v=d.valoracionActual||{}, pr=priceRef(d);
+    var board=(typeof JmrValueBoard!=='undefined')?JmrValueBoard.fromRecord(v,{precio:pr.price||v.precio,precioLbl:pr.live?'Precio consultado':'Precio guardado'}):null;
+    var tiles=board&&JmrValueBoard.hasData(board)?'<div class="cp-board">'+JmrValueBoard.html(board,{hero:true})+'</div>':'<p class="cp-note">Esta empresa todavía no tiene una valoración guardada en el Visor.</p>';
+    var ci=v.crecimientoImplicito, growth='';
+    if(ci&&ci.dcfInverso){
+      var pc=function(x){return typeof x==='number'&&isFinite(x)?(x*100).toFixed(1)+'%':'—';};
+      var u=ci.umbral||0.02, di=ci.dcfInverso;
+      growth='<div class="cp-growth"><h4>Coherencia del crecimiento · criterio Damodaran</h4><p>El precio de '+fmtVal(ci.precio)+' supone que los ingresos crecen <b>'+pc(di.gImplicito)+'</b> al año en los años 1-5; el DCF supone <b>'+pc(di.gDcf)+'</b>. '+escapeHtml(di.lectura||'')+'</p><div class="cp-chips">'+
+        (ci.multiplos||[]).map(function(m){
+          // v2 (30-sep-2026): el múltiplo frente al que implica el DCF en FY+3; la lectura ya trae el criterio
+          if(m.multiploDcf!=null||/^(Coherente|Revisar)/.test(m.lectura||'')){
+            var st2=m.aplica===false?'na':(/^Coherente/.test(m.lectura||'')?'ok':(/^Revisar/.test(m.lectura||'')?'warn':'na'));
+            var mx=function(x){return typeof x==='number'&&isFinite(x)?x.toFixed(1)+'x':'—';};
+            var arrow=st2==='warn'&&typeof m.difValor==='number'?(m.difValor>0?' ↑':' ↓'):'';
+            return '<span class="cp-chip '+st2+'" title="'+escapeHtml(m.lectura||'')+'">'+escapeHtml(m.metodo)+' · '+mx(m.multiplo)+' vs '+mx(m.multiploDcf)+arrow+'</span>';
+          }
+          var st=m.aplica===false?'na':(typeof m.dif==='number'?(Math.abs(m.dif)<=u?'ok':'warn'):'na');
+          return '<span class="cp-chip '+st+'">'+escapeHtml(m.metodo)+' · '+pc(m.gImplicito)+(st==='warn'?(m.dif>0?' ↑':' ↓'):'')+'</span>';
+        }).join('')+'</div><p class="cp-note">'+((ci.multiplos||[]).some(function(m){return m.multiploDcf!=null;})
+          ?'Cada múltiplo Base frente al múltiplo que implica el DCF en FY+3. ↑/↓ = el múltiplo vale más/menos que el DCF (alerta con más de '+Math.round(u*100)+' pp de diferencia en crecimiento implícito o más de 25% en valor).'
+          :'Crecimiento perpetuo después de FY+3 que supone cada múltiplo Base, frente a '+pc(((ci.gDcf||{}).puntoMedio))+' del DCF. ↑/↓ = más/menos crecimiento que el DCF (más de '+Math.round(u*100)+' pp).')+'</p></div>';
+    }
+    var links=(v.__path?'<a href="visor.html?path='+encodeURIComponent(v.__path)+'">Abrir en el Visor →</a>':'')+
+      (v.hojaGoogle?'<a href="'+escapeHtml(v.hojaGoogle)+'" target="_blank" rel="noopener noreferrer">Hoja con fórmulas →</a>':'')+
+      (d.fromResearch?'<a href="research.html?ticker='+encodeURIComponent(d.ticker)+'">Análisis fundamental →</a>':'');
+    return '<header class="cp-head"><div><span class="c-ticker">'+escapeHtml(d.ticker)+'</span><h3>'+escapeHtml(d.empresa||d.ticker)+'</h3><span class="cp-date">'+escapeHtml(d.fecha||'')+' · <span class="chip '+catClass(d.cat)+'">'+escapeHtml(d.cat)+'</span></span></div><nav class="cp-links">'+links+'</nav></header>'+
+      decisionWidget(d)+tiles+growth+'<div class="cp-body">'+detailFieldsHtml(d,true)+'</div>';
   }
 
   function applyView(){
@@ -924,10 +1124,18 @@
       else if(key === "precio"){ av = parseNum(a.precio); bv = parseNum(b.precio); }
       else if(key === "anio"){ av = parseNum(a.anio); bv = parseNum(b.anio); }
       else if(key === "precioActual"){ av = a.precioActual; bv = b.precioActual; }
+      else if(key === "valorHoy"){ av = intrinsicBase(a); bv = intrinsicBase(b); }
+      else if(key === "descuento"){ av = priceDifference(a); bv = priceDifference(b); }
+      else if(key === "difHoy" || key === "difFy3"){ var hz = key === "difHoy" ? "hoy" : "fy3", fm = BASIS_INFO[valueBasis].fam; av = pctVs(familyValues(a,fm)[hz], a); bv = pctVs(familyValues(b,fm)[hz], b); }
+      else if(key === "fecha"){ av = a.fecha || ""; bv = b.fecha || ""; }
+      else if(key === "decision"){ var ord = {comprar:1, mantener:2, vender:3}; av = ord[(a.decision||{}).valor] || null; bv = ord[(b.decision||{}).valor] || null; }
       else if(key === "n"){ av = a.n; bv = b.n; }
       else { av = (a[key]||"").toLowerCase(); bv = (b[key]||"").toLowerCase(); }
-      if(av === null || av === undefined || av === "") return 1;
-      if(bv === null || bv === undefined || bv === "") return -1;
+      var aMissing = av === null || av === undefined || av === "" || (typeof av === "number" && isNaN(av));
+      var bMissing = bv === null || bv === undefined || bv === "" || (typeof bv === "number" && isNaN(bv));
+      if(aMissing && bMissing) return a.n - b.n;
+      if(aMissing) return 1;
+      if(bMissing) return -1;
       if(av < bv) return -1 * dir;
       if(av > bv) return 1 * dir;
       return 0;
@@ -955,10 +1163,11 @@
       // hermano de la fila) — sin este chequeo, hacer clic en "Eliminar"
       // también colapsaría la tarjeta por burbujeo del evento.
       el.addEventListener("click", function(e){
-        if(e.target.closest("[data-del-custom]")) return;
+        if(e.target.closest("[data-del-custom]") || e.target.closest(".jmr-dec")) return;
         toggleExpand(Number(el.dataset.n));
       });
       el.addEventListener("keydown", function(e){
+        if(e.target.closest(".jmr-dec")) return;
         if(e.key === "Enter" || e.key === " "){ e.preventDefault(); toggleExpand(Number(el.dataset.n)); }
       });
     });
@@ -983,11 +1192,25 @@
   visualEl.addEventListener('click',function(e){
     var btn=e.target.closest('[data-visual-n]');if(btn)toggleExpand(Number(btn.dataset.visualN));
   });
-  summaryEl.addEventListener('click',function(e){
-    var btn=e.target.closest('[data-summary-n]');if(!btn)return;
-    state.expanded=Number(btn.dataset.summaryN);state.view='visual';
-    try{localStorage.setItem('jmr-bitacora-view',state.view);}catch(err){}
+  function openSummary(n){
+    state.expanded=(state.expanded===n)?null:n;
     render();
+    if(state.expanded!==null){
+      var el=document.getElementById('panel-'+n);
+      if(el&&el.parentNode){
+        var top=document.querySelector('header.top'), h=top?top.getBoundingClientRect().height:0;
+        window.scrollTo({top:el.parentNode.getBoundingClientRect().top+window.pageYOffset-h-10,behavior:'smooth'});
+      }
+    }
+  }
+  summaryEl.addEventListener('click',function(e){
+    if(e.target.closest('.company-panel')&&!e.target.closest('[data-summary-n]'))return;
+    var row=e.target.closest('[data-summary-n]')||e.target.closest('[data-summary-row]');if(!row)return;
+    openSummary(Number(row.dataset.summaryN||row.dataset.summaryRow));
+  });
+  summaryEl.addEventListener('keydown',function(e){
+    var row=e.target.closest('[data-summary-row]');if(!row||e.target!==row)return;
+    if(e.key==='Enter'||e.key===' '){e.preventDefault();openSummary(Number(row.dataset.summaryRow));}
   });
   document.querySelector('.view-switch').addEventListener('click',function(e){
     var btn=e.target.closest('[data-view]');if(!btn)return;
@@ -1018,7 +1241,17 @@
     });
   });
 
+  try{ var savedSort = localStorage.getItem("jmr-bitacora-sort"); if(savedSort && /^[a-zA-Z]+:-?1$/.test(savedSort)){ state.sortKey = savedSort.split(":")[0]; state.sortDir = Number(savedSort.split(":")[1]); } }catch(err){}
+  var basisSel = document.getElementById("valueBasisSelect");
+  function updateBasisNote(){ document.getElementById("valueBasisNote").textContent = BASIS_INFO[valueBasis].note + " Cada caso muestra la diferencia % contra el precio de su valor hoy y de su valor a FY+3."; }
+  basisSel.value = valueBasis; updateBasisNote();
+  basisSel.addEventListener("change", function(e){
+    valueBasis = BASIS_INFO[e.target.value] ? e.target.value : 'dcfHoy';
+    try{ localStorage.setItem('jmr-bitacora-valor-v2', valueBasis); }catch(err){}
+    updateBasisNote(); render();
+  });
   document.getElementById("mobileSortSelect").addEventListener("change", function(e){
+    try{ localStorage.setItem("jmr-bitacora-sort", e.target.value); }catch(err){}
     var parts = e.target.value.split(":");
     state.sortKey = parts[0];
     state.sortDir = Number(parts[1]);
@@ -1102,9 +1335,9 @@
       seen[ticker]=true;return true;
     }).sort(function(a,b){return a.ticker.localeCompare(b.ticker);});
     var now=new Date().toLocaleString('es-CO',{timeZone:'America/Bogota',dateStyle:'medium',timeStyle:'short'});
-    document.getElementById('printSheet').innerHTML='<h1>Mi Bitácora · activos estudiados</h1><p>Impresión: '+escapeHtml(now)+' (Colombia) · USD por acción · precios consultados a Financial Modeling Prep con posible retraso. “—” indica cotización o valoración no disponible. Diferencia = (valor intrínseco base / precio − 1) × 100.</p>'+
-      '<table><thead><tr><th>Ticker</th><th>Activo</th><th>Precio consultado</th><th>Valor intrínseco base hoy</th><th>Diferencia vs. precio</th><th>Hora de consulta</th></tr></thead><tbody>'+
-      list.map(function(d){var delta=priceDifference(d);return '<tr><td>'+escapeHtml(d.ticker)+'</td><td>'+escapeHtml(d.empresa||'')+'</td><td>'+(d.precioActual?fmtVal(d.precioActual):'—')+'</td><td>'+fmtVal(intrinsicBase(d))+'</td><td>'+(delta===null?'—':(delta>=0?'+':'')+delta.toFixed(1)+'%')+'</td><td>'+(d.precioActualConsultado?escapeHtml(new Date(d.precioActualConsultado).toLocaleTimeString('es-CO',{timeZone:'America/Bogota'})):'—')+'</td></tr>';}).join('')+'</tbody></table>';
+    document.getElementById('printSheet').innerHTML='<h1>Mi Bitácora · activos estudiados</h1><p>Impresión: '+escapeHtml(now)+' (Colombia) · USD por acción · precios consultados a Financial Modeling Prep con posible retraso. “—” indica cotización o valoración no disponible. Valores base de: '+escapeHtml(BASIS_INFO[valueBasis].label)+' (hoy y FY+3 de esa misma familia). Diferencia = (valor / precio − 1) × 100.</p>'+
+      '<table><thead><tr><th>Ticker</th><th>Activo</th><th>Precio consultado</th><th>Valor hoy</th><th>Dif. hoy</th><th>Valor FY+3</th><th>Dif. FY+3</th><th>Hora de consulta</th></tr></thead><tbody>'+
+      list.map(function(d){var f=familyValues(d,BASIS_INFO[valueBasis].fam),a=pctVs(f.hoy,d),b=pctVs(f.fy3,d),pc=function(x){return x===null?'—':(x>=0?'+':'')+x.toFixed(1)+'%';};return '<tr><td>'+escapeHtml(d.ticker)+'</td><td>'+escapeHtml(d.empresa||'')+'</td><td>'+(d.precioActual?fmtVal(d.precioActual):'—')+'</td><td>'+fmtVal(f.hoy)+'</td><td>'+pc(a)+'</td><td>'+fmtVal(f.fy3)+'</td><td>'+pc(b)+'</td><td>'+(d.precioActualConsultado?escapeHtml(new Date(d.precioActualConsultado).toLocaleTimeString('es-CO',{timeZone:'America/Bogota'})):'—')+'</td></tr>';}).join('')+'</tbody></table>';
   }
   document.getElementById('printListBtn').addEventListener('click',function(){
     var button=this;button.disabled=true;button.textContent='Consultando precios…';
@@ -1152,7 +1385,9 @@
   function saveCustomHipotesis(){
     var token = getGhToken();
     if(!token) return Promise.reject(new Error('Falta el token de GitHub.'));
-    var body = { message: 'Actualizar Mi Bitácora', content: b64EncodeUnicode(JSON.stringify(customList, null, 2)) };
+    var TRANSIENT = { valoracionActual: 1, n: 1, custom: 1, precioActual: 1, precioActualConsultado: 1 };
+    var clean = customList.map(function(r){ var c = {}; Object.keys(r).forEach(function(k){ if(!TRANSIENT[k]) c[k] = r[k]; }); return c; });
+    var body = { message: 'Actualizar Mi Bitácora', content: b64EncodeUnicode(JSON.stringify(clean, null, 2)) };
     if(customSha) body.sha = customSha;
     return fetch(GH_API + HYP_PATH, {
       method: 'PUT',
@@ -1250,6 +1485,7 @@
       conclusion: 'Análisis completo en research.html?ticker=' + encodeURIComponent(rec.ticker),
       actualizacion: 'Ver Análisis Fundamental para el detalle completo',
       fromResearch: true,
+      decision: rec.decision || null,
       researchId: rec.id,
       researchPath: rec.remotePath || null
     };
@@ -1276,7 +1512,7 @@
   function loadValuations(){
     return fetch(GH_API+'valoraciones',{headers:ghHeaders(getGhToken())}).then(function(res){if(!res.ok)throw new Error('HTTP '+res.status);return res.json();}).then(function(list){
       return Promise.all((Array.isArray(list)?list:[]).filter(function(f){return /\.json$/i.test(f.name);}).map(function(f){
-        return fetch(f.url||GH_API+f.path,{headers:ghHeaders(getGhToken())}).then(function(r){return r.json();}).then(function(data){return JSON.parse(b64DecodeUnicode(data.content.replace(/\n/g,'')));}).catch(function(){return null;});
+        return fetch(f.url||GH_API+f.path,{headers:ghHeaders(getGhToken())}).then(function(r){return r.json();}).then(function(data){var rec=JSON.parse(b64DecodeUnicode(data.content.replace(/\n/g,'')));rec.__path=f.path;return rec;}).catch(function(){return null;});
       }));
     }).then(function(records){var map={};records.forEach(function(v){if(v&&v.ticker&&(!map[v.ticker]||String(v.savedAt||'')>String(map[v.ticker].savedAt||'')))map[v.ticker]=v;});return map;}).catch(function(err){console.warn('No se pudieron leer las valoraciones:',err);return {};});
   }

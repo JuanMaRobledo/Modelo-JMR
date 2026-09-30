@@ -254,6 +254,8 @@
     <fieldset>
       <legend>DCF — costo de capital</legend>
       <div class="frow"><label for="wacc">WACC (años 1-5)</label><input id="wacc" type="number" step="0.01" value="9.38"></div>
+      <div class="frow"><label for="costoPatrimonio">Costo del patrimonio (Ke) — descuenta los múltiplos a hoy</label><input id="costoPatrimonio" type="number" step="0.01" placeholder="vacío = WACC"></div>
+      <div class="frow"><label for="criterioConsolidacion">Consolidar cada múltiplo con</label><select id="criterioConsolidacion"><option value="promedio">Promedio de 1, 2 y 3 años</option><option value="solo3">Solo el de 3 años</option></select></div>
       <div class="frow"><label for="riskFreeRate">Tasa libre de riesgo (= crecimiento terminal)</label><input id="riskFreeRate" type="number" step="0.01" value="4.62"></div>
       <div class="frow"><label for="matureMarketERP">Prima de riesgo de mercado maduro</label><input id="matureMarketERP" type="number" step="0.01" value="4.23"></div>
       <div class="frow"><label for="salesToCapital">Sales-to-capital ratio (reinversión)</label><input id="salesToCapital" type="number" step="any" value="1.5432"></div>
@@ -350,6 +352,14 @@
       <div class="stat"><div class="lbl">CAGR máximo (Optimista)</div><div class="big" id="cagrO">—</div></div>
     </div>
 
+    <p class="section-title">Valor intrínseco hoy · DCF vs. múltiplos descontados</p>
+    <div class="methods-scroll">
+      <table class="methods">
+        <thead><tr><th>Método (valor hoy)</th><th>Peso</th><th>Conservador</th><th>Base</th><th>Optimista</th></tr></thead>
+        <tbody id="pvBody"></tbody>
+      </table>
+    </div>
+    <p class="field-help" id="pvNote" style="margin-top:6px;"></p>
     <p class="section-title">Zonas de valor (escalonar entradas)</p>
     <div class="grid4">
       <div class="stat"><div class="lbl">Value</div><div class="rng" id="zValue">—</div></div>
@@ -521,6 +531,8 @@
       probFailure: pct('probFailure'),
       recoveryPct: pct('recoveryPct'),
       wacc: pct('wacc'),
+      costoPatrimonio: document.getElementById('costoPatrimonio').value.trim() === '' ? undefined : parseFloat(document.getElementById('costoPatrimonio').value)/100,
+      criterioConsolidacion: document.getElementById('criterioConsolidacion').value,
       riskFreeRate: pct('riskFreeRate'),
       matureMarketERP: pct('matureMarketERP'),
       salesToCapital: num('salesToCapital'),
@@ -542,6 +554,31 @@
     };
   }
 
+
+  // Valor presente (29-sep-2026): DCF (ya en valor de hoy), cada múltiplo
+  // traído a hoy en 1, 2 y 3 años y consolidado, y el ponderado final.
+  function renderValorPresente(v, pesos){
+    var body = document.getElementById('pvBody');
+    body.innerHTML = '';
+    var add = function(label, peso, t, cls){
+      var tr = document.createElement('tr');
+      if(cls) tr.className = cls;
+      tr.innerHTML = '<td>' + label + '</td><td>' + (peso == null ? '—' : fmtPct(peso)) + '</td><td>' + fmtMoney(t.cons) + '</td><td>' + fmtMoney(t.base) + '</td><td>' + fmtMoney(t.opt) + '</td>';
+      body.appendChild(tr);
+    };
+    add('DCF hoy (valor presente)', v.pesoDcf, v.dcf);
+    [['evEbitda','EV/EBITDA'], ['evFcff','EV/FCFF'], ['pe','P/E'], ['pfcfe','P/FCFE'], ['pocf','P/OCF']].forEach(function(pair){
+      var m = v.metodos[pair[0]];
+      add('&nbsp;&nbsp;' + pair[1], pesos[pair[0]], {cons: m.cons.consolidado, base: m.base.consolidado, opt: m.opt.consolidado});
+    });
+    add('Múltiplos consolidados', v.pesoMultiplos, v.multiplos);
+    add('Ponderado hoy (secundario)', v.pesoDcf + v.pesoMultiplos, v.ponderado, 'total');
+    var ok = ['cons','base','opt'].every(function(k){ return v.chequeo[k].ok; });
+    document.getElementById('pvNote').textContent = 'VP = (precio FY+n + dividendos acumulados) ÷ (1 + ' + fmtPct(v.tasaDescuento) + ')^n, n = 1, 2, 3; ' +
+      (v.criterio === 'solo3' ? 'solo el de 3 años' : 'promedio de los 3 horizontes') + ' por método. Chequeo VP 3 años < FY+3 sin descontar (Base ' +
+      fmtMoney(v.chequeo.base.multiplosVP3) + ' vs ' + fmtMoney(v.chequeo.base.multiplosFY3SinDescontar) + '): ' + (ok ? 'OK' : 'REVISAR') + '.';
+  }
+
   function render(inp, r){
     document.getElementById('rTicker').textContent = document.getElementById('ticker').value || 'Modelo JMR';
     document.getElementById('rPrice').textContent = fmtMoney(inp.precioActual);
@@ -551,7 +588,7 @@
 
     var tbody = document.getElementById('methodsBody');
     tbody.innerHTML = '';
-    var order = [['dcf','DCF Damodaran'], ['evEbitda','EV/EBITDA'], ['evFcff','EV/FCFF'], ['pe','P/E'], ['pfcfe','P/FCFE'], ['pocf','P/OCF']];
+    var order = [['dcf','DCF Damodaran (llevado a FY+3)'], ['evEbitda','EV/EBITDA'], ['evFcff','EV/FCFF'], ['pe','P/E'], ['pfcfe','P/FCFE'], ['pocf','P/OCF']];
     order.forEach(function(pair){
       var key=pair[0], label=pair[1];
       var peso = r.pesos[key];
@@ -563,6 +600,7 @@
     totRow.className='total';
     totRow.innerHTML = '<td>Precio Objetivo Ponderado</td><td>100%</td><td class="total-cons">'+fmtMoney(r.precioObjetivo.cons)+'</td><td class="total-base">'+fmtMoney(r.precioObjetivo.base)+'</td><td class="total-opt">'+fmtMoney(r.precioObjetivo.opt)+'</td>';
     tbody.appendChild(totRow);
+    renderValorPresente(r.valorPresente, r.pesos);
 
     document.getElementById('cagrC').textContent = fmtPct(r.cagr.cons);
     document.getElementById('cagrB').textContent = fmtPct(r.cagr.base);

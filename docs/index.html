@@ -352,7 +352,7 @@
   }
   .sc-detail .dfield .dlbl{margin-bottom:3px;}
 
-  .mobile-sort{display:none; align-items:center; gap:8px; margin-bottom:14px;}
+  .mobile-sort{display:flex; align-items:center; gap:8px; margin-bottom:14px; max-width:420px;}
   .mobile-sort label{font-size:12px; color:var(--ink-faint); font-weight:600; flex:none;}
   .mobile-sort select{
     flex:1 1 auto; min-width:0; font:inherit; font-size:13px; padding:8px 10px; border-radius:9px;
@@ -364,7 +364,6 @@
     .stats{grid-template-columns:repeat(2, 1fr);}
     .table-scroll{display:none;}
     .card-list{display:flex;}
-    .mobile-sort{display:flex;}
   }
 
   footer{
@@ -531,8 +530,6 @@
 
   <div class="stats" id="stats"></div>
   <div class="view-controls"><p class="result-line" id="resultLine"></p><div class="view-switch" role="group" aria-label="Vista de la bitácora"><button type="button" data-view="visual" aria-pressed="true">◫ Vista gráfica</button><button type="button" data-view="table" aria-pressed="false">☷ Tabla</button></div></div>
-  <div class="visual-grid" id="visualGrid"></div>
-
   <div class="mobile-sort">
     <label for="mobileSortSelect">Ordenar por</label>
     <select id="mobileSortSelect">
@@ -541,10 +538,17 @@
       <option value="cagr:1">CAGR base: menor a mayor</option>
       <option value="precioActual:-1">Precio actual: mayor a menor</option>
       <option value="precioActual:1">Precio actual: menor a mayor</option>
+      <option value="anio:-1">Año: más reciente primero</option>
+      <option value="anio:1">Año: más antiguo primero</option>
+      <option value="precio:-1">Precio de entrada: mayor a menor</option>
+      <option value="precio:1">Precio de entrada: menor a mayor</option>
       <option value="ticker:1">Ticker A-Z</option>
+      <option value="ticker:-1">Ticker Z-A</option>
       <option value="empresa:1">Empresa A-Z</option>
     </select>
   </div>
+  <div class="visual-grid" id="visualGrid"></div>
+
 
   <div class="table-scroll">
     <div class="grid" id="grid">
@@ -800,8 +804,11 @@
       else if(key === "precioActual"){ av = a.precioActual; bv = b.precioActual; }
       else if(key === "n"){ av = a.n; bv = b.n; }
       else { av = (a[key]||"").toLowerCase(); bv = (b[key]||"").toLowerCase(); }
-      if(av === null || av === undefined || av === "") return 1;
-      if(bv === null || bv === undefined || bv === "") return -1;
+      var aMissing = av === null || av === undefined || av === "" || (typeof av === "number" && isNaN(av));
+      var bMissing = bv === null || bv === undefined || bv === "" || (typeof bv === "number" && isNaN(bv));
+      if(aMissing && bMissing) return a.n - b.n;
+      if(aMissing) return 1;
+      if(bMissing) return -1;
       if(av < bv) return -1 * dir;
       if(av > bv) return 1 * dir;
       return 0;
@@ -876,7 +883,9 @@
     });
   });
 
+  try{ var savedSort = localStorage.getItem("jmr-bitacora-reference-sort"); if(savedSort && /^[a-zA-Z]+:-?1$/.test(savedSort)){ state.sortKey = savedSort.split(":")[0]; state.sortDir = Number(savedSort.split(":")[1]); } }catch(err){}
   document.getElementById("mobileSortSelect").addEventListener("change", function(e){
+    try{ localStorage.setItem("jmr-bitacora-reference-sort", e.target.value); }catch(err){}
     var parts = e.target.value.split(":");
     state.sortKey = parts[0];
     state.sortDir = Number(parts[1]);
