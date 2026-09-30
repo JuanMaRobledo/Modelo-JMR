@@ -1,10 +1,10 @@
-# Prompt Maestro: Modelo de Valoración Damodaran para Cualquier Ticker (v4)
+# Prompt Maestro: Modelo de Valoración Damodaran para Cualquier Ticker (v4 · revisión historias 30-sep-2026)
 
 > Reemplaza a la v3 (30-sep-2026). Conserva el proceso de punta a punta (SEC EDGAR, costo de capital, supuestos anclados, chequeo de bugs, múltiplos con tres anclas, múltiplos a valor presente, guardado en Drive) y adopta el **criterio de Damodaran** como eje:
 >
 > 1. **El valor intrínseco es el DCF.** El DCF de hoy es la cifra principal de la valoración.
 > 2. **Los múltiplos son precio relativo y se tratan por aparte.** Se eligen con el protocolo de tres anclas (historia depurada, peers ajustados y múltiplo justificado), nunca derivados del DCF. Se pueden ponderar con el DCF en la app con los pesos de la categoría de empresa, pero esa mezcla es opcional y nunca reemplaza al DCF.
-> 3. **Primero la historia, después los números y el precio al final.** Cada supuesto sale de una historia explícita (posible, plausible, probable), contrastada con tasas base; se cuantifican tres o cuatro historias con probabilidades y un valor esperado; el precio aparece recién al final (DCF inverso y crecimiento implícito) para no anclar el análisis.
+> 3. **Primero la historia, después los números y el precio al final.** Cada supuesto sale de una historia explícita (posible, plausible, probable), contrastada con tasas base; se cuantifican cuatro historias como únicos escenarios activos, con probabilidades y un valor esperado; el precio aparece recién al final (DCF inverso y crecimiento implícito) para no anclar el análisis.
 > 4. **Decisión separada del análisis.** El documento termina con un registro de decisión; la decisión (comprar, mantener o vender) la toma el usuario en la app.
 >
 > Pensado para pegarse tal cual (reemplazando `{TICKER}`).
@@ -28,6 +28,81 @@ Quiero que armes un modelo de valoración DCF completo para {TICKER} usando la
 plantilla Damodaran/Ginzu en Google Sheets [ID o nombre de la plantilla maestra].
 Como la plantilla probablemente ya tiene datos de otra empresa, sobreescribila en
 vez de duplicarla (a menos que haya cupo de Drive para copiar).
+
+CONTRATO VIGENTE DE ESCENARIOS (revisión 30-sep-2026):
+Las historias SON los escenarios activos, no una segunda valoración paralela.
+Esta regla prevalece sobre instrucciones antiguas de tres escenarios técnicos.
+Definí cuatro tesis adaptadas a la empresa, con identificadores estables:
+A · Base; B · Conservadora; C · Disrupción; D · Optimista.
+Disrupción describe deterioro estructural del negocio; no presupone IA ni quiebra.
+Base es la trayectoria central defendida con evidencia; no es el promedio de las
+historias ni tiene que ser el punto medio del rango. Explicá por qué es central.
+Los nombres descriptivos, hipótesis y probabilidades son propios de cada activo:
+no copies cifras, probabilidades ni historias de ADBE.
+
+Para cada tesis explicá: mecanismo económico, evidencia favorable y contraria,
+qué debe ocurrir, señales de confirmación/invalidación y horizonte. Cuantificá un
+DCF completo por año hasta el año 10 y su perpetuidad: ingresos por segmento y
+agregados, crecimiento, margen operativo, impuestos, reinversión, retorno sobre
+capital, flujos y valor terminal. Usá la misma fecha, moneda, perímetro y bases
+contables. FCFF se descuenta a WACC; FCFE, cuando corresponda, a Ke. Mantené la
+misma trayectoria de tasa entre historias; cambios de beta o tasa son sensibilidad
+separada, salvo evidencia de un cambio de riesgo sistemático explícitamente
+justificado. No cuentes el mismo riesgo en flujos, probabilidades y tasa.
+
+Asigná probabilidades no negativas que sumen 100%, con fundamento y límites:
+son juicio del analista, no frecuencias publicadas. Los desenlaces deben ser
+suficientemente distintos para no solaparse y cubrir los futuros materiales.
+DCF esperado hoy = suma(probabilidad de cada historia × su DCF por acción hoy).
+Mostrá juntos y con igual destaque DCF base hoy (historia A) y DCF esperado hoy.
+El margen de seguridad se aplica al esperado: precio MOS = esperado × (1 − MOS).
+Si falta cuantificar una historia o justificar las probabilidades, indicá
+«DCF esperado pendiente»; no sustituyas el esperado por el base ni por múltiplos.
+Los múltiplos individuales, su consolidado y el ponderado con DCF son secundarios
+y separados; la mezcla de métodos nunca se etiqueta como valor intrínseco.
+
+En la hoja, creá o actualizá «Escenarios e historias» con los cuatro DCF por
+fórmulas, probabilidades y resumen. Verificá igualdad con el motor y sincronizá
+hoja, valoración guardada, análisis, visor, bitácora y portafolio cuando formen
+parte del encargo. Los antiguos Conservador/Base/Optimista quedan identificados
+como referencia técnica auxiliar; no son escenarios activos ni gobiernan el
+base destacado o el esperado. No confundas el antiguo Base con la historia A.
+
+Incluí «De dónde sale el cálculo»: registro de cada input (valor, unidad, período,
+fuente y fecha, hoja/celda o campo, tipo de origen y justificación), trayectoria
+anual de cada historia y puente numérico completo hasta el valor por acción.
+Para FCFF: EBIT = ingresos × margen; NOPAT = EBIT × (1 − tasa fiscal efectiva
+modelada); FCFF = NOPAT − reinversión neta; reinversión estable = NOPAT × g/ROIC;
+VT = FCFF del año 11/(WACC terminal − g); valor operativo = suma de flujos y VT
+descontados según la trayectoria de WACC; equity = valor operativo + caja y
+activos no operativos separables − deuda − minoritarios y otras reclamaciones
+aplicables; valor/acción = equity ajustado/acciones con dilución documentada.
+Si usás opciones como reclamación separada, evitá duplicar su dilución. Para FCFE,
+explicá beneficio, reinversión, deuda neta y capital regulatorio cuando aplique,
+descontá a Ke y no restes nuevamente la deuda del valor patrimonial obtenido.
+Mostrá un ejemplo sustituido con cifras y la suma ponderada de las cuatro tesis.
+
+AUDITORÍA DE CONGRUENCIA OBLIGATORIA, ACTIVO POR ACTIVO:
+- Conciliá datos históricos y LTM con fuentes primarias: períodos, moneda,
+  escala, GAAP/ajustado, perímetro, adquisiciones, splits y acciones/ADR.
+- Ingresos agregados = suma de segmentos sin duplicar partidas; el crecimiento
+  del grupo sale de esos ingresos, no de promediar tasas sin ponderación. CAGR
+  usa el número real de intervalos. Separá volumen/precio/mezcla y M&A/FX.
+- Márgenes compatibles con ingresos, mezcla y costos; explicá cambios del año
+  base al año 1, ajustes de I+D y convergencia sin saltos artificiales.
+- Crecimiento exige reinversión compatible con capacidad, capex, capital de
+  trabajo y adquisiciones. No dupliques reinversión si usás sales-to-capital.
+- En cada historia justificá duración del moat y trayectoria de ROIC; si la
+  ventaja se pierde, no mantengas retornos excedentes perpetuos por inercia.
+  Un ROIC menor que WACC puede ser coherente en deterioro: no lo fuerces al alza.
+  Verificá g < tasa terminal y explicá el peso del valor terminal en el total.
+- Cada resultado explica qué supuestos lo causan, sensibilidad, límites y
+  diferencias frente a otras historias. Ordená los valores esperados según la
+  severidad de las tesis; si divergen, investigá y explicá el mecanismo, sin
+  forzar que TODAS las variables sean menores/mayores en el mismo orden.
+- Registrá antes/después de correcciones y estado: verificado, corregido con
+  salvedades o pendiente. Fórmulas que reproducen la hoja no prueban por sí solas
+  validez económica. No declares auditoría integral si quedan controles pendientes.
 
 Reglas que aplican a todo el proceso:
 - Toda cifra material lleva fuente y fecha (link directo a 10-K/10-Q/20-F/6-K,
@@ -173,8 +248,8 @@ Seguí este proceso, en este orden:
      Bajarlo también contaría el mismo riesgo dos veces.
      Si el promedio de la industria no es representativo (NA, o menor que el
      costo de capital porque agrega empresas con pérdidas, p. ej. Software
-     (Internet)), usá la industria madura más cercana y decilo. Nunca un ROIC
-     terminal mayor que el actual ni menor que el costo de capital. Dejá nota en
+     (Internet)), usá la industria madura más cercana y decilo. En historias de continuidad no eleves el ROIC terminal por encima del
+     actual sin evidencia; en deterioro puede quedar por debajo del costo de capital. Dejá nota en
      B50 con el veredicto de ventaja, sus fuentes, la evidencia, la amenaza y el cálculo, y
      reportá el DCF con y sin el ajuste. Registro: JMR-valuation
      reference/moat_<fecha>.json. Después revisá que los múltiplos de salida
@@ -209,17 +284,16 @@ Seguí este proceso, en este orden:
      trailing-twelve-months) — chequeá contra un dato real y reciente (ej. la tasa
      de crecimiento de la métrica operativa clave: usuarios, GMV, etc.) en vez de
      confiar en la etiqueta "LTM" de la hoja.
-   - Confirmá el ORDEN final: Conservador < Base < Optimista en crecimiento,
-     margen objetivo, y valor DCF por acción. Si no ordena así, hay un desconecte
-     en alguna fórmula — no lo ignores.
+   - En los tres casos técnicos auxiliares, revisá su orden y las referencias.
+     Para las cuatro historias activas aplicá el contrato vigente: coherencia
+     económica y explicación de cualquier orden contraintuitivo, sin forzar
+     crecimiento y margen a moverse siempre en la misma dirección.
 
 5B. HISTORIAS, PROBABILIDADES Y VALOR ESPERADO (criterio Damodaran)
-   - Definí 3 o 4 historias mutuamente excluyentes (por ejemplo: la historia
-     central, una más débil, una de deterioro y una de éxito amplio). Para cada
-     una: crecimiento por segmento o marca en los años 1-5, margen objetivo,
-     sales-to-capital y, si corresponde, riesgo. Cuantificá cada historia con el
-     motor del modelo calibrado contra el DCF Base de la hoja
-     (scripts/damodaran_stories.py) sin tocar la hoja.
+   - Aplicá el contrato vigente: cuatro historias A/B/C/D que son los escenarios
+     activos, con DCF anual completo, hoja «Escenarios e historias» y motor
+     reconciliados. Calibrar contra la plantilla técnica no convierte su antiguo
+     Base en la historia A. No mantengas dos familias de escenarios principales.
    - Asigná probabilidades justificadas (evidencia de hoy + tasas base) y calculá
      el valor esperado por acción. Mostrá también una tabla de sensibilidad
      crecimiento × margen del DCF Base.
@@ -436,7 +510,7 @@ Seguí este proceso, en este orden:
         tasa, resultado); Conservador / Base / Optimista elegidos; regla y
         excepciones; celdas escritas.
      e) Tabla de resultado por escenario, separando HOY de FY+3:
-        DCF hoy · múltiplos consolidados hoy · valor intrínseco ponderado hoy ·
+        DCF hoy · múltiplos consolidados hoy · ponderado opcional de métodos hoy ·
         precio con MOS hoy (sobre el valor esperado de las historias si el
         análisis fundamental ya las tiene; si no, sobre el DCF) · precio objetivo FY+3 ponderado · precio actual y
         diferencia (valor hoy / precio − 1).
@@ -485,7 +559,7 @@ Seguí este proceso, en este orden:
       14. Control de calidad (tabla Sí/No, marcando Sí solo si lo verificaste): lo
           de la v3 más: historia escrita antes de los números; tasas base del
           tamaño reportadas; orgánico vs. comprado separado; margen normalizado
-          anclado en un maduro; beta bottom-up documentada; 3-4 historias con
+          anclado en un maduro; beta bottom-up documentada; cuatro historias activas con
           probabilidades y valor esperado; pre-mortem e indicadores; el precio
           no aparece antes de la sección 11.
    - Guardalo en Google Drive en AAA Finanzas › Análisis › <empresa>. Buscá la
@@ -522,7 +596,7 @@ análisis.
 | Tasas base | No | Obligatorias por tramo de tamaño (Mauboussin) |
 | Crecimiento | Un número agregado | Por segmento o marca; orgánico vs. comprado; sell-through vs. facturado |
 | Beta | Regresión o la del libro | Bottom-up del sector (Damodaran), la de regresión como referencia |
-| Escenarios | Conservador / Base / Optimista | Además 3-4 historias con probabilidades y valor esperado, pre-mortem e indicadores |
+| Escenarios | Conservador / Base / Optimista | Además cuatro historias activas con probabilidades y valor esperado, pre-mortem e indicadores |
 | Decisión | No | Registro de decisión; comprar / mantener / vender lo elige el usuario en la app |
 
 ## Qué cambió respecto de la v2
@@ -557,4 +631,4 @@ Motivo: en la evaluación del 29-sep-2026, 100 de 110 múltiplos Base de las 22 
 | 13 | Proyección de capital de trabajo (NWC) basada en ΔNWC/ΔIngresos: explotaba cuando ΔIngresos ≈ 0 y referenciaba celdas vacías (H42/H82) | Reemplazada por intensidad de NWC (NWC / ingresos) aplicada a los ingresos proyectados (`scripts/model_steps.py::fix_nwc_projection`) |
 | 14 | El Resumen mezclaba el DCF (valor hoy) con los múltiplos (precio FY+3) | Auditoría A3: DCF × (1+Ke)³ para el bloque FY+3; y hoja «Descuento de múltiplos» (29-sep-2026) con los múltiplos traídos a hoy en 1, 2 y 3 años, DCF hoy, múltiplos hoy y ponderado por separado |
 
-**Regla de oro para cualquier ticker nuevo:** antes de confiar en cualquier output del DCF, verificá con datos reales (no con la fórmula "tal como está") que el ordenamiento Conservador < Base < Optimista se cumple en crecimiento, margen Y valor final. Si no se cumple, hay una celda desconectada en algún lado — es más común de lo que parece en esta plantilla. **Y para los múltiplos:** si su valor hoy coincide casi exactamente con el DCF, sospechá que no son independientes y revisá de dónde salieron.
+**Regla de oro para cualquier ticker nuevo:** antes de confiar en cualquier output del DCF, verificá con datos reales (no con la fórmula "tal como está") la congruencia entre ingresos, crecimiento, márgenes, reinversión y ROIC de las cuatro historias activas. Si el valor no corresponde a la severidad de la tesis, investiga las referencias y explica el mecanismo económico; no fuerces el orden de todas las variables. **Y para los múltiplos:** si su valor hoy coincide casi exactamente con el DCF, sospechá que no son independientes y revisá de dónde salieron.
