@@ -138,44 +138,44 @@ Seguí este proceso, en este orden:
      que viene porque vamos a gastar más en marketing").
    - Sales-to-capital (B32/B33): bottom-up con CapEx/Revenue real, no un default
      genérico. Chequeá que el ROIC implícito del año 10 sea razonable.
-   - ROIC después del año 10 (B49/B50), según el moat (30-sep-2026): el valor
-     del crecimiento depende de que la empresa gane más que su costo de capital
-     (Damodaran); cuánto tiempo lo logra depende de su ventaja competitiva. La
-     plantilla supone por defecto que en la etapa estable gana exactamente su
-     costo de capital (B49 = "No"). Clasificá el moat con evidencia:
-       Fuentes ESTRUCTURALES: costos de cambio, efectos de red, escala o
-       ventaja de costos, licencias/regulación, patentes que se renuevan y
-       MARCA PROBADA (20 años o más de liderazgo, con retornos sobre el costo
-       de capital a lo largo de al menos un ciclo o una crisis; p. ej. DPZ,
-       CMG, NKE). No cuenta la marca joven (ONON), la de moda sin esa
-       trayectoria ni la de un producto fácil de sustituir con costos de
-       cambio bajos (DUOL).
-       * ANCHO: dos o más fuentes estructurales, o una muy fuerte (efectos de
-         red, costos de cambio); ROIC ('Valuation output'!B42 y la pestaña
-         'Eficiencia de capital') por encima del costo de capital terminal
-         (M14) en cada uno de los últimos 5 años; sin erosión visible hoy.
-         → B50 = el MENOR entre el ROIC actual y el de su industria en Damodaran.
-       * ESTRECHO: una fuente estructural con ROIC por encima del costo de
-         capital al menos 3 años seguidos, o un moat ancho con erosión visible.
-         → B50 = punto medio entre el costo de capital terminal y ese menor
-         valor (por convención un moat estrecho dura ~10 años y uno ancho ~20,
-         y el valor terminal empieza en el año 11).
-       * SIN MOAT: sin fuente estructural, ROIC que no supera de forma
-         sostenida al costo de capital (incluida la plusvalía de las compras),
-         o un moat estrecho con erosión visible. → B49 = "No".
-       EROSIÓN VISIBLE = evidencia de hoy, no probabilidad: pérdida sostenida
-       de participación, comparables negativas o recortes de precio, ROIC en
-       caída por competencia (no por inversión, como el capex de IA de MSFT).
-       Baja un nivel (NVO, NKE, PYPL → estrecho; LULU → sin moat).
-       La PROBABILIDAD de erosión futura NO baja el nivel: va a las historias,
-       donde las de erosión usan ROIC = costo de capital. Bajar también el
-       nivel contaría el mismo riesgo dos veces (criterio corregido el
-       30-sep-2026: GOOG, DPZ, ADBE y ZTS son anchos; CMG, estrecho).
+   - ROIC después del año 10 (B49/B50), criterio Damodaran (30-sep-2026): el
+     crecimiento solo crea valor si la empresa gana más que su costo de
+     capital; en crecimiento estable la reinversión es g ÷ ROIC. La hoja
+     supone por defecto ROIC = costo de capital (B49 = "No"). Damodaran
+     advierte que los retornos excedentes persisten por largos períodos y que
+     llevar el ROIC hacia el promedio de la industria da valores más
+     razonables (Investment Valuation, cap. 12). Respondé tres preguntas con
+     la evidencia de la sección 6 del análisis:
+       1. ¿Gana HOY por encima de su costo de capital de forma sostenida (al
+          menos los últimos 3 años, con plusvalía y arrendamientos cuando son
+          materiales)?
+       2. ¿Tiene una VENTAJA COMPETITIVA IDENTIFICABLE (barreras de entrada o
+          ventajas diferenciales: costos de cambio, efectos de red, escala o
+          costo, licencias o regulación, patentes, marca probada de 20 años o
+          más que superó un ciclo o una crisis)? No cuenta la marca joven, la
+          de moda sin trayectoria ni el producto fácil de sustituir.
+       3. ¿La ventaja SE DESVANECE de forma visible hoy (ROIC en caída por
+          competencia, pérdida de participación, precios a la baja)? El ROIC
+          que cae por inversión (p. ej. el capex de IA) no cuenta.
+     Resultado:
+       * SIN VENTAJA DEFENDIBLE (falla 1 o 2): B49 = "No" (ROIC = costo de
+         capital, el supuesto por defecto de Damodaran). El crecimiento
+         posterior al año 10 no suma valor.
+       * VENTAJA DURABLE (1 y 2 sí, 3 no): B50 = promedio de su industria
+         (Damodaran, ROIC por industria), sin superar el ROIC actual ni bajar
+         del costo de capital terminal (M14).
+       * VENTAJA QUE SE DESVANECE (1 y 2 sí, 3 sí): B50 = punto medio entre el
+         costo de capital terminal y el valor anterior (convención del modelo
+         para "ser más conservador", como pide Damodaran cuando la ventaja se
+         debilita).
+     La PROBABILIDAD de perder la ventaja en el futuro no cambia este valor:
+     va a las historias, donde las de erosión usan ROIC = costo de capital.
+     Bajarlo también contaría el mismo riesgo dos veces.
      Si el promedio de la industria no es representativo (NA, o menor que el
      costo de capital porque agrega empresas con pérdidas, p. ej. Software
      (Internet)), usá la industria madura más cercana y decilo. Nunca un ROIC
      terminal mayor que el actual ni menor que el costo de capital. Dejá nota en
-     B50 con el moat, sus fuentes, la evidencia, la amenaza y el cálculo, y
+     B50 con el veredicto de ventaja, sus fuentes, la evidencia, la amenaza y el cálculo, y
      reportá el DCF con y sin el ajuste. Registro: JMR-valuation
      reference/moat_<fecha>.json. Después revisá que los múltiplos de salida
      sigan contando la misma historia (paso 6.5, crecimiento implícito).
