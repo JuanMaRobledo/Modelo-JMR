@@ -277,9 +277,14 @@ la empresa gana más que su costo de capital, y la ventaja competitiva dice por 
 
 | Moat | Evidencia | ROIC terminal |
 |---|---|---|
-| Ancho | 2+ fuentes estructurales (la marca solo como complemento), o efectos de red / costos de cambio muy fuertes; ROIC > costo de capital en cada uno de los últimos 5 años; historias de erosión < 40% (con 40% o más es estrecho) | Menor entre ROIC actual e industria (Damodaran) |
-| Estrecho | Al menos una fuente estructural (costos de cambio, efectos de red, escala/costo, licencias, patentes que se renuevan), o una fuerte bajo presión (historias de erosión ≥ 40%); ROIC > costo de capital al menos 3 años seguidos. La marca sola no alcanza en consumo discrecional, moda o apps de consumo con bajo costo de cambio | Punto medio entre el costo de capital terminal y ese valor |
-| Sin moat | Sin fuente durable o ROIC no sostenido por encima del costo de capital (con la plusvalía de las compras) | Costo de capital |
+| Ancho | 2+ fuentes estructurales (o efectos de red / costos de cambio muy fuertes); ROIC > costo de capital en cada uno de los últimos 5 años; sin erosión visible | Menor entre ROIC actual e industria (Damodaran) |
+| Estrecho | Una fuente estructural con ROIC > costo de capital al menos 3 años seguidos, o ancho con erosión visible | Punto medio entre el costo de capital terminal y ese valor |
+| Sin moat | Sin fuente estructural, ROIC no sostenido (con la plusvalía de las compras), o estrecho con erosión visible | Costo de capital |
+
+Fuentes estructurales: costos de cambio, efectos de red, escala o costo, licencias, patentes que se renuevan y marca probada (20 años o más de liderazgo con retornos
+sobre el costo de capital a lo largo de al menos un ciclo o una crisis). No cuenta la marca joven, la de moda sin trayectoria ni la de un producto fácil de sustituir.
+La erosión visible (evidencia de hoy: participación, comparables, precios, ROIC en caída por competencia) baja un nivel. La probabilidad de erosión futura no: va a
+las historias, donde las de erosión usan ROIC = costo de capital; bajar también el nivel contaría el riesgo dos veces.
 
 La duración sigue la convención de moat (estrecho ~10 años de retornos excedentes, ancho ~20): el valor
 terminal empieza en el año 11, así que un moat estrecho conserva solo parte del exceso. Si la industria no es
