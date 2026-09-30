@@ -299,7 +299,7 @@ tasa libre de riesgo + ERP maduro.
   objetivo depende de una re-valoración y hay que justificarlo en la Tesis.
 
 > **Desde el 29-sep-2026 los múltiplos de cada valoración se eligen con el prompt de valoración v3**
-> (`docs/prompts/valoracion-modelo-jmr-v3.md`, también en la pestaña «Prompt maestro» de Análisis
+> (hoy `docs/prompts/valoracion-modelo-jmr-v4.md`, también en la pestaña «Prompt maestro» de Análisis
 > Fundamental). Cada múltiplo Conservador/Base/Optimista sale de tres anclas documentadas: la historia
 > de la empresa sin atípicos, la mediana de peers ajustada explícitamente por crecimiento, margen, ROIC
 > y riesgo, y el múltiplo justificado por fundamentales de Damodaran (EV/FCFF = (1+g)/(WACC−g),
@@ -314,6 +314,22 @@ tasa libre de riesgo + ERP maduro.
 > positivo de los últimos 4 cierres) es una variante mecánica y, en general, igual o más exigente.
 > Conviene mirar ambas: si difieren mucho, la historia reciente de múltiplos está distorsionada
 > (una burbuja o un derrumbe) y el analista debe fijar el múltiplo a mano.
+
+### Criterio Damodaran (30-sep-2026)
+
+Desde el prompt de valoración v4 y el de análisis fundamental v5:
+
+- **El valor intrínseco es el DCF de hoy.** Es la cifra por defecto en el Visor y en Mi Bitácora.
+- **Los múltiplos son precio relativo y van por aparte.** Siguen eligiéndose con las tres anclas y
+  pasan el chequeo de crecimiento implícito (pestaña «Crecimiento implícito»). El ponderado DCF +
+  múltiplos, con los pesos de la categoría de empresa, es una lectura opcional en la app.
+- **Primero la historia, el precio al final.** Cada supuesto sale de una historia (posible, plausible,
+  probable) contrastada con las tasas base de crecimiento por tamaño (Mauboussin); el crecimiento se
+  descompone por segmento o marca, orgánico frente a comprado; el margen se normaliza y se ancla en un
+  comparable maduro; la reinversión incluye las compras; la beta es bottom-up del sector (Damodaran).
+- **Historias con probabilidades.** Tres o cuatro historias cuantificadas con el motor del modelo
+  (calibrado contra el DCF de la hoja) dan un valor esperado; se agregan pre-mortem, indicadores y un
+  registro de decisión. La decisión (comprar, mantener o vender) la registra el usuario en la app.
 
 ### Auditoría de la plantilla (26-sep-2026)
 

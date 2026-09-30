@@ -4,7 +4,7 @@
   var LOCAL_KEY = 'jmr-research-library-v1';
   // Clave nueva: los cambios locales del antiguo prompt de 21 secciones
   // no deben ocultar la versión maestra v4 al actualizar la aplicación.
-  var PROMPT_KEY = 'jmr-research-prompt-v4';
+  var PROMPT_KEY = 'jmr-research-prompt-v5';
   var GH_REPO_API = 'https://api.github.com/repos/JuanMaRobledo/Modelo-JMR-datos/';
   var GH_API = GH_REPO_API + 'contents/';
   // Algunos logos del CDN de FMP desaparecen aunque la empresa siga
@@ -18,7 +18,7 @@
     'Resumen ejecutivo', 'Modelo de negocio', 'Segmentos y geografía',
     'Industria y crecimiento', 'Calidad del negocio', 'Ventaja competitiva',
     'Competencia', 'Gestión y asignación de capital', 'Catalizadores',
-    'Riesgos', 'Bulls say / Bears say', 'Filosofías de inversión',
+    'Riesgos', 'Bulls say / Bears say', 'Valor con criterio Damodaran', 'Filosofías de inversión',
     'Noticias y eventos recientes', 'Qué vigilar', 'Preguntas abiertas',
     'Fuentes', 'Control de calidad final'
   ];
@@ -980,14 +980,14 @@
   // del Modelo JMR (v3, que reemplazó a la v2: múltiplos elegidos con anclas
   // documentadas e independientes del DCF). Cada uno guarda sus cambios aparte.
   var PROMPTS = {
-    research: { file: 'prompts/research-fundamental-jmr-v4.md', key: PROMPT_KEY, download: 'prompt-research-fundamental-modelo-jmr-v4.md',
-      title: 'Prompt maestro v4 · 17 secciones', btn: 'promptKindResearch',
+    research: { file: 'prompts/research-fundamental-jmr-v5.md', key: PROMPT_KEY, download: 'JMR - PROMPT Research VIGENTE v5.md',
+      title: 'Prompt maestro v5 · 18 secciones · criterio Damodaran', btn: 'promptKindResearch',
       help: 'Úsalo en ChatGPT o Claude junto con la tabla del Modelo JMR. El esquema fijo hace que ambos produzcan documentos comparables.',
-      note: 'Adjunta la tabla JMR y los informes disponibles. La versión v4 integra la evidencia en la narrativa y verifica las cifras y supuestos del modelo sin recalcular el valor intrínseco.' },
-    valuation: { file: 'prompts/valoracion-modelo-jmr-v3.md', key: 'jmr-valuation-prompt-v3', download: 'JMR - PROMPT Valoracion VIGENTE v3.md',
-      title: 'Prompt de valoración v3 · reemplaza a la v2', btn: 'promptKindValuation',
+      note: 'Adjunta la tabla JMR y los informes disponibles. La v5 agrega la sección 12, «Valor con criterio Damodaran»: historia, tasas base, piezas del valor, historias con probabilidades y el precio solo al final, con un registro de decisión.' },
+    valuation: { file: 'prompts/valoracion-modelo-jmr-v4.md', key: 'jmr-valuation-prompt-v4', download: 'JMR - PROMPT Valoracion VIGENTE v4.md',
+      title: 'Prompt de valoración v4 · criterio Damodaran', btn: 'promptKindValuation',
       help: 'Arma el Modelo JMR de punta a punta (SEC EDGAR, costo de capital, supuestos anclados, bugs conocidos, guardado en Drive) y elige los múltiplos con tres anclas documentadas: historia depurada, peers ajustados y múltiplo justificado.',
-      note: 'Los múltiplos ya no se derivan del DCF: cada uno queda con su origen en «Supuestos de los Múltiplos» y en la hoja de tesis, y el resultado se reporta como DCF hoy, múltiplos hoy y ponderado por separado.' }
+      note: 'El valor intrínseco es el DCF; los múltiplos (con sus tres anclas) son precio relativo y se ponderan solo si se quiere, según el tipo de empresa. Historia y tasas base primero, historias con probabilidades y el precio al final.' }
   };
   var promptKind = 'research', defaultPrompts = {};
   try { if (localStorage.getItem('jmr-prompt-kind') === 'valuation') promptKind = 'valuation'; } catch (e) {}

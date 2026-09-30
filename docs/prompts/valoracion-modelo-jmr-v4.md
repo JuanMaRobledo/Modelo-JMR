@@ -1,10 +1,11 @@
-# Prompt Maestro: Modelo de Valoración Damodaran para Cualquier Ticker (v3)
+# Prompt Maestro: Modelo de Valoración Damodaran para Cualquier Ticker (v4)
 
-> Reemplaza a la v2. Mantiene el proceso de punta a punta de la v2 (datos de SEC EDGAR, costo de capital, supuestos anclados, chequeo de bugs, guardado en Drive) y cambia dos cosas de fondo:
+> Reemplaza a la v3 (30-sep-2026). Conserva el proceso de punta a punta (SEC EDGAR, costo de capital, supuestos anclados, chequeo de bugs, múltiplos con tres anclas, múltiplos a valor presente, guardado en Drive) y adopta el **criterio de Damodaran** como eje:
 >
-> 1. **Los múltiplos objetivo ya no se derivan del DCF.** Se eligen con un protocolo razonado (historia depurada de la empresa, comparables ajustados y múltiplo justificado por fundamentales), independiente del resultado del DCF, y queda documentado de dónde sale cada uno.
-> 2. **Los resultados se presentan por separado:** DCF hoy, múltiplos consolidados traídos a hoy (a 1, 2 y 3 años) y valor intrínseco ponderado, además del precio FY+3.
-> 3. **Criterio Damodaran (30-sep-2026):** el valor intrínseco principal es el **DCF hoy**; los múltiplos son precio relativo. El ponderado se usa solo si los múltiplos pasan el chequeo de crecimiento implícito (6.5), y el DCF inverso dice qué crecimiento supone el precio de hoy.
+> 1. **El valor intrínseco es el DCF.** El DCF de hoy es la cifra principal de la valoración.
+> 2. **Los múltiplos son precio relativo y se tratan por aparte.** Se eligen con el protocolo de tres anclas (historia depurada, peers ajustados y múltiplo justificado), nunca derivados del DCF. Se pueden ponderar con el DCF en la app con los pesos de la categoría de empresa, pero esa mezcla es opcional y nunca reemplaza al DCF.
+> 3. **Primero la historia, después los números y el precio al final.** Cada supuesto sale de una historia explícita (posible, plausible, probable), contrastada con tasas base; se cuantifican tres o cuatro historias con probabilidades y un valor esperado; el precio aparece recién al final (DCF inverso y crecimiento implícito) para no anclar el análisis.
+> 4. **Decisión separada del análisis.** El documento termina con un registro de decisión; la decisión (comprar, mantener o vender) la toma el usuario en la app.
 >
 > Pensado para pegarse tal cual (reemplazando `{TICKER}`).
 
@@ -61,6 +62,13 @@ Seguí este proceso, en este orden:
      Business(Global)"), y el approach de costo de deuda: si la empresa no tiene
      deuda calificada real (interest expense ~0), usar "Direct Input" con un spread
      razonable en vez de dejar un rating heredado sin sentido.
+   - BETA BOTTOM-UP (Damodaran): la beta de regresión de la acción es solo una
+     referencia. Partí de la beta desapalancada del sector de Damodaran (tabla
+     "Betas by Sector (US)", corregida por caja, fecha de la tabla), reapalancala
+     con la D/E de mercado de la empresa y justificá cualquier ajuste por riesgo
+     propio (concentración de clientes o de un distribuidor, una sola categoría,
+     moda, regulación). Documentá beta de regresión, beta del sector, beta usada
+     y el efecto en el DCF de usar una u otra.
    - Confirmá que el WACC resultante (celda de "Cost of capital based upon approach")
      sea coherente con el perfil de riesgo de la empresa. Anotá también el costo
      del patrimonio (Ke, 'Cost of capital worksheet'!B63): es la tasa con la que se
@@ -79,6 +87,32 @@ Seguí este proceso, en este orden:
      anterior si estás reescribiendo la plantilla), Estadísticas (empleados, deuda,
      ratios reales), Stories to Numbers (narrativa + link de cada supuesto a la
      historia).
+
+3B. HISTORIA Y VISIÓN EXTERNA (criterio Damodaran; ANTES de fijar supuestos y SIN
+    mirar la cotización ni los múltiplos de mercado)
+   - Escribí la historia en un párrafo: qué es la empresa en 5-10 años, de dónde
+     sale el crecimiento, qué margen es sostenible y por qué, cuánto hay que
+     reinvertir y qué riesgo tiene. Pasala por el filtro posible / plausible /
+     probable en una tabla con la evidencia de cada afirmación.
+   - Visión externa: ubicá a la empresa en su tramo de tamaño de las tasas base de
+     crecimiento de ventas a 5 años (Mauboussin & Callahan, The Base Rate Book,
+     2016, Exhibit 4 — real, en dólares de 2015: sumá la inflación esperada para
+     comparar con el DCF nominal; o "Bayes and Base Rates 2.0" si tenés la cifra
+     nominal). Reportá la media, la mediana y qué fracción de empresas de ese
+     tamaño logra el crecimiento que proponés. Te alejás de la tasa base solo con
+     evidencia específica, y lo decís.
+   - Descomponé el crecimiento en piezas verificables: por segmento, marca,
+     producto o región; orgánico frente a comprado (las adquisiciones rompen la
+     comparabilidad y no son crecimiento gratis); cuando exista, ventas al
+     consumidor o sell-through frente a lo facturado (separa demanda de
+     inventario); participación de mercado y crecimiento de la categoría.
+   - Márgenes: separá GAAP de normalizado (cargos de una vez, integración,
+     litigios, amortización de compras) y anclá el objetivo en un comparable
+     maduro del mismo negocio, explicando la brecha de margen bruto y de escala.
+   - Reinversión y retorno: orgánico (capex, capital de trabajo, sales-to-capital
+     real) y comprado (precio pagado frente a ventas y NOPAT de lo comprado =
+     retorno sobre lo pagado vs. costo de capital). El capital invertido debe
+     incluir todo lo que financió el negocio (también preferentes o mezzanine).
 
 4. SUPUESTOS DE CRECIMIENTO Y MARGEN (Input sheet B27-B33) — la parte que más se
    rompe si se hace a ojo. Para cada uno, ANCLAR a un dato real, nunca a un número
@@ -104,6 +138,10 @@ Seguí este proceso, en este orden:
      que viene porque vamos a gastar más en marketing").
    - Sales-to-capital (B32/B33): bottom-up con CapEx/Revenue real, no un default
      genérico. Chequeá que el ROIC implícito del año 10 sea razonable.
+   - Cada supuesto de la hoja tiene que salir de la historia del paso 3B: los
+     escenarios Conservador, Base y Optimista son historias, no porcentajes
+     redondos alrededor del Base. Si el Base se aleja de la tasa base de su
+     tamaño, la evidencia específica tiene que estar escrita.
 
 5. VERIFICAR QUE EL DCF REALMENTE USE ESOS SUPUESTOS (checklist de bugs conocidos
    de esta plantilla — revisar ANTES de confiar en los outputs, no después):
@@ -134,7 +172,24 @@ Seguí este proceso, en este orden:
      margen objetivo, y valor DCF por acción. Si no ordena así, hay un desconecte
      en alguna fórmula — no lo ignores.
 
-6. MÚLTIPLOS OBJETIVO — SELECCIÓN RAZONADA E INDEPENDIENTE DEL DCF
+5B. HISTORIAS, PROBABILIDADES Y VALOR ESPERADO (criterio Damodaran)
+   - Definí 3 o 4 historias mutuamente excluyentes (por ejemplo: la historia
+     central, una más débil, una de deterioro y una de éxito amplio). Para cada
+     una: crecimiento por segmento o marca en los años 1-5, margen objetivo,
+     sales-to-capital y, si corresponde, riesgo. Cuantificá cada historia con el
+     motor del modelo calibrado contra el DCF Base de la hoja
+     (scripts/damodaran_stories.py) sin tocar la hoja.
+   - Asigná probabilidades justificadas (evidencia de hoy + tasas base) y calculá
+     el valor esperado por acción. Mostrá también una tabla de sensibilidad
+     crecimiento × margen del DCF Base.
+   - Pre-mortem: si en 3 años la tesis falló, ¿por qué? (al menos cuatro causas),
+     y la evidencia en contra de tu propia historia central.
+   - Indicadores: 6-8 métricas observables con su valor actual y los umbrales que
+     reforzarían cada historia, y una regla para mover las probabilidades cada
+     trimestre (5-10 pp según la evidencia) sin cambiar el valor de cada historia
+     salvo que cambie un supuesto.
+
+6. MÚLTIPLOS OBJETIVO (PRECIO RELATIVO) — SELECCIÓN RAZONADA E INDEPENDIENTE DEL DCF
    (hojas EVEBITDA, EVFCFF, PE, PFCFE, POCF; celdas J8 = Conservador,
    J19 = Base, J30 = Optimista)
 
@@ -283,7 +338,11 @@ Seguí este proceso, en este orden:
      'Resumen de Valoración' C32:E34 muestra DCF hoy, múltiplos hoy y ponderado.
    - Si la hoja no existe, corré scripts/discount_multiples.py (ver Contexto).
 
-8. PONDERACIÓN DE MÉTODOS (Resumen de Valoración)
+8. PONDERACIÓN OPCIONAL DE MÉTODOS (Resumen de Valoración)
+   - El valor intrínseco es el DCF. El ponderado DCF + múltiplos es una lectura
+     opcional que la app muestra por aparte; los pesos dependen del tipo de
+     empresa (tabla I5:U11) y solo tiene sentido si los múltiplos pasaron el
+     chequeo de crecimiento implícito (6.5).
    - Revisá qué categoría de "Tipo de Empresa" (G3) mejor describe a {TICKER}
      (Crecimiento, Madura, Software, Financiera, REIT, Cíclica, Intensiva en
      Capital, Infraestructura, Defensiva, Hyper-Crecimiento/Pre-Rentable,
@@ -333,43 +392,50 @@ Seguí este proceso, en este orden:
         (para que quede trazable qué se tocó y por qué).
      g) Conclusión de 3-4 líneas con la variable clave a monitorear y cuál de los
         dos enfoques (DCF o múltiplos) es más confiable para esta empresa.
+     h) Historias con probabilidades y valor esperado (paso 5B).
 
 11. GUARDADO EN LA CARPETA DE ANÁLISIS DE LA EMPRESA (obligatorio, sin pedir permiso)
    - La hoja del modelo queda donde está; no la muevas ni la dupliques.
    - Generá un resumen en Markdown llamado
-     {TICKER}_Valoracion_Modelo_JMR_[AAAA-MM-DD].md con estas secciones:
-       1. Resumen: DCF hoy, múltiplos consolidados hoy, ponderado hoy y precio
-          objetivo FY+3 por escenario, precio actual y diferencia, y la razón
-          principal de la divergencia entre métodos.
-       2. Datos: link a la hoja, fecha de corte y de cotización, precio actual,
-          conciliación de las cifras base con su fuente.
-       3. Supuestos del DCF por escenario (valor, celda, procedencia, evidencia a
-          favor y en contra) y costo de capital (Rf, beta, ERP, Ke, Kd, pesos,
-          WACC inicial y terminal).
-       4. Múltiplos: la tabla de origen del paso 10.d y un párrafo por método que
-          explique por qué ese múltiplo es razonable en FY+3, qué atípicos se
-          excluyeron y qué lo haría cambiar; cierre con el chequeo de
-          independencia (6.4) y el chequeo de crecimiento implícito (6.5).
-       5. Resultados: precio FY+3 por método y escenario; los 15 valores presente
-          por escenario (5 métodos × 1, 2, 3 años); consolidado por método; DCF
-          hoy; ponderado hoy; MOS; y el chequeo VP3 < FY+3.
-       6. DCF vs. múltiplos (lectura Damodaran: qué expectativas reflejan los
+     {TICKER}_Valoracion_Modelo_JMR_[AAAA-MM-DD].md con estas secciones, en este
+     orden (el precio aparece recién en la sección 11):
+       1. Resumen: valor intrínseco (DCF hoy) por escenario y valor esperado de
+          las historias; en una línea aparte, los múltiplos como precio relativo.
+          Sin precio de mercado.
+       2. Historia y visión externa (paso 3B): historia, filtro posible /
+          plausible / probable, tasas base, descomposición del crecimiento,
+          márgenes normalizados, reinversión y retorno.
+       3. Datos: link a la hoja, fecha de corte, conciliación de las cifras base.
+       4. Supuestos del DCF por escenario (valor, celda, procedencia, evidencia a
+          favor y en contra) y costo de capital (Rf, beta de regresión y beta
+          bottom-up, ERP, Ke, Kd, pesos, WACC inicial y terminal).
+       5. Historias, probabilidades y valor esperado (paso 5B): tabla de
+          historias, sensibilidad crecimiento × margen, pre-mortem e indicadores.
+       6. Múltiplos (precio relativo): la tabla de origen del paso 10.d y un
+          párrafo por método; chequeo de independencia (6.4).
+       7. Resultados: precio FY+3 por método y escenario; los 15 valores presente
+          por escenario; consolidado por método; DCF hoy; ponderado hoy
+          (opcional); MOS; chequeo VP3 < FY+3.
+       8. DCF vs. múltiplos (lectura Damodaran: qué expectativas reflejan los
           múltiplos, qué supone el DCF, cuál es más confiable y por qué).
-       7. Sensibilidad: efecto en el ponderado Base de ±20% en cada múltiplo Base,
-          ±2 pp de crecimiento años 2-5, ±3 pp de margen objetivo y ±1 pp de
-          WACC; los tres supuestos más frágiles.
-       8. Log de cambios en la hoja (hoja, celda, valor anterior, valor nuevo,
-          motivo) y correcciones estructurales con antes/después.
-       9. Fuentes (primarias y secundarias, con fecha y link directo).
-      10. Control de calidad (tabla Sí/No, marcando Sí solo si lo verificaste):
-          no se cambiaron fórmulas salvo bugs documentados; cada múltiplo Base
-          tiene sus tres anclas con fuente; ningún múltiplo sale del DCF ni se
-          movió después de verlo; cada Base está dentro del rango de sus anclas o
-          la excepción está justificada; Cons < Base < Opt en los cinco métodos y
-          J8/J19/J30 escritos; métodos no aplicables declarados; 'Supuestos de los
-          Múltiplos' A3 y A12 completos; DCF hoy, múltiplos hoy y ponderado
-          reportados por separado; chequeo VP3 < FY+3 en OK; sin errores "#"
-          reales; Cons < Base < Opt en crecimiento, margen y valor DCF.
+       9. Sensibilidad del DCF (±2 pp de crecimiento, ±3 pp de margen, ±1 pp de
+          WACC, beta de regresión vs. bottom-up) y de los múltiplos (±20%).
+      10. Log de cambios en la hoja y correcciones estructurales.
+      11. El precio al final: precio actual; DCF inverso (crecimiento de los años
+          1-5 que justifica el precio, con varios márgenes y betas); crecimiento
+          implícito de cada múltiplo (6.5); qué historia necesita el precio y
+          "¿qué sabe el mercado que yo no?".
+      12. Registro de decisión: historia en una frase, probabilidades, valor
+          esperado, rango, confianza, qué cambiaría la opinión y fecha de
+          revisión. La decisión (comprar / mantener / vender) la registra el
+          usuario en la app; no la tomes por él.
+      13. Fuentes (primarias y secundarias, con fecha y link directo).
+      14. Control de calidad (tabla Sí/No, marcando Sí solo si lo verificaste): lo
+          de la v3 más: historia escrita antes de los números; tasas base del
+          tamaño reportadas; orgánico vs. comprado separado; margen normalizado
+          anclado en un maduro; beta bottom-up documentada; 3-4 historias con
+          probabilidades y valor esperado; pre-mortem e indicadores; el precio
+          no aparece antes de la sección 11.
    - Guardalo en Google Drive en AAA Finanzas › Análisis › <empresa>. Buscá la
      subcarpeta por ticker y por nombre (p. ej. "NKE" o "PayPal"); usá la que ya
      tenga los análisis previos y creala con el ticker solo si no existe ninguna.
@@ -381,10 +447,11 @@ Seguí este proceso, en este orden:
    - Verificá tamaño y MD5 contra el archivo local, devolvé el link y no muevas,
      renombres ni borres otros archivos de esa carpeta.
    - Si además se pidió el research fundamental, ese .md va en la misma carpeta
-     (ver "JMR - PROMPT Research (VIGENTE v4.1).md" en la carpeta Prompts).
+     (ver "JMR - PROMPT Research (VIGENTE v5).md" en la carpeta Prompts).
 
-Reportame al final: el precio actual; DCF hoy, múltiplos consolidados hoy y valor
-intrínseco ponderado hoy (Conservador / Base / Optimista); el precio objetivo FY+3
+Reportame al final: el valor intrínseco (DCF hoy) por escenario y el valor esperado
+de las historias; los múltiplos consolidados hoy como precio relativo y el ponderado
+opcional; recién después, el precio actual y el DCF inverso; el precio objetivo FY+3
 Base y el rango Conservador-Optimista; los cinco múltiplos Base con su ancla
 principal; la diferencia DCF vs. múltiplos y su explicación; cualquier bug
 estructural que hayas encontrado y corregido (con antes/después); cualquier cambio
@@ -393,6 +460,18 @@ análisis.
 ```
 
 ---
+
+## Qué cambió respecto de la v3
+
+| Tema | v3 | v4 |
+|---|---|---|
+| Valor intrínseco | DCF hoy, múltiplos hoy y ponderado presentados juntos | El DCF es el valor intrínseco; los múltiplos son precio relativo por aparte; el ponderado es opcional (app) con pesos por tipo de empresa |
+| Orden del análisis | Supuestos → resultados → comparación con el precio | Historia → visión externa → supuestos → historias con probabilidades → precio al final |
+| Tasas base | No | Obligatorias por tramo de tamaño (Mauboussin) |
+| Crecimiento | Un número agregado | Por segmento o marca; orgánico vs. comprado; sell-through vs. facturado |
+| Beta | Regresión o la del libro | Bottom-up del sector (Damodaran), la de regresión como referencia |
+| Escenarios | Conservador / Base / Optimista | Además 3-4 historias con probabilidades y valor esperado, pre-mortem e indicadores |
+| Decisión | No | Registro de decisión; comprar / mantener / vender lo elige el usuario en la app |
 
 ## Qué cambió respecto de la v2
 
