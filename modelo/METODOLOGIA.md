@@ -355,7 +355,8 @@ diferencia en crecimiento implícito o más de 25% en valor.
   descompone por segmento o marca, orgánico frente a comprado; el margen se normaliza y se ancla en un
   comparable maduro; la reinversión incluye las compras; la beta es bottom-up del sector (Damodaran).
 - **Historias con probabilidades.** Tres o cuatro historias cuantificadas con el motor del modelo
-  (calibrado contra el DCF de la hoja) dan un valor esperado; se agregan pre-mortem, indicadores y un
+  (cada una un DCF completo con los insumos de la hoja y la misma tasa de descuento) dan un valor esperado:
+  el promedio de las historias ponderado por su probabilidad; se agregan pre-mortem, indicadores y un
   registro de decisión. La decisión (comprar, mantener o vender) la registra el usuario en la app.
 
 ### Auditoría de la plantilla (26-sep-2026)

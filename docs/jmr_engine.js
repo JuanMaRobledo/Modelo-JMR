@@ -18,10 +18,12 @@ var JMR_WEIGHTS = {
 
 // Trayectorias año a año como en 'Valuation output' (plantilla Ginzu de Damodaran).
 // Crecimiento: año 1 (Input B27), años 2-5 (B29) y convergencia lineal a la perpetuidad en 6-10.
-function growthPath(growthY2to5, terminalGrowth, growthY1){
+// anios (opcional): crecimiento de cada uno de los años 1-5 (p. ej. el de una historia por segmentos).
+function growthPath(growthY2to5, terminalGrowth, growthY1, anios){
   var g = new Array(11);
   g[1] = (typeof growthY1 === 'number' && isFinite(growthY1)) ? growthY1 : growthY2to5;
   for(var n=2;n<=5;n++) g[n]=growthY2to5;
+  if(anios && anios.length === 5) for(var n=1;n<=5;n++) g[n]=anios[n-1];
   var step=(g[5]-terminalGrowth)/5;
   for(var n=6;n<=10;n++) g[n]=g[n-1]-step;
   return g; // g[1..10]; terminal = terminalGrowth
@@ -62,7 +64,7 @@ function escenarioDe(inp, s){
 function runDCFDetalle(inp, growthY2to5, marginTarget, growthY1, marginY1){
   var terminalGrowth = num(inp.terminalGrowth, inp.riskFreeRate);
   var waccTerminal = num(inp.terminalWacc, inp.riskFreeRate + inp.matureMarketERP);
-  var g = growthPath(growthY2to5, terminalGrowth, growthY1);
+  var g = growthPath(growthY2to5, terminalGrowth, growthY1, inp.crecimientoAnios);
   var m = marginPath(num(marginY1, inp.ebit0 / inp.revenue0), marginTarget, inp.convergenceYear);
   var tax = taxPath(inp.taxEffective, inp.taxMarginal);
   var wacc = waccPath(inp.wacc, waccTerminal);

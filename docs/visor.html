@@ -728,6 +728,7 @@
         <div class="stat hl-base"><div class="lbl">Base</div><div class="big" id="hlB">—</div><div class="rng" id="potB">—</div></div>
         <div class="stat"><div class="lbl">Optimista</div><div class="big" id="hlO">—</div><div class="rng" id="potO">—</div></div>
       </div>
+      <div id="hlVE"></div>
     </div>
 
     <div class="tabs" id="mainTabs">
@@ -1290,6 +1291,10 @@
     if(!currentResumen) return;
     renderMosDcf();
     renderValueBoard();
+    // Valor esperado de las historias (sección Damodaran del análisis), junto al DCF.
+    var veBox = document.getElementById('hlVE');
+    if(veBox) veBox.innerHTML = (typeof JmrValueBoard !== 'undefined' && currentResumen.valorEsperado)
+      ? JmrValueBoard.veBox(JmrValueBoard.fromRecord(currentResumen, { precio: currentResumen.precio, precioLbl: 'Precio de hoy' })) : '';
     var sel = document.getElementById('headlineSel');
     var h = headlineData();
     ['dcfHoy','ponderadoHoy','multHoy'].forEach(function(k){
