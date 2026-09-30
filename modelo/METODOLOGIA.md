@@ -272,6 +272,25 @@ La reinversión sale del **sales-to-capital** (`Input` B32/B33: Δ ingresos ÷ �
 invertido, calculado de abajo hacia arriba con la historia de la empresa). Como chequeo, el ROIC
 implícito del año 10 no debería superar por mucho al actual ni al de la industria.
 
+**ROIC después del año 10** (`Input` B49/B50, criterio Damodaran). Por defecto el ROIC terminal es
+igual al costo de capital terminal: en la etapa estable el crecimiento no crea valor. Se usa un ROIC
+terminal mayor solo si la empresa cumple tres condiciones:
+
+1. Tiene una ventaja competitiva durable e identificable (marca, efectos de red, costos de cambio,
+   escala, licencias o patentes que se renuevan).
+2. Su ROIC actual ('Valuation output' B42) supera al costo de capital terminal de forma sostenida
+   (3-5 años).
+3. La historia Base no pone esa ventaja bajo amenaza directa.
+
+En ese caso, B50 = el menor entre el ROIC actual y el ROIC después de impuestos de su industria en
+Damodaran. Si el promedio de la industria no es representativo (NA, o menor que el costo de capital
+por empresas con pérdidas), se usa la industria madura más cercana. El ROIC terminal nunca es mayor
+que el actual ni menor que el costo de capital terminal. La celda lleva una nota con el valor, la
+fuente y el motivo.
+
+Con ROIC terminal, la reinversión del año terminal es g ÷ ROIC × EBIT(1 − t). El motor de la app
+(`jmr_engine.js`) lo lee de la hoja (`inp.roicTerminal`).
+
 ### Costo de capital
 
 Tasa libre de riesgo (bono a 10 años en la moneda de la valoración) + beta (desapalancada de la
