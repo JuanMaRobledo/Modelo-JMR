@@ -215,6 +215,13 @@
   .visual-upside{font:600 12px "IBM Plex Mono",monospace;color:var(--positive);}
   .visual-upside.negative{color:var(--negative);}
   .visual-upside.neutral{color:var(--ink-soft);}
+  .basis-note{font-size:11.5px;color:var(--ink-faint);margin:-8px 0 12px;max-width:720px;line-height:1.4;}
+  .pct-pos{color:var(--positive);} .pct-neg{color:var(--negative);}
+  .visual-number .vs{display:block;margin-top:4px;font:500 11px "IBM Plex Mono",monospace;color:var(--ink-soft);}
+  .visual-number .vs span{display:inline;font-size:inherit;text-transform:none;letter-spacing:0;font-weight:700;}
+  .visual-number .vs .pct-pos{color:var(--positive);} .visual-number .vs .pct-neg{color:var(--negative);}
+  .summary-item .num .pair{display:block;font-size:12px;}
+  .summary-item .num .pair b{font-weight:600;color:var(--ink-faint);font-family:"Public Sans",sans-serif;font-size:10.5px;margin-right:4px;}
   .visual-more{font-family:inherit;font-size:12px;font-weight:600;color:var(--accent);background:none;border:0;cursor:pointer;padding:6px;}
   .visual-more:focus-visible{outline:2px solid var(--focus);border-radius:5px;}
   .visual-detail{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:15px;padding-top:14px;border-top:1px solid var(--border-soft);}
@@ -225,7 +232,7 @@
   .visual-grid[hidden],.table-scroll[hidden],.card-list[hidden]{display:none!important;}
   .summary-list[hidden],.print-sheet{display:none!important;}
   .summary-list{display:grid;gap:8px;}
-  .summary-item{display:grid;grid-template-columns:minmax(140px,2fr) repeat(3,minmax(95px,1fr)) auto;align-items:center;gap:12px;padding:12px 16px;background:var(--surface);border:1px solid var(--border-soft);border-radius:12px;}
+  .summary-item{display:grid;grid-template-columns:minmax(140px,2fr) repeat(3,minmax(110px,1fr)) auto;align-items:center;gap:12px;padding:12px 16px;background:var(--surface);border:1px solid var(--border-soft);border-radius:12px;}
   .summary-item strong{display:block;font-size:14px;}.summary-item small{display:block;color:var(--ink-faint);font-size:11px;}
   .summary-item .num{font:600 13px "IBM Plex Mono",monospace;}.summary-item .positive{color:var(--positive);}.summary-item .negative{color:var(--negative);}
   .summary-item button{font:600 12px inherit;border:0;background:var(--accent-soft);color:var(--accent-ink);padding:8px;border-radius:7px;cursor:pointer;}
@@ -604,6 +611,17 @@
   <div class="stats" id="stats"></div>
   <div class="view-controls"><p class="result-line" id="resultLine"></p><div class="view-switch" role="group" aria-label="Vista de la bitácora"><button type="button" data-view="summary" aria-pressed="true">Resumen</button><button type="button" data-view="visual" aria-pressed="false">Vista completa</button><button type="button" data-view="table" aria-pressed="false">Tabla</button></div><button class="print-btn" id="printListBtn" type="button">Imprimir lista actualizada</button></div>
   <div class="mobile-sort">
+    <label for="valueBasisSelect">Valor</label>
+    <select id="valueBasisSelect">
+      <option value="ponderadoHoy">Ponderado hoy (DCF + múltiplos)</option>
+      <option value="dcfHoy">Solo DCF hoy</option>
+      <option value="multHoy">Solo múltiplos hoy</option>
+      <option value="multFy3">Múltiplos a 3 años (FY+3)</option>
+      <option value="ponderadoFy3">Ponderado a 3 años (FY+3)</option>
+    </select>
+  </div>
+  <p class="basis-note" id="valueBasisNote"></p>
+  <div class="mobile-sort">
     <label for="mobileSortSelect">Ordenar por</label>
     <select id="mobileSortSelect">
       <option value="n:1">Orden original</option>
@@ -611,10 +629,12 @@
       <option value="cagr:1">CAGR base: menor a mayor</option>
       <option value="precioActual:-1">Precio actual: mayor a menor</option>
       <option value="precioActual:1">Precio actual: menor a mayor</option>
-      <option value="valorHoy:-1">Valor intrínseco hoy (base): mayor a menor</option>
-      <option value="valorHoy:1">Valor intrínseco hoy (base): menor a mayor</option>
-      <option value="descuento:-1">Diferencia valor hoy vs. precio: mayor primero</option>
-      <option value="descuento:1">Diferencia valor hoy vs. precio: menor primero</option>
+      <option value="valorHoy:-1">Valor elegido (base): mayor a menor</option>
+      <option value="valorHoy:1">Valor elegido (base): menor a mayor</option>
+      <option value="descuento:-1">Diferencia valor elegido vs. precio: mayor primero</option>
+      <option value="descuento:1">Diferencia valor elegido vs. precio: menor primero</option>
+      <option value="difHoy:-1">Diferencia hoy vs. precio: mayor primero</option>
+      <option value="difFy3:-1">Diferencia FY+3 vs. precio: mayor primero</option>
       <option value="fecha:-1">Fecha del análisis: más reciente primero</option>
       <option value="fecha:1">Fecha del análisis: más antigua primero</option>
       <option value="precio:-1">Precio de entrada: mayor a menor</option>
@@ -825,7 +845,7 @@
     var expanded = state.expanded === d.n;
     var html = '';
     html += '<div class="row data" tabindex="0" role="button" aria-expanded="' + expanded + '" data-n="' + d.n + '">';
-    html += '<span class="c-ticker">' + escapeHtml(d.ticker) + (d.valoracionActual && d.valoracionActual.valorPresentePonderado ? '<span class="valuation-chip">Hoy ' + fmtVal(d.valoracionActual.valorPresentePonderado.base) + '</span>' : '') + '</span>';
+    html += '<span class="c-ticker">' + escapeHtml(d.ticker) + (pairHtml(d) ? '<span class="valuation-chip">' + pairHtml(d) + '</span>' : '') + '</span>';
     html += '<span class="c-empresa" title="' + escapeHtml(d.empresa) + '">' + escapeHtml(d.empresa) + '</span>';
     html += '<span class="c-cat"><span class="chip ' + catClass(d.cat) + '">' + escapeHtml(d.cat) + '</span>' + (d.fromResearch ? '<span class="chip custom">Análisis Fundamental</span>' : '') + '</span>';
     html += '<span class="c-precio">' + escapeHtml(d.precio) + '</span>';
@@ -856,7 +876,7 @@
     html += '    <span class="c-cagr ' + cagrClass + '">' + escapeHtml(d.cagr) + '</span>';
     html += '  </div>';
     html += '  <div class="sc-empresa">' + escapeHtml(d.empresa) + '</div>';
-    if(d.valoracionActual && d.valoracionActual.valorPresentePonderado) html += '<div class="valuation-chip">Ponderado hoy · ' + fmtVal(d.valoracionActual.valorPresentePonderado.base) + '　|　FY+3 · ' + fmtVal((d.valoracionActual.objetivoPonderado || {}).base) + '</div>';
+    if(pairHtml(d)) html += '<div class="valuation-chip">' + pairHtml(d) + '</div>';
     html += '  <div class="sc-row">';
     html += '    <div class="sc-kv"><span class="k">Entrada</span><span class="v">' + escapeHtml(d.precio) + '</span></div>';
     html += '    <div class="sc-kv"><span class="k">Actual</span><span class="v' + (d.precioActual != null ? '' : ' stale') + '">' + (d.precioActual != null ? formatPrecioActual(d.precioActual) : '—') + '</span></div>';
@@ -873,11 +893,10 @@
   }
 
   function visualCardHtml(d){
-    var v=d.valoracionActual||{}, present=v.valorPresentePonderado&&v.valorPresentePonderado.base;
-    var future=v.objetivoPonderado&&v.objetivoPonderado.base;
-    if(!(typeof future==='number'&&isFinite(future)))future=parseNum(d.oBase);
-    var price=d.precioActual;
-    var validPrice=typeof price==='number'&&isFinite(price)&&price>0;
+    var fam=BASIS_INFO[valueBasis].fam, fv=familyValues(d,fam), present=fv.hoy, future=fv.fy3;
+    var famLbl=fam==='dcf'?'DCF':fam==='multiplos'?'Múltiplos':'Ponderado';
+    var pr=priceRef(d), price=pr.price;
+    var validPrice=!!price;
     var scale=Math.max(present||0,future||0,validPrice?price:0,1)*1.1;
     var marker=validPrice?Math.min(100,Math.max(0,price/scale*100)):null;
     function bar(label,value,kind){
@@ -885,29 +904,77 @@
       var width=Math.min(100,Math.max(0,value/scale*100));
       return '<div class="visual-meter"><label>'+label+'</label><div class="visual-track"><span class="visual-fill '+kind+'" style="width:'+width.toFixed(2)+'%"></span>'+(marker!==null?'<span class="visual-marker" style="left:'+marker.toFixed(2)+'%" aria-hidden="true"></span>':'')+'</div><span class="value">'+fmtVal(value)+'</span></div>';
     }
-    var upside=validPrice&&typeof present==='number'?(present/price-1)*100:null;
+    var upHoy=pctVs(present,d), upFy3=pctVs(future,d);
     var expanded=state.expanded===d.n;
     return '<article class="visual-card"><div class="visual-head"><div><span class="c-ticker">'+escapeHtml(d.ticker)+'</span><h3>'+escapeHtml(d.empresa||d.ticker)+'</h3><div class="visual-sub">'+escapeHtml(d.fecha||'')+(d.fromResearch?' · Análisis fundamental':'')+'</div></div><span class="chip '+catClass(d.cat)+'">'+escapeHtml(d.cat)+'</span></div>'+
-      '<div class="visual-numbers"><div class="visual-number today"><span>Ponderado hoy</span><strong>'+fmtVal(present)+'</strong></div><div class="visual-number"><span>Objetivo FY+3</span><strong>'+fmtVal(future)+'</strong></div></div>'+
-      '<div class="visual-chart"><div class="visual-price">'+(validPrice?'│ Precio actual '+fmtVal(price):'Entrada histórica '+escapeHtml(d.precio||'—')+' · precio actual pendiente')+'</div>'+bar('Hoy',present,'')+bar('FY+3',future,'future')+'</div>'+
-      '<div class="visual-footer"><span class="visual-upside'+(upside===null?' neutral':upside<0?' negative':'')+'">'+(upside!==null?(upside>=0?'+':'')+upside.toFixed(1)+'% vs. precio actual':'CAGR base '+escapeHtml(d.cagr||'—'))+'</span><button type="button" class="visual-more" data-visual-n="'+d.n+'" aria-expanded="'+expanded+'">'+(expanded?'Ocultar detalle':'Ver análisis')+' →</button></div>'+
+      '<div class="visual-numbers"><div class="visual-number'+(BASIS_INFO[valueBasis].hz==='hoy'?' today':'')+'"><span>'+famLbl+' hoy</span><strong>'+fmtVal(present)+'</strong><small class="vs">vs. precio '+fmtPctSpan(upHoy)+'</small></div><div class="visual-number'+(BASIS_INFO[valueBasis].hz==='fy3'?' today':'')+'"><span>'+famLbl+' FY+3</span><strong>'+fmtVal(future)+'</strong><small class="vs">vs. precio '+fmtPctSpan(upFy3)+'</small></div></div>'+
+      '<div class="visual-chart"><div class="visual-price">'+(validPrice?'│ '+(pr.live?'Precio actual ':'Precio guardado ')+fmtVal(price):'Entrada histórica '+escapeHtml(d.precio||'—')+' · precio actual pendiente')+'</div>'+bar('Hoy',present,'')+bar('FY+3',future,'future')+'</div>'+
+      '<div class="visual-footer"><span class="visual-upside neutral">CAGR base '+escapeHtml(d.cagr||'—')+'</span><button type="button" class="visual-more" data-visual-n="'+d.n+'" aria-expanded="'+expanded+'">'+(expanded?'Ocultar detalle':'Ver análisis')+' →</button></div>'+
       (expanded?'<div class="visual-detail">'+detailFieldsHtml(d)+'</div>':'')+'</article>';
   }
 
-  function intrinsicBase(d){
-    var v=d.valoracionActual&&d.valoracionActual.valorPresentePonderado;
-    return v&&typeof v.base==='number'&&isFinite(v.base)?v.base:null;
+  // Valor elegido (30-sep-2026): el selector "Valor" decide qué cifra se usa
+  // para ordenar y comparar con el precio; cada caso muestra además la
+  // diferencia % contra el precio de su valor HOY y de su valor a FY+3 (de
+  // la misma familia: ponderado, DCF o múltiplos).
+  var BASIS_INFO = {
+    ponderadoHoy: {fam:'ponderado', hz:'hoy', label:'Ponderado hoy', note:'Valor intrínseco de hoy: DCF de hoy × su peso + múltiplos traídos a hoy × su peso.'},
+    dcfHoy:       {fam:'dcf', hz:'hoy', label:'DCF hoy', note:'Solo el DCF de Damodaran, en valor de hoy. Su FY+3 es el DCF de hoy × (1 + Ke)³.'},
+    multHoy:      {fam:'multiplos', hz:'hoy', label:'Múltiplos hoy', note:'Solo los 5 múltiplos, con el precio de FY+1 a FY+3 más dividendos traído a hoy con Ke.'},
+    multFy3:      {fam:'multiplos', hz:'fy3', label:'Múltiplos FY+3', note:'Solo los múltiplos, al cierre de FY+3 (precio + dividendos, sin descontar).'},
+    ponderadoFy3: {fam:'ponderado', hz:'fy3', label:'Ponderado FY+3', note:'Precio objetivo a 3 años: DCF llevado a FY+3 + múltiplos con dividendos, sin descontar.'}
+  };
+  var valueBasis = 'ponderadoHoy';
+  try{ var savedBasis = localStorage.getItem('jmr-bitacora-valor'); if(BASIS_INFO[savedBasis]) valueBasis = savedBasis; }catch(err){}
+  function num(x){ return typeof x==='number'&&isFinite(x)?x:null; }
+  function familyValues(d, fam){
+    var v=d.valoracionActual||{}, dm=v.descuentoMultiples||{}, methods=v.metodos||[];
+    var hoy=null, fy3=null;
+    if(fam==='ponderado'){ hoy=num((v.valorPresentePonderado||{}).base); fy3=num((v.objetivoPonderado||{}).base); }
+    else if(fam==='dcf'){
+      hoy=num((dm.dcfHoy||{}).base);
+      methods.forEach(function(m){ if(/DCF/i.test(m.nombre||'')) fy3=num(m.base); });
+    } else {
+      hoy=num((dm.multiplesHoy||{}).base);
+      var sum=0, w=0;
+      methods.forEach(function(m){ if(/DCF/i.test(m.nombre||''))return; var p=Number(m.peso)||0; if(num(m.base)===null)return; sum+=p*m.base; w+=p; });
+      fy3=w?sum/w:null;
+    }
+    if(fam==='ponderado'&&fy3===null) fy3=parseNum(d.oBase);
+    return {hoy:hoy, fy3:fy3};
   }
-  function priceDifference(d){
-    var value=intrinsicBase(d),price=d.precioActual;
-    return value!==null&&typeof price==='number'&&isFinite(price)&&price>0?(value/price-1)*100:null;
+  // Precio para comparar: el consultado hoy; si no se ha consultado, el
+  // guardado con la valoración.
+  function priceRef(d){
+    var p=d.precioActual;
+    if(typeof p==='number'&&isFinite(p)&&p>0) return {price:p, live:true};
+    var v=d.valoracionActual||{};
+    return num(v.precio)&&v.precio>0 ? {price:v.precio, live:false} : {price:null, live:false};
+  }
+  function pctVs(value, d){
+    var pr=priceRef(d).price;
+    return value!==null&&pr?(value/pr-1)*100:null;
+  }
+  function fmtPctSpan(x){
+    return x===null?'—':'<span class="'+(x<0?'pct-neg':'pct-pos')+'">'+(x>=0?'+':'')+x.toFixed(1)+'%</span>';
+  }
+  function intrinsicBase(d){
+    var b=BASIS_INFO[valueBasis], f=familyValues(d,b.fam);
+    return b.hz==='hoy'?f.hoy:f.fy3;
+  }
+  function priceDifference(d){ return pctVs(intrinsicBase(d), d); }
+  function pairHtml(d){
+    var f=familyValues(d,BASIS_INFO[valueBasis].fam);
+    if(f.hoy===null&&f.fy3===null) return '';
+    return 'Hoy '+fmtVal(f.hoy)+' ('+fmtPctSpan(pctVs(f.hoy,d))+') · FY+3 '+fmtVal(f.fy3)+' ('+fmtPctSpan(pctVs(f.fy3,d))+')';
   }
   function summaryHtml(d){
-    var price=d.precioActual,delta=priceDifference(d),valid=typeof price==='number'&&isFinite(price)&&price>0;
+    var pr=priceRef(d), f=familyValues(d,BASIS_INFO[valueBasis].fam), fam=BASIS_INFO[valueBasis].fam;
+    var famLbl=fam==='dcf'?'DCF':fam==='multiplos'?'Múltiplos':'Ponderado';
     return '<div class="summary-item"><div class="identity"><strong>'+escapeHtml(d.ticker)+' · '+escapeHtml(d.empresa||d.ticker)+'</strong><small>'+escapeHtml(d.fecha||'')+'</small></div>'+
-      '<div class="num"><small>Precio consultado</small>'+(valid?fmtVal(price):'Pendiente')+'</div>'+
-      '<div class="num"><small>Valor intrínseco base</small>'+fmtVal(intrinsicBase(d))+'</div>'+
-      '<div class="num'+(delta===null?'':delta<0?' negative':' positive')+'"><small>Diferencia vs. precio</small>'+(delta===null?'—':(delta>=0?'+':'')+delta.toFixed(1)+'%')+'</div>'+
+      '<div class="num"><small>'+(pr.live?'Precio consultado':'Precio guardado')+'</small>'+(pr.price?fmtVal(pr.price):'Pendiente')+'</div>'+
+      '<div class="num"><small>'+famLbl+' hoy (base)</small>'+fmtVal(f.hoy)+'<span class="pair"><b>vs. precio</b>'+fmtPctSpan(pctVs(f.hoy,d))+'</span></div>'+
+      '<div class="num"><small>'+famLbl+' FY+3 (base)</small>'+fmtVal(f.fy3)+'<span class="pair"><b>vs. precio</b>'+fmtPctSpan(pctVs(f.fy3,d))+'</span></div>'+
       '<button type="button" data-summary-n="'+d.n+'">Ver completo</button></div>';
   }
 
@@ -934,6 +1001,7 @@
       else if(key === "precioActual"){ av = a.precioActual; bv = b.precioActual; }
       else if(key === "valorHoy"){ av = intrinsicBase(a); bv = intrinsicBase(b); }
       else if(key === "descuento"){ av = priceDifference(a); bv = priceDifference(b); }
+      else if(key === "difHoy" || key === "difFy3"){ var hz = key === "difHoy" ? "hoy" : "fy3", fm = BASIS_INFO[valueBasis].fam; av = pctVs(familyValues(a,fm)[hz], a); bv = pctVs(familyValues(b,fm)[hz], b); }
       else if(key === "fecha"){ av = a.fecha || ""; bv = b.fecha || ""; }
       else if(key === "n"){ av = a.n; bv = b.n; }
       else { av = (a[key]||"").toLowerCase(); bv = (b[key]||"").toLowerCase(); }
@@ -1033,6 +1101,14 @@
   });
 
   try{ var savedSort = localStorage.getItem("jmr-bitacora-sort"); if(savedSort && /^[a-zA-Z]+:-?1$/.test(savedSort)){ state.sortKey = savedSort.split(":")[0]; state.sortDir = Number(savedSort.split(":")[1]); } }catch(err){}
+  var basisSel = document.getElementById("valueBasisSelect");
+  function updateBasisNote(){ document.getElementById("valueBasisNote").textContent = BASIS_INFO[valueBasis].note + " Cada caso muestra la diferencia % contra el precio de su valor hoy y de su valor a FY+3."; }
+  basisSel.value = valueBasis; updateBasisNote();
+  basisSel.addEventListener("change", function(e){
+    valueBasis = BASIS_INFO[e.target.value] ? e.target.value : 'ponderadoHoy';
+    try{ localStorage.setItem('jmr-bitacora-valor', valueBasis); }catch(err){}
+    updateBasisNote(); render();
+  });
   document.getElementById("mobileSortSelect").addEventListener("change", function(e){
     try{ localStorage.setItem("jmr-bitacora-sort", e.target.value); }catch(err){}
     var parts = e.target.value.split(":");
@@ -1118,9 +1194,9 @@
       seen[ticker]=true;return true;
     }).sort(function(a,b){return a.ticker.localeCompare(b.ticker);});
     var now=new Date().toLocaleString('es-CO',{timeZone:'America/Bogota',dateStyle:'medium',timeStyle:'short'});
-    document.getElementById('printSheet').innerHTML='<h1>Mi Bitácora · activos estudiados</h1><p>Impresión: '+escapeHtml(now)+' (Colombia) · USD por acción · precios consultados a Financial Modeling Prep con posible retraso. “—” indica cotización o valoración no disponible. Diferencia = (valor intrínseco base / precio − 1) × 100.</p>'+
-      '<table><thead><tr><th>Ticker</th><th>Activo</th><th>Precio consultado</th><th>Valor intrínseco base hoy</th><th>Diferencia vs. precio</th><th>Hora de consulta</th></tr></thead><tbody>'+
-      list.map(function(d){var delta=priceDifference(d);return '<tr><td>'+escapeHtml(d.ticker)+'</td><td>'+escapeHtml(d.empresa||'')+'</td><td>'+(d.precioActual?fmtVal(d.precioActual):'—')+'</td><td>'+fmtVal(intrinsicBase(d))+'</td><td>'+(delta===null?'—':(delta>=0?'+':'')+delta.toFixed(1)+'%')+'</td><td>'+(d.precioActualConsultado?escapeHtml(new Date(d.precioActualConsultado).toLocaleTimeString('es-CO',{timeZone:'America/Bogota'})):'—')+'</td></tr>';}).join('')+'</tbody></table>';
+    document.getElementById('printSheet').innerHTML='<h1>Mi Bitácora · activos estudiados</h1><p>Impresión: '+escapeHtml(now)+' (Colombia) · USD por acción · precios consultados a Financial Modeling Prep con posible retraso. “—” indica cotización o valoración no disponible. Valores base de: '+escapeHtml(BASIS_INFO[valueBasis].label)+' (hoy y FY+3 de esa misma familia). Diferencia = (valor / precio − 1) × 100.</p>'+
+      '<table><thead><tr><th>Ticker</th><th>Activo</th><th>Precio consultado</th><th>Valor hoy</th><th>Dif. hoy</th><th>Valor FY+3</th><th>Dif. FY+3</th><th>Hora de consulta</th></tr></thead><tbody>'+
+      list.map(function(d){var f=familyValues(d,BASIS_INFO[valueBasis].fam),a=pctVs(f.hoy,d),b=pctVs(f.fy3,d),pc=function(x){return x===null?'—':(x>=0?'+':'')+x.toFixed(1)+'%';};return '<tr><td>'+escapeHtml(d.ticker)+'</td><td>'+escapeHtml(d.empresa||'')+'</td><td>'+(d.precioActual?fmtVal(d.precioActual):'—')+'</td><td>'+fmtVal(f.hoy)+'</td><td>'+pc(a)+'</td><td>'+fmtVal(f.fy3)+'</td><td>'+pc(b)+'</td><td>'+(d.precioActualConsultado?escapeHtml(new Date(d.precioActualConsultado).toLocaleTimeString('es-CO',{timeZone:'America/Bogota'})):'—')+'</td></tr>';}).join('')+'</tbody></table>';
   }
   document.getElementById('printListBtn').addEventListener('click',function(){
     var button=this;button.disabled=true;button.textContent='Consultando precios…';
