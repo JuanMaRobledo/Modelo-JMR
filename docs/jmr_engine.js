@@ -175,8 +175,12 @@ function calcularModeloJMR(inp){
   };
   var cumDiv = inp.dividendPerShare*3;
 
+  // Tabla FY+3: el DCF (valor de hoy) se lleva a FY+3 con el costo del
+  // patrimonio, igual que 'Resumen de Valoración'!C6:E6 de la hoja, para
+  // sumarlo en la misma fecha que los múltiplos a FY+3.
+  var ke = (typeof inp.costoPatrimonio === 'number' && isFinite(inp.costoPatrimonio)) ? inp.costoPatrimonio : inp.wacc;
   var precios = {dcf: {}};
-  scenarios.forEach(function(s){ precios.dcf[s] = dcf[s]; });
+  scenarios.forEach(function(s){ precios.dcf[s] = dcf[s]*Math.pow(1+ke, 3); });
 
   Object.keys(methods).forEach(function(name){
     precios[name] = {};
@@ -189,7 +193,6 @@ function calcularModeloJMR(inp){
 
   // Valor presente: 5 métodos × 3 horizontes por escenario, consolidado por
   // método y ponderado con el DCF (que ya está en valor de hoy).
-  var ke = (typeof inp.costoPatrimonio === 'number' && isFinite(inp.costoPatrimonio)) ? inp.costoPatrimonio : inp.wacc;
   var criterio = inp.criterioConsolidacion === 'solo3' ? 'solo3' : 'promedio';
   var pesosVP = JMR_WEIGHTS[inp.tipoEmpresa];
   var pesoMultiplos = 0;

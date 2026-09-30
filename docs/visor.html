@@ -159,6 +159,18 @@
   .chart-legend-swatch.chart-ref-base-sw{background:color-mix(in oklab, var(--accent) 70%, var(--surface));}
   .chart-legend-swatch.chart-ref-opt-sw{background:var(--accent);}
   .stat{background:var(--surface); border:1px solid var(--border-soft); border-radius:12px; padding:14px 16px;}
+  /* Valor principal (30-sep-2026): por defecto el valor intrínseco de HOY;
+     el selector permite cambiarlo y se recuerda en este navegador. */
+  .headline-card{background:var(--surface); border:1px solid var(--border-soft); border-radius:14px; padding:16px 18px; box-shadow:var(--shadow); margin-bottom:22px;}
+  .headline-top{display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;}
+  .headline-sel{display:flex; align-items:center; gap:8px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint);}
+  .headline-sel select{font:500 13px "Public Sans",sans-serif; text-transform:none; letter-spacing:0; color:var(--ink); background:var(--surface-2); border:1px solid var(--border-soft); border-radius:8px; padding:6px 8px; max-width:100%;}
+  .headline-desc{font-size:12.5px; color:var(--ink-soft); margin:8px 0 12px; line-height:1.45;}
+  .headline-card .stat .big{font-size:22px;}
+  .headline-card .stat.hl-base{border-color:var(--accent); background:var(--accent-soft);}
+  .headline-card .stat .rng{font-size:12px; color:var(--ink-soft); margin-top:4px;}
+  .headline-card .stat .rng .pos{color:var(--positive); font-weight:600;}
+  .headline-card .stat .rng .neg{color:var(--negative); font-weight:600;}
   .stat .lbl{font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-faint); margin-bottom:6px;}
   .stat .big{font-family:"IBM Plex Mono", monospace; font-weight:600; font-size:18px; font-variant-numeric:tabular-nums;}
 
@@ -671,11 +683,24 @@
       </table>
     </div>
 
-    <p class="section-title">Potencial vs. precio del análisis</p>
-    <div class="grid3" style="margin-bottom:22px;">
-      <div class="stat"><div class="lbl">Conservador</div><div class="big" id="potC">—</div></div>
-      <div class="stat"><div class="lbl">Base</div><div class="big" id="potB">—</div></div>
-      <div class="stat"><div class="lbl">Optimista</div><div class="big" id="potO">—</div></div>
+    <div class="headline-card" id="headlineCard">
+      <div class="headline-top">
+        <p class="section-title" id="hlTitle" style="margin:0;">Valor intrínseco hoy</p>
+        <label class="headline-sel">Valor principal
+          <select id="headlineSel" aria-label="Qué valor mostrar como principal">
+            <option value="ponderadoHoy">Valor intrínseco hoy (ponderado)</option>
+            <option value="dcfHoy">DCF hoy (valor presente)</option>
+            <option value="multHoy">Múltiplos hoy (valor presente)</option>
+            <option value="fy3">Precio objetivo FY+3 (sin descontar)</option>
+          </select>
+        </label>
+      </div>
+      <p class="headline-desc" id="hlDesc"></p>
+      <div class="grid3" style="margin-bottom:0;">
+        <div class="stat"><div class="lbl">Conservador</div><div class="big" id="hlC">—</div><div class="rng" id="potC">—</div></div>
+        <div class="stat hl-base"><div class="lbl">Base</div><div class="big" id="hlB">—</div><div class="rng" id="potB">—</div></div>
+        <div class="stat"><div class="lbl">Optimista</div><div class="big" id="hlO">—</div><div class="rng" id="potO">—</div></div>
+      </div>
     </div>
 
     <div class="tabs" id="mainTabs">
@@ -720,7 +745,8 @@
       <p class="meta" id="presentNote" style="font-size:12px;color:var(--ink-faint);margin:8px 0 0;"></p>
     </div>
 
-    <p class="section-title">Precio al cierre FY+3 por escenario (6 métodos, sin descontar)</p>
+    <p class="section-title">Precio objetivo al cierre FY+3 (sin descontar)</p>
+      <p class="meta" style="font-size:12px;color:var(--ink-faint);margin:-4px 0 8px;">Todo en la fecha FY+3: el DCF de esta tabla es el <b>DCF de hoy llevado a FY+3</b> (× (1 + Ke)³), no otro DCF; los múltiplos son el precio a FY+3 más los dividendos. Para el valor de hoy, mira la sección de arriba.</p>
       <div class="methods-scroll">
         <table class="methods">
           <thead><tr><th>Método</th><th>Peso</th><th>Conservador</th><th>Base</th><th>Optimista</th></tr></thead>
@@ -745,7 +771,7 @@
       <p class="section-title">Gráficos</p>
       <div class="charts-grid">
         <div class="chart-card">
-          <div class="chart-title">Precio objetivo por escenario</div>
+          <div class="chart-title" id="chartScenariosTitle">Precio objetivo por escenario</div>
           <div id="chartScenarios"></div>
         </div>
         <div class="chart-card">
@@ -1093,6 +1119,70 @@
     return fmtPct(target/basePrice - 1);
   }
 
+  // En la tabla FY+3 el DCF es el DCF de hoy × (1 + Ke)^3 (misma fecha que
+  // los múltiplos): se rotula así para no confundirlo con el DCF de hoy.
+  function fy3Label(nombre){
+    return /^DCF/i.test(String(nombre || '')) ? 'DCF Damodaran (llevado a FY+3)' : escapeHtml(String(nombre || ''));
+  }
+
+  // Valor principal (30-sep-2026). Por defecto, el valor intrínseco de HOY
+  // (ponderado DCF + múltiplos traídos a valor presente); el selector lo
+  // cambia y la elección se recuerda en este navegador.
+  var HEADLINE_KEY = 'jmr-valor-principal';
+  var HEADLINE_INFO = {
+    ponderadoHoy: { titulo: 'Valor intrínseco hoy', hoy: true,
+      desc: 'Lo que vale la acción hoy: DCF de hoy × peso del DCF + múltiplos traídos a hoy × peso de los múltiplos. Se compara con el precio de hoy.' },
+    dcfHoy: { titulo: 'DCF hoy', hoy: true,
+      desc: 'Valor de hoy según el DCF de Damodaran (flujos de caja descontados), sin múltiplos. Se compara con el precio de hoy.' },
+    multHoy: { titulo: 'Múltiplos hoy', hoy: true,
+      desc: 'Valor de hoy según los 5 múltiplos: el precio a FY+1, FY+2 y FY+3 más los dividendos, traído a hoy con el costo del patrimonio (Ke). Se compara con el precio de hoy.' },
+    fy3: { titulo: 'Precio objetivo FY+3', hoy: false,
+      desc: 'Precio esperado al cierre FY+3, sin descontar: DCF llevado a FY+3 con Ke + múltiplos con dividendos. No es un valor de hoy: se compara con el precio del análisis y se resume en el CAGR a 3 años.' }
+  };
+  function headlineChoice(){
+    var v = null;
+    try { v = localStorage.getItem(HEADLINE_KEY); } catch(e){}
+    return HEADLINE_INFO[v] ? v : 'ponderadoHoy';
+  }
+  function headlineValues(key){
+    var r = currentResumen || {}, dm = r.descuentoMultiples || {};
+    var map = { ponderadoHoy: dm.ponderadoHoy || r.valorPresentePonderado, dcfHoy: dm.dcfHoy, multHoy: dm.multiplesHoy, fy3: r.objetivoPonderado };
+    var t = map[key];
+    return (t && typeof t.base === 'number' && isFinite(t.base)) ? t : null;
+  }
+  // Devuelve la opción elegida, o FY+3 si la valoración no tiene valor de hoy.
+  function headlineData(){
+    var key = headlineChoice(), vals = headlineValues(key), fallback = false;
+    if(!vals && key !== 'fy3'){ vals = headlineValues('fy3'); key = 'fy3'; fallback = true; }
+    var info = HEADLINE_INFO[key];
+    return { key: key, titulo: info.titulo, hoy: info.hoy, desc: info.desc, valores: vals || {}, fallback: fallback };
+  }
+  function fmtVsPrecio(target, basePrice){
+    if(typeof target !== 'number' || !isFinite(target) || typeof basePrice !== 'number' || !isFinite(basePrice) || !basePrice) return '—';
+    var d = target/basePrice - 1;
+    return '<span class="' + (d >= 0 ? 'pos' : 'neg') + '">' + (d >= 0 ? '+' : '') + fmtPct(d) + '</span>';
+  }
+  function renderHeadline(){
+    if(!currentResumen) return;
+    var sel = document.getElementById('headlineSel');
+    var h = headlineData();
+    ['ponderadoHoy','dcfHoy','multHoy'].forEach(function(k){
+      var opt = sel.querySelector('option[value="' + k + '"]');
+      if(opt) opt.disabled = !headlineValues(k);
+    });
+    sel.value = h.key;
+    document.getElementById('hlTitle').textContent = h.titulo + ' (valor principal)';
+    document.getElementById('hlDesc').textContent = h.desc + (h.fallback ? ' Esta valoración no tiene valor de hoy guardado; se muestra el objetivo FY+3.' : '');
+    var cagr = currentResumen.cagr || {};
+    [['conservador','hlC','potC'], ['base','hlB','potB'], ['optimista','hlO','potO']].forEach(function(x){
+      var v = h.valores[x[0]];
+      document.getElementById(x[1]).textContent = fmtMoney(v);
+      document.getElementById(x[2]).innerHTML = h.hoy
+        ? 'vs. precio de hoy ' + fmtVsPrecio(v, currentResumen.precio)
+        : 'vs. precio del análisis ' + fmtVsPrecio(v, currentPrecioAnalisis) + ' · CAGR ' + fmtPct(cagr[x[0]]);
+    });
+  }
+
   // Barras verticales Conservador/Base/Optimista con el mismo tinte
   // secuencial dorado (claro->oscuro) que ya usa la fila "Precio Objetivo
   // Ponderado" de la tabla — misma escala visual, ahora como gráfico. Una
@@ -1201,8 +1291,11 @@
     var scEl = document.getElementById('chartScenarios');
     var zEl = document.getElementById('chartZones');
     if(!scEl || !zEl || !currentResumen) return;
-    scEl.innerHTML = buildScenarioChart(currentResumen.precio, currentResumen.objetivoPonderado);
-    zEl.innerHTML = buildZonesChart(currentResumen.precio, currentResumen.zonas, currentResumen.objetivoPonderado);
+    var sel = headlineData();
+    var t = document.getElementById('chartScenariosTitle');
+    if(t) t.textContent = sel.titulo + ' por escenario';
+    scEl.innerHTML = buildScenarioChart(currentResumen.precio, sel.valores);
+    zEl.innerHTML = buildZonesChart(currentResumen.precio, currentResumen.zonas, sel.valores);
   }
 
   // Actualiza la mini-tabla "Precio de hoy vs. precio al día del análisis" —
@@ -1349,7 +1442,7 @@
       var base = cellVal(res, 'D'+row);
       var opt = cellVal(res, 'E'+row);
       var tr = document.createElement('tr');
-      tr.innerHTML = '<td>'+m[0]+'</td><td>'+fmtPct(peso)+'</td><td>'+fmtMoney(cons)+'</td><td>'+fmtMoney(base)+'</td><td>'+fmtMoney(opt)+'</td>';
+      tr.innerHTML = '<td>'+fy3Label(m[0])+'</td><td>'+fmtPct(peso)+'</td><td>'+fmtMoney(cons)+'</td><td>'+fmtMoney(base)+'</td><td>'+fmtMoney(opt)+'</td>';
       tbody.appendChild(tr);
     });
     var futureMultiples={conservador:0,base:0,optimista:0}, futureWeight=0;
@@ -1367,10 +1460,6 @@
     document.getElementById('cagrB').textContent = fmtPct(cellVal(res,'D13'));
     document.getElementById('cagrO').textContent = fmtPct(cellVal(res,'E13'));
 
-    var potBase = currentPrecioAnalisis;
-    document.getElementById('potC').textContent = fmtPotencial(cellVal(res,'C12'), potBase);
-    document.getElementById('potB').textContent = fmtPotencial(cellVal(res,'D12'), potBase);
-    document.getElementById('potO').textContent = fmtPotencial(cellVal(res,'E12'), potBase);
 
     function zoneText(row){
       var max = cellVal(res, 'B'+row), min = cellVal(res, 'C'+row);
@@ -1413,6 +1502,7 @@
     cualitativoOverride = null;
     fundamentalOverride = null;
     resetTabs();
+    renderHeadline();
 
     result.classList.add('show');
     maybeAutoFetchLive();
@@ -2341,6 +2431,11 @@
     renderCharts();
   }
 
+  document.getElementById('headlineSel').addEventListener('change', function(){
+    try { localStorage.setItem(HEADLINE_KEY, this.value); } catch(e){}
+    renderHeadline();
+    renderCharts();
+  });
   document.getElementById('mainTabs').addEventListener('click', function(e){
     var btn = e.target.closest('button[data-tab]');
     if(!btn) return;
@@ -2620,13 +2715,13 @@
       tr.innerHTML = '<td>' + label + '</td><td>' + (peso == null ? '—' : fmtPct(peso)) + '</td><td>' + fmtMoney(t.conservador) + '</td><td>' + fmtMoney(t.base) + '</td><td>' + fmtMoney(t.optimista) + '</td>';
       body.appendChild(tr);
     };
-    row('DCF Damodaran', pesoDcf, dcf);
+    row('DCF hoy (valor presente)', pesoDcf, dcf);
     (dm.metodos || []).forEach(function(m){
       row('&nbsp;&nbsp;' + escapeHtml(String(m.nombre || '')), m.peso,
           { conservador: m.conservador && m.conservador.consolidado, base: m.base && m.base.consolidado, optimista: m.optimista && m.optimista.consolidado });
     });
     row('Múltiplos consolidados', pesoMult, mult);
-    row('Valor intrínseco ponderado', (pesoDcf != null && pesoMult != null) ? pesoDcf + pesoMult : null, pond, 'total');
+    row('Valor intrínseco ponderado hoy', (pesoDcf != null && pesoMult != null) ? pesoDcf + pesoMult : null, pond, 'total');
 
     var hw = document.getElementById('horizonWrap'), hb = document.getElementById('horizonBody');
     hb.innerHTML = '';
@@ -2675,7 +2770,7 @@
     tbody.innerHTML = '';
     (rec.metodos || []).forEach(function(m){
       var tr = document.createElement('tr');
-      tr.innerHTML = '<td>'+m.nombre+'</td><td>'+fmtPct(m.peso)+'</td><td>'+fmtMoney(m.conservador)+'</td><td>'+fmtMoney(m.base)+'</td><td>'+fmtMoney(m.optimista)+'</td>';
+      tr.innerHTML = '<td>'+fy3Label(m.nombre)+'</td><td>'+fmtPct(m.peso)+'</td><td>'+fmtMoney(m.conservador)+'</td><td>'+fmtMoney(m.base)+'</td><td>'+fmtMoney(m.optimista)+'</td>';
       tbody.appendChild(tr);
     });
     var weightedMultiples={conservador:0,base:0,optimista:0}, weightMultiples=0;
@@ -2696,9 +2791,6 @@
     document.getElementById('cagrC').textContent = fmtPct(cagr.conservador);
     document.getElementById('cagrB').textContent = fmtPct(cagr.base);
     document.getElementById('cagrO').textContent = fmtPct(cagr.optimista);
-    document.getElementById('potC').textContent = fmtPotencial(op.conservador, currentPrecioAnalisis);
-    document.getElementById('potB').textContent = fmtPotencial(op.base, currentPrecioAnalisis);
-    document.getElementById('potO').textContent = fmtPotencial(op.optimista, currentPrecioAnalisis);
     function zoneText(z){ if(!z) return '—'; return fmtMoney(z.min) + ' – ' + fmtMoney(z.max); }
     var z = rec.zonas || {};
     document.getElementById('zValue').textContent = zoneText(z.value);
@@ -2712,6 +2804,7 @@
     currentWb = null;
     currentResumen = rec;
     currentTicker = rec.ticker || null;
+    renderHeadline();
     // Precarga lo que se haya escrito a mano en Cualitativo (incluida
     // Gobierno Corporativo) y en Análisis Fundamental la última vez que se
     // guardó esta valoración, para poder seguir editándolos desde aquí.
@@ -3097,7 +3190,7 @@
         document.getElementById('rPrice').textContent = fmtMoney(q.price);
         note.textContent = 'En vivo · ' + new Date().toLocaleTimeString();
         renderPriceCompare(currentPrecioAnalisis, q.price);
-        if(currentResumen){ currentResumen.precio = q.price; renderCharts(); }
+        if(currentResumen){ currentResumen.precio = q.price; renderHeadline(); renderCharts(); }
       } else {
         note.textContent = 'Dato del Excel (FMP no reportó precio para este ticker)';
       }
@@ -3297,13 +3390,13 @@
       tr.innerHTML = '<td>' + label + '</td><td>' + (peso == null ? '—' : fmtPct(peso)) + '</td><td>' + fmtMoney(t.cons) + '</td><td>' + fmtMoney(t.base) + '</td><td>' + fmtMoney(t.opt) + '</td>';
       body.appendChild(tr);
     };
-    add('DCF Damodaran', v.pesoDcf, v.dcf);
+    add('DCF hoy (valor presente)', v.pesoDcf, v.dcf);
     [['evEbitda','EV/EBITDA'], ['evFcff','EV/FCFF'], ['pe','P/E'], ['pfcfe','P/FCFE'], ['pocf','P/OCF']].forEach(function(pair){
       var m = v.metodos[pair[0]];
       add('&nbsp;&nbsp;' + pair[1], pesos[pair[0]], {cons: m.cons.consolidado, base: m.base.consolidado, opt: m.opt.consolidado});
     });
     add('Múltiplos consolidados', v.pesoMultiplos, v.multiplos);
-    add('Valor intrínseco ponderado', v.pesoDcf + v.pesoMultiplos, v.ponderado, 'total');
+    add('Valor intrínseco ponderado hoy', v.pesoDcf + v.pesoMultiplos, v.ponderado, 'total');
     var ok = ['cons','base','opt'].every(function(k){ return v.chequeo[k].ok; });
     document.getElementById('rc_pvNote').textContent = 'VP = (precio FY+n + dividendos acumulados) ÷ (1 + ' + fmtPct(v.tasaDescuento) + ')^n, n = 1, 2, 3; ' +
       (v.criterio === 'solo3' ? 'solo el de 3 años' : 'promedio de los 3 horizontes') + ' por método. Chequeo VP 3 años < FY+3 sin descontar (Base ' +
@@ -3318,7 +3411,7 @@
 
     var tbody = document.getElementById('rcMethodsBody');
     tbody.innerHTML = '';
-    var order = [['dcf','DCF Damodaran'], ['evEbitda','EV/EBITDA'], ['evFcff','EV/FCFF'], ['pe','P/E'], ['pfcfe','P/FCFE'], ['pocf','P/OCF']];
+    var order = [['dcf','DCF Damodaran (llevado a FY+3)'], ['evEbitda','EV/EBITDA'], ['evFcff','EV/FCFF'], ['pe','P/E'], ['pfcfe','P/FCFE'], ['pocf','P/OCF']];
     order.forEach(function(pair){
       var key = pair[0], label = pair[1];
       var tr = document.createElement('tr');

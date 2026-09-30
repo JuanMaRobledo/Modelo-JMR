@@ -566,13 +566,13 @@
       tr.innerHTML = '<td>' + label + '</td><td>' + (peso == null ? '—' : fmtPct(peso)) + '</td><td>' + fmtMoney(t.cons) + '</td><td>' + fmtMoney(t.base) + '</td><td>' + fmtMoney(t.opt) + '</td>';
       body.appendChild(tr);
     };
-    add('DCF Damodaran', v.pesoDcf, v.dcf);
+    add('DCF hoy (valor presente)', v.pesoDcf, v.dcf);
     [['evEbitda','EV/EBITDA'], ['evFcff','EV/FCFF'], ['pe','P/E'], ['pfcfe','P/FCFE'], ['pocf','P/OCF']].forEach(function(pair){
       var m = v.metodos[pair[0]];
       add('&nbsp;&nbsp;' + pair[1], pesos[pair[0]], {cons: m.cons.consolidado, base: m.base.consolidado, opt: m.opt.consolidado});
     });
     add('Múltiplos consolidados', v.pesoMultiplos, v.multiplos);
-    add('Valor intrínseco ponderado', v.pesoDcf + v.pesoMultiplos, v.ponderado, 'total');
+    add('Valor intrínseco ponderado hoy', v.pesoDcf + v.pesoMultiplos, v.ponderado, 'total');
     var ok = ['cons','base','opt'].every(function(k){ return v.chequeo[k].ok; });
     document.getElementById('pvNote').textContent = 'VP = (precio FY+n + dividendos acumulados) ÷ (1 + ' + fmtPct(v.tasaDescuento) + ')^n, n = 1, 2, 3; ' +
       (v.criterio === 'solo3' ? 'solo el de 3 años' : 'promedio de los 3 horizontes') + ' por método. Chequeo VP 3 años < FY+3 sin descontar (Base ' +
@@ -588,7 +588,7 @@
 
     var tbody = document.getElementById('methodsBody');
     tbody.innerHTML = '';
-    var order = [['dcf','DCF Damodaran'], ['evEbitda','EV/EBITDA'], ['evFcff','EV/FCFF'], ['pe','P/E'], ['pfcfe','P/FCFE'], ['pocf','P/OCF']];
+    var order = [['dcf','DCF Damodaran (llevado a FY+3)'], ['evEbitda','EV/EBITDA'], ['evFcff','EV/FCFF'], ['pe','P/E'], ['pfcfe','P/FCFE'], ['pocf','P/OCF']];
     order.forEach(function(pair){
       var key=pair[0], label=pair[1];
       var peso = r.pesos[key];
