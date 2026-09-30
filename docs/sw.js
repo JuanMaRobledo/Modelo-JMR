@@ -1,4 +1,4 @@
-const CACHE = "modelo-jmr-v121-adbe-historias";
+const CACHE = "modelo-jmr-v122-base-esperado";
 const APP_SHELL = [
   "index.html",
   "visor.html",
@@ -61,3 +61,4 @@ self.addEventListener("fetch", (event) => {
       .catch(() => caches.match(event.request))
   );
 });
+

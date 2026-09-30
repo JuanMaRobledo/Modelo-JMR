@@ -84,6 +84,18 @@
   // Bloque del valor esperado, junto al DCF. d = resultado de fromParts/fromRecord.
   function unified(d) { return !!(d && d.ve && d.ve.escenariosUnificados && d.ve.historias.length); }
   function centralStory(d) { return d.ve.historias.find(function(h) { return h.id === d.ve.historiaCentralId; }) || d.ve.historias[0]; }
+  // Present base and expected separately; never infer missing story probabilities.
+  function primaryValues(d) {
+    var base = unified(d) ? num(centralStory(d).valor) : num(d.dcf.hoy && d.dcf.hoy.base);
+    return { base: base, esperado: d.ve ? num(d.ve.valor) : null };
+  }
+  function primaryHtml(d) {
+    var v = primaryValues(d);
+    function tile(label, value, detail) {
+      return '<div class="jvb-primary-card"><span class="jvb-kicker">' + label + '</span><div class="jvb-big"><span class="v">' + money(value) + '</span>' + vsPrecio(value, d.precio) + '</div><span class="vl">' + detail + '</span></div>';
+    }
+    return '<div class="jvb-primary">' + tile('DCF base hoy', v.base, unified(d) ? 'Tesis base · historia central' : 'Caso base de la valoración') + tile('Valor intrínseco esperado hoy · DCF', v.esperado, v.esperado == null ? 'Sin historias valoradas disponibles' : 'Promedio de DCF × probabilidad') + '</div>';
+  }
   function storiesTable(d) {
     return '<div class="jvb-tw"><table class="jvb-vetab"><thead><tr><th>Escenario / historia</th><th>Prob.</th><th>Crec. 5 años</th><th>Margen</th><th>DCF hoy</th><th>vs. precio</th></tr></thead><tbody>' + d.ve.historias.map(function(h) {
       return '<tr><td class="hn"><b>' + esc(h.nombre) + '</b>' + (h.id === d.ve.historiaCentralId ? '<small>Historia central</small>' : '') + '<small>ROIC terminal: ' + (h.roicTerminal === 'costo_capital' ? 'costo de capital' : pct(h.roicTerminal, 1)) + '</small></td><td class="n">' + pct(h.probabilidad) + '</td><td class="n">' + pct(h.crecimiento, 1) + '</td><td class="n">' + pct(h.margen) + '</td><td class="n">' + n2(h.valor) + '</td><td class="n">' + vsPrecio(h.valor, d.precio) + '</td></tr>';
@@ -91,7 +103,7 @@
   }
   function unifiedHtml(d) {
     var h = centralStory(d), values = d.ve.historias.map(function(x) { return x.valor; });
-    return '<div class="jvb-ve"><span class="jvb-kicker">Valor intrínseco esperado hoy · DCF</span><div class="jvb-big"><span class="v">' + money(d.ve.valor) + '</span>' + vsPrecio(d.ve.valor, d.precio) + '<span class="vl">cuatro escenarios = cuatro historias</span></div><div class="jvb-scen"><span>Historia central A <b>' + money(h.valor) + '</b></span><span>Rango <b>' + money(Math.min.apply(null, values)) + ' – ' + money(Math.max.apply(null, values)) + '</b></span>' + (d.mos != null ? '<span>MOS ' + pct(d.mos) + ' <b>' + money(d.ve.valor * (1-d.mos)) + '</b></span>' : '') + '</div>' + storiesTable(d) + '<p class="jvb-venote">Cada historia se valora con un DCF completo. El valor esperado suma DCF × probabilidad; las probabilidades son juicio del analista. El MOS se aplica al esperado. El rango muestra desenlaces, no un intervalo de confianza.</p><details class="jvb-vedet"><summary>Referencia técnica de la hoja anterior</summary><p class="jvb-venote">Antiguo caso Base ' + money(d.dcf.hoy && d.dcf.hoy.base) + '. Se conserva para calibrar el motor y los supuestos auxiliares de múltiplos; no representa la historia central A.</p></details></div>';
+    return '<div class="jvb-ve">' + primaryHtml(d) + '<div class="jvb-scen"><span>Rango <b>' + money(Math.min.apply(null, values)) + ' – ' + money(Math.max.apply(null, values)) + '</b></span>' + (d.mos != null ? '<span>MOS ' + pct(d.mos) + ' <b>' + money(d.ve.valor * (1-d.mos)) + '</b></span>' : '') + '</div>'  + storiesTable(d) + '<p class="jvb-venote">Cada historia se valora con un DCF completo. El valor esperado suma DCF × probabilidad; las probabilidades son juicio del analista. El MOS se aplica al esperado. El rango muestra desenlaces, no un intervalo de confianza.</p><details class="jvb-vedet"><summary>Referencia técnica de la hoja anterior</summary><p class="jvb-venote">Antiguo caso Base ' + money(d.dcf.hoy && d.dcf.hoy.base) + '. Se conserva para calibrar el motor y los supuestos auxiliares de múltiplos; no representa la historia central A.</p></details></div>';
   }
   function veHtml(d) {
     var ve = d && d.ve;
@@ -113,13 +125,11 @@
     var mos = d.mos != null ? '<span class="jvb-vemos">Precio con MOS (' + pct(d.mos) + ') sobre el valor esperado <b>' + money(ve.valor * (1 - d.mos)) + '</b>' + vsPrecio(ve.valor * (1 - d.mos), d.precio) + '</span>' : '';
     var vsDcf = dcf ? '<span>Frente al DCF Base <b>' + (ve.valor >= dcf ? '+' : '−') + Math.abs((ve.valor / dcf - 1) * 100).toFixed(0) + '%</b></span>' : '';
     return '<div class="jvb-ve">' +
-      '<span class="jvb-kicker">Valor esperado · historias con probabilidades</span>' +
-      '<div class="jvb-big"><span class="v">' + money(ve.valor) + '</span>' + vsPrecio(ve.valor, d.precio) + '<span class="vl">promedio ponderado de ' + ve.historias.length + ' historias</span></div>' +
       '<div class="jvb-vebar" aria-hidden="true">' + bar + '</div>' +
       '<details class="jvb-vedet"><summary>Ver historias</summary><table class="jvb-vetab"><thead><tr><th>Historia</th><th>Prob.</th><th>US$/acción</th><th>vs. precio</th></tr></thead><tbody>' +
       rows + '</tbody></table></details>' +
       '<div class="jvb-meta">' + vsDcf + mos + '</div>' +
-      '<p class="jvb-venote">El DCF Base valora la historia central; el valor esperado promedia todas las historias (cada una un DCF completo) según la probabilidad que les asigna el análisis. El margen de seguridad se aplica sobre el valor esperado' +
+      '<p class="jvb-venote">El DCF base y el valor esperado son lecturas distintas; el valor esperado promedia todas las historias (cada una un DCF completo) según la probabilidad que les asigna el análisis. El margen de seguridad se aplica sobre el valor esperado' +
       (ve.fecha ? ' (análisis del ' + esc(ve.fecha) + ')' : '') + '. Las probabilidades son juicio del analista.</p></div>';
   }
   function hasData(d) { return !!(d && (d.dcf.hoy || d.dcf.fy3)); }
@@ -187,8 +197,7 @@
     var side = [['Múltiplos hoy', 'precio relativo', d.mult.hoy], ['Ponderado hoy', 'DCF + múltiplos', d.pond.hoy]].filter(function (s) { return s[2]; }).map(function (s) {
       return '<div class="jvb-mini"><span class="k">' + s[0] + ' <em>' + s[1] + '</em></span><b>' + money(s[2].base) + '</b>' + vsPrecio(s[2].base, d.precio) + '</div>';
     }).join('');
-    return '<div class="jvb-hero"><div class="jvb-main"><span class="jvb-kicker">' + (hoy ? 'Valor intrínseco hoy · DCF' : 'DCF llevado a FY+3') + '</span>' +
-      '<div class="jvb-big"><span class="v">' + money(t.base) + '</span>' + vsPrecio(t.base, d.precio) + '<span class="vl">vs. ' + esc(d.precioLbl.toLowerCase()) + ' ' + money(d.precio) + '</span></div>' +
+    return '<div class="jvb-hero"><div class="jvb-main">' + (hoy ? primaryHtml(d) : '<span class="jvb-kicker">DCF llevado a FY+3</span><div class="jvb-big"><span class="v">' + money(t.base) + '</span></div>') +
       '<div class="jvb-scen"><span>Conservador <b>' + money(t.conservador) + '</b></span><span>Base <b>' + money(t.base) + '</b></span><span>Optimista <b>' + money(t.optimista) + '</b></span></div>' +
       ((mos || fy3) ? '<div class="jvb-meta">' + mos + fy3 + '</div>' : '') + (d.ve && hoy ? veHtml(d) : '') + '</div>' +
       (side ? '<div class="jvb-side"><span class="jvb-sidet">Lecturas secundarias</span>' + side + '</div>' : '') + '</div>';
@@ -245,6 +254,7 @@
       '.jvb .jvb-table td.lbl,.jvb .jvb-table td.lbl *,.jvb .jvb-grp td,.jvb .jvb-grp td *{white-space:normal}',
       '.jvb .jvb-table td *,.jvb .jvb-table th *{overflow-wrap:normal;word-break:normal;hyphens:manual;max-width:none}',
       '.jvb .jvb-table td,.jvb .jvb-table th{font-size:13px}.jvb .jvb-table thead th{font-size:10.5px}',
+      '.jvb-primary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:12px}.jvb-primary-card{border:1.5px solid var(--jvb-dcf,var(--accent,#806332));background:var(--surface,#fffaf0);border-radius:12px;padding:16px;min-width:0}.jvb-primary-card .vl{font-size:12px;color:var(--ink-soft)}@media(max-width:520px){.jvb-primary{grid-template-columns:1fr}}',
       '.jvb-hero{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:12px;margin-bottom:12px}',
       '.jvb-main{border:1.5px solid var(--jvb-dcf);background:var(--accent-soft,rgba(79,70,229,.06));border-radius:14px;padding:16px 18px;min-width:0}',
       '.jvb-kicker{display:block;font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--accent-ink,var(--accent))}',
@@ -331,6 +341,7 @@
   }
 
   global.JmrValueBoard = { fromParts: fromParts, fromRecord: fromRecord, html: html, hasData: hasData, veHtml: veHtml,
-    veBox: function (d) { var h = veHtml(d); return h ? '<div class="jvb-vebox">' + h + '</div>' : ''; },
+    primaryValues: primaryValues, primaryHtml: primaryHtml, veBox: function (d) { var h = unified(d) ? unifiedHtml(d) : primaryHtml(d) + veHtml(d); return h ? '<div class="jvb-vebox">' + h + '</div>' : ''; },
     apply: function () { apply(prefs()); } };
 })(window);
+

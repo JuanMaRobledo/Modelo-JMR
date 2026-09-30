@@ -259,7 +259,7 @@
     return '' +
       '<div class="port-kv-row"><span class="port-fecha">Analizado el ' + escapeHtml(r.fecha || '—') + '</span></div>' +
       '<div class="port-kv"><span class="k">Precio al día del análisis</span><span class="v mono">' + fmtMoney(precio) + '</span></div>' +
-      (r.valorEsperado && r.valorEsperado.escenariosUnificados && typeof JmrValueBoard !== 'undefined' ? JmrValueBoard.veBox(JmrValueBoard.fromRecord(r)) : scenarios('DCF · valor intrínseco hoy',dm.dcfHoy)) + scenarios('Múltiplos · valor hoy',dm.multiplesHoy) +
+      (typeof JmrValueBoard !== 'undefined' ? JmrValueBoard.veBox(JmrValueBoard.fromRecord(r)) : scenarios('DCF · valor intrínseco hoy',dm.dcfHoy)) + scenarios('Múltiplos · valor hoy',dm.multiplesHoy) +
       (r.valorPresentePonderado ? '<div class="port-kv"><span class="k">Valor ponderado hoy</span><span class="v mono">Cons ' + fmtMoney(r.valorPresentePonderado.conservador) + ' · Base ' + fmtMoney(r.valorPresentePonderado.base) + ' · Opt ' + fmtMoney(r.valorPresentePonderado.optimista) + '</span></div>' : '') +
       scenarios('Múltiplos · objetivo FY+3',mw?multiples:null) +
       (r.objetivoPonderado ? '<div class="port-kv"><span class="k">Combinado FY+3</span><span class="v mono">Cons ' + fmtMoney(r.objetivoPonderado.conservador) + ' · Base ' + fmtMoney(r.objetivoPonderado.base) + ' · Opt ' + fmtMoney(r.objetivoPonderado.optimista) + '</span></div>' : '') +
@@ -323,3 +323,4 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
 })();
+

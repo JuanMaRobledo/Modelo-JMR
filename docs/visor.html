@@ -1312,7 +1312,7 @@
     renderValueBoard();
     // Valor esperado de las historias (sección Damodaran del análisis), junto al DCF.
     var veBox = document.getElementById('hlVE');
-    if(veBox) veBox.innerHTML = (typeof JmrValueBoard !== 'undefined' && currentResumen.valorEsperado)
+    if(veBox) veBox.innerHTML = (typeof JmrValueBoard !== 'undefined')
       ? JmrValueBoard.veBox(JmrValueBoard.fromRecord(currentResumen, { precio: currentResumen.precio, precioLbl: 'Precio de hoy' })) : '';
     var sel = document.getElementById('headlineSel');
     var h = headlineData();
@@ -3932,3 +3932,4 @@ if("serviceWorker" in navigator){
 </script>
 </body>
 </html>
+
