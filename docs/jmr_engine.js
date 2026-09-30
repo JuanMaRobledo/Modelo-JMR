@@ -56,12 +56,13 @@ function num(v, dflt){ return (typeof v === 'number' && isFinite(v)) ? v : dflt;
 // Sin growthY1*/marginY1* (Calculadora manual) el año 1 usa el crecimiento 2-5 y el margen actual.
 function escenarioDe(inp, s){
   var k = {cons:'Cons', base:'Base', opt:'Opt'}[s];
-  return {growth: inp['growth'+k], margin: inp['margin'+k],
+  return {growth: inp['growth'+k], margin: inp.dcfFinanciero ? inp.dcfFinanciero['roe'+k] : inp['margin'+k],
           growthY1: inp['growthY1'+k], marginY1: num(inp['marginY1'+k], inp.ebit0/inp.revenue0)};
 }
 
 // Motor DCF completo (10 años + terminal) para un escenario, igual a 'Valuation output'.
 function runDCFDetalle(inp, growthY2to5, marginTarget, growthY1, marginY1){
+  if(inp.dcfFinanciero) return runFCFEDetalle(inp, growthY2to5, marginTarget, growthY1);
   var terminalGrowth = num(inp.terminalGrowth, inp.riskFreeRate);
   var waccTerminal = num(inp.terminalWacc, inp.riskFreeRate + inp.matureMarketERP);
   var g = growthPath(growthY2to5, terminalGrowth, growthY1, inp.crecimientoAnios);
@@ -121,6 +122,30 @@ function runDCFDetalle(inp, growthY2to5, marginTarget, growthY1, marginY1){
   return {valuePerShare: equityValue/inp.shares0, growth: g, margin: m, revenue: rev, ebit: ebit, ebit1t: ebit1t,
           reinvestment: reinvest, fcff: fcff, wacc: wacc, terminalValue: terminalValue, sumPV: sumPV,
           valueOpAssets: valueOpAssets, equityValue: equityValue};
+}
+// Financieras: el flujo distribuible pertenece al accionista. Los depósitos y
+// la liquidez operativa no se restan/suman como deuda y caja de una industrial.
+// Reinversión patrimonial sostenible = utilidad × crecimiento / ROE.
+function runFCFEDetalle(inp, growthY2to5, roeTarget, growthY1){
+  var f=inp.dcfFinanciero, ke=inp.costoPatrimonio;
+  if(typeof f.baseWacc==='number') ke+=(inp.wacc-f.baseWacc)/num(f.equityWeight,1);
+  var kt=f.terminalKe, gt=f.terminalGrowth;
+  if(!(ke>0 && kt>gt && f.netIncome0>0 && inp.shares0>0 && roeTarget>0))
+    throw new Error('Insumos inválidos para DCF FCFE financiero');
+  var g=growthPath(growthY2to5,gt,growthY1,inp.crecimientoAnios);
+  var rate=waccPath(ke,kt), ni=[f.netIncome0], roe=[], fcfe=[], reinv=[], disc=[], pv=0;
+  for(var y=1;y<=10;y++){
+    ni[y]=ni[y-1]*(1+g[y]);
+    roe[y]=y<=5?roeTarget:roeTarget+(kt-roeTarget)*(y-5)/5;
+    reinv[y]=ni[y]*Math.max(0,g[y])/roe[y];
+    fcfe[y]=ni[y]-reinv[y];
+    disc[y]=(y===1?1:disc[y-1])/(1+rate[y]);pv+=fcfe[y]*disc[y];
+  }
+  var terminalNI=ni[10]*(1+gt), terminalFCFE=terminalNI*(1-gt/kt);
+  var terminalValue=terminalFCFE/(kt-gt), equity=pv+terminalValue*disc[10];
+  return {valuePerShare:equity/inp.shares0,growth:g,netIncome:ni,roe:roe,
+    reinvestment:reinv,fcfe:fcfe,wacc:rate,terminalValue:terminalValue,
+    sumPV:equity,valueOpAssets:null,equityValue:equity,method:'DCF FCFE financiero'};
 }
 function runDCF(inp, growthY2to5, marginTarget, growthY1, marginY1){
   return runDCFDetalle(inp, growthY2to5, marginTarget, growthY1, marginY1).valuePerShare;
@@ -224,8 +249,13 @@ function calcularModeloJMR(inp){
 
   var fin = {};
   scenarios.forEach(function(s){
-    fin[s] = projectFinancials(inp, esc[s].growth, esc[s].margin, esc[s].growthY1, esc[s].marginY1,
-                               inp.porEscenario && inp.porEscenario[s], dcfDet[s].reinvestment);
+    var k={cons:'Cons',base:'Base',opt:'Opt'}[s];
+    var mi=inp.dcfFinanciero?inp['margin'+k]:esc[s].margin;
+    var oldInp=inp;
+    if(inp.dcfFinanciero){oldInp=Object.assign({},inp,{dcfFinanciero:null});}
+    var reinv=inp.dcfFinanciero?runDCFDetalle(oldInp,esc[s].growth,mi,esc[s].growthY1,esc[s].marginY1).reinvestment:dcfDet[s].reinvestment;
+    fin[s] = projectFinancials(inp, esc[s].growth, mi, esc[s].growthY1, esc[s].marginY1,
+                               inp.porEscenario && inp.porEscenario[s], reinv);
   });
 
   // Múltiplo de salida por escenario: los de la hoja (J8/J19/J30) si vienen en inp.multiplos;
@@ -321,13 +351,15 @@ function calcularModeloJMR(inp){
     deepValue: zona(0.60,0.55),
     historica: zona(0.50,0.45)
   };
-  var precioConMOS = {
-    base: precioObjetivo.base*(1-inp.mos),
-    cons: precioObjetivo.cons*(1-inp.mos)
-  };
+  // El MOS se aplica a una cifra presente. Si no hay historias cuantificadas,
+  // se explicita el DCF Base como referencia; nunca se usa el ponderado FY+3.
+  var baseMOS = typeof inp.valorEsperado === 'number' && isFinite(inp.valorEsperado) ? inp.valorEsperado : dcf.base;
+  var precioConMOS = {base:baseMOS*(1-inp.mos),cons:baseMOS*(1-inp.mos),
+    valor:baseMOS*(1-inp.mos),baseValor:baseMOS,
+    criterio:typeof inp.valorEsperado === 'number' ? 'valorEsperado' : 'dcfBase'};
 
   return {precios: precios, pesos: pesos, precioObjetivo: precioObjetivo, cagr: cagr, zonas: zonas, precioConMOS: precioConMOS,
-          valorPresente: valorPresente};
+          valorPresente: valorPresente, financials:fin};
 }
 
 // Crecimiento implícito (30-sep-2026, criterio Damodaran).
@@ -335,13 +367,14 @@ function calcularModeloJMR(inp){
 // 1) DCF inverso: qué crecimiento anual de ingresos en los años 1-5 (luego
 //    converge a la perpetuidad, igual que el DCF) justifica el precio de hoy,
 //    con el resto de supuestos del escenario sin cambiar. Se calibra contra el
-//    DCF de la hoja: valor(g) = dcfHoja × runDCF(g) / runDCF(gRef), donde gRef
-//    es el crecimiento promedio de los años 1-5 de la hoja. Devuelve null si
+//    DCF completo sin reescalarlo; gRef sirve para elegir la raíz más próxima
+//    si aparecen varias soluciones. Devuelve null si
 //    ningún crecimiento entre −20% y 80% alcanza el precio.
 function crecimientoImplicitoDCF(inp, margenObjetivo, gRef, dcfHoja, precio){
-  var ref = runDCF(inp, gRef, margenObjetivo);
-  if(!(ref > 0) || !(dcfHoja > 0) || !(precio > 0)) return null;
-  var f = function(g){ return dcfHoja*runDCF(inp, g, margenObjetivo)/ref - precio; };
+  if(!(dcfHoja > 0) || !(precio > 0)) return null;
+  var local = Object.assign({},inp);
+  var margin = inp.dcfFinanciero ? inp.dcfFinanciero.roeBase : margenObjetivo;
+  var f = function(g){local.crecimientoAnios=[g,g,g,g,g];return runDCF(local,g,margin,g,inp.marginY1Base)-precio;};
   var best = null, prevG = -0.20, prevF = f(prevG);
   for(var g = -0.195; g <= 0.80001; g += 0.005){
     var fg = f(g);
@@ -431,9 +464,17 @@ function insumosDesdeHoja(celda){
     deudaNetaMultiplos: z(n(IS, 'B16')) - z(n(IS, 'B19')) - z(n(IS, 'B20')) + z(n(IS, 'B21')),
     multiplos: {}
   };
+  if(celda('DCF FCFE financiero','A1')==='DCF FCFE financiero'){
+    inp.dcfFinanciero={netIncome0:n('DCF FCFE financiero','B3'),roeCons:n('DCF FCFE financiero','C5'),
+      roeBase:n('DCF FCFE financiero','D5'),roeOpt:n('DCF FCFE financiero','E5'),
+      terminalKe:n('DCF FCFE financiero','B4'),terminalGrowth:n('DCF FCFE financiero','B5'),
+      baseWacc:n('DCF FCFE financiero','B8'),equityWeight:n('DCF FCFE financiero','B9')};
+  }
   if(!inp.daRatiosHist.every(function(x){ return typeof x === 'number' && isFinite(x); })) inp.daRatiosHist = null;
   // Cada escenario tiene su bloque en 'Financials Multiples' (filas 4, 43 y 83) con sus propias razones.
-  var tmp = calcularTrayectorias(inp);
+  // Las proyecciones relativas existentes usan márgenes EBIT. El ROE del
+  // DCF financiero no debe alterar los ajustes leídos de esos bloques.
+  var tmp = calcularTrayectorias(inp.dcfFinanciero ? Object.assign({},inp,{dcfFinanciero:null}) : inp);
   inp.porEscenario = {};
   [['cons', 0], ['base', 39], ['opt', 79]].forEach(function(b){
     var r = function(row){ return row + b[1]; };

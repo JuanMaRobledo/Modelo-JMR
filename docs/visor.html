@@ -799,7 +799,7 @@
         <div class="stat"><div class="lbl">Value</div><div class="rng" id="zValue">—</div></div>
         <div class="stat"><div class="lbl">Deep Value</div><div class="rng" id="zDeep">—</div></div>
         <div class="stat"><div class="lbl">Valoración histórica</div><div class="rng" id="zHist">—</div></div>
-        <div class="stat"><div class="lbl">Precio con MOS</div><div class="rng" id="zMOS">—</div></div>
+        <div class="stat"><div class="lbl">Precio con MOS · DCF Base</div><div class="rng" id="zMOS">—</div></div>
       </div>
 
       <p class="section-title">Gráficos</p>
@@ -989,7 +989,7 @@
         <p class="section-title">Resultado recalculado (hipotético — no cambia la valoración guardada)</p>
         <div class="grid4">
           <div class="stat"><div class="lbl">Precio con este supuesto</div><div class="big" id="rcPrice">—</div></div>
-          <div class="stat"><div class="lbl">Precio con MOS</div><div class="big" id="rcPrecioMOS">—</div></div>
+          <div class="stat"><div class="lbl">Precio con MOS · DCF Base</div><div class="big" id="rcPrecioMOS">—</div></div>
           <div class="stat"><div class="lbl">CAGR promedio (Base)</div><div class="big" id="rcCagrB">—</div></div>
           <div class="stat"><div class="lbl">Potencial vs. precio actual (Base)</div><div class="big" id="rcPotB">—</div></div>
         </div>
@@ -1004,7 +1004,7 @@
           <div class="stat"><div class="lbl">Value</div><div class="rng" id="rcZValue">—</div></div>
           <div class="stat"><div class="lbl">Deep Value</div><div class="rng" id="rcZDeep">—</div></div>
           <div class="stat"><div class="lbl">Valoración histórica</div><div class="rng" id="rcZHist">—</div></div>
-          <div class="stat"><div class="lbl">Precio con MOS</div><div class="rng" id="rcZMOS">—</div></div>
+          <div class="stat"><div class="lbl">Precio con MOS · DCF Base</div><div class="rng" id="rcZMOS">—</div></div>
         </div>
       </div>
     </div>
@@ -3617,7 +3617,7 @@
   }
   function rcRenderResult(inp, r){
     document.getElementById('rcPrice').textContent = fmtMoney(inp.precioActual);
-    document.getElementById('rcPrecioMOS').textContent = fmtMoney(r.precioConMOS.cons) + ' – ' + fmtMoney(r.precioConMOS.base);
+    document.getElementById('rcPrecioMOS').textContent = fmtMoney(r.precioConMOS.valor);
     document.getElementById('rcCagrB').textContent = fmtPct(r.cagr.base);
     document.getElementById('rcPotB').textContent = fmtPotencial(r.precioObjetivo.base, inp.precioActual);
 
@@ -3641,7 +3641,7 @@
     document.getElementById('rcZValue').textContent = zoneText(r.zonas.value);
     document.getElementById('rcZDeep').textContent = zoneText(r.zonas.deepValue);
     document.getElementById('rcZHist').textContent = zoneText(r.zonas.historica);
-    document.getElementById('rcZMOS').textContent = fmtMoney(r.precioConMOS.cons) + ' – ' + fmtMoney(r.precioConMOS.base);
+    document.getElementById('rcZMOS').textContent = fmtMoney(r.precioConMOS.valor);
 
     document.getElementById('rcResult').style.display = 'block';
     document.getElementById('rcResult').scrollIntoView({behavior:'smooth', block:'start'});

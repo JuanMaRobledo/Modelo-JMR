@@ -335,7 +335,7 @@
     <div class="grid3">
       <div class="stat"><div class="lbl">Tipo de empresa</div><div class="big" id="rTipo" style="font-family:'Public Sans',sans-serif;font-size:15px;">—</div></div>
       <div class="stat"><div class="lbl">Margen de seguridad (MOS)</div><div class="big" id="rMOS">—</div></div>
-      <div class="stat"><div class="lbl">Precio con MOS</div><div class="big" id="rPrecioMOS">—</div></div>
+      <div class="stat"><div class="lbl">Precio con MOS · DCF Base</div><div class="big" id="rPrecioMOS">—</div></div>
     </div>
 
     <p class="section-title">Precio objetivo ponderado (6 métodos)</p>
@@ -365,7 +365,7 @@
       <div class="stat"><div class="lbl">Value</div><div class="rng" id="zValue">—</div></div>
       <div class="stat"><div class="lbl">Deep Value</div><div class="rng" id="zDeep">—</div></div>
       <div class="stat"><div class="lbl">Valoración histórica</div><div class="rng" id="zHist">—</div></div>
-      <div class="stat"><div class="lbl">Precio con MOS</div><div class="rng" id="zMOS">—</div></div>
+      <div class="stat"><div class="lbl">Precio con MOS · DCF Base</div><div class="rng" id="zMOS">—</div></div>
     </div>
   </div>
 
@@ -610,7 +610,7 @@
     document.getElementById('zValue').textContent = zoneText(r.zonas.value);
     document.getElementById('zDeep').textContent = zoneText(r.zonas.deepValue);
     document.getElementById('zHist').textContent = zoneText(r.zonas.historica);
-    document.getElementById('zMOS').textContent = fmtMoney(r.precioConMOS.cons) + ' – ' + fmtMoney(r.precioConMOS.base);
+    document.getElementById('zMOS').textContent = fmtMoney(r.precioConMOS.valor);
 
     document.getElementById('result').classList.add('show');
     document.getElementById('result').scrollIntoView({behavior:'smooth', block:'start'});
