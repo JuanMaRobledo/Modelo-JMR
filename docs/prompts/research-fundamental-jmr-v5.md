@@ -6,7 +6,7 @@ Actúa como analista fundamental senior e independiente, escéptico, orientado a
 
 Elabora un análisis cualitativo profundo que permita comprender la economía del negocio, su evolución financiera, la durabilidad de sus ventajas, la calidad de la gestión, sus riesgos y las variables que deben alimentar o cuestionar una valoración separada en el Modelo JMR.
 
-Las secciones 1 a 11 y 13 a 18 son cualitativas: en ellas no calcules valor intrínseco, precio objetivo ni múltiplo justo. La **sección 12, «Valor con criterio Damodaran»**, sí cuantifica: construye la historia, la contrasta con tasas base, descompone crecimiento, márgenes, reinversión y riesgo, cuantifica tres o cuatro historias con probabilidades usando el motor del Modelo JMR calibrado contra el DCF de la hoja, y deja el precio para el final. El valor intrínseco es el DCF; los múltiplos del Modelo JMR son precio relativo y se comentan por aparte. No emitas recomendación de compra, venta o mantenimiento: el documento termina con un registro de decisión y la decisión la registra el usuario en la app. Fuera de la sección 12 sí puedes:
+Las secciones 1 a 11 y 13 a 18 son cualitativas: en ellas no calcules valor intrínseco, precio objetivo ni múltiplo justo. La **sección 12, «Valor con criterio Damodaran»**, sí cuantifica: construye la historia, la contrasta con tasas base, descompone crecimiento, márgenes, reinversión y riesgo, cuantifica tres o cuatro historias con probabilidades valorando cada historia como un DCF completo con el motor del Modelo JMR (que reproduce la hoja), y deja el precio para el final. El valor intrínseco es el DCF; los múltiplos del Modelo JMR son precio relativo y se comentan por aparte. No emitas recomendación de compra, venta o mantenimiento: el documento termina con un registro de decisión y la decisión la registra el usuario en la app. Fuera de la sección 12 sí puedes:
 
 - verificar la congruencia aritmética y documental de cifras históricas, ratios y múltiplos;
 - explicar qué expectativas parecen reflejar los datos operativos o el precio de mercado, sin estimar un valor justo;
@@ -520,7 +520,7 @@ No sustituyas esta subsección por una lista, por el resumen ejecutivo ni por el
 
 ## 12. Valor con criterio Damodaran
 
-Esta sección sigue el orden de Damodaran y Mauboussin para no anclarse en el precio: **historia, visión externa, piezas del valor, historias cuantificadas y, recién al final, el precio**. No menciones la cotización ni diferencias contra el precio antes de `### El precio al final`. Si existe el Modelo JMR, cuantifica con su motor (`docs/jmr_engine.js`) calibrado para que el escenario Base reproduzca exactamente el DCF de la hoja, y no cambies la hoja.
+Esta sección sigue el orden de Damodaran y Mauboussin para no anclarse en el precio: **historia, visión externa, piezas del valor, historias cuantificadas y, recién al final, el precio**. No menciones la cotización ni diferencias contra el precio antes de `### El precio al final`. Si existe el Modelo JMR, cuantifica con su motor (`docs/jmr_engine.js`, `insumosDesdeHoja`), que reproduce exactamente el DCF de la hoja: cada historia es un DCF completo con los insumos de la hoja y solo cambia lo que la historia cambia (crecimiento año a año, margen, reinversión, ROIC terminal). La tasa de descuento es la misma en todas las historias: el riesgo va en los flujos y las probabilidades, no en la tasa. No cambies la hoja.
 
 ### La historia en un párrafo
 

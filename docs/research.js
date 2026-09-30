@@ -500,7 +500,7 @@
       return fetchJsonFile(matches[0].path).then(function (rec) { return { rec: rec, path: matches[0].path, count: matches.length }; });
     }).then(function (found) {
       var rec = found.rec;
-      state.linkedValuation = { precio: rec.precio, fecha: rec.fecha, zonas: rec.zonas, objetivoPonderado: rec.objetivoPonderado, valorPresentePonderado: rec.valorPresentePonderado, descuentoMultiples: rec.descuentoMultiples, metodos: rec.metodos, cagr: rec.cagr, mos: rec.mos, hojaGoogle: rec.hojaGoogle, sourcePath: found.path };
+      state.linkedValuation = { precio: rec.precio, fecha: rec.fecha, zonas: rec.zonas, objetivoPonderado: rec.objetivoPonderado, valorPresentePonderado: rec.valorPresentePonderado, descuentoMultiples: rec.descuentoMultiples, metodos: rec.metodos, cagr: rec.cagr, mos: rec.mos, hojaGoogle: rec.hojaGoogle, valorEsperado: rec.valorEsperado, sourcePath: found.path };
       renderPreview();
       setStatus('linkVisorStatus','Vinculado con "' + found.path + '"' + (found.count > 1 ? ' (la más reciente de ' + found.count + ' guardadas para este ticker)' : '') + '.','ok');
     }).catch(function (err) { setStatus('linkVisorStatus', err.message, 'bad'); }).finally(function () { btn.disabled = false; });
@@ -517,7 +517,7 @@
     var openedId=state.id, linkedPath=state.linkedValuation.sourcePath;
     if(linkedPath) fetchJsonFile(linkedPath).then(function(rec){
       if(state.id!==openedId||!state.linkedValuation||state.linkedValuation.sourcePath!==linkedPath)return;
-      state.linkedValuation=Object.assign({},state.linkedValuation,{valorPresentePonderado:rec.valorPresentePonderado,descuentoMultiples:rec.descuentoMultiples,metodos:rec.metodos,objetivoPonderado:rec.objetivoPonderado,mos:rec.mos,hojaGoogle:rec.hojaGoogle});
+      state.linkedValuation=Object.assign({},state.linkedValuation,{valorPresentePonderado:rec.valorPresentePonderado,descuentoMultiples:rec.descuentoMultiples,metodos:rec.metodos,objetivoPonderado:rec.objetivoPonderado,mos:rec.mos,hojaGoogle:rec.hojaGoogle,valorEsperado:rec.valorEsperado});
       renderPreview();
     }).catch(function(){});
     listValoraciones().then(function (files) {

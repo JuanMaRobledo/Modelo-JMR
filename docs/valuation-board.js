@@ -64,13 +64,51 @@
       mult: { hoy: trio(dm.multiplesHoy), fy3: multFy3, peso: pesoMult },
       metodos: metodos,
       pond: { hoy: trio(dm.ponderadoHoy || o.vp), fy3: trio(o.objetivoFY3) },
+      ve: veFrom(o.ve),
       hoja: o.hoja || ''
     };
+  }
+  // Valor esperado de las historias (sección «Valor con criterio Damodaran»): promedio de 3-4 historias, cada una un
+  // DCF completo, ponderado por la probabilidad que asigna el analista.
+  function veFrom(v) {
+    if (!v || num(v.valor) == null) return null;
+    var h = (v.historias || []).filter(function (x) { return num(x.valor) != null && num(x.probabilidad) != null; });
+    return { valor: v.valor, fecha: v.fecha || '', historias: h };
   }
   function fromRecord(rec, extra) {
     rec = rec || {}; extra = extra || {};
     return fromParts({ dm: rec.descuentoMultiples, vp: rec.valorPresentePonderado, metodosFY3: rec.metodos, objetivoFY3: rec.objetivoPonderado,
-      precio: extra.precio != null ? extra.precio : rec.precio, precioLbl: extra.precioLbl, mos: extra.mos != null ? extra.mos : rec.mos, hoja: rec.hojaGoogle });
+      precio: extra.precio != null ? extra.precio : rec.precio, precioLbl: extra.precioLbl, mos: extra.mos != null ? extra.mos : rec.mos, hoja: rec.hojaGoogle,
+      ve: rec.valorEsperado });
+  }
+  // Bloque del valor esperado, junto al DCF. d = resultado de fromParts/fromRecord.
+  function veHtml(d) {
+    var ve = d && d.ve;
+    if (!ve) return '';
+    var dcf = d.dcf && d.dcf.hoy ? d.dcf.hoy.base : null;
+    var letras = ve.historias.map(function (h) { return String(h.nombre || '').split(' · ')[0]; });
+    var bar = ve.historias.map(function (h, i) {
+      var cls = (num(d.precio) != null && h.valor < d.precio) ? 'lo' : 'hi';
+      return '<span class="' + cls + '" style="flex:' + (h.probabilidad * 100).toFixed(1) + '" title="' + esc(h.nombre) + ': ' + pct(h.probabilidad) + ' · ' + money(h.valor) + '">' +
+        esc(letras[i]) + ' ' + pct(h.probabilidad) + '</span>';
+    }).join('');
+    var rows = ve.historias.map(function (h) {
+      var nom = String(h.nombre || ''), i = nom.indexOf(' · ');
+      return '<tr><td class="hn"><b>' + esc(i > 0 ? nom.slice(0, i) : nom) + '</b>' + (i > 0 ? ' ' + esc(nom.slice(i + 3)) : '') +
+        (h.roicTerminal === 'costo_capital' ? '<small>ROIC después del año 10 = costo de capital</small>' : '') + '</td>' +
+        '<td class="n">' + pct(h.probabilidad) + '</td><td class="n">' + n2(h.valor) + '</td><td class="n">' + vsPrecio(h.valor, d.precio) + '</td></tr>';
+    }).join('');
+    var mos = d.mos != null ? '<span>Precio con MOS (' + pct(d.mos) + ') sobre el valor esperado <b>' + money(ve.valor * (1 - d.mos)) + '</b></span>' : '';
+    var vsDcf = dcf ? '<span>Frente al DCF Base <b>' + (ve.valor >= dcf ? '+' : '−') + Math.abs((ve.valor / dcf - 1) * 100).toFixed(0) + '%</b></span>' : '';
+    return '<div class="jvb-ve">' +
+      '<span class="jvb-kicker">Valor esperado · historias con probabilidades</span>' +
+      '<div class="jvb-big"><span class="v">' + money(ve.valor) + '</span>' + vsPrecio(ve.valor, d.precio) + '<span class="vl">promedio ponderado de ' + ve.historias.length + ' historias</span></div>' +
+      '<div class="jvb-vebar" aria-hidden="true">' + bar + '</div>' +
+      '<details class="jvb-vedet"><summary>Ver historias</summary><table class="jvb-vetab"><thead><tr><th>Historia</th><th>Prob.</th><th>US$/acción</th><th>vs. precio</th></tr></thead><tbody>' +
+      rows + '</tbody></table></details>' +
+      '<div class="jvb-meta">' + vsDcf + mos + '</div>' +
+      '<p class="jvb-venote">El DCF Base valora la historia central; el valor esperado promedia todas las historias (cada una un DCF completo) según la probabilidad que les asigna el análisis' +
+      (ve.fecha ? ' del ' + esc(ve.fecha) : '') + '. Las probabilidades son juicio del analista.</p></div>';
   }
   function hasData(d) { return !!(d && (d.dcf.hoy || d.dcf.fy3)); }
 
@@ -138,7 +176,7 @@
     return '<div class="jvb-hero"><div class="jvb-main"><span class="jvb-kicker">' + (hoy ? 'Valor intrínseco hoy · DCF' : 'DCF llevado a FY+3') + '</span>' +
       '<div class="jvb-big"><span class="v">' + money(t.base) + '</span>' + vsPrecio(t.base, d.precio) + '<span class="vl">vs. ' + esc(d.precioLbl.toLowerCase()) + ' ' + money(d.precio) + '</span></div>' +
       '<div class="jvb-scen"><span>Conservador <b>' + money(t.conservador) + '</b></span><span>Base <b>' + money(t.base) + '</b></span><span>Optimista <b>' + money(t.optimista) + '</b></span></div>' +
-      ((mos || fy3) ? '<div class="jvb-meta">' + mos + fy3 + '</div>' : '') + '</div>' +
+      ((mos || fy3) ? '<div class="jvb-meta">' + mos + fy3 + '</div>' : '') + (d.ve && hoy ? veHtml(d) : '') + '</div>' +
       (side ? '<div class="jvb-side"><span class="jvb-sidet">Lecturas secundarias</span>' + side + '</div>' : '') + '</div>';
   }
 
@@ -255,15 +293,29 @@
       '.jvb-rr.axis .rt{height:18px}.jvb-rr.axis .rt::before{display:none}',
       '.jvb-rr .rpl{position:absolute;top:0;transform:translateX(-50%);font:700 11px "IBM Plex Mono",ui-monospace,monospace;color:var(--negative);white-space:nowrap}',
       '.jvb-note{font-size:11.5px;line-height:1.5;color:var(--ink-faint);margin:10px 2px 0}',
+      '.jvb-vebox{--jvb-dcf:var(--accent);font-variant-numeric:tabular-nums;margin-top:12px}',
+      '.jvb-ve{margin-top:14px;padding-top:14px;border-top:1.5px solid color-mix(in oklab,var(--jvb-dcf) 30%,transparent)}',
+      '.jvb-vebox .jvb-ve{margin-top:0;padding:14px 16px;border:1px solid var(--border-soft);border-radius:14px;background:var(--surface)}',
+      '.jvb-vebar{display:flex;gap:2px;height:22px;border-radius:7px;overflow:hidden;margin:2px 0 8px}',
+      '.jvb-vebar span{display:flex;align-items:center;justify-content:center;min-width:0;overflow:hidden;white-space:nowrap;font:700 10.5px "IBM Plex Mono",ui-monospace,monospace}',
+      '.jvb-vebar .hi{background:var(--positive-soft,rgba(16,185,129,.16));color:var(--positive)}.jvb-vebar .lo{background:var(--negative-soft,rgba(239,68,68,.14));color:var(--negative)}',
+      '.jvb-vedet summary{cursor:pointer;font-size:12.5px;font-weight:600;color:var(--accent-ink,var(--accent))}',
+      '.jvb-vetab{width:100%;border-collapse:collapse;margin-top:8px;font-size:12.5px}',
+      '.jvb-vetab th{font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-faint);text-align:right;padding:5px 6px;border-bottom:1px solid var(--border-soft)}.jvb-vetab th:first-child{text-align:left}',
+      '.jvb-vetab td{padding:6px;border-bottom:1px solid var(--border-soft);vertical-align:top}.jvb-vetab td.n{text-align:right;white-space:nowrap;font-family:"IBM Plex Mono",ui-monospace,monospace}',
+      '.jvb-vetab td.hn{color:var(--ink-soft);line-height:1.35}.jvb-vetab td.hn b{color:var(--ink)}.jvb-vetab td.hn small{display:block;font-size:10.5px;color:var(--ink-faint)}',
+      '.jvb-venote{font-size:11px;line-height:1.45;color:var(--ink-faint);margin:8px 0 0}',
       '@media (max-width:760px){.jvb-hero{grid-template-columns:1fr}.jvb-big .v{font-size:28px}}',
       '@media (max-width:560px){.jvb .jvb-table td{font-size:12px}.jvb .jvb-table th,.jvb .jvb-table td{padding:8px 6px}.jvb .jvb-table td.n{font-size:11.5px}.jvb .jvb-grp td{font-size:11.5px}.jvb .jvb-row td.lbl{padding-left:15px}.jvb .jvb-row.met .nm{padding-left:4px}.jvb .jvb-row td.lbl::before{left:5px}',
       '.jvb .jvb-table .w,.jvb .jvb-table .vs{display:none}.jvb .jvb-table .vsm{display:block;margin-top:3px}.jvb .jvb-table .vsm .jvb-chip{font-size:10.5px;padding:1px 6px}.jvb .jvb-table thead th small{display:none}.jvb .jvb-row .pw{display:block}.jvb .jvb-row .sb{display:none}.jvb .jvb-table thead th{font-size:9.5px;letter-spacing:.03em}',
-      '.jvb-rr{grid-template-columns:78px minmax(0,1fr) 70px;gap:6px}.jvb-rr .rl{font-size:11px}.jvb-seg button{padding:6px 8px;font-size:12px}.jvb-rr .rpl{font-size:10px}}',
+      '.jvb-vebar span{font-size:9px;letter-spacing:-.02em}.jvb-vetab{font-size:12px}.jvb-rr{grid-template-columns:78px minmax(0,1fr) 70px;gap:6px}.jvb-rr .rl{font-size:11px}.jvb-seg button{padding:6px 8px;font-size:12px}.jvb-rr .rpl{font-size:10px}}',
       '@media (max-width:420px){.jvb .jvb-table th,.jvb .jvb-table td{padding:7px 4px}.jvb .jvb-table td.n{font-size:11px}.jvb .jvb-row td.lbl{padding-left:12px}.jvb .jvb-row td.lbl::before{left:3px}.jvb .jvb-row .nm{font-size:12px}.jvb .jvb-row.dcf .nm{font-size:12.5px}.jvb .jvb-row.dcf td.n.b{font-size:13px}.jvb .jvb-table thead th{font-size:9px}}',
       '@media print{.jvb-bar{display:none}.jvb-hz{display:block!important}.jvb-hz[data-hz="fy3"]{margin-top:10px}.jvb-tw,.jvb-range{box-shadow:none}}'
     ].join('\n');
     document.head.appendChild(st);
   }
 
-  global.JmrValueBoard = { fromParts: fromParts, fromRecord: fromRecord, html: html, hasData: hasData, apply: function () { apply(prefs()); } };
+  global.JmrValueBoard = { fromParts: fromParts, fromRecord: fromRecord, html: html, hasData: hasData, veHtml: veHtml,
+    veBox: function (d) { var h = veHtml(d); return h ? '<div class="jvb-vebox">' + h + '</div>' : ''; },
+    apply: function () { apply(prefs()); } };
 })(window);
