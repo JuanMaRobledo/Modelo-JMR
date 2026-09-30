@@ -70,7 +70,9 @@ function runDCF(inp, growthY1to5, marginTarget){
   var reinvest = new Array(11);
   for(var n=1;n<=9;n++) reinvest[n]=(rev[n+1]-rev[n])/inp.salesToCapital;
   reinvest[10]=(revTerminal-rev[10])/inp.salesToCapital;
-  var roicTerminal = waccTerminal;
+  // Retorno sobre el capital después del año 10: por defecto igual al costo de capital (sin retornos
+  // excedentes); inp.roicTerminal lo fija si la empresa tiene ventajas duraderas (criterio Damodaran).
+  var roicTerminal = (inp.roicTerminal > 0) ? inp.roicTerminal : waccTerminal;
   var reinvestTerminal = ebit1tTerminal*terminalGrowth/roicTerminal;
 
   var fcff = new Array(11);
