@@ -156,7 +156,18 @@
 
   // Franjas de zonas de valor + líneas de objetivo — copia exacta de
   // buildZonesChart() en visor.html (mismo diseño visual en toda la app).
-  function buildZonesChart(precioActual, zonas, objetivoPonderado) {
+  // Zonas de compra sobre el valor esperado de las historias (sección Damodaran): mismos porcentajes del modelo
+  // (Value 70-65%, Deep Value 60-55%, Valoración histórica 50-45%) y precio con MOS = valor esperado × (1 − MOS).
+  // Sin valor esperado se usan las zonas guardadas de la hoja (sobre el objetivo FY+3 ponderado).
+  function zonasValorEsperado(r) {
+    var ve = r && r.valorEsperado && Number(r.valorEsperado.valor), mos = Number(r && r.mos);
+    if (!(ve > 0)) return null;
+    var z = function (a, b) { return { max: ve * a, min: ve * b }; };
+    var out = { value: z(0.70, 0.65), deepValue: z(0.60, 0.55), historica: z(0.50, 0.45) };
+    if (isFinite(mos)) out.conMOS = { min: ve * (1 - mos), max: ve * (1 - mos) };
+    return out;
+  }
+  function buildZonesChart(precioActual, zonas, objetivoPonderado, referencias) {
     if (!zonas) return '<div class="chart-empty">Sin datos suficientes.</div>';
     var rows = [
       { label: 'Precio con MOS', z: zonas.conMOS },
@@ -166,8 +177,8 @@
     ].filter(function (r) { return r.z && typeof r.z.min === 'number' && typeof r.z.max === 'number' && isFinite(r.z.min) && isFinite(r.z.max); });
     if (!rows.length) return '<div class="chart-empty">Sin datos suficientes.</div>';
 
-    var targets = [];
-    if (objetivoPonderado) {
+    var targets = referencias ? referencias.filter(function (r) { return typeof r.value === 'number' && isFinite(r.value); }) : [];
+    if (!referencias && objetivoPonderado) {
       if (typeof objetivoPonderado.conservador === 'number' && isFinite(objetivoPonderado.conservador)) targets.push({ value: objetivoPonderado.conservador, label: 'Conservador', cls: 'chart-ref-cons' });
       if (typeof objetivoPonderado.base === 'number' && isFinite(objetivoPonderado.base)) targets.push({ value: objetivoPonderado.base, label: 'Base', cls: 'chart-ref-base' });
       if (typeof objetivoPonderado.optimista === 'number' && isFinite(objetivoPonderado.optimista)) targets.push({ value: objetivoPonderado.optimista, label: 'Optimista', cls: 'chart-ref-opt' });
@@ -187,7 +198,7 @@
       var x1 = x(r.z.min), x2 = x(r.z.max);
       return '<g><text x="' + (padLeft - 12) + '" y="' + (barY + 4) + '" text-anchor="end" class="chart-lbl">' + r.label + '</text>' +
         '<rect x="' + x1 + '" y="' + (barY - 7) + '" width="' + Math.max(x2 - x1, 2) + '" height="14" rx="5" class="chart-zone-bar"><title>' + r.label + ': ' + fmtMoney(r.z.min) + ' – ' + fmtMoney(r.z.max) + '</title></rect>' +
-        '<text x="' + ((x1 + x2) / 2) + '" y="' + (rowCenter - 9) + '" text-anchor="middle" class="chart-zone-val">' + fmtMoney(r.z.min) + '–' + fmtMoney(r.z.max) + '</text></g>';
+        '<text x="' + ((x1 + x2) / 2) + '" y="' + (rowCenter - 9) + '" text-anchor="middle" class="chart-zone-val">' + (r.z.min === r.z.max ? fmtMoney(r.z.min) : fmtMoney(r.z.min) + '–' + fmtMoney(r.z.max)) + '</text></g>';
     }).join('');
     var marker = '';
     if (typeof precioActual === 'number' && isFinite(precioActual)) {
@@ -243,6 +254,7 @@
     var dm=r.descuentoMultiples||{}, mw=0, multiples={conservador:0,base:0,optimista:0};
     (r.metodos||[]).forEach(function(m){if(/DCF/i.test(m.nombre||''))return;var w=Number(m.peso)||0;mw+=w;Object.keys(multiples).forEach(function(k){multiples[k]+=w*(Number(m[k])||0);});});
     if(mw)Object.keys(multiples).forEach(function(k){multiples[k]/=mw;});
+    var zve = zonasValorEsperado(r);
     function scenarios(label,s){return s?'<div class="port-kv"><span class="k">'+label+'</span><span class="v mono">Cons '+fmtMoney(s.conservador)+' · Base '+fmtMoney(s.base)+' · Opt '+fmtMoney(s.optimista)+'</span></div>':'';}
     return '' +
       '<div class="port-kv-row"><span class="port-fecha">Analizado el ' + escapeHtml(r.fecha || '—') + '</span></div>' +
@@ -251,7 +263,10 @@
       (r.valorPresentePonderado ? '<div class="port-kv"><span class="k">Valor ponderado hoy</span><span class="v mono">Cons ' + fmtMoney(r.valorPresentePonderado.conservador) + ' · Base ' + fmtMoney(r.valorPresentePonderado.base) + ' · Opt ' + fmtMoney(r.valorPresentePonderado.optimista) + '</span></div>' : '') +
       scenarios('Múltiplos · objetivo FY+3',mw?multiples:null) +
       (r.objetivoPonderado ? '<div class="port-kv"><span class="k">Combinado FY+3</span><span class="v mono">Cons ' + fmtMoney(r.objetivoPonderado.conservador) + ' · Base ' + fmtMoney(r.objetivoPonderado.base) + ' · Opt ' + fmtMoney(r.objetivoPonderado.optimista) + '</span></div>' : '') +
-      '<div class="chart-card">' + buildZonesChart(precio, r.zonas, r.objetivoPonderado) + '</div>';
+      (zve ? '<div class="port-kv"><span class="k">Valor esperado · historias</span><span class="v mono">' + fmtMoney(r.valorEsperado.valor) + (isFinite(Number(r.mos)) ? ' · con MOS ' + fmtMoney(r.valorEsperado.valor * (1 - Number(r.mos))) : '') + '</span></div>' : '') +
+      '<div class="chart-card">' + (zve ? '<p class="port-zonas-nota">Zonas de compra sobre el valor esperado de las historias</p>' : '') +
+      (zve ? buildZonesChart(precio, zve, null, [{ value: r.valorEsperado.valor, label: 'Valor esperado', cls: 'chart-ref-base' }, { value: dm.dcfHoy && dm.dcfHoy.base, label: 'DCF Base', cls: 'chart-ref-opt' }])
+           : buildZonesChart(precio, r.zonas, r.objetivoPonderado)) + '</div>';
   }
 
   function researchBlockHtml(entry) {

@@ -272,21 +272,20 @@ La reinversión sale del **sales-to-capital** (`Input` B32/B33: Δ ingresos ÷ �
 invertido, calculado de abajo hacia arriba con la historia de la empresa). Como chequeo, el ROIC
 implícito del año 10 no debería superar por mucho al actual ni al de la industria.
 
-**ROIC después del año 10** (`Input` B49/B50, criterio Damodaran). Por defecto el ROIC terminal es
-igual al costo de capital terminal: en la etapa estable el crecimiento no crea valor. Se usa un ROIC
-terminal mayor solo si la empresa cumple tres condiciones:
+**ROIC después del año 10** (`Input` B49/B50), según el moat (30-sep-2026). El crecimiento solo crea valor si
+la empresa gana más que su costo de capital, y la ventaja competitiva dice por cuánto tiempo:
 
-1. Tiene una ventaja competitiva durable e identificable (marca, efectos de red, costos de cambio,
-   escala, licencias o patentes que se renuevan).
-2. Su ROIC actual ('Valuation output' B42) supera al costo de capital terminal de forma sostenida
-   (3-5 años).
-3. La historia Base no pone esa ventaja bajo amenaza directa.
+| Moat | Evidencia | ROIC terminal |
+|---|---|---|
+| Ancho | 2+ fuentes de ventaja (o efectos de red / costos de cambio); ROIC > costo de capital en cada uno de los últimos 5 años; historias de erosión < 40% | Menor entre ROIC actual e industria (Damodaran) |
+| Estrecho | Una fuente, o una fuerte bajo presión (historias de erosión ≥ 40%); ROIC > costo de capital al menos 3 años seguidos | Punto medio entre el costo de capital terminal y ese valor |
+| Sin moat | Sin fuente durable o ROIC no sostenido por encima del costo de capital (con la plusvalía de las compras) | Costo de capital |
 
-En ese caso, B50 = el menor entre el ROIC actual y el ROIC después de impuestos de su industria en
-Damodaran. Si el promedio de la industria no es representativo (NA, o menor que el costo de capital
-por empresas con pérdidas), se usa la industria madura más cercana. El ROIC terminal nunca es mayor
-que el actual ni menor que el costo de capital terminal. La celda lleva una nota con el valor, la
-fuente y el motivo.
+La duración sigue la convención de moat (estrecho ~10 años de retornos excedentes, ancho ~20): el valor
+terminal empieza en el año 11, así que un moat estrecho conserva solo parte del exceso. Si la industria no es
+representativa se usa la madura más cercana; el ROIC terminal nunca es mayor que el actual ni menor que el costo
+de capital. Clasificación vigente: JMR-valuation `reference/moat_2026-09-30.json`. En las historias de la sección
+Damodaran, las de erosión de la ventaja usan ROIC = costo de capital.
 
 Con ROIC terminal, la reinversión del año terminal es g ÷ ROIC × EBIT(1 − t). El motor de la app
 (`jmr_engine.js`) lo lee de la hoja (`inp.roicTerminal`).
