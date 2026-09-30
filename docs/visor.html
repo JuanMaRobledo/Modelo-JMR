@@ -252,6 +252,20 @@
   .scen-table th:first-child{text-align:left;}
   .scen-table td{padding:4px 6px;}
   .scen-table td:first-child{font-size:13px; color:var(--ink-soft); font-weight:600;}
+  .scen-scroll{overflow-x:auto; -webkit-overflow-scrolling:touch;}
+  .scen-table-4{min-width:520px;} .scen-table-3{min-width:380px;}
+  .gs-row input{flex:1; min-width:0;}
+  .gh-btn.gh-primary{background:var(--ink); color:var(--bg); border-color:var(--ink);}
+  details.upload-alt{margin-top:14px; border-top:1px solid var(--border); padding-top:10px;}
+  details.upload-alt summary{cursor:pointer; font-size:13px; color:var(--ink-soft);}
+  details.upload-alt .dropzone{margin-top:10px;}
+  .rc-source{display:flex; flex-wrap:wrap; align-items:center; gap:8px 12px; padding:10px 14px; margin:0 0 14px; border:1px solid var(--border); border-radius:12px; background:var(--surface, var(--bg)); font-size:13px; color:var(--ink-soft);}
+  .rc-source-dot{width:8px; height:8px; border-radius:50%; background:var(--positive, #1f8a4c); flex:none;}
+  .rc-source.loading .rc-source-dot{background:var(--ink-faint); animation:rcPulse 1s infinite alternate;}
+  .rc-source.error .rc-source-dot{background:var(--negative, #b42318);}
+  .rc-source a{color:inherit; font-weight:600;}
+  .rc-source .gh-btn{margin-left:auto;}
+  @keyframes rcPulse{from{opacity:.3}to{opacity:1}}
   .scen-table input{width:100%; font:inherit; font-size:13px; padding:6px 8px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--ink); text-align:right; font-family:"IBM Plex Mono",monospace;}
 
   details.advanced{margin-top:8px;}
@@ -647,7 +661,7 @@
 
 <div class="wrap">
   <h1>Valoración - Modelo JMR</h1>
-  <p class="subtitle">Sube tu Excel del Modelo JMR (DCF Damodaran + 5 múltiplos) ya lleno para un ticker, y lo verás resumido aquí — sin abrir Excel.</p>
+  <p class="subtitle">Importa la hoja de Google del Modelo JMR (DCF Damodaran + 5 múltiplos) o abre una valoración guardada, y la verás resumida aquí.</p>
 
   <div class="pdf-header">
     <img src="assets/jmr-sello-grabado.png" alt="JMR">
@@ -801,7 +815,7 @@
 
       <div class="gh-section">
         <h3>Guardar esta valoración</h3>
-        <p class="sub">Guarda esta valoración — el resumen, el análisis cualitativo, el análisis fundamental y las hojas crudas de Estados Financieros, Valoración y Análisis — en tu base de datos (repo <code>Modelo-JMR-datos</code>) para consultarla después sin volver a subir el Excel. Si el archivo es muy grande, algunas partes se omiten para poder guardar el resto.</p>
+        <p class="sub">Guarda esta valoración — el resumen, el análisis cualitativo, el análisis fundamental y las hojas crudas de Estados Financieros, Valoración y Análisis — en tu base de datos (repo <code>Modelo-JMR-datos</code>) para consultarla después sin volver a importar la hoja. Si el archivo es muy grande, algunas partes se omiten para poder guardar el resto.</p>
         <div id="saveBlock"></div>
       </div>
     </div>
@@ -833,8 +847,14 @@
 
     <div class="tab-panel" data-panel="recalcular">
       <p class="field-help" style="margin-bottom:14px;">
-        Ajusta cualquier supuesto y recalcula con el mismo motor DCF Damodaran + 5 múltiplos de tu Excel (validado celda por celda). Esto <b>no reemplaza</b> el resumen de la pestaña "Resumen" (ese sigue siendo lo que dice tu Excel) — es una copia hipotética para explorar "¿y si cambio esto?". Todos los campos se precargan leyendo directo las hojas de tu Excel (Input sheet, Valuation output, Financials Multiples, EV/EBITDA, EV/FCFF, P/E, P/FCFE, P/OCF) — salvo las razones D&amp;A/CapEx/ΔNWC/etc., que el Excel varía año a año con un promedio móvil de 3 años y aquí se aproximan con un solo porcentaje (el del año FY+1). Revisa todo antes de confiar en el resultado; si algún campo no se pudo leer, queda con su valor de ejemplo.
-      </p>
+        Ajusta cualquier supuesto y recalcula con el mismo motor de la hoja de Google (DCF Damodaran + 5 múltiplos). Los campos se precargan leyendo la hoja de Google de esta valoración (Input sheet, Valuation output, Financials Multiples y las pestañas de cada múltiplo); sin cambiar nada, el resultado es el mismo de la hoja. Esto <b>no reemplaza</b> la valoración guardada: es una copia hipotética para explorar "¿y si cambio esto?".</p>
+
+      <div class="rc-source" id="rcSource" hidden>
+        <span class="rc-source-dot" aria-hidden="true"></span>
+        <span id="rcSourceText">Hoja de Google</span>
+        <a id="rcSourceLink" href="#" target="_blank" rel="noopener noreferrer">Abrir hoja</a>
+        <button type="button" class="gh-btn" id="rcSourceReload">Actualizar desde la hoja</button>
+      </div>
 
       <form id="rcForm">
         <fieldset>
@@ -888,23 +908,28 @@
           <div class="frow"><label for="rc_wacc">WACC (años 1-5)</label><input id="rc_wacc" type="number" step="0.01" value="9.38"></div>
           <div class="frow"><label for="rc_costoPatrimonio">Costo del patrimonio (Ke) — descuenta los múltiplos a hoy</label><input id="rc_costoPatrimonio" type="number" step="0.01" placeholder="vacío = WACC"></div>
           <div class="frow"><label for="rc_criterioConsolidacion">Consolidar cada múltiplo con</label><select id="rc_criterioConsolidacion"><option value="promedio">Promedio de 1, 2 y 3 años</option><option value="solo3">Solo el de 3 años</option></select></div>
-          <div class="frow"><label for="rc_riskFreeRate">Tasa libre de riesgo (= crecimiento terminal)</label><input id="rc_riskFreeRate" type="number" step="0.01" value="4.62"></div>
+          <div class="frow"><label for="rc_riskFreeRate">Tasa libre de riesgo</label><input id="rc_riskFreeRate" type="number" step="0.01" value="4.62"></div>
           <div class="frow"><label for="rc_matureMarketERP">Prima de riesgo de mercado maduro</label><input id="rc_matureMarketERP" type="number" step="0.01" value="4.23"></div>
-          <div class="frow"><label for="rc_salesToCapital">Sales-to-capital ratio (reinversión)</label><input id="rc_salesToCapital" type="number" step="any" value="1.5432"></div>
+          <div class="frow"><label for="rc_terminalGrowth">Crecimiento a perpetuidad (vacío = tasa libre de riesgo)</label><input id="rc_terminalGrowth" type="number" step="0.01" value=""></div>
+          <div class="frow"><label for="rc_salesToCapital">Sales-to-capital, años 1-5</label><input id="rc_salesToCapital" type="number" step="any" value="1.5432"></div>
+          <div class="frow"><label for="rc_salesToCapital2">Sales-to-capital, años 6-10 (vacío = el de 1-5)</label><input id="rc_salesToCapital2" type="number" step="any" value=""></div>
           <p class="field-help">WACC terminal = tasa libre de riesgo + prima de mercado maduro. Tasas en %.</p>
         </fieldset>
 
         <fieldset>
           <legend>Crecimiento y margen EBIT objetivo por escenario</legend>
-          <table class="scen-table">
-            <thead><tr><th>Escenario</th><th>Crecimiento ingresos (años 1-5)</th><th>Margen EBIT objetivo</th></tr></thead>
+          <div class="scen-scroll">
+          <table class="scen-table scen-table-4">
+            <thead><tr><th>Escenario</th><th>Crecimiento año 1</th><th>Crecimiento años 2-5</th><th>Margen EBIT año 1</th><th>Margen EBIT objetivo</th></tr></thead>
             <tbody>
-              <tr><td>Conservador</td><td><input id="rc_growthCons" type="number" step="0.01" value="6.99"></td><td><input id="rc_marginCons" type="number" step="0.01" value="32.25"></td></tr>
-              <tr><td>Base</td><td><input id="rc_growthBase" type="number" step="0.01" value="11.5"></td><td><input id="rc_marginBase" type="number" step="0.01" value="36.1"></td></tr>
-              <tr><td>Optimista</td><td><input id="rc_growthOpt" type="number" step="0.01" value="15.04"></td><td><input id="rc_marginOpt" type="number" step="0.01" value="38.42"></td></tr>
+              <tr><td>Conservador</td><td><input id="rc_growthY1Cons" type="number" step="0.01" aria-label="Crecimiento año 1, Conservador"></td><td><input id="rc_growthCons" type="number" step="0.01" value="6.99" aria-label="Crecimiento años 2-5, Conservador"></td><td><input id="rc_marginY1Cons" type="number" step="0.01" aria-label="Margen año 1, Conservador"></td><td><input id="rc_marginCons" type="number" step="0.01" value="32.25" aria-label="Margen objetivo, Conservador"></td></tr>
+              <tr><td>Base</td><td><input id="rc_growthY1Base" type="number" step="0.01" aria-label="Crecimiento año 1, Base"></td><td><input id="rc_growthBase" type="number" step="0.01" value="11.5" aria-label="Crecimiento años 2-5, Base"></td><td><input id="rc_marginY1Base" type="number" step="0.01" aria-label="Margen año 1, Base"></td><td><input id="rc_marginBase" type="number" step="0.01" value="36.1" aria-label="Margen objetivo, Base"></td></tr>
+              <tr><td>Optimista</td><td><input id="rc_growthY1Opt" type="number" step="0.01" aria-label="Crecimiento año 1, Optimista"></td><td><input id="rc_growthOpt" type="number" step="0.01" value="15.04" aria-label="Crecimiento años 2-5, Optimista"></td><td><input id="rc_marginY1Opt" type="number" step="0.01" aria-label="Margen año 1, Optimista"></td><td><input id="rc_marginOpt" type="number" step="0.01" value="38.42" aria-label="Margen objetivo, Optimista"></td></tr>
             </tbody>
           </table>
-          <p class="field-help">Tasas en %. El margen converge linealmente desde el margen actual (EBIT LTM / Ingresos LTM) hasta este objetivo en 5 años.</p>
+          </div>
+          <div class="frow"><label for="rc_convergenceYear">Año en que el margen llega al objetivo</label><input id="rc_convergenceYear" type="number" step="1" min="1" max="10" value="5"></div>
+          <p class="field-help">Tasas en %. Vacío en el año 1 = igual a los años 2-5 (crecimiento) o al margen actual (margen). Del año 6 al 10 el crecimiento baja en línea recta hasta la perpetuidad.</p>
           <div class="hist-scroll">
           <table class="scen-table hist-ref hist-stats" id="rcHistGrowthMargin" style="display:none;">
             <thead>
@@ -917,25 +942,34 @@
         </fieldset>
 
         <fieldset>
-          <legend>Razones para proyectar los múltiplos (compartidas entre escenarios)</legend>
+          <legend>Razones para proyectar los múltiplos</legend>
+          <p class="field-help" style="margin-top:0">Se muestran las del escenario Base. Cada escenario usa las de su bloque de la hoja mientras no cambies el valor; si lo cambias, se aplica a los tres.</p>
           <div class="frow"><label for="rc_daPctRevenue">D&amp;A, % de ingresos</label><input id="rc_daPctRevenue" type="number" step="0.01" value="3.97"></div>
           <div class="frow"><label for="rc_capexPctRevenue">CapEx, % de ingresos (negativo)</label><input id="rc_capexPctRevenue" type="number" step="0.01" value="-1.15"></div>
           <div class="frow"><label for="rc_nwcPctDeltaRevenue">Δ Capital de trabajo, % del Δ ingresos</label><input id="rc_nwcPctDeltaRevenue" type="number" step="0.01" value="-25.13"></div>
           <div class="frow"><label for="rc_interestOtherPctEBIT">Intereses/otros, % del EBIT</label><input id="rc_interestOtherPctEBIT" type="number" step="0.01" value="1.79"></div>
-          <div class="frow"><label for="rc_netBorrowingPctRevenue">Endeudamiento neto, % de ingresos</label><input id="rc_netBorrowingPctRevenue" type="number" step="0.01" value="2.93"></div>
+          <div class="frow"><label for="rc_netBorrowingPctDeltaRevenue">Endeudamiento neto, % del Δ ingresos</label><input id="rc_netBorrowingPctDeltaRevenue" type="number" step="0.01" value="0"></div>
           <div class="frow"><label for="rc_buybackRate">Recompra/dilución de acciones, % anual</label><input id="rc_buybackRate" type="number" step="0.01" value="-2.84"></div>
-          <div class="frow"><label for="rc_dividendPerShare">Dividendo anual por acción</label><input id="rc_dividendPerShare" type="number" step="0.01" value="0"></div>
-          <p class="field-help">Todas en %, salvo el dividendo.</p>
+          <div class="frow"><label for="rc_dividendPerShare">Dividendo por acción en FY+1</label><input id="rc_dividendPerShare" type="number" step="0.01" value="0"></div>
+          <div class="frow"><label for="rc_dividendGrowth">Crecimiento anual del dividendo</label><input id="rc_dividendGrowth" type="number" step="0.01" value="0"></div>
+          <p class="field-help">Todas en %, salvo el dividendo. D&amp;A: la hoja usa el promedio móvil de 3 años; si cambias el %, se usa ese % fijo.</p>
         </fieldset>
 
         <fieldset>
-          <legend>Múltiplos relativos — múltiplo base (año actual)</legend>
-          <div class="frow"><label for="rc_evEbitdaBase">EV/EBITDA</label><input id="rc_evEbitdaBase" type="number" step="0.01" value="13.89"></div>
-          <div class="frow"><label for="rc_evFcffBase">EV/FCFF</label><input id="rc_evFcffBase" type="number" step="0.01" value="15.20"></div>
-          <div class="frow"><label for="rc_peBase">P/E</label><input id="rc_peBase" type="number" step="0.01" value="18.54"></div>
-          <div class="frow"><label for="rc_pfcfeBase">P/FCFE</label><input id="rc_pfcfeBase" type="number" step="0.01" value="14.34"></div>
-          <div class="frow"><label for="rc_pocfBase">P/OCF</label><input id="rc_pocfBase" type="number" step="0.01" value="14.85"></div>
-          <p class="field-help">El escenario Conservador usa 0.9× este múltiplo y el Optimista 1.1×.</p>
+          <legend>Múltiplos de salida (FY+1 a FY+3)</legend>
+          <div class="scen-scroll">
+          <table class="scen-table scen-table-3">
+            <thead><tr><th>Método</th><th>Conservador</th><th>Base</th><th>Optimista</th></tr></thead>
+            <tbody>
+              <tr><td>EV/EBITDA</td><td><input id="rc_evEbitdaCons" type="number" step="0.01" aria-label="EV/EBITDA Conservador"></td><td><input id="rc_evEbitdaBase" type="number" step="0.01" value="13.89" aria-label="EV/EBITDA Base"></td><td><input id="rc_evEbitdaOpt" type="number" step="0.01" aria-label="EV/EBITDA Optimista"></td></tr>
+              <tr><td>EV/FCFF</td><td><input id="rc_evFcffCons" type="number" step="0.01" aria-label="EV/FCFF Conservador"></td><td><input id="rc_evFcffBase" type="number" step="0.01" value="15.20" aria-label="EV/FCFF Base"></td><td><input id="rc_evFcffOpt" type="number" step="0.01" aria-label="EV/FCFF Optimista"></td></tr>
+              <tr><td>P/E</td><td><input id="rc_peCons" type="number" step="0.01" aria-label="P/E Conservador"></td><td><input id="rc_peBase" type="number" step="0.01" value="18.54" aria-label="P/E Base"></td><td><input id="rc_peOpt" type="number" step="0.01" aria-label="P/E Optimista"></td></tr>
+              <tr><td>P/FCFE</td><td><input id="rc_pfcfeCons" type="number" step="0.01" aria-label="P/FCFE Conservador"></td><td><input id="rc_pfcfeBase" type="number" step="0.01" value="14.34" aria-label="P/FCFE Base"></td><td><input id="rc_pfcfeOpt" type="number" step="0.01" aria-label="P/FCFE Optimista"></td></tr>
+              <tr><td>P/OCF</td><td><input id="rc_pocfCons" type="number" step="0.01" aria-label="P/OCF Conservador"></td><td><input id="rc_pocfBase" type="number" step="0.01" value="14.85" aria-label="P/OCF Base"></td><td><input id="rc_pocfOpt" type="number" step="0.01" aria-label="P/OCF Optimista"></td></tr>
+            </tbody>
+          </table>
+          </div>
+          <p class="field-help">Vacío en Conservador u Optimista = 0,9× y 1,1× el Base. Los múltiplos EV/EBITDA y EV/FCFF restan la deuda neta, como en la hoja.</p>
           <div class="hist-scroll">
           <table class="scen-table hist-ref hist-stats" id="rcHistMultiples" style="display:none;">
             <thead>
@@ -951,7 +985,7 @@
       </form>
 
       <div id="rcResult" style="display:none;">
-        <p class="section-title">Resultado recalculado (hipotético — no es lo que dice tu Excel)</p>
+        <p class="section-title">Resultado recalculado (hipotético — no cambia la valoración guardada)</p>
         <div class="grid4">
           <div class="stat"><div class="lbl">Precio con este supuesto</div><div class="big" id="rcPrice">—</div></div>
           <div class="stat"><div class="lbl">Precio con MOS</div><div class="big" id="rcPrecioMOS">—</div></div>
@@ -985,7 +1019,7 @@
     </div>
     <div class="gh-row" style="margin:0; align-items:baseline;">
       <button class="gh-btn" id="refreshLiveBtn" type="button" hidden>Actualizar a precio en vivo</button>
-      <a href="#" id="toggleKeyLink" style="font-size:12px; color:var(--ink-faint);">¿Precio más reciente que el de tu Excel? Configura una API key gratis de FMP (opcional — el logo y el precio de "Input sheet" ya funcionan sin ella)</a>
+      <a href="#" id="toggleKeyLink" style="font-size:12px; color:var(--ink-faint);">¿Precio más reciente que el de la hoja? Configura una API key gratis de FMP (opcional — el logo y el precio de "Input sheet" ya funcionan sin ella)</a>
       <span class="gh-status" id="livePriceStatus" style="margin:0;"></span>
     </div>
   </div>
@@ -993,29 +1027,30 @@
   <p class="section-title" id="loadDataTitle">Cargar datos</p>
   <div class="data-grid" id="loadDataGrid">
     <div class="gh-section">
-      <h3>Subir un Excel nuevo</h3>
-      <p class="sub">Sube tu Excel del Modelo JMR (DCF Damodaran + 5 múltiplos) ya lleno para un ticker, o un CSV exportado desde este mismo visor — y lo verás resumido arriba, sin abrir Excel.</p>
-      <label class="dropzone" id="dropzone">
-        <input type="file" id="fileInput" accept=".xlsx,.csv">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
-        <div class="main">Arrastra tu .xlsx o .csv aquí, o haz clic para elegir el archivo</div>
-        <div class="hint">Se procesa en tu navegador — el archivo nunca se sube a ningún servidor</div>
-      </label>
-
-      <div class="upload-or"><span>o desde Google Sheets</span></div>
-      <div class="gh-row">
-        <input id="driveLinkInput" type="url" inputmode="url" placeholder="Pega el enlace de una hoja de Google Sheets compartida" autocomplete="off" spellcheck="false">
-        <button class="gh-btn" id="driveLinkBtn" type="button">Importar hoja</button>
+      <h3>Importar desde Google Sheets</h3>
+      <p class="sub">Pega el enlace de la hoja de Google del Modelo JMR (DCF Damodaran + 5 múltiplos). Es la fuente de verdad: el visor la lee tal como está hoy y Recalcular parte de sus supuestos.</p>
+      <div class="gh-row gs-row">
+        <input id="driveLinkInput" type="url" inputmode="url" placeholder="https://docs.google.com/spreadsheets/d/…" autocomplete="off" spellcheck="false">
+        <button class="gh-btn gh-primary" id="driveLinkBtn" type="button">Importar hoja</button>
       </div>
       <p class="gh-status" id="driveStatus"></p>
-      <a href="#" id="driveDownloadLink" target="_blank" rel="noopener" class="field-help" style="display:none; margin:2px 0 0;">Descargar como Excel para subirlo manualmente arriba →</a>
+      <a href="#" id="driveDownloadLink" target="_blank" rel="noopener" class="field-help" style="display:none; margin:2px 0 0;">Descargar la hoja como archivo para subirla abajo →</a>
+      <p class="privacy-note">La hoja debe tener acceso "Cualquier persona con el enlace". No se pide acceso a tu cuenta de Google: el navegador le pide a Google la exportación pública de la hoja y la procesa aquí mismo.</p>
 
-      <p class="privacy-note">Lee la hoja "Resumen de Valoración" para el resumen, y las demás hojas del Modelo JMR involucradas en la valoración para las pestañas de detalle. El archivo no se envía a ningún lado. Para importar por enlace, la hoja de Google Sheets debe tener acceso "Cualquier persona con el enlace" — no se solicita ni se envía acceso a tu cuenta de Google, solo se pide a Google que la exporte como Excel.</p>
+      <details class="upload-alt">
+        <summary>¿Sin conexión a Google? Sube un archivo .xlsx o .csv</summary>
+        <label class="dropzone" id="dropzone">
+          <input type="file" id="fileInput" accept=".xlsx,.csv">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+          <div class="main">Arrastra el archivo aquí, o haz clic para elegirlo</div>
+          <div class="hint">Se procesa en tu navegador. Una copia descargada puede quedar desactualizada frente a la hoja de Google.</div>
+        </label>
+      </details>
     </div>
 
     <div class="gh-section" id="savedSection">
       <h3>Valoraciones guardadas</h3>
-      <p class="sub">Consulta valoraciones que hayas guardado antes desde este visor — no necesitas volver a subir el Excel, ni conectar nada para verlas. Solo hace falta pegar tu Personal Access Token de GitHub (<code>Modelo-JMR-datos</code>) si querés guardar, archivar o borrar una — el navegador lo recuerda después, no hace falta volver a escribirlo.</p>
+      <p class="sub">Consulta valoraciones que hayas guardado antes desde este visor — no necesitas volver a importar la hoja, ni conectar nada para verlas. Solo hace falta pegar tu Personal Access Token de GitHub (<code>Modelo-JMR-datos</code>) si querés guardar, archivar o borrar una — el navegador lo recuerda después, no hace falta volver a escribirlo.</p>
       <div id="ghConnect"></div>
       <div class="gh-row">
         <button class="gh-btn" id="loadSavedBtn" type="button">Cargar lista</button>
@@ -1027,9 +1062,9 @@
   </div>
 
   <footer>
-    Este visor lee los resultados ya calculados por tu Excel (Modelo JMR); no recalcula el DCF ni los múltiplos por sí mismo.
+    Este visor lee los resultados ya calculados por la hoja de Google (Modelo JMR). La pestaña Recalcular usa un motor que reproduce la hoja para explorar otros supuestos.
     El nombre y el logo se toman de la hoja "Input sheet" y de Financial Modeling Prep respectivamente; el "Precio actual" se consulta en vivo con la misma API key de la Calculadora y la Bitácora — si no hay key o el ticker no se encuentra, se muestra el precio que quedó guardado en el Excel al momento de llenarlo, marcado como tal.
-    Las pestañas "Estados Financieros", "Valoración" y "Análisis" muestran, tal cual, las hojas de tu Excel involucradas en la valoración (no las tablas fijas de referencia de la plantilla — primas de riesgo país, promedios de industria, convertidores, etc. — que son iguales para cualquier empresa).
+    Las pestañas "Estados Financieros", "Valoración" y "Análisis" muestran, tal cual, las pestañas de la hoja involucradas en la valoración (no las tablas fijas de referencia de la plantilla — primas de riesgo país, promedios de industria, convertidores, etc. — que son iguales para cualquier empresa).
     Guardar una valoración la sube como un archivo JSON a tu repositorio en GitHub (<code>Modelo-JMR-datos</code>) usando un Personal Access Token que solo tú generas y que se guarda únicamente en este navegador — nunca se envía a ningún servidor propio. Leer valoraciones ya guardadas no requiere ese token (el repo es público); solo hace falta para guardar, archivar o borrar.
     Para valorar una empresa nueva sin Excel, usa la <a href="calculadora.html" style="color:inherit;">Calculadora DCF</a>.
     Contenido con fines educativos y de organización personal — no constituye asesoría financiera.
@@ -1512,7 +1547,8 @@
       fechaTxt = 'Análisis del ' + d.toLocaleDateString('es-CO', {day:'2-digit', month:'short', year:'numeric'});
     }
     document.getElementById('rMeta').textContent = fechaTxt || 'Modelo JMR — DCF Damodaran + múltiplos';
-    document.getElementById('rSheetLink').hidden = true;
+    document.getElementById('rSheetLink').hidden = !currentHojaGoogle;
+    if(currentHojaGoogle) document.getElementById('rSheetLink').href = currentHojaGoogle;
     document.getElementById('rPrice').textContent = fmtMoney(precio);
     document.getElementById('rPriceNote').textContent = (precio === precioExcelD1 ? 'Del Excel (Input sheet)' : 'Precio al día del análisis') + (hasApiKey() ? ' — actualizando al precio de hoy…' : '');
     currentPrecioAnalisis = (typeof precioAnalisis === 'number' && isFinite(precioAnalisis)) ? precioAnalisis : null;
@@ -1566,6 +1602,7 @@
     currentTicker = ticker;
     currentResumen = {
       ticker: ticker,
+      hojaGoogle: currentHojaGoogle || null,
       nombreActivo: nombreActivo || null,
       fecha: fechaTxt || null,
       precio: precio,
@@ -2632,6 +2669,7 @@
         if(!wb.SheetNames || !wb.SheetNames.length){
           throw new Error('no se reconoció ninguna hoja (¿le faltan los encabezados "[Nombre de Hoja]" al CSV?)');
         }
+        currentHojaGoogle = null;
         render(wb);
       }catch(err){
         showError('No pude leer este archivo. Verifica que sea un .xlsx válido del Modelo JMR, o un CSV exportado desde este visor. Detalle técnico: ' + err.message);
@@ -2884,6 +2922,7 @@
     // original — las hojas crudas se muestran desde lo que se guardó junto
     // con la valoración (rec.hojas), si lo hay.
     currentWb = null;
+    currentHojaGoogle = /^https:\/\/docs\.google\.com\/spreadsheets\/d\/[\w-]+/.test(rec.hojaGoogle || '') ? rec.hojaGoogle : null;
     currentResumen = rec;
     currentTicker = rec.ticker || null;
     renderHeadline();
@@ -3324,13 +3363,24 @@
   // con supuestos editables — resultado hipotético, separado del resumen que
   // lee tu Excel. Precio actual/tipo de empresa/MOS se precargan del Excel;
   // el resto parte de valores de ejemplo (los mismos que la Calculadora).
-  function rcNum(id){ return parseFloat(document.getElementById(id).value) || 0; }
+  // Los campos precargados desde la hoja guardan el valor exacto (data-exact); mientras el campo muestre
+  // lo mismo que se precargó, se usa ese valor y no el redondeado a 2 decimales.
+  function rcNum(id){
+    var el = document.getElementById(id);
+    if(el.dataset.exact !== undefined && el.value === el.dataset.shown) return parseFloat(el.dataset.exact);
+    return parseFloat(el.value) || 0;
+  }
   function rcPct(id){ return rcNum(id) / 100; }
+  function rcBlank(id){ return String(document.getElementById(id).value).trim() === ''; }
+  function rcOptPct(id){ return rcBlank(id) ? undefined : rcPct(id); }
+  function rcOptNum(id){ return rcBlank(id) ? undefined : rcNum(id); }
+  function rcChanged(id){ var el = document.getElementById(id); return el.dataset.shown === undefined || el.value !== el.dataset.shown; }
 
   function rcFillField(id, val, cls){
     var el = document.getElementById(id);
     if(!el || val === undefined || val === null || isNaN(val)) return false;
     el.value = Math.round(val * 100) / 100;
+    delete el.dataset.exact; delete el.dataset.shown;
     el.classList.remove('src-auto', 'src-derived');
     el.classList.add(cls);
     el.addEventListener('input', function once(){
@@ -3399,6 +3449,13 @@
         rcRenderHistorical(null);
         return;
       }
+      // Datos nuevos de FMP: ya no aplican los de la hoja (bloques por escenario, múltiplos por escenario, pesos).
+      rcHoja = null;
+      ['rc_growthY1Cons', 'rc_growthY1Base', 'rc_growthY1Opt', 'rc_marginY1Cons', 'rc_marginY1Base', 'rc_marginY1Opt',
+       'rc_terminalGrowth', 'rc_salesToCapital2', 'rc_evEbitdaCons', 'rc_evEbitdaOpt', 'rc_evFcffCons', 'rc_evFcffOpt',
+       'rc_peCons', 'rc_peOpt', 'rc_pfcfeCons', 'rc_pfcfeOpt', 'rc_pocfCons', 'rc_pocfOpt'].forEach(rcClear);
+      rcSetNum('rc_convergenceYear', 5);
+      rcSetSource('none', '');
       var autoCount = 0, derivedCount = 0;
       r.auto.forEach(function(f){ if(rcFillField('rc_' + f, r.values[f], 'src-auto')) autoCount++; });
       r.derived.forEach(function(f){ if(rcFillField('rc_' + f, r.values[f], 'src-derived')) derivedCount++; });
@@ -3422,8 +3479,15 @@
     if(e.key === 'Enter'){ e.preventDefault(); rcRunLookup(); }
   });
 
+  // Insumos para el motor: parte de lo leído de la hoja (rcHoja: incluye lo que no está en el formulario,
+  // como los bloques de cada escenario en 'Financials Multiples' y los pesos) y aplica lo que diga el formulario.
+  var RC_POR_ESCENARIO = {rc_interestOtherPctEBIT: 'interestOtherPctEBIT', rc_capexPctRevenue: 'capexPctRevenue',
+    rc_nwcPctDeltaRevenue: 'nwcPctDeltaRevenue', rc_netBorrowingPctDeltaRevenue: 'netBorrowingPctDeltaRevenue',
+    rc_buybackRate: 'buybackRate', rc_dividendPerShare: 'dividendPerShare', rc_dividendGrowth: 'dividendGrowth'};
   function rcReadInputs(){
-    return {
+    var inp = rcHoja ? JSON.parse(JSON.stringify(rcHoja)) : {};
+    var roic = rcOptPct('rc_roicTerminal');
+    var form = {
       precioActual: rcNum('rc_precioActual'),
       tipoEmpresa: document.getElementById('rc_tipoEmpresa').value,
       mos: rcPct('rc_mos'),
@@ -3438,29 +3502,57 @@
       minorityInterests: rcNum('rc_minorityInterests'),
       probFailure: rcPct('rc_probFailure'),
       recoveryPct: rcPct('rc_recoveryPct'),
-      roicTerminal: document.getElementById('rc_roicTerminal').value.trim() === '' ? 0 : rcPct('rc_roicTerminal'),
+      roicTerminal: roic > 0 ? roic : 0,
       wacc: rcPct('rc_wacc'),
-      costoPatrimonio: document.getElementById('rc_costoPatrimonio').value.trim() === '' ? undefined : rcPct('rc_costoPatrimonio'),
+      costoPatrimonio: rcOptPct('rc_costoPatrimonio'),
       criterioConsolidacion: document.getElementById('rc_criterioConsolidacion').value,
       riskFreeRate: rcPct('rc_riskFreeRate'),
       matureMarketERP: rcPct('rc_matureMarketERP'),
+      terminalGrowth: rcOptPct('rc_terminalGrowth'),
       salesToCapital: rcNum('rc_salesToCapital'),
-      growthCons: rcPct('rc_growthCons'), marginCons: rcPct('rc_marginCons'),
-      growthBase: rcPct('rc_growthBase'), marginBase: rcPct('rc_marginBase'),
-      growthOpt: rcPct('rc_growthOpt'), marginOpt: rcPct('rc_marginOpt'),
+      salesToCapital2: rcOptNum('rc_salesToCapital2'),
+      convergenceYear: rcOptNum('rc_convergenceYear'),
+      growthY1Cons: rcOptPct('rc_growthY1Cons'), growthCons: rcPct('rc_growthCons'), marginY1Cons: rcOptPct('rc_marginY1Cons'), marginCons: rcPct('rc_marginCons'),
+      growthY1Base: rcOptPct('rc_growthY1Base'), growthBase: rcPct('rc_growthBase'), marginY1Base: rcOptPct('rc_marginY1Base'), marginBase: rcPct('rc_marginBase'),
+      growthY1Opt: rcOptPct('rc_growthY1Opt'), growthOpt: rcPct('rc_growthOpt'), marginY1Opt: rcOptPct('rc_marginY1Opt'), marginOpt: rcPct('rc_marginOpt'),
       daPctRevenue: rcPct('rc_daPctRevenue'),
       capexPctRevenue: rcPct('rc_capexPctRevenue'),
       nwcPctDeltaRevenue: rcPct('rc_nwcPctDeltaRevenue'),
       interestOtherPctEBIT: rcPct('rc_interestOtherPctEBIT'),
-      netBorrowingPctRevenue: rcPct('rc_netBorrowingPctRevenue'),
+      netBorrowingPctDeltaRevenue: rcPct('rc_netBorrowingPctDeltaRevenue'),
       buybackRate: rcPct('rc_buybackRate'),
       dividendPerShare: rcNum('rc_dividendPerShare'),
+      dividendGrowth: rcPct('rc_dividendGrowth'),
       evEbitdaBase: rcNum('rc_evEbitdaBase'),
       evFcffBase: rcNum('rc_evFcffBase'),
       peBase: rcNum('rc_peBase'),
       pfcfeBase: rcNum('rc_pfcfeBase'),
       pocfBase: rcNum('rc_pocfBase')
     };
+    Object.keys(form).forEach(function(k){ inp[k] = form[k]; });
+    // Terminal: sin crecimiento a perpetuidad explícito, la tasa libre de riesgo; el WACC terminal sale de rf + prima.
+    delete inp.terminalWacc;
+    // Múltiplos por escenario (vacío = 0,9× / 1,1× el Base).
+    inp.multiplos = {};
+    [['evEbitda', 'EvEbitda'], ['evFcff', 'EvFcff'], ['pe', 'Pe'], ['pfcfe', 'Pfcfe'], ['pocf', 'Pocf']].forEach(function(m){
+      var id = 'rc_' + m[0];
+      inp.multiplos[m[0]] = {cons: rcOptNum(id + 'Cons'), base: rcNum(id + 'Base'), opt: rcOptNum(id + 'Opt')};
+    });
+    if(rcHoja){
+      // Pesos de la hoja mientras no cambie el tipo de empresa.
+      if(inp.tipoEmpresa !== rcHoja.tipoEmpresa) delete inp.pesos;
+      // Razones de 'Financials Multiples': cada escenario usa las de su bloque salvo que se cambie el campo.
+      var esc = inp.porEscenario || {};
+      Object.keys(RC_POR_ESCENARIO).forEach(function(id){
+        if(!rcChanged(id)) return;
+        Object.keys(esc).forEach(function(s){ esc[s][RC_POR_ESCENARIO[id]] = null; if(id === 'rc_nwcPctDeltaRevenue') esc[s].nwcModo = null; });
+      });
+      if(rcChanged('rc_daPctRevenue')){ inp.daRatiosHist = null; Object.keys(esc).forEach(function(s){ esc[s].daRatiosHist = null; }); }
+      // Si cambia el crecimiento o el margen, los ajustes del bloque siguen como diferencia con la trayectoria.
+    } else {
+      delete inp.porEscenario; delete inp.pesos;
+    }
+    return inp;
   }
 
   // Valor presente (29-sep-2026): DCF (ya en valor de hoy), cada múltiplo
@@ -3555,73 +3647,94 @@
     // Redondeado a 2 decimales: coincide con el step="0.01" de estos campos
     // (un valor con más decimales falla la validación HTML5 en silencio y
     // bloquea el submit sin ningún error visible).
-    document.getElementById(id).value = Math.round(frac * 100 * 100) / 100;
+    var el = document.getElementById(id);
+    el.value = Math.round(frac * 100 * 100) / 100;
+    el.dataset.exact = String(frac * 100); el.dataset.shown = el.value;
   }
   function rcSetNum(id, v){
     if(v == null) return;
-    document.getElementById(id).value = Math.round(v * 100) / 100;
+    var el = document.getElementById(id);
+    el.value = Math.round(v * 100) / 100;
+    el.dataset.exact = String(v); el.dataset.shown = el.value;
+  }
+  function rcClear(id){ var el = document.getElementById(id); el.value = ''; el.dataset.shown = ''; delete el.dataset.exact; }
+
+  // Precarga Recalcular con los insumos de la hoja (misma lectura que usa el motor para reproducirla).
+  var rcHoja = null;
+  function rcExtractFromExcel(wb){
+    var cel = function(h, a){ var ws = wb.Sheets[h]; var c = ws && ws[a]; return c ? c.v : null; };
+    var inp = insumosDesdeHoja(cel);
+    rcHoja = inp;
+    var b = (inp.porEscenario && inp.porEscenario.base) || {};
+    var pick = function(k){ return b[k] != null ? b[k] : inp[k]; };
+    rcSetNum('rc_revenue0', inp.revenue0);
+    rcSetNum('rc_ebit0', inp.ebit0);
+    rcSetPct('rc_taxEffective', inp.taxEffective);
+    rcSetPct('rc_taxMarginal', inp.taxMarginal);
+    rcSetNum('rc_shares0', inp.shares0);
+    rcSetNum('rc_cash', inp.cash);
+    rcSetNum('rc_debt', inp.debt);
+    rcSetNum('rc_nonOperatingAssets', inp.nonOperatingAssets);
+    rcSetNum('rc_minorityInterests', inp.minorityInterests);
+    rcSetPct('rc_probFailure', inp.probFailure);
+    rcSetPct('rc_recoveryPct', inp.recoveryPct);
+    if(inp.roicTerminal > 0) rcSetPct('rc_roicTerminal', inp.roicTerminal); else rcClear('rc_roicTerminal');
+    rcSetPct('rc_wacc', inp.wacc);
+    rcSetPct('rc_costoPatrimonio', inp.costoPatrimonio);
+    rcSetPct('rc_riskFreeRate', inp.riskFreeRate);
+    rcSetPct('rc_matureMarketERP', inp.matureMarketERP);
+    rcSetPct('rc_terminalGrowth', inp.terminalGrowth);
+    rcSetNum('rc_salesToCapital', inp.salesToCapital);
+    rcSetNum('rc_salesToCapital2', inp.salesToCapital2);
+    rcSetNum('rc_convergenceYear', inp.convergenceYear);
+    ['Cons', 'Base', 'Opt'].forEach(function(k){
+      rcSetPct('rc_growthY1' + k, inp['growthY1' + k]);
+      rcSetPct('rc_growth' + k, inp['growth' + k]);
+      rcSetPct('rc_marginY1' + k, inp['marginY1' + k]);
+      rcSetPct('rc_margin' + k, inp['margin' + k]);
+    });
+    rcSetPct('rc_daPctRevenue', b.daRatiosHist ? (b.daRatiosHist[0] + b.daRatiosHist[1] + b.daRatiosHist[2]) / 3 : inp.daPctRevenue);
+    rcSetPct('rc_capexPctRevenue', pick('capexPctRevenue'));
+    rcSetPct('rc_nwcPctDeltaRevenue', pick('nwcPctDeltaRevenue'));
+    rcSetPct('rc_interestOtherPctEBIT', pick('interestOtherPctEBIT'));
+    rcSetPct('rc_netBorrowingPctDeltaRevenue', pick('netBorrowingPctDeltaRevenue'));
+    rcSetPct('rc_buybackRate', pick('buybackRate'));
+    rcSetNum('rc_dividendPerShare', pick('dividendPerShare'));
+    rcSetPct('rc_dividendGrowth', pick('dividendGrowth'));
+    [['evEbitda', 'EvEbitda'], ['evFcff', 'EvFcff'], ['pe', 'Pe'], ['pfcfe', 'Pfcfe'], ['pocf', 'Pocf']].forEach(function(m){
+      var v = inp.multiplos[m[0]] || {};
+      rcSetNum('rc_' + m[0] + 'Cons', v.cons); rcSetNum('rc_' + m[0] + 'Base', v.base); rcSetNum('rc_' + m[0] + 'Opt', v.opt);
+    });
+    if(inp.tipoEmpresa){
+      var sel = document.getElementById('rc_tipoEmpresa');
+      if(Array.prototype.some.call(sel.options, function(o){ return o.value === inp.tipoEmpresa; })) sel.value = inp.tipoEmpresa;
+    }
+    if(typeof inp.mos === 'number') rcSetPct('rc_mos', inp.mos);
   }
 
-  function rcExtractFromExcel(wb){
-    var inputSheet = wb.Sheets['Input sheet'];
-    var valOut = wb.Sheets['Valuation output'];
-    var finMult = wb.Sheets['Financials Multiples'];
-
-    rcSetNum('rc_revenue0', rcCellNum(inputSheet, 'B12'));
-    rcSetNum('rc_ebit0', rcCellNum(valOut, 'B7'));
-    rcSetPct('rc_taxEffective', rcCellNum(inputSheet, 'B24'));
-    rcSetPct('rc_taxMarginal', rcCellNum(inputSheet, 'B25'));
-    rcSetNum('rc_shares0', rcCellNum(inputSheet, 'B22'));
-    rcSetNum('rc_cash', rcCellNum(inputSheet, 'B19'));
-    rcSetNum('rc_debt', rcCellNum(inputSheet, 'B16'));
-    rcSetNum('rc_nonOperatingAssets', rcCellNum(inputSheet, 'B20'));
-    rcSetNum('rc_minorityInterests', rcCellNum(inputSheet, 'B21'));
-
-    var overrideFailure = inputSheet && inputSheet['B52'] && inputSheet['B52'].v;
-    var probFailure = (overrideFailure === 'Yes' || overrideFailure === 'Sí') ? rcCellNum(inputSheet, 'B53') : 0;
-    rcSetPct('rc_probFailure', probFailure);
-    rcSetPct('rc_recoveryPct', rcCellNum(inputSheet, 'B55'));
-    var overrideRoic = inputSheet && inputSheet['B49'] && inputSheet['B49'].v;
-    document.getElementById('rc_roicTerminal').value = '';
-    if(overrideRoic === 'Yes' || overrideRoic === 'Sí') rcSetPct('rc_roicTerminal', rcCellNum(inputSheet, 'B50'));
-
-    rcSetPct('rc_wacc', rcCellNum(inputSheet, 'B36'));
-    rcSetPct('rc_costoPatrimonio', rcCellNum(wb.Sheets['Cost of capital worksheet'], 'B63'));
-    var riskFree = rcCellNum(inputSheet, 'B35');
-    rcSetPct('rc_riskFreeRate', riskFree);
-    var terminalWacc = rcCellNum(valOut, 'M14');
-    if(riskFree != null && terminalWacc != null) rcSetPct('rc_matureMarketERP', terminalWacc - riskFree);
-    rcSetNum('rc_salesToCapital', rcCellNum(inputSheet, 'B32'));
-
-    rcSetPct('rc_growthCons', rcCellNum(valOut, 'C55'));
-    rcSetPct('rc_marginCons', rcCellNum(valOut, 'G57'));
-    rcSetPct('rc_growthBase', rcCellNum(valOut, 'C4'));
-    rcSetPct('rc_marginBase', rcCellNum(valOut, 'G6'));
-    rcSetPct('rc_growthOpt', rcCellNum(valOut, 'C106'));
-    rcSetPct('rc_marginOpt', rcCellNum(valOut, 'G108'));
-
-    // Razones para proyectar los múltiplos: el Excel las varía año a año
-    // (promedio móvil de 3 años); aquí se aproximan con el año FY+1 sobre
-    // ingresos/EBIT de ese mismo año — la Calculadora ya documenta esta
-    // simplificación frente al Excel original.
-    var e4 = rcCellNum(finMult, 'E4'), d4 = rcCellNum(finMult, 'D4');
-    var e6 = rcCellNum(finMult, 'E6');
-    if(e4){
-      rcSetPct('rc_daPctRevenue', rcCellNum(finMult, 'E20') / e4);
-      rcSetPct('rc_capexPctRevenue', rcCellNum(finMult, 'E21') / e4);
-      rcSetPct('rc_netBorrowingPctRevenue', rcCellNum(finMult, 'E28') / e4);
-      if(d4 != null) rcSetPct('rc_nwcPctDeltaRevenue', rcCellNum(finMult, 'E22') / (e4 - d4));
-    }
-    if(e6) rcSetPct('rc_interestOtherPctEBIT', rcCellNum(finMult, 'E10') / e6);
-    var e31 = rcCellNum(finMult, 'E31'), f31 = rcCellNum(finMult, 'F31');
-    if(e31 && f31 != null) rcSetPct('rc_buybackRate', (f31 / e31) - 1);
-    rcSetNum('rc_dividendPerShare', rcCellNum(finMult, 'E35'));
-
-    rcSetNum('rc_evEbitdaBase', rcCellNum(wb.Sheets['EVEBITDA'], 'E8'));
-    rcSetNum('rc_evFcffBase', rcCellNum(wb.Sheets['EVFCFF'], 'E8'));
-    rcSetNum('rc_peBase', rcCellNum(wb.Sheets['PE'], 'E8'));
-    rcSetNum('rc_pfcfeBase', rcCellNum(wb.Sheets['PFCFE'], 'E8'));
-    rcSetNum('rc_pocfBase', rcCellNum(wb.Sheets['POCF'], 'E8'));
+  // Hoja de Google de la valoración vigente (enlace de la valoración guardada o el importado por enlace).
+  var currentHojaGoogle = null;
+  function rcSetSource(state, text){
+    var box = document.getElementById('rcSource');
+    box.hidden = state === 'none' || (!currentHojaGoogle && state !== 'excel');
+    box.classList.toggle('loading', state === 'loading');
+    box.classList.toggle('error', state === 'error');
+    document.getElementById('rcSourceText').textContent = text;
+    var link = document.getElementById('rcSourceLink');
+    link.hidden = !currentHojaGoogle; if(currentHojaGoogle) link.href = currentHojaGoogle;
+    document.getElementById('rcSourceReload').hidden = !currentHojaGoogle;
+  }
+  function rcLoadFromGoogle(){
+    var id = googleSheetId(currentHojaGoogle);
+    if(!id) return;
+    rcSetSource('loading', 'Leyendo la hoja de Google…');
+    fetchGoogleSheetWb(id).then(function(wb){
+      rcExtractFromExcel(wb);
+      if(currentResumen && typeof currentResumen.precio === 'number') rcSetNum('rc_precioActual', currentResumen.precio);
+      rcSetSource('ok', 'Datos leídos de la hoja de Google a las ' + new Date().toLocaleTimeString('es-CO', {hour: '2-digit', minute: '2-digit'}));
+    }).catch(function(){
+      rcSetSource('error', 'No se pudo leer la hoja de Google (debe estar compartida como "Cualquier persona con el enlace").');
+    });
   }
 
   function rcPrefillFromExcel(){
@@ -3635,8 +3748,15 @@
       }
       if(typeof currentResumen.mos === 'number' && isFinite(currentResumen.mos)) document.getElementById('rc_mos').value = (currentResumen.mos * 100).toFixed(2);
     }
-    if(currentWb) rcExtractFromExcel(currentWb);
+    if(currentWb){
+      rcExtractFromExcel(currentWb);
+      rcSetSource(currentHojaGoogle ? 'ok' : 'excel', currentHojaGoogle ? 'Datos leídos de la hoja de Google' : 'Datos leídos del archivo subido. Para trabajar siempre con la versión vigente, importa la hoja de Google.');
+    } else {
+      rcHoja = null;
+      if(currentHojaGoogle) rcLoadFromGoogle(); else rcSetSource('none', '');
+    }
   }
+  document.getElementById('rcSourceReload').addEventListener('click', rcLoadFromGoogle);
 
   input.addEventListener('change', function(e){ handleFile(e.target.files[0]); });
   dz.addEventListener('dragover', function(e){ e.preventDefault(); dz.classList.add('drag'); });
@@ -3668,6 +3788,19 @@
   function googleSheetExportUrl(id){
     return 'https://docs.google.com/spreadsheets/d/' + encodeURIComponent(id) + '/export?format=xlsx';
   }
+  function fetchGoogleSheetWb(id){
+    return fetch(googleSheetExportUrl(id), { method: 'GET', mode: 'cors', credentials: 'omit', redirect: 'follow' })
+      .then(function(res){
+        if(!res.ok) throw new Error('Google respondió ' + res.status);
+        return res.arrayBuffer();
+      })
+      .then(function(buf){
+        if(!buf || buf.byteLength < 100) throw new Error('la exportación llegó vacía');
+        var wb = parseWorkbookFromBytes(new Uint8Array(buf), 'sheet.xlsx');
+        if(!wb.SheetNames || !wb.SheetNames.length) throw new Error('no se reconoció ninguna hoja');
+        return wb;
+      });
+  }
   function setDriveStatus(msg, isError){
     var el = document.getElementById('driveStatus');
     if(!el) return;
@@ -3691,15 +3824,10 @@
     var btn = document.getElementById('driveLinkBtn');
     btn.disabled = true;
     setDriveStatus('Solicitando la hoja a Google…');
-    fetch(exportUrl, { method: 'GET', mode: 'cors', credentials: 'omit', redirect: 'follow' })
-      .then(function(res){
-        if(!res.ok) throw new Error('Google respondió ' + res.status);
-        return res.arrayBuffer();
-      })
-      .then(function(buf){
-        if(!buf || buf.byteLength < 100) throw new Error('la exportación llegó vacía');
-        var wb = parseWorkbookFromBytes(new Uint8Array(buf), 'sheet.xlsx');
-        if(!wb.SheetNames || !wb.SheetNames.length) throw new Error('no se reconoció ninguna hoja');
+    fetchGoogleSheetWb(id)
+      .then(function(wb){
+        currentHojaGoogle = 'https://docs.google.com/spreadsheets/d/' + id + '/edit';
+        try { localStorage.setItem('jmr-ultima-hoja-google', currentHojaGoogle); } catch(e){}
         render(wb);
         setDriveStatus('Importado ✓');
       })
