@@ -138,28 +138,34 @@ Seguí este proceso, en este orden:
      que viene porque vamos a gastar más en marketing").
    - Sales-to-capital (B32/B33): bottom-up con CapEx/Revenue real, no un default
      genérico. Chequeá que el ROIC implícito del año 10 sea razonable.
-   - ROIC después del año 10 (B49/B50), criterio Damodaran: por defecto la
-     plantilla supone que en la etapa estable la empresa gana exactamente su
-     costo de capital (B49 = "No"), así que el crecimiento a perpetuidad no crea
-     valor. Cambialo solo si se cumplen las tres condiciones:
-       1. Ventaja competitiva identificable y durable (marca, efectos de red,
-          costos de cambio, escala, licencias o patentes que se renuevan),
-          explicada en la historia. Un ROIC alto hoy no alcanza.
-       2. ROIC actual ('Valuation output'!B42) por encima del costo de capital
-          terminal ('Valuation output'!M14), sostenido en los últimos 3-5 años.
-       3. La historia Base no pone esa ventaja bajo amenaza directa
-          (sustitución tecnológica, pérdida sostenida de participación,
-          competencia que ya presiona precios).
-     Si se cumplen: B49 = "Yes" y B50 = el MENOR entre el ROIC actual y el ROIC
-     después de impuestos de su industria en Damodaran (misma fecha que las
-     betas). Si el promedio de la industria no es representativo (NA, o por
-     debajo del costo de capital porque agrega muchas empresas con pérdidas,
-     p. ej. Software (Internet)), usá la industria madura más cercana y decilo.
-     Nunca un ROIC terminal mayor que el actual ni menor que el costo de capital
-     terminal. Dejá nota en B50 con el valor, la fuente y el motivo, y reportá
-     el DCF con y sin el ajuste. Si no aplica, escribí por qué (qué condición
-     falla). Después revisá que los múltiplos de salida sigan contando la misma
-     historia (paso 6.5, crecimiento implícito).
+   - ROIC después del año 10 (B49/B50), según el moat (30-sep-2026): el valor
+     del crecimiento depende de que la empresa gane más que su costo de capital
+     (Damodaran); cuánto tiempo lo logra depende de su ventaja competitiva. La
+     plantilla supone por defecto que en la etapa estable gana exactamente su
+     costo de capital (B49 = "No"). Clasificá el moat con evidencia:
+       * ANCHO: dos o más fuentes de ventaja (marca, efectos de red, costos de
+         cambio, escala, licencias o patentes que se renuevan) o una muy fuerte
+         (efectos de red, costos de cambio); ROIC ('Valuation output'!B42 y la
+         pestaña 'Eficiencia de capital') por encima del costo de capital
+         terminal (M14) en cada uno de los últimos 5 años; las historias de
+         erosión de la ventaja suman menos de 40% de probabilidad.
+         → B50 = el MENOR entre el ROIC actual y el de su industria en Damodaran.
+       * ESTRECHO: una fuente identificable, o una fuerte bajo presión visible
+         (historias de erosión ≥ 40%); ROIC por encima del costo de capital al
+         menos 3 años seguidos. → B50 = punto medio entre el costo de capital
+         terminal y ese menor valor (los retornos excedentes se desvanecen en
+         parte: por convención, un moat estrecho dura ~10 años y uno ancho ~20,
+         y el valor terminal empieza en el año 11).
+       * SIN MOAT: sin fuente durable, o ROIC que no supera de forma sostenida al
+         costo de capital (incluida la plusvalía de las compras). → B49 = "No".
+     Si el promedio de la industria no es representativo (NA, o menor que el
+     costo de capital porque agrega empresas con pérdidas, p. ej. Software
+     (Internet)), usá la industria madura más cercana y decilo. Nunca un ROIC
+     terminal mayor que el actual ni menor que el costo de capital. Dejá nota en
+     B50 con el moat, sus fuentes, la evidencia, la amenaza y el cálculo, y
+     reportá el DCF con y sin el ajuste. Registro: JMR-valuation
+     reference/moat_<fecha>.json. Después revisá que los múltiplos de salida
+     sigan contando la misma historia (paso 6.5, crecimiento implícito).
    - Cada supuesto de la hoja tiene que salir de la historia del paso 3B: los
      escenarios Conservador, Base y Optimista son historias, no porcentajes
      redondos alrededor del Base. Si el Base se aleja de la tasa base de su

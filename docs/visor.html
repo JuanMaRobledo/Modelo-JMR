@@ -794,7 +794,7 @@
         <div class="stat"><div class="lbl">CAGR máximo (Optimista)</div><div class="big" id="cagrO">—</div></div>
       </div>
 
-      <p class="section-title">Zonas de valor (escalonar entradas; sobre el objetivo FY+3 ponderado, lectura secundaria)</p>
+      <p class="section-title" id="zonasTitle">Zonas de valor (escalonar entradas; sobre el objetivo FY+3 ponderado, lectura secundaria)</p>
       <div class="grid4">
         <div class="stat"><div class="lbl">Value</div><div class="rng" id="zValue">—</div></div>
         <div class="stat"><div class="lbl">Deep Value</div><div class="rng" id="zDeep">—</div></div>
@@ -2925,11 +2925,21 @@
     document.getElementById('cagrB').textContent = fmtPct(cagr.base);
     document.getElementById('cagrO').textContent = fmtPct(cagr.optimista);
     function zoneText(z){ if(!z) return '—'; return fmtMoney(z.min) + ' – ' + fmtMoney(z.max); }
+    // Con valor esperado de las historias, las zonas se calculan sobre él (mismos porcentajes del modelo);
+    // si no, se muestran las de la hoja (sobre el objetivo FY+3 ponderado).
+    var ve = rec.valorEsperado && Number(rec.valorEsperado.valor), mosZ = Number(rec.mos);
     var z = rec.zonas || {};
+    if(ve > 0){
+      var zz = function(a, b){ return { max: ve*a, min: ve*b }; };
+      z = { value: zz(0.70, 0.65), deepValue: zz(0.60, 0.55), historica: zz(0.50, 0.45), conMOS: isFinite(mosZ) ? { min: ve*(1-mosZ), max: ve*(1-mosZ) } : null };
+    }
+    document.getElementById('zonasTitle').textContent = ve > 0
+      ? 'Zonas de valor (escalonar entradas; sobre el valor esperado de las historias: 70-65%, 60-55%, 50-45% y precio con MOS)'
+      : 'Zonas de valor (escalonar entradas; sobre el objetivo FY+3 ponderado, lectura secundaria)';
     document.getElementById('zValue').textContent = zoneText(z.value);
     document.getElementById('zDeep').textContent = zoneText(z.deepValue);
     document.getElementById('zHist').textContent = zoneText(z.historica);
-    document.getElementById('zMOS').textContent = zoneText(z.conMOS);
+    document.getElementById('zMOS').textContent = (z.conMOS && z.conMOS.min === z.conMOS.max) ? fmtMoney(z.conMOS.min) : zoneText(z.conMOS);
 
     // Una valoración cargada desde la base de datos no trae el Excel
     // original — las hojas crudas se muestran desde lo que se guardó junto
