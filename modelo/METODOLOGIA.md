@@ -272,22 +272,21 @@ La reinversión sale del **sales-to-capital** (`Input` B32/B33: Δ ingresos ÷ �
 invertido, calculado de abajo hacia arriba con la historia de la empresa). Como chequeo, el ROIC
 implícito del año 10 no debería superar por mucho al actual ni al de la industria.
 
-**ROIC después del año 10** (`Input` B49/B50), según el moat (30-sep-2026). El crecimiento solo crea valor si
-la empresa gana más que su costo de capital, y la ventaja competitiva dice por cuánto tiempo:
+**ROIC después del año 10** (`Input` B49/B50), criterio Damodaran (30-sep-2026). El crecimiento solo crea valor si la empresa gana
+más que su costo de capital; en crecimiento estable la reinversión es g ÷ ROIC. Damodaran supone por defecto ROIC = costo de capital,
+pero advierte que los retornos excedentes persisten y que llevar el ROIC hacia el promedio de la industria da valores más razonables
+(*Investment Valuation*, cap. 12):
 
-| Moat | Evidencia | ROIC terminal |
+| Veredicto (sección 6) | Evidencia | ROIC terminal |
 |---|---|---|
-| Ancho | 2+ fuentes estructurales (o efectos de red / costos de cambio muy fuertes); ROIC > costo de capital en cada uno de los últimos 5 años; sin erosión visible | Menor entre ROIC actual e industria (Damodaran) |
-| Estrecho | Una fuente estructural con ROIC > costo de capital al menos 3 años seguidos, o ancho con erosión visible | Punto medio entre el costo de capital terminal y ese valor |
-| Sin moat | Sin fuente estructural, ROIC no sostenido (con la plusvalía de las compras), o estrecho con erosión visible | Costo de capital |
+| Sin ventaja defendible | No gana sobre el costo de capital de forma sostenida (3 años), o no hay ventaja identificable | Costo de capital |
+| Ventaja durable | Gana sobre el costo de capital, ventaja identificable y sin desgaste visible | Promedio de la industria (Damodaran), sin superar el ROIC actual |
+| Ventaja que se desvanece | Igual, pero con desgaste visible hoy (ROIC en caída por competencia, pérdida de participación) | Punto medio entre el costo de capital terminal y ese valor |
 
-Fuentes estructurales: costos de cambio, efectos de red, escala o costo, licencias, patentes que se renuevan y marca probada (20 años o más de liderazgo con retornos
-sobre el costo de capital a lo largo de al menos un ciclo o una crisis). No cuenta la marca joven, la de moda sin trayectoria ni la de un producto fácil de sustituir.
-La erosión visible (evidencia de hoy: participación, comparables, precios, ROIC en caída por competencia) baja un nivel. La probabilidad de erosión futura no: va a
-las historias, donde las de erosión usan ROIC = costo de capital; bajar también el nivel contaría el riesgo dos veces.
+Ventajas identificables: costos de cambio, efectos de red, escala o costo, licencias, patentes y marca probada (20 años o más y un
+ciclo o una crisis superados). La probabilidad de perder la ventaja va a las historias (las de erosión usan el costo de capital).
 
-La duración sigue la convención de moat (estrecho ~10 años de retornos excedentes, ancho ~20): el valor
-terminal empieza en el año 11, así que un moat estrecho conserva solo parte del exceso. Si la industria no es
+Si la industria no es
 representativa se usa la madura más cercana; el ROIC terminal nunca es mayor que el actual ni menor que el costo
 de capital. Clasificación vigente: JMR-valuation `reference/moat_2026-09-30.json`. En las historias de la sección
 Damodaran, las de erosión de la ventaja usan ROIC = costo de capital.
