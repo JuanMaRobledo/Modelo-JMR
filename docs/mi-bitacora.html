@@ -263,10 +263,6 @@
   .cp-body{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px 22px;margin-top:18px;}
   .cp-body .full{grid-column:1/-1;}
   .cp-body > *, .company-panel, .summary-block{min-width:0;}
-  .cp-body table.valuation-methods{width:100%;border-collapse:collapse;font-size:13px;}
-  .cp-body table.valuation-methods th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-faint);font-weight:700;padding:8px 10px;border-bottom:1px solid var(--border-soft);background:var(--surface-2);}
-  .cp-body table.valuation-methods td{padding:8px 10px;border-bottom:1px solid var(--border-soft);font-family:"IBM Plex Mono",monospace;font-size:12.5px;white-space:nowrap;}
-  .cp-body table.valuation-methods td:first-child{font-family:"Public Sans",sans-serif;font-weight:600;}
   .cp-body .chart-card{max-width:760px;}
   .visual-card.expanded{grid-column:1/-1;}
   .visual-card.expanded .visual-detail{grid-template-columns:repeat(3,minmax(0,1fr));}
@@ -377,9 +373,25 @@
   .valuation-panel h3{font-family:"Fraunces",Georgia,serif;font-size:18px;margin:0 0 4px;}
   .valuation-panel p{color:var(--ink-soft);font-size:11px;margin:0 0 12px;}
   .valuation-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:8px;}
+  @media(max-width:620px){.valuation-grid{grid-template-columns:1fr 1fr;}.valuation-cell .vb{font-size:16px;}}
   .valuation-cell{border:1px solid var(--border-soft);border-radius:10px;background:var(--surface);padding:10px;}
   .valuation-cell strong{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-faint);}
-  .valuation-cell span{display:block;font:600 14px "IBM Plex Mono",monospace;margin-top:6px;}
+  .valuation-cell em{display:block;font-style:normal;font-size:11px;color:var(--ink-faint);margin-top:2px;}
+  .valuation-cell .vb{display:block;font:700 19px "IBM Plex Mono",monospace;margin-top:6px;}
+  .valuation-cell .vr{display:block;font:500 11px "IBM Plex Mono",monospace;color:var(--ink-soft);margin-top:3px;}
+  .visual-detail > *, .detail > *, .sc-detail > *, .valuation-panel{min-width:0;}
+  .vm-scroll{max-width:100%;overflow-x:auto;margin-top:12px;border:1px solid var(--border-soft);border-radius:10px;background:var(--surface);}
+  table.valuation-methods{width:100%;border-collapse:collapse;font-size:13px;}
+  table.valuation-methods th{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-faint);font-weight:700;padding:7px 10px;background:var(--surface-2);border-bottom:1px solid var(--border-soft);text-align:left;white-space:nowrap;}
+  table.valuation-methods th.grp{text-align:center;border-left:1px solid var(--border-soft);}
+  table.valuation-methods td{padding:7px 10px;border-bottom:1px solid var(--border-soft);white-space:nowrap;}
+  table.valuation-methods tr:last-child td{border-bottom:0;}
+  table.valuation-methods .num{text-align:right;font-family:"IBM Plex Mono",monospace;font-size:12.5px;}
+  table.valuation-methods th.num{font-family:inherit;font-size:10.5px;}
+  table.valuation-methods td.b{font-weight:700;}
+  table.valuation-methods tr.dcf td{background:color-mix(in oklab,var(--accent) 7%,transparent);}
+  table.valuation-methods td:first-child{font-weight:600;}
+  .vm-note{font-size:11px;color:var(--ink-faint);margin:6px 0 0;}
   .valuation-cell.featured{border-color:var(--accent);}
   .valuation-chip{display:block;font:600 11px "IBM Plex Mono",monospace;color:var(--accent);margin-top:3px;}
   .dfield .dlbl{font-size:10.5px; text-transform:uppercase; letter-spacing:0.06em; color:var(--ink-faint); margin-bottom:3px;}
@@ -861,26 +873,27 @@
       if(/DCF/i.test(m.nombre||''))return dm.dcfHoy&&dm.dcfHoy[k];
       return isFinite(rate)&&typeof m[k]==='number'?(m[k]-divSum)/Math.pow(1+rate,years)+divPv:null;
     }
-    var methodTable=methods.length?'<div style="overflow-x:auto"><table class="valuation-methods"><thead><tr><th>Método</th><th>Peso</th><th>Hoy C / B / O</th><th>FY+3 C / B / O</th></tr></thead><tbody>'+methods.map(function(m){
-      var ks=['conservador','base','optimista'];
-      return '<tr><td>'+escapeHtml(m.nombre)+'</td><td>'+((Number(m.peso)||0)*100).toFixed(0)+'%</td><td>'+ks.map(function(k){return fmtVal(presentMethod(m,k));}).join(' / ')+'</td><td>'+ks.map(function(k){return fmtVal(m[k]);}).join(' / ')+'</td></tr>';
-    }).join('')+'</tbody></table></div>':'';
-    if(soloMetodos) return methodTable?'<div class="dfield full"><div class="dlbl">Cada método · hoy y FY+3 (conservador / base / optimista)</div>'+methodTable+'</div>':'';
-    return '<div class="dfield full valuation-panel"><h3>Valoración en dos horizontes</h3><p>USD por acción · conservador / base / optimista. FY+3 incluye los dividendos proyectados. Los múltiplos se descuentan con el costo del patrimonio; el DCF ya está expresado a hoy.</p><div class="valuation-grid">'+rows.filter(function(r){return r[1];}).map(function(r){return '<div class="valuation-cell'+(/Ponderado/.test(r[0])?' featured':'')+'"><strong>'+r[0]+'</strong><span>'+fmtVal(r[1].conservador)+' / '+fmtVal(r[1].base)+' / '+fmtVal(r[1].optimista)+'</span></div>';}).join('')+'</div>'+methodTable+(v.hojaGoogle?'<p style="margin:12px 0 0"><a href="'+escapeHtml(v.hojaGoogle)+'" target="_blank" rel="noopener noreferrer">Abrir hoja con fórmulas →</a></p>':'')+'</div>';
+    var ks=['conservador','base','optimista'];
+    var methodTable=methods.length?'<div class="vm-scroll"><table class="valuation-methods"><thead>'+
+      '<tr><th rowspan="2">Método</th><th rowspan="2" class="num">Peso</th><th colspan="3" class="grp">Hoy (valor presente)</th><th colspan="3" class="grp">Al cierre FY+3</th></tr>'+
+      '<tr><th class="num">Cons.</th><th class="num">Base</th><th class="num">Opt.</th><th class="num">Cons.</th><th class="num">Base</th><th class="num">Opt.</th></tr></thead><tbody>'+
+      methods.map(function(m){
+        var dcf=/DCF/i.test(m.nombre||'');
+        return '<tr'+(dcf?' class="dcf"':'')+'><td>'+escapeHtml(dcf?'DCF Damodaran':m.nombre)+'</td><td class="num">'+((Number(m.peso)||0)*100).toFixed(0)+'%</td>'+
+          ks.map(function(k){return '<td class="num'+(k==='base'?' b':'')+'">'+fmtVal(presentMethod(m,k))+'</td>';}).join('')+
+          ks.map(function(k){return '<td class="num'+(k==='base'?' b':'')+'">'+fmtVal(m[k])+'</td>';}).join('')+'</tr>';
+      }).join('')+'</tbody></table></div><p class="vm-note">El DCF de la columna FY+3 es el DCF de hoy llevado a FY+3 con el costo del patrimonio. Los múltiplos son precio relativo; FY+3 incluye dividendos.</p>':'';
+    if(soloMetodos) return methodTable?'<div class="dfield full"><div class="dlbl">Cada método · hoy y al cierre FY+3</div>'+methodTable+'</div>':'';
+    var tiles=[['DCF hoy','valor intrínseco',dm.dcfHoy,true],['Múltiplos hoy','precio relativo',dm.multiplesHoy,false],
+               ['Ponderado hoy','DCF + múltiplos (opcional)',v.valorPresentePonderado,false],['Múltiplos FY+3','sin descontar',sum?weighted:null,false],
+               ['Ponderado FY+3','objetivo a 3 años',v.objetivoPonderado,false]].filter(function(t){return t[2];});
+    return '<div class="dfield full valuation-panel"><h3>Valoración en dos horizontes</h3><p>USD por acción. Base en grande; debajo, conservador y optimista.</p><div class="valuation-grid">'+
+      tiles.map(function(t){return '<div class="valuation-cell'+(t[3]?' featured':'')+'"><strong>'+t[0]+'</strong><em>'+t[1]+'</em><span class="vb">'+fmtVal(t[2].base)+'</span><span class="vr">Cons. '+fmtVal(t[2].conservador)+' · Opt. '+fmtVal(t[2].optimista)+'</span></div>';}).join('')+
+      '</div>'+methodTable+(v.hojaGoogle?'<p style="margin:12px 0 0"><a href="'+escapeHtml(v.hojaGoogle)+'" target="_blank" rel="noopener noreferrer">Abrir hoja con fórmulas →</a></p>':'')+'</div>';
   }
   function detailFieldsHtml(d, enPanel){
     if(enPanel) return panelFieldsHtml(d);
-    var html = '<div class="dfield full">' + decisionWidget(d) + '</div>';
-    html += valuationPanelHtml(d.valoracionActual, !!enPanel);
-    html += '<div class="dfield"><div class="dlbl">Múltiplo (' + escapeHtml(d.multP) + ')</div><div class="dval mono">Actual ' + escapeHtml(d.multA) + ' · Promedio histórico ' + escapeHtml(d.multH) + '</div></div>';
-    html += '<div class="dfield"><div class="dlbl">Fecha de análisis</div><div class="dval mono">' + escapeHtml(d.fecha) + '</div></div>';
-    html += '<div class="dfield full">' + buildComparativoChart(d) + '</div>';
-    html += '<div class="dfield full"><div class="dlbl">Moat</div><div class="dval">' + escapeHtml(d.moat) + '</div></div>';
-    html += '<div class="dfield full"><div class="dlbl">Riesgos clave</div><div class="dval">' + escapeHtml(d.riesgos) + '</div></div>';
-    html += '<div class="dfield full"><div class="dlbl">Conclusión / acción</div><div class="dval">' + escapeHtml(d.conclusion) + '</div></div>';
-    html += '<div class="dfield full"><div class="dlbl">Última actualización / retorno</div><div class="dval">' + escapeHtml(d.actualizacion) + '</div></div>';
-    html += '<div class="dfield full"><button class="gh-btn danger" type="button" data-del-custom="' + d.n + '">Eliminar este caso</button></div>';
-    return html;
+    return '<div class="dfield full">' + decisionWidget(d) + '</div>' + valuationPanelHtml(d.valoracionActual, false) + analysisFieldsHtml(d);
   }
 
   function rowHtml(d, idx){
@@ -1052,7 +1065,10 @@
 
   // Campos del análisis dentro del panel: solo los que tienen contenido real.
   function panelFieldsHtml(d){
-    var html = valuationPanelHtml(d.valoracionActual, true);
+    return valuationPanelHtml(d.valoracionActual, true) + analysisFieldsHtml(d);
+  }
+  function analysisFieldsHtml(d){
+    var html = '';
     var f = function(lbl, val, full, mono){
       if(!val || !String(val).trim()) return '';
       return '<div class="dfield'+(full?' full':'')+'"><div class="dlbl">'+lbl+'</div><div class="dval'+(mono?' mono':'')+'">'+escapeHtml(val)+'</div></div>';
