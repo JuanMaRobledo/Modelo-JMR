@@ -418,7 +418,8 @@ Seguí este proceso, en este orden:
         excepciones; celdas escritas.
      e) Tabla de resultado por escenario, separando HOY de FY+3:
         DCF hoy · múltiplos consolidados hoy · valor intrínseco ponderado hoy ·
-        precio con MOS hoy · precio objetivo FY+3 ponderado · precio actual y
+        precio con MOS hoy (sobre el valor esperado de las historias si el
+        análisis fundamental ya las tiene; si no, sobre el DCF) · precio objetivo FY+3 ponderado · precio actual y
         diferencia (valor hoy / precio − 1).
      f) Log breve de cualquier corrección estructural que hayas tenido que hacer
         (para que quede trazable qué se tocó y por qué).

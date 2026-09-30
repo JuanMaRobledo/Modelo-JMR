@@ -745,7 +745,7 @@
       <div class="grid3">
         <div class="stat"><div class="lbl">Tipo de empresa</div><div class="big" id="rTipo" style="font-family:'Public Sans',sans-serif;font-size:15px;">—</div></div>
         <div class="stat"><div class="lbl">Margen de seguridad (MOS)</div><div class="big" id="rMOS">—</div></div>
-        <div class="stat"><div class="lbl">Precio con MOS sobre el DCF</div><div class="big" id="rPrecioMOS">—</div></div>
+        <div class="stat"><div class="lbl" id="rPrecioMOSLbl">Precio con MOS sobre el DCF</div><div class="big" id="rPrecioMOS">—</div></div>
       </div>
 
     <div id="presentSection" hidden>
@@ -1281,10 +1281,18 @@
         Math.round(u*100) + ' pp de diferencia = el múltiplo o el precio cuentan otra historia de crecimiento que el DCF.') + (ci.fecha ? ' Calculado el ' + ci.fecha + '.' : '');
   }
 
-  // Precio con margen de seguridad sobre el valor intrínseco (DCF de hoy).
+  // Precio con margen de seguridad: sobre el valor esperado de las historias cuando existe (ya incorpora lo que
+  // puede salir mal, criterio Damodaran); si no, sobre el DCF de hoy (Conservador – Base).
   function renderMosDcf(){
     var r = currentResumen || {}, d = (r.descuentoMultiples || {}).dcfHoy, mos = Number(r.mos);
-    var elM = document.getElementById('rPrecioMOS');
+    var ve = r.valorEsperado && Number(r.valorEsperado.valor);
+    var elM = document.getElementById('rPrecioMOS'), elL = document.getElementById('rPrecioMOSLbl');
+    if(ve && isFinite(ve) && isFinite(mos)){
+      elL.textContent = 'Precio con MOS sobre el valor esperado';
+      elM.textContent = fmtMoney(ve*(1-mos));
+      return;
+    }
+    elL.textContent = 'Precio con MOS sobre el DCF';
     if(d && typeof d.base === 'number' && isFinite(mos)) elM.textContent = fmtMoney(d.conservador*(1-mos)) + ' – ' + fmtMoney(d.base*(1-mos));
   }
   function renderHeadline(){
