@@ -98,7 +98,7 @@
         (h.roicTerminal === 'costo_capital' ? '<small>ROIC después del año 10 = costo de capital</small>' : '') + '</td>' +
         '<td class="n">' + pct(h.probabilidad) + '</td><td class="n">' + n2(h.valor) + '</td><td class="n">' + vsPrecio(h.valor, d.precio) + '</td></tr>';
     }).join('');
-    var mos = d.mos != null ? '<span>Precio con MOS (' + pct(d.mos) + ') sobre el valor esperado <b>' + money(ve.valor * (1 - d.mos)) + '</b></span>' : '';
+    var mos = d.mos != null ? '<span class="jvb-vemos">Precio con MOS (' + pct(d.mos) + ') sobre el valor esperado <b>' + money(ve.valor * (1 - d.mos)) + '</b>' + vsPrecio(ve.valor * (1 - d.mos), d.precio) + '</span>' : '';
     var vsDcf = dcf ? '<span>Frente al DCF Base <b>' + (ve.valor >= dcf ? '+' : '−') + Math.abs((ve.valor / dcf - 1) * 100).toFixed(0) + '%</b></span>' : '';
     return '<div class="jvb-ve">' +
       '<span class="jvb-kicker">Valor esperado · historias con probabilidades</span>' +
@@ -107,8 +107,8 @@
       '<details class="jvb-vedet"><summary>Ver historias</summary><table class="jvb-vetab"><thead><tr><th>Historia</th><th>Prob.</th><th>US$/acción</th><th>vs. precio</th></tr></thead><tbody>' +
       rows + '</tbody></table></details>' +
       '<div class="jvb-meta">' + vsDcf + mos + '</div>' +
-      '<p class="jvb-venote">El DCF Base valora la historia central; el valor esperado promedia todas las historias (cada una un DCF completo) según la probabilidad que les asigna el análisis' +
-      (ve.fecha ? ' del ' + esc(ve.fecha) : '') + '. Las probabilidades son juicio del analista.</p></div>';
+      '<p class="jvb-venote">El DCF Base valora la historia central; el valor esperado promedia todas las historias (cada una un DCF completo) según la probabilidad que les asigna el análisis. El margen de seguridad se aplica sobre el valor esperado' +
+      (ve.fecha ? ' (análisis del ' + esc(ve.fecha) + ')' : '') + '. Las probabilidades son juicio del analista.</p></div>';
   }
   function hasData(d) { return !!(d && (d.dcf.hoy || d.dcf.fy3)); }
 
@@ -168,7 +168,8 @@
   function heroHtml(d) {
     var t = d.dcf.hoy || d.dcf.fy3, hoy = !!d.dcf.hoy;
     if (!t) return '';
-    var mos = d.mos != null && d.dcf.hoy ? '<span>Precio con MOS (' + pct(d.mos) + ') sobre el DCF <b>' + money(d.dcf.hoy.base * (1 - d.mos)) + '</b></span>' : '';
+    // Con valor esperado, el MOS se aplica sobre él (bloque de abajo); sin historias, sobre el DCF.
+    var mos = d.mos != null && d.dcf.hoy && !d.ve ? '<span>Precio con MOS (' + pct(d.mos) + ') sobre el DCF <b>' + money(d.dcf.hoy.base * (1 - d.mos)) + '</b></span>' : '';
     var fy3 = d.dcf.fy3 && hoy ? '<span>DCF llevado a FY+3 <b>' + money(d.dcf.fy3.base) + '</b></span>' : '';
     var side = [['Múltiplos hoy', 'precio relativo', d.mult.hoy], ['Ponderado hoy', 'DCF + múltiplos', d.pond.hoy]].filter(function (s) { return s[2]; }).map(function (s) {
       return '<div class="jvb-mini"><span class="k">' + s[0] + ' <em>' + s[1] + '</em></span><b>' + money(s[2].base) + '</b>' + vsPrecio(s[2].base, d.precio) + '</div>';
@@ -305,6 +306,7 @@
       '.jvb-vetab td{padding:6px;border-bottom:1px solid var(--border-soft);vertical-align:top}.jvb-vetab td.n{text-align:right;white-space:nowrap;font-family:"IBM Plex Mono",ui-monospace,monospace}',
       '.jvb-vetab td.hn{color:var(--ink-soft);line-height:1.35}.jvb-vetab td.hn b{color:var(--ink)}.jvb-vetab td.hn small{display:block;font-size:10.5px;color:var(--ink-faint)}',
       '.jvb-venote{font-size:11px;line-height:1.45;color:var(--ink-faint);margin:8px 0 0}',
+      '.jvb-vemos{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;font-weight:600;color:var(--ink)}',
       '@media (max-width:760px){.jvb-hero{grid-template-columns:1fr}.jvb-big .v{font-size:28px}}',
       '@media (max-width:560px){.jvb .jvb-table td{font-size:12px}.jvb .jvb-table th,.jvb .jvb-table td{padding:8px 6px}.jvb .jvb-table td.n{font-size:11.5px}.jvb .jvb-grp td{font-size:11.5px}.jvb .jvb-row td.lbl{padding-left:15px}.jvb .jvb-row.met .nm{padding-left:4px}.jvb .jvb-row td.lbl::before{left:5px}',
       '.jvb .jvb-table .w,.jvb .jvb-table .vs{display:none}.jvb .jvb-table .vsm{display:block;margin-top:3px}.jvb .jvb-table .vsm .jvb-chip{font-size:10.5px;padding:1px 6px}.jvb .jvb-table thead th small{display:none}.jvb .jvb-row .pw{display:block}.jvb .jvb-row .sb{display:none}.jvb .jvb-table thead th{font-size:9.5px;letter-spacing:.03em}',
