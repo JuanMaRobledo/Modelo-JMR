@@ -212,16 +212,20 @@
     methods.forEach(function(m){if(/DCF/i.test(m.nombre||''))return;var w=Number(m.peso)||0;sum+=w;Object.keys(fy3).forEach(function(k){fy3[k]+=w*(Number(m[k])||0);});});
     if(sum)Object.keys(fy3).forEach(function(k){fy3[k]/=sum;});
     function scenarios(label,v,featured){return v&&v.base!=null?'<div class="linked-scenario'+(featured?' featured':'')+'"><span>'+escapeHtml(label)+'</span><strong>'+money(v.base)+'</strong><small>Cons '+money(v.conservador)+' · Opt '+money(v.optimista)+'</small></div>':'';}
+    // Criterio Damodaran: el valor intrínseco es el DCF; múltiplos y ponderado
+    // son lecturas secundarias y se muestran aparte.
+    var dcfFy3=null; methods.forEach(function(m){ if(/DCF/i.test(m.nombre||'')) dcfFy3={conservador:m.conservador,base:m.base,optimista:m.optimista}; });
+    var dcf=dm.dcfHoy||{}, mos=Number(lv.mos);
     var visorLink = lv.sourcePath ? '<a class="linked-visor-link" href="visor.html?path=' + encodeURIComponent(lv.sourcePath) + '">Ver en el Visor →</a>' : '';
-    return '<section class="valuation-block linked-valuation"><span class="linked-tag">✓ Vinculado con el Visor · ' + escapeHtml(lv.sourcePath || '') + '</span>' + visorLink + '<h2>Valoración cuantitativa (Visor)</h2><div class="linked-scenarios">' +
-      scenarios('DCF · valor intrínseco hoy',dm.dcfHoy) + scenarios('Múltiplos · valor hoy',dm.multiplesHoy) + scenarios('Ponderado · valor hoy',vp,true) + scenarios('Múltiplos · objetivo FY+3',sum?fy3:null) + scenarios('Ponderado · objetivo FY+3',op,true) + '</div><div class="linked-grid">' +
+    return '<section class="valuation-block linked-valuation"><span class="linked-tag">✓ Vinculado con el Visor · ' + escapeHtml(lv.sourcePath || '') + '</span>' + visorLink + '<h2>Valoración cuantitativa (Visor)</h2>' +
+      '<p class="linked-note"><strong>Valor intrínseco: el DCF.</strong> Los múltiplos (precio relativo) y el ponderado son lecturas secundarias.</p>' +
+      '<div class="linked-scenarios">' + scenarios('Valor intrínseco hoy · DCF',dcf.base!=null?dcf:null,true) + scenarios('DCF llevado a FY+3',dcfFy3) + '</div>' +
+      '<p class="linked-note">Lecturas secundarias</p><div class="linked-scenarios secondary">' +
+      scenarios('Múltiplos · hoy',dm.multiplesHoy) + scenarios('Ponderado · hoy',vp.base!=null?vp:null) + scenarios('Múltiplos · FY+3',sum?fy3:null) + scenarios('Ponderado · FY+3',op.base!=null?op:null) + '</div><div class="linked-grid">' +
       kv('Precio', money(lv.precio)) +
       kv('Fecha del análisis', escapeHtml(lv.fecha || '—')) +
-      (vp.base != null ? kv('Valor hoy conservador', money(vp.conservador)) + kv('Valor hoy base', money(vp.base)) + kv('Valor hoy optimista', money(vp.optimista)) : '') +
-      kv('Combinado FY+3 conservador', money(op.conservador)) +
-      kv('Combinado FY+3 base', money(op.base)) +
-      kv('Combinado FY+3 optimista', money(op.optimista)) +
-      zoneKv('Zona Value', z.value) + zoneKv('Zona Deep Value', z.deepValue) + zoneKv('Zona histórica', z.historica) +
+      (dcf.base != null && isFinite(mos) ? kv('Precio con MOS sobre el DCF (' + Math.round(mos*100) + '%)', money(dcf.base*(1-mos))) : '') +
+      zoneKv('Zona Value (sobre el objetivo FY+3)', z.value) + zoneKv('Zona Deep Value', z.deepValue) + zoneKv('Zona histórica', z.historica) +
       '</div></section>';
   }
   var editing = false;

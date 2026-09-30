@@ -392,6 +392,15 @@
   table.valuation-methods tr.dcf td{background:color-mix(in oklab,var(--accent) 7%,transparent);}
   table.valuation-methods td:first-child{font-weight:600;}
   .vm-note{font-size:11px;color:var(--ink-faint);margin:6px 0 0;}
+  .valuation-grid.main{grid-template-columns:repeat(auto-fit,minmax(200px,1fr));}
+  .valuation-grid.main .valuation-cell .vb{font-size:24px;}
+  .vm-sec{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-faint);margin:12px 0 6px;}
+  .valuation-cell.secondary{background:var(--surface-2);}
+  .valuation-cell.secondary .vb{font-size:15px;}
+  .cp-sec{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-faint);margin:12px 0 6px;}
+  .cp-tile.secondary{background:var(--surface);}
+  .cp-tile.secondary strong{font-size:15px;}
+  .cp-tile.main strong{font-size:24px;}
   .valuation-cell.featured{border-color:var(--accent);}
   .valuation-chip{display:block;font:600 11px "IBM Plex Mono",monospace;color:var(--accent);margin-top:3px;}
   .dfield .dlbl{font-size:10.5px; text-transform:uppercase; letter-spacing:0.06em; color:var(--ink-faint); margin-bottom:3px;}
@@ -884,12 +893,15 @@
           ks.map(function(k){return '<td class="num'+(k==='base'?' b':'')+'">'+fmtVal(m[k])+'</td>';}).join('')+'</tr>';
       }).join('')+'</tbody></table></div><p class="vm-note">El DCF de la columna FY+3 es el DCF de hoy llevado a FY+3 con el costo del patrimonio. Los múltiplos son precio relativo; FY+3 incluye dividendos.</p>':'';
     if(soloMetodos) return methodTable?'<div class="dfield full"><div class="dlbl">Cada método · hoy y al cierre FY+3</div>'+methodTable+'</div>':'';
-    var tiles=[['DCF hoy','valor intrínseco',dm.dcfHoy,true],['Múltiplos hoy','precio relativo',dm.multiplesHoy,false],
-               ['Ponderado hoy','DCF + múltiplos (opcional)',v.valorPresentePonderado,false],['Múltiplos FY+3','sin descontar',sum?weighted:null,false],
-               ['Ponderado FY+3','objetivo a 3 años',v.objetivoPonderado,false]].filter(function(t){return t[2];});
-    return '<div class="dfield full valuation-panel"><h3>Valoración en dos horizontes</h3><p>USD por acción. Base en grande; debajo, conservador y optimista.</p><div class="valuation-grid">'+
-      tiles.map(function(t){return '<div class="valuation-cell'+(t[3]?' featured':'')+'"><strong>'+t[0]+'</strong><em>'+t[1]+'</em><span class="vb">'+fmtVal(t[2].base)+'</span><span class="vr">Cons. '+fmtVal(t[2].conservador)+' · Opt. '+fmtVal(t[2].optimista)+'</span></div>';}).join('')+
-      '</div>'+methodTable+(v.hojaGoogle?'<p style="margin:12px 0 0"><a href="'+escapeHtml(v.hojaGoogle)+'" target="_blank" rel="noopener noreferrer">Abrir hoja con fórmulas →</a></p>':'')+'</div>';
+    var dcfFy3=null; methods.forEach(function(m){ if(/DCF/i.test(m.nombre||'')) dcfFy3={conservador:m.conservador,base:m.base,optimista:m.optimista}; });
+    var cellHtml=function(t,cls){return '<div class="valuation-cell'+cls+'"><strong>'+t[0]+'</strong><em>'+t[1]+'</em><span class="vb">'+fmtVal(t[2].base)+'</span><span class="vr">Cons. '+fmtVal(t[2].conservador)+' · Opt. '+fmtVal(t[2].optimista)+'</span></div>';};
+    var main=[['Valor intrínseco hoy · DCF','el valor que manda',dm.dcfHoy],['DCF llevado a FY+3','× (1 + Ke)³',dcfFy3]].filter(function(t){return t[2];});
+    var sec=[['Múltiplos hoy','precio relativo',dm.multiplesHoy],['Ponderado hoy','DCF + múltiplos',v.valorPresentePonderado],
+             ['Múltiplos FY+3','sin descontar',sum?weighted:null],['Ponderado FY+3','objetivo a 3 años',v.objetivoPonderado]].filter(function(t){return t[2];});
+    return '<div class="dfield full valuation-panel"><h3>Valoración</h3><p>USD por acción. Base en grande; debajo, conservador y optimista. <b>El valor intrínseco es el DCF</b>; múltiplos y ponderado son lecturas secundarias.</p>'+
+      '<div class="valuation-grid main">'+main.map(function(t,i){return cellHtml(t,i===0?' featured':'');}).join('')+'</div>'+
+      (sec.length?'<p class="vm-sec">Lecturas secundarias</p><div class="valuation-grid secondary">'+sec.map(function(t){return cellHtml(t,' secondary');}).join('')+'</div>':'')+
+      methodTable+(v.hojaGoogle?'<p style="margin:12px 0 0"><a href="'+escapeHtml(v.hojaGoogle)+'" target="_blank" rel="noopener noreferrer">Abrir hoja con fórmulas →</a></p>':'')+'</div>';
   }
   function detailFieldsHtml(d, enPanel){
     if(enPanel) return panelFieldsHtml(d);
@@ -1094,20 +1106,21 @@
       var w=Number(m.peso)||0; if(num(m.base)===null)return; ws+=w; ['conservador','base','optimista'].forEach(function(k){wm[k]+=w*(Number(m[k])||0);});
     });
     if(ws)['conservador','base','optimista'].forEach(function(k){wm[k]/=ws;});
-    var tile=function(lbl,sub,t,sel){
+    var tile=function(lbl,sub,t,sel,extra){
       var b=t&&num(t.base);
-      return '<div class="cp-tile'+(sel?' sel':'')+'"><span class="cp-lbl">'+lbl+'</span><span class="cp-sub">'+sub+'</span><strong>'+fmtVal(b)+'</strong><span class="cp-vs">vs. precio '+fmtPctSpan(pctVs(b,d))+'</span><span class="cp-tri">'+tri(t)+'</span></div>';
+      return '<div class="cp-tile'+(sel?' sel':'')+(extra||'')+'"><span class="cp-lbl">'+lbl+'</span><span class="cp-sub">'+sub+'</span><strong>'+fmtVal(b)+'</strong><span class="cp-vs">vs. precio '+fmtPctSpan(pctVs(b,d))+'</span><span class="cp-tri">'+tri(t)+'</span></div>';
     };
     var bk=valueBasis;
     var tiles='<div class="cp-tiles">'+
+      tile('Valor intrínseco hoy · DCF','el valor que manda',dm.dcfHoy,bk==='dcfHoy',' main')+
+      tile('DCF llevado a FY+3','× (1 + Ke)³',fy3dcf,false,' main')+
       '<div class="cp-tile price"><span class="cp-lbl">'+(pr.live?'Precio consultado':'Precio guardado')+'</span><span class="cp-sub">referencia</span><strong>'+(pr.price?fmtVal(pr.price):'—')+'</strong><span class="cp-tri">Entrada histórica '+escapeHtml(d.precio||'—')+'</span></div>'+
-      tile('DCF hoy','valor intrínseco',dm.dcfHoy,bk==='dcfHoy')+
-      tile('Ponderado hoy','DCF + múltiplos',v.valorPresentePonderado,bk==='ponderadoHoy')+
-      tile('Múltiplos hoy','precio relativo',dm.multiplesHoy,bk==='multHoy')+
-      tile('DCF FY+3','× (1 + Ke)³',fy3dcf,false)+
-      tile('Múltiplos FY+3','sin descontar',ws?wm:null,bk==='multFy3')+
-      tile('Ponderado FY+3','objetivo a 3 años',v.objetivoPonderado,bk==='ponderadoFy3')+
-      '</div><p class="cp-note">Base en grande; debajo, conservador · base · optimista (USD por acción).</p>';
+      '</div><p class="cp-sec">Lecturas secundarias</p><div class="cp-tiles">'+
+      tile('Múltiplos hoy','precio relativo',dm.multiplesHoy,bk==='multHoy',' secondary')+
+      tile('Ponderado hoy','DCF + múltiplos',v.valorPresentePonderado,bk==='ponderadoHoy',' secondary')+
+      tile('Múltiplos FY+3','sin descontar',ws?wm:null,bk==='multFy3',' secondary')+
+      tile('Ponderado FY+3','objetivo a 3 años',v.objetivoPonderado,bk==='ponderadoFy3',' secondary')+
+      '</div><p class="cp-note">Base en grande; debajo, conservador · base · optimista (USD por acción). El valor intrínseco es el DCF.</p>';
     var ci=v.crecimientoImplicito, growth='';
     if(ci&&ci.dcfInverso){
       var pc=function(x){return typeof x==='number'&&isFinite(x)?(x*100).toFixed(1)+'%':'—';};

@@ -171,6 +171,7 @@
   .headline-card .stat .rng{font-size:12px; color:var(--ink-soft); margin-top:4px;}
   .headline-card .stat .rng .pos{color:var(--positive); font-weight:600;}
   .headline-card .stat .rng .neg{color:var(--negative); font-weight:600;}
+  .stat.pv-main{border-color:var(--accent); background:var(--accent-soft);}
   .growth-card{background:var(--surface); border:1px solid var(--border-soft); border-radius:12px; padding:14px 16px;}
   .growth-lead{font-size:13.5px; line-height:1.5; margin:0 0 10px;}
   .growth-lead b{font-family:"IBM Plex Mono",monospace;}
@@ -725,15 +726,15 @@
       <div class="grid3">
         <div class="stat"><div class="lbl">Tipo de empresa</div><div class="big" id="rTipo" style="font-family:'Public Sans',sans-serif;font-size:15px;">—</div></div>
         <div class="stat"><div class="lbl">Margen de seguridad (MOS)</div><div class="big" id="rMOS">—</div></div>
-        <div class="stat"><div class="lbl">Precio con MOS (valor hoy)</div><div class="big" id="rPrecioMOS">—</div></div>
+        <div class="stat"><div class="lbl">Precio con MOS sobre el DCF</div><div class="big" id="rPrecioMOS">—</div></div>
       </div>
 
     <div id="presentSection" hidden>
-      <p class="section-title">Valor intrínseco hoy · DCF vs. múltiplos descontados (escenario Base)</p>
+      <p class="section-title">Valor intrínseco hoy (DCF) y lecturas secundarias · escenario Base</p>
       <div class="grid3">
-        <div class="stat"><div class="lbl">DCF (valor presente)</div><div class="big" id="pvDcf">—</div><div class="rng" id="pvDcfRng"></div></div>
-        <div class="stat"><div class="lbl">Múltiplos consolidados (valor presente)</div><div class="big" id="pvMult">—</div><div class="rng" id="pvMultRng"></div></div>
-        <div class="stat"><div class="lbl">Valor intrínseco ponderado</div><div class="big" id="pvPond">—</div><div class="rng" id="pvPondRng"></div></div>
+        <div class="stat pv-main"><div class="lbl">Valor intrínseco · DCF</div><div class="big" id="pvDcf">—</div><div class="rng" id="pvDcfRng"></div></div>
+        <div class="stat"><div class="lbl">Múltiplos · precio relativo (secundario)</div><div class="big" id="pvMult">—</div><div class="rng" id="pvMultRng"></div></div>
+        <div class="stat"><div class="lbl">Ponderado DCF + múltiplos (secundario)</div><div class="big" id="pvPond">—</div><div class="rng" id="pvPondRng"></div></div>
       </div>
       <div class="methods-scroll" style="margin-top:12px;">
         <table class="methods">
@@ -782,7 +783,7 @@
         <div class="stat"><div class="lbl">CAGR máximo (Optimista)</div><div class="big" id="cagrO">—</div></div>
       </div>
 
-      <p class="section-title">Zonas de valor (escalonar entradas)</p>
+      <p class="section-title">Zonas de valor (escalonar entradas; sobre el objetivo FY+3 ponderado, lectura secundaria)</p>
       <div class="grid4">
         <div class="stat"><div class="lbl">Value</div><div class="rng" id="zValue">—</div></div>
         <div class="stat"><div class="lbl">Deep Value</div><div class="rng" id="zDeep">—</div></div>
@@ -966,7 +967,7 @@
             <tbody id="rcMethodsBody"></tbody>
           </table>
         </div>
-        <p class="section-title">Valor intrínseco hoy · DCF vs. múltiplos descontados</p>
+        <p class="section-title">Valor intrínseco hoy (DCF) y lecturas secundarias</p>
         <div class="methods-scroll">
           <table class="methods">
             <thead><tr><th>Método (valor hoy)</th><th>Peso</th><th>Conservador</th><th>Base</th><th>Optimista</th></tr></thead>
@@ -974,7 +975,7 @@
           </table>
         </div>
         <p class="meta" id="rc_pvNote" style="font-size:12px;color:var(--ink-faint);margin:6px 0 0;"></p>
-        <p class="section-title">Zonas de valor (escalonar entradas)</p>
+        <p class="section-title">Zonas de valor (escalonar entradas; sobre el objetivo FY+3 ponderado, lectura secundaria)</p>
         <div class="grid4">
           <div class="stat"><div class="lbl">Value</div><div class="rng" id="rcZValue">—</div></div>
           <div class="stat"><div class="lbl">Deep Value</div><div class="rng" id="rcZDeep">—</div></div>
@@ -1148,7 +1149,7 @@
   }
 
   // Valor principal (30-sep-2026). Por defecto, el valor intrínseco de HOY
-  // (ponderado DCF + múltiplos traídos a valor presente); el selector lo
+  // (el DCF; múltiplos y ponderado son lecturas secundarias); el selector lo
   // cambia y la elección se recuerda en este navegador.
   // v2 (30-sep-2026): el valor por defecto pasa a ser el DCF de hoy (criterio
   // Damodaran: valor intrínseco = DCF; los múltiplos son precio relativo).
@@ -1239,8 +1240,15 @@
       Math.round(u*100) + ' pp de diferencia = el múltiplo o el precio cuentan otra historia de crecimiento que el DCF.' + (ci.fecha ? ' Calculado el ' + ci.fecha + '.' : '');
   }
 
+  // Precio con margen de seguridad sobre el valor intrínseco (DCF de hoy).
+  function renderMosDcf(){
+    var r = currentResumen || {}, d = (r.descuentoMultiples || {}).dcfHoy, mos = Number(r.mos);
+    var elM = document.getElementById('rPrecioMOS');
+    if(d && typeof d.base === 'number' && isFinite(mos)) elM.textContent = fmtMoney(d.conservador*(1-mos)) + ' – ' + fmtMoney(d.base*(1-mos));
+  }
   function renderHeadline(){
     if(!currentResumen) return;
+    renderMosDcf();
     var sel = document.getElementById('headlineSel');
     var h = headlineData();
     ['dcfHoy','ponderadoHoy','multHoy'].forEach(function(k){
@@ -1527,7 +1535,7 @@
     if(futureWeight){var fy3Row=document.createElement('tr');fy3Row.innerHTML='<td>Múltiplos ponderados FY+3</td><td>'+fmtPct(futureWeight)+'</td>'+Object.keys(futureMultiples).map(function(k){return '<td>'+fmtMoney(futureMultiples[k]/futureWeight)+'</td>';}).join('');tbody.appendChild(fy3Row);}
     var totRow = document.createElement('tr');
     totRow.className = 'total';
-    totRow.innerHTML = '<td>Combinado FY+3 (incluye dividendos)</td><td>100%</td><td class="total-cons">'+fmtMoney(cellVal(res,'C12'))+'</td><td class="total-base">'+fmtMoney(cellVal(res,'D12'))+'</td><td class="total-opt">'+fmtMoney(cellVal(res,'E12'))+'</td>';
+    totRow.innerHTML = '<td>Ponderado FY+3 (secundario; incluye dividendos)</td><td>100%</td><td class="total-cons">'+fmtMoney(cellVal(res,'C12'))+'</td><td class="total-base">'+fmtMoney(cellVal(res,'D12'))+'</td><td class="total-opt">'+fmtMoney(cellVal(res,'E12'))+'</td>';
     tbody.appendChild(totRow);
     var descuento = readDescuentoMultiples(wb, res);
     var valorHoy = { conservador: cellVal(res,'C34'), base: cellVal(res,'D34'), optimista: cellVal(res,'E34') };
@@ -2799,8 +2807,8 @@
       row('&nbsp;&nbsp;' + escapeHtml(String(m.nombre || '')), m.peso,
           { conservador: m.conservador && m.conservador.consolidado, base: m.base && m.base.consolidado, optimista: m.optimista && m.optimista.consolidado });
     });
-    row('Múltiplos consolidados', pesoMult, mult);
-    row('Valor intrínseco ponderado hoy', (pesoDcf != null && pesoMult != null) ? pesoDcf + pesoMult : null, pond, 'total');
+    row('Múltiplos consolidados (secundario)', pesoMult, mult);
+    row('Ponderado hoy (secundario)', (pesoDcf != null && pesoMult != null) ? pesoDcf + pesoMult : null, pond, 'total');
 
     var hw = document.getElementById('horizonWrap'), hb = document.getElementById('horizonBody');
     hb.innerHTML = '';
@@ -2863,7 +2871,7 @@
     var totRow = document.createElement('tr');
     totRow.className = 'total';
     var op = rec.objetivoPonderado || {};
-    totRow.innerHTML = '<td>Combinado FY+3 (incluye dividendos)</td><td>100%</td><td class="total-cons">'+fmtMoney(op.conservador)+'</td><td class="total-base">'+fmtMoney(op.base)+'</td><td class="total-opt">'+fmtMoney(op.optimista)+'</td>';
+    totRow.innerHTML = '<td>Ponderado FY+3 (secundario; incluye dividendos)</td><td>100%</td><td class="total-cons">'+fmtMoney(op.conservador)+'</td><td class="total-base">'+fmtMoney(op.base)+'</td><td class="total-opt">'+fmtMoney(op.optimista)+'</td>';
     tbody.appendChild(totRow);
     renderPresentValue(rec.descuentoMultiples, rec.valorPresentePonderado, rec.metodos);
     var cagr = rec.cagr || {};
@@ -3476,7 +3484,7 @@
       add('&nbsp;&nbsp;' + pair[1], pesos[pair[0]], {cons: m.cons.consolidado, base: m.base.consolidado, opt: m.opt.consolidado});
     });
     add('Múltiplos consolidados', v.pesoMultiplos, v.multiplos);
-    add('Valor intrínseco ponderado hoy', v.pesoDcf + v.pesoMultiplos, v.ponderado, 'total');
+    add('Ponderado hoy (secundario)', v.pesoDcf + v.pesoMultiplos, v.ponderado, 'total');
     var ok = ['cons','base','opt'].every(function(k){ return v.chequeo[k].ok; });
     document.getElementById('rc_pvNote').textContent = 'VP = (precio FY+n + dividendos acumulados) ÷ (1 + ' + fmtPct(v.tasaDescuento) + ')^n, n = 1, 2, 3; ' +
       (v.criterio === 'solo3' ? 'solo el de 3 años' : 'promedio de los 3 horizontes') + ' por método. Chequeo VP 3 años < FY+3 sin descontar (Base ' +
