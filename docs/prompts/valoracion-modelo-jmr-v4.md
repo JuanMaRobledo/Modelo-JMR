@@ -150,9 +150,13 @@ Seguí este proceso, en este orden:
          terminal (M14) en cada uno de los últimos 5 años; las historias de
          erosión de la ventaja suman menos de 40% de probabilidad.
          → B50 = el MENOR entre el ROIC actual y el de su industria en Damodaran.
-       * ESTRECHO: una fuente identificable, o una fuerte bajo presión visible
-         (historias de erosión ≥ 40%); ROIC por encima del costo de capital al
-         menos 3 años seguidos. → B50 = punto medio entre el costo de capital
+       * ESTRECHO: al menos una fuente ESTRUCTURAL identificable (costos de
+         cambio, efectos de red, escala o costo, licencias/regulación, patentes
+         que se renuevan), o una fuerte bajo presión visible (historias de
+         erosión ≥ 40%); ROIC por encima del costo de capital al menos 3 años
+         seguidos. La marca sola NO alcanza en consumo discrecional, moda o apps
+         de consumo con bajo costo de cambio: ahí es SIN MOAT salvo que haya
+         otra fuente estructural (regla del 30-sep-2026, aplicada a DUOL y ONON). → B50 = punto medio entre el costo de capital
          terminal y ese menor valor (los retornos excedentes se desvanecen en
          parte: por convención, un moat estrecho dura ~10 años y uno ancho ~20,
          y el valor terminal empieza en el año 11).
