@@ -366,6 +366,8 @@ Desde el prompt de valoración v4 y el de análisis fundamental v5:
   0% nominal, y su ROIC terminal es el costo de capital. Un 0% nominal es contracción real; no significa gasto
   bruto cero.
 
+- **Arrendamientos (auditoría del 1-oct-2026).** Bajo US GAAP los arrendamientos operativos no son deuda del DCF: el EBIT ya descuenta el alquiler y el conversor de arrendamientos está desactivado; contarlos como deuda los restaría dos veces (Damodaran: o se convierten deuda y EBIT, o ninguno). Los arrendamientos financieros sí son deuda. Bajo NIIF 16 (AFYA, NVO, ONON, PAGS) todos los arrendamientos están en el balance y fuera del EBIT, así que su pasivo es deuda. La caja incluye los valores negociables y las inversiones no operativas (participaciones, valores no negociables) se suman aparte; el capital invertido del ROIC actual resta esos activos no operativos. Los saldos son los del último informe trimestral, no el cierre anual.
+
 **Chequeo de crecimiento implícito, v2 (30-sep-2026).** Cada múltiplo Base se compara con el múltiplo que
 implica el DCF llevado a FY+3 (misma métrica, deuda neta, acciones y dividendos de la hoja), y los dos pasan
 por la misma fórmula de crecimiento perpetuo. La versión anterior comparaba el crecimiento implícito del
