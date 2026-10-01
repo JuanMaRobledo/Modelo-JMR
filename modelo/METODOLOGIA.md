@@ -341,8 +341,10 @@ tasa libre de riesgo + ERP maduro.
 
 Desde el prompt de valoración v4 y el de análisis fundamental v5:
 
-- **El valor intrínseco es el DCF de hoy, y su cifra principal es el DCF esperado de cuatro historias.**
-  Es la cifra por defecto en el Visor y en Mi Bitácora, junto al DCF de la historia central A.
+- **El valor intrínseco es el DCF de hoy; su cifra principal es el DCF Base (jerarquía del 1-oct-2026).**
+  El DCF Base (la historia central) va primero y con mayor destaque en el Visor, en Mi Bitácora, en los
+  análisis y en los informes. El DCF esperado de las cuatro historias (Σ probabilidad × DCF) es un
+  complemento; el margen de seguridad se sigue aplicando sobre el esperado.
 - **Los múltiplos son precio relativo y van por aparte.** Siguen eligiéndose con las tres anclas y
   pasan el chequeo de crecimiento implícito (pestaña «Crecimiento implícito»). El ponderado DCF +
   múltiplos, con los pesos de la categoría de empresa, es una lectura opcional en la app.
@@ -351,17 +353,23 @@ Desde el prompt de valoración v4 y el de análisis fundamental v5:
   descompone por segmento o marca, orgánico frente a comprado; el margen se normaliza y se ancla en un
   comparable maduro; la reinversión incluye las compras; la beta es bottom-up del sector (Damodaran).
 - **Escenarios = historias (contrato del 30-sep-2026, primero en ADBE y luego en las 22 empresas).** Cuatro
-  historias con identificadores fijos —A · Base, B · Conservadora, C · Tesis de disrupción · Deterioro de los
-  fundamentales y D · Optimista— son los únicos escenarios DCF activos. Cada una es un DCF completo con los
+  historias —Base, Conservadora, Disrupción · Deterioro de los fundamentales y Optimista, cada una con su título
+  propio; las letras A-D son solo claves internas— son los únicos escenarios DCF activos. Cada una es un DCF completo con los
   insumos de la hoja, la misma tasa de descuento y su propio crecimiento, margen, reinversión, crecimiento
   terminal y ROIC terminal. DCF esperado = Σ probabilidad × DCF; el margen de seguridad se aplica al esperado.
   Los antiguos casos Conservador/Base/Optimista de la hoja quedan como calibración técnica y supuestos de los
   múltiplos auxiliares; la mezcla DCF + múltiplos es «mezcla auxiliar». La hoja tiene la pestaña «Escenarios e
   historias» con los cuatro DCF por fórmulas, verificada contra el motor; el análisis explica «De dónde sale el
-  cálculo» y «Las cuatro tesis». Se agregan pre-mortem, indicadores y un registro de decisión; la decisión
+  cálculo», «Las cuatro tesis» y «Justificación de los supuestos»: un párrafo por supuesto material
+  (crecimiento, margen, reinversión y ventas/capital, vida de I+D, costo de capital, crecimiento y ROIC
+  terminales, dilución y múltiplos) con evidencia y fecha, mecanismo, alternativas, cambio entre escenarios, qué
+  lo invalidaría y su sensibilidad (DCF completo de la Base con un solo supuesto cambiado); si falta soporte, el
+  supuesto se declara provisional. Los múltiplos se muestran en una tabla por método con los casos Base,
+  Conservador y Optimista (Base primero), el múltiplo aplicado (×) y el precio por acción de hoy, sin inventar un
+  caso de Disrupción. Se agregan pre-mortem, indicadores y un registro de decisión; la decisión
   (comprar, mantener o vender) la registra el usuario en la app.
-- **Crecimiento terminal por historia, sin recuperación por defecto.** A, B y D conservan el terminal de la hoja
-  (tasa libre de riesgo). C, salvo que el análisis justifique otra trayectoria (contracción continua o
+- **Crecimiento terminal por historia, sin recuperación por defecto.** Base, Conservadora y Optimista conservan el
+  terminal de la hoja (tasa libre de riesgo). Disrupción, salvo que el análisis justifique otra trayectoria (contracción continua o
   liquidación), se estabiliza: su terminal es el crecimiento de su año 5, sin superar el de la hoja y con piso de
   0% nominal, y su ROIC terminal es el costo de capital. Un 0% nominal es contracción real; no significa gasto
   bruto cero.
