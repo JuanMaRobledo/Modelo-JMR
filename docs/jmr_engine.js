@@ -118,7 +118,8 @@ function runDCFDetalle(inp, growthY2to5, marginTarget, growthY1, marginY1){
   var proceedsIfFail = (inp.failureBookCapital != null ? inp.failureBookCapital : sumPV)*recovery;
   var valueOpAssets = sumPV*(1-probFail)+proceedsIfFail*probFail;
 
-  var equityValue = valueOpAssets - inp.debt - (inp.minorityInterests||0) + inp.cash + (inp.nonOperatingAssets||0) - (inp.optionsValue||0);
+  // Acciones preferentes separadas ('Input sheet'!B76): se restan como en 'Valuation output'!B33 (1-oct-2026).
+  var equityValue = valueOpAssets - inp.debt - (inp.minorityInterests||0) + inp.cash + (inp.nonOperatingAssets||0) - (inp.optionsValue||0) - (inp.preferredStock||0);
   return {valuePerShare: equityValue/inp.shares0, growth: g, margin: m, revenue: rev, ebit: ebit, ebit1t: ebit1t,
           reinvestment: reinvest, fcff: fcff, wacc: wacc, terminalValue: terminalValue, sumPV: sumPV,
           valueOpAssets: valueOpAssets, equityValue: equityValue};
@@ -437,7 +438,7 @@ function insumosDesdeHoja(celda){
     taxEffective: n(VO, 'C8') != null ? n(VO, 'C8') : n(VO, 'B8'), taxMarginal: n(VO, 'M8'),
     shares0: n(VO, 'B34'), cash: n(VO, 'B29'), debt: n(VO, 'B27'),
     nonOperatingAssets: z(n(VO, 'B30')), minorityInterests: z(n(VO, 'B28')),
-    optionsValue: z(n(VO, 'B32')), nol0: z(n(VO, 'B12')),
+    optionsValue: z(n(VO, 'B32')), preferredStock: z(n(IS, 'B76')), nol0: z(n(VO, 'B12')),
     probFailure: z(n(VO, 'B24')), recoveryPct: z(n(IS, 'B55')),
     failureBookCapital: String(celda(IS, 'B54') || '').trim().toUpperCase() === 'B' ? z(n(IS, 'B15')) + z(n(IS, 'B16')) : null,
     wacc: n(VO, 'C14'), terminalWacc: tw, riskFreeRate: rf, matureMarketERP: (tw != null && rf != null) ? tw - rf : null,

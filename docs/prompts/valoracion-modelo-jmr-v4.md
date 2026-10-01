@@ -1,6 +1,21 @@
 # Prompt Maestro: Modelo de Valoración Damodaran para Cualquier Ticker (v4 · revisión historias 30-sep-2026)
 
 
+### Control de integridad · 1 de octubre de 2026
+
+Esta sección prevalece sobre cualquier instrucción que permita cerrar una revisión sin verificar la hoja.
+
+- **Un solo editor por hoja.** Nunca trabajes sobre una hoja que otra persona, chat o agente esté editando. Antes de escribir, revisa el historial de la hoja; si hay una edición reciente que no hiciste tú, detente y pregunta. Toda celda que cambies lleva respaldo del valor anterior y una nota con el motivo.
+- **Una empresa por conversación.** Los análisis y las auditorías se hacen de a una empresa, con la hoja completa a la vista. Los cambios de criterio que afectan a todas (por ejemplo, el tratamiento de arrendamientos) se deciden en una sola sesión, se aplican igual en todas las hojas y se siguen de un escaneo de integridad de todas.
+- **No reemplaces fórmulas por números** sin documentarlo. Una celda que debe seguir a otra (como 'Valuation output'!C46 = 'Input sheet'!B30) se enlaza; no se copia su valor.
+- **Lista de cierre obligatoria.** Una revisión está completa solo si se verificó y se informa cada punto:
+  1. Cuadre con la SEC (último 10-Q o 10-K): ventas y EBIT LTM, caja e inversiones, deuda, arrendamientos, acciones básicas y diluidas, preferentes, convertibles y minoritarios.
+  2. Ninguna celda con error (#REF!, #VALUE!, #DIV/0!, #N/A, #NUM!) en las pestañas que usa la valoración.
+  3. El motor del Modelo JMR reproduce el DCF de la hoja ('Valuation output'!B35) y la pestaña «Escenarios e historias» reproduce las cuatro historias y el esperado.
+  4. Cada cifra de los textos sale del cálculo vigente o de una fuente citada con fecha. No escribas a mano un número que el modelo calcula.
+  5. Estado declarado: verificado, corregido con salvedades o pendiente.
+- **Escaneo de integridad.** Después de cualquier cambio masivo corre `python scripts/integridad_hojas.py` (JMR-valuation). Detecta errores, números fijos donde la plantilla tiene fórmulas, celdas desenlazadas, preferentes sin restar, diferencias entre la hoja y el último cálculo y ediciones humanas recientes.
+
 ### Presentación vigente · 1 de octubre de 2026
 
 El **DCF Base** es el valor intrínseco principal y debe aparecer primero, con mayor destaque. Después presenta el **DCF esperado por probabilidades** como complemento y, por último, los múltiplos individuales, consolidados y ponderados como lecturas secundarias. Conserva el MOS sobre el esperado según la política vigente; la jerarquía visual no cambia esa fórmula.

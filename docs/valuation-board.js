@@ -73,7 +73,7 @@
   function veFrom(v) {
     if (!v || num(v.valor) == null) return null;
     var h = (v.historias || []).filter(function (x) { return num(x.valor) != null && num(x.probabilidad) != null; });
-    return { valor: v.valor, fecha: v.fecha || '', historias: h, escenariosUnificados: v.escenariosUnificados === true, historiaCentralId: v.historiaCentralId || 'A' };
+    return { valor: v.valor, fecha: v.fecha || '', historias: h, escenariosUnificados: v.escenariosUnificados === true, historiaCentralId: v.historiaCentralId || 'A', dcfBaseTecnicoAnterior: num(v.dcfBaseTecnicoAnterior) };
   }
   function appliedMultiples(rec) {
     var out = {}, sheets = ((rec.hojas || {}).valoracion || {});
@@ -130,7 +130,7 @@
   }
   function unifiedHtml(d) {
     var h = centralStory(d), values = d.ve.historias.map(function(x) { return x.valor; });
-    return '<div class="jvb-ve">' + primaryHtml(d) + '<div class="jvb-scen"><span>Rango <b>' + money(Math.min.apply(null, values)) + ' – ' + money(Math.max.apply(null, values)) + '</b></span>' + (d.mos != null ? '<span>MOS ' + pct(d.mos) + ' <b>' + money(d.ve.valor * (1-d.mos)) + '</b></span>' : '') + '</div>'  + storiesTable(d) + '<p class="jvb-venote">Cada historia se valora con un DCF completo. El valor esperado suma DCF × probabilidad; las probabilidades son juicio del analista. El MOS se aplica al esperado. El rango muestra desenlaces, no un intervalo de confianza.</p><details class="jvb-vedet"><summary>Referencia técnica de la hoja anterior</summary><p class="jvb-venote">Antiguo caso Base ' + money(d.dcf.hoy && d.dcf.hoy.base) + '. Se conserva para calibrar el motor y los supuestos auxiliares de múltiplos; no representa la tesis Base.</p></details></div>';
+    return '<div class="jvb-ve">' + primaryHtml(d) + '<div class="jvb-scen"><span>Rango <b>' + money(Math.min.apply(null, values)) + ' – ' + money(Math.max.apply(null, values)) + '</b></span>' + (d.mos != null ? '<span>MOS ' + pct(d.mos) + ' <b>' + money(d.ve.valor * (1-d.mos)) + '</b></span>' : '') + '</div>'  + storiesTable(d) + '<p class="jvb-venote">Cada historia se valora con un DCF completo. El valor esperado suma DCF × probabilidad; las probabilidades son juicio del analista. El MOS se aplica al esperado. El rango muestra desenlaces, no un intervalo de confianza.</p><details class="jvb-vedet"><summary>Referencia técnica de la hoja anterior</summary><p class="jvb-venote">Antiguo caso técnico Base de la hoja ' + money(d.ve.dcfBaseTecnicoAnterior != null ? d.ve.dcfBaseTecnicoAnterior : (d.dcf.hoy && d.dcf.hoy.base)) + '. Se conserva para calibrar el motor y los supuestos auxiliares de múltiplos; no representa la tesis Base.</p></details></div>';
   }
   function veHtml(d) {
     var ve = d && d.ve;
@@ -167,7 +167,7 @@
     if (!unified(d)) r.push({ g: 'dcf', cls: 'dcf', label: h === 'hoy' ? 'DCF · valor intrínseco hoy' : 'DCF llevado a FY+3', sub: h === 'hoy' ? 'flujos de caja descontados' : '× (1 + Ke)³', peso: d.dcf.peso, t: d.dcf[h] });
     d.metodos.forEach(function (m) { r.push({ g: 'met', cls: 'met', label: m.nombre, peso: m.peso, t: m[h], aplicados: m.aplicados }); });
     r.push({ g: 'mult', cls: 'mult', label: 'Múltiplos consolidados', sub: h === 'hoy' ? 'promedio de 1, 2 y 3 años, traído a hoy' : 'precio FY+3 + dividendos', peso: d.mult.peso, t: d.mult[h] });
-    r.push({ g: 'pond', cls: 'pond', label: unified(d) ? 'Mezcla auxiliar de la hoja anterior' : 'Ponderado DCF + múltiplos', sub: unified(d) ? 'no utiliza los DCF de las cuatro historias' : 'pesos del tipo de empresa', peso: (num(d.dcf.peso) != null && num(d.mult.peso) != null) ? d.dcf.peso + d.mult.peso : null, t: d.pond[h] });
+    r.push({ g: 'pond', cls: 'pond', label: 'Ponderado DCF + múltiplos', sub: unified(d) ? 'DCF de la historia del mismo caso + múltiplos; secundario' : 'pesos del tipo de empresa', peso: (num(d.dcf.peso) != null && num(d.mult.peso) != null) ? d.dcf.peso + d.mult.peso : null, t: d.pond[h] });
     return r.filter(function (x) { return x.t; });
   }
 
