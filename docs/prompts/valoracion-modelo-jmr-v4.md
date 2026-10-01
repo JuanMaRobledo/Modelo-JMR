@@ -83,7 +83,7 @@ descontá a Ke y no restes nuevamente la deuda del valor patrimonial obtenido.
 Mostrá un ejemplo sustituido con cifras y la suma ponderada de las cuatro tesis.
 
 
-El crecimiento terminal se define para cada historia y no se hereda automáticamente del caso técnico. Una tesis de deterioro puede estabilizarse, seguir contrayéndose o liquidarse: justifica cuál de esas trayectorias representas, su reinversión y su ROIC. No introduzcas una recuperación por defecto. Un 0% nominal implica contracción real si hay inflación; no significa gasto bruto cero.
+El crecimiento terminal se define para cada historia y no se hereda automáticamente del caso técnico. Una tesis de deterioro puede estabilizarse, seguir contrayéndose o liquidarse: justifica cuál de esas trayectorias representas, su reinversión y su ROIC. No introduzcas una recuperación por defecto. Un 0% nominal implica contracción real si hay inflación; no significa gasto bruto cero. Si no hay evidencia para otra trayectoria, la regla por defecto del Modelo JMR para C es estabilización: crecimiento terminal = crecimiento del año 5 de la historia, sin superar el terminal de la hoja y con piso de 0% nominal, años 6-10 interpolados linealmente hasta ese nivel y ROIC terminal = costo de capital.
 
 AUDITORÍA DE CONGRUENCIA OBLIGATORIA, ACTIVO POR ACTIVO:
 - Conciliá datos históricos y LTM con fuentes primarias: períodos, moneda,
