@@ -341,9 +341,30 @@ tasa libre de riesgo + ERP maduro.
 
 Desde el prompt de valoración v4 y el de análisis fundamental v5:
 
-- **El valor intrínseco es el DCF de hoy.** Es la cifra por defecto en el Visor y en Mi Bitácora.
+- **El valor intrínseco es el DCF de hoy, y su cifra principal es el DCF esperado de cuatro historias.**
+  Es la cifra por defecto en el Visor y en Mi Bitácora, junto al DCF de la historia central A.
 - **Los múltiplos son precio relativo y van por aparte.** Siguen eligiéndose con las tres anclas y
   pasan el chequeo de crecimiento implícito (pestaña «Crecimiento implícito»). El ponderado DCF +
+  múltiplos, con los pesos de la categoría de empresa, es una lectura opcional en la app.
+- **Primero la historia, el precio al final.** Cada supuesto sale de una historia (posible, plausible,
+  probable) contrastada con las tasas base de crecimiento por tamaño (Mauboussin); el crecimiento se
+  descompone por segmento o marca, orgánico frente a comprado; el margen se normaliza y se ancla en un
+  comparable maduro; la reinversión incluye las compras; la beta es bottom-up del sector (Damodaran).
+- **Escenarios = historias (contrato del 30-sep-2026, primero en ADBE y luego en las 22 empresas).** Cuatro
+  historias con identificadores fijos —A · Base, B · Conservadora, C · Tesis de disrupción · Deterioro de los
+  fundamentales y D · Optimista— son los únicos escenarios DCF activos. Cada una es un DCF completo con los
+  insumos de la hoja, la misma tasa de descuento y su propio crecimiento, margen, reinversión, crecimiento
+  terminal y ROIC terminal. DCF esperado = Σ probabilidad × DCF; el margen de seguridad se aplica al esperado.
+  Los antiguos casos Conservador/Base/Optimista de la hoja quedan como calibración técnica y supuestos de los
+  múltiplos auxiliares; la mezcla DCF + múltiplos es «mezcla auxiliar». La hoja tiene la pestaña «Escenarios e
+  historias» con los cuatro DCF por fórmulas, verificada contra el motor; el análisis explica «De dónde sale el
+  cálculo» y «Las cuatro tesis». Se agregan pre-mortem, indicadores y un registro de decisión; la decisión
+  (comprar, mantener o vender) la registra el usuario en la app.
+- **Crecimiento terminal por historia, sin recuperación por defecto.** A, B y D conservan el terminal de la hoja
+  (tasa libre de riesgo). C, salvo que el análisis justifique otra trayectoria (contracción continua o
+  liquidación), se estabiliza: su terminal es el crecimiento de su año 5, sin superar el de la hoja y con piso de
+  0% nominal, y su ROIC terminal es el costo de capital. Un 0% nominal es contracción real; no significa gasto
+  bruto cero.
 
 **Chequeo de crecimiento implícito, v2 (30-sep-2026).** Cada múltiplo Base se compara con el múltiplo que
 implica el DCF llevado a FY+3 (misma métrica, deuda neta, acciones y dividendos de la hoja), y los dos pasan
@@ -352,15 +373,6 @@ múltiplo —calculado con el ROE de FY+3 para siempre— con el crecimiento del
 retorno sobre el capital baja al costo de capital después del año 10; en empresas de ROE alto eso marcaba
 como «menos crecimiento que el DCF» múltiplos que en valor coincidían con él (UBER). Alerta: más de 2 pp de
 diferencia en crecimiento implícito o más de 25% en valor.
-  múltiplos, con los pesos de la categoría de empresa, es una lectura opcional en la app.
-- **Primero la historia, el precio al final.** Cada supuesto sale de una historia (posible, plausible,
-  probable) contrastada con las tasas base de crecimiento por tamaño (Mauboussin); el crecimiento se
-  descompone por segmento o marca, orgánico frente a comprado; el margen se normaliza y se ancla en un
-  comparable maduro; la reinversión incluye las compras; la beta es bottom-up del sector (Damodaran).
-- **Historias con probabilidades.** Tres o cuatro historias cuantificadas con el motor del modelo
-  (cada una un DCF completo con los insumos de la hoja y la misma tasa de descuento) dan un valor esperado:
-  el promedio de las historias ponderado por su probabilidad; se agregan pre-mortem, indicadores y un
-  registro de decisión. La decisión (comprar, mantener o vender) la registra el usuario en la app.
 
 ### Auditoría de la plantilla (26-sep-2026)
 
