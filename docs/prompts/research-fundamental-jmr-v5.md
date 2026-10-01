@@ -19,7 +19,7 @@ Las secciones 1 a 11 y 13 a 18 son cualitativas: en ellas no calcules valor intr
 
 Aplica este contrato a cualquier empresa. Prevalece sobre referencias antiguas a tres escenarios o a historias valoradas por separado. Conserva las 18 secciones y sus mínimos; la valoración propia se realiza únicamente en la sección 12.
 
-- Define una sola familia de cuatro tesis: **A · Base, B · Conservadora, C · Disrupción y D · Optimista**. Añade un nombre descriptivo propio de la empresa. Disrupción significa deterioro estructural y no presupone IA ni quiebra. No copies historias ni probabilidades de otro activo.
+- Define una sola familia de cuatro tesis: **A · Base, B · Conservadora, C · Disrupción y D · Optimista**. El nombre completo de C es «Tesis de disrupción · Deterioro de los fundamentales». Añade un nombre descriptivo propio de la empresa. Disrupción significa deterioro estructural y no presupone IA ni quiebra. No copies historias ni probabilidades de otro activo.
 - Explica cada tesis en prosa: qué sucede en el negocio, de dónde proceden ingresos y crecimiento, por qué cambia el margen, qué reinversión exige, cuánto dura la ventaja competitiva y qué evidencia la confirma o invalida. La base es la trayectoria central defendida; no es el promedio de las historias ni necesariamente el punto medio del rango.
 - Cada historia es un DCF completo, con proyección anual de diez años y valor terminal, sobre la misma fecha, moneda, perímetro y base contable. Los escenarios operativos de la sección 10 y los cuantificados de la 12 deben ser las mismas cuatro historias, con idénticos identificadores y supuestos.
 - Justifica probabilidades no negativas que sumen 100%, sin presentar juicio del analista como frecuencia publicada. Evita solapamientos entre desenlaces y explica incertidumbres no cubiertas. **DCF esperado hoy = suma(probabilidad × DCF/acción de cada historia)**.
@@ -41,6 +41,9 @@ Aplica este contrato a cualquier empresa. Prevalece sobre referencias antiguas a
 - Precio de mercado y fecha, si se requiere: **[PRECIO_Y_FECHA_O_NO_APLICA]**
 - Tabla o archivo del Modelo JMR, si existe: **[ARCHIVO_JMR_O_NO_APLICA]**
 - Fuentes adjuntas adicionales: **[FUENTES_ADJUNTAS_O_NO_APLICA]**
+
+
+El crecimiento terminal se define para cada historia y no se hereda automáticamente del caso técnico. Una tesis de deterioro puede estabilizarse, seguir contrayéndose o liquidarse: justifica cuál de esas trayectorias representas, su reinversión y su ROIC. No introduzcas una recuperación por defecto. Un 0% nominal implica contracción real si hay inflación; no significa gasto bruto cero.
 
 ## Ejecución autónoma con el prompt y el Excel
 

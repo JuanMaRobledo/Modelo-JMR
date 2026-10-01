@@ -1,4 +1,4 @@
-const CACHE = "modelo-jmr-v123-prompts-historias";
+const CACHE = "modelo-jmr-v124-terminal-por-historia";
 const APP_SHELL = [
   "index.html",
   "visor.html",

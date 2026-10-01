@@ -33,7 +33,7 @@ CONTRATO VIGENTE DE ESCENARIOS (revisión 30-sep-2026):
 Las historias SON los escenarios activos, no una segunda valoración paralela.
 Esta regla prevalece sobre instrucciones antiguas de tres escenarios técnicos.
 Definí cuatro tesis adaptadas a la empresa, con identificadores estables:
-A · Base; B · Conservadora; C · Disrupción; D · Optimista.
+A · Base; B · Conservadora; C · Disrupción; D · Optimista. El nombre completo de C es «Tesis de disrupción · Deterioro de los fundamentales».
 Disrupción describe deterioro estructural del negocio; no presupone IA ni quiebra.
 Base es la trayectoria central defendida con evidencia; no es el promedio de las
 historias ni tiene que ser el punto medio del rango. Explicá por qué es central.
@@ -81,6 +81,9 @@ Si usás opciones como reclamación separada, evitá duplicar su dilución. Para
 explicá beneficio, reinversión, deuda neta y capital regulatorio cuando aplique,
 descontá a Ke y no restes nuevamente la deuda del valor patrimonial obtenido.
 Mostrá un ejemplo sustituido con cifras y la suma ponderada de las cuatro tesis.
+
+
+El crecimiento terminal se define para cada historia y no se hereda automáticamente del caso técnico. Una tesis de deterioro puede estabilizarse, seguir contrayéndose o liquidarse: justifica cuál de esas trayectorias representas, su reinversión y su ROIC. No introduzcas una recuperación por defecto. Un 0% nominal implica contracción real si hay inflación; no significa gasto bruto cero.
 
 AUDITORÍA DE CONGRUENCIA OBLIGATORIA, ACTIVO POR ACTIVO:
 - Conciliá datos históricos y LTM con fuentes primarias: períodos, moneda,

@@ -98,7 +98,7 @@
   }
   function storiesTable(d) {
     return '<div class="jvb-tw"><table class="jvb-vetab"><thead><tr><th>Escenario / historia</th><th>Prob.</th><th>Crec. 5 años</th><th>Margen</th><th>DCF hoy</th><th>vs. precio</th></tr></thead><tbody>' + d.ve.historias.map(function(h) {
-      return '<tr><td class="hn"><b>' + esc(h.nombre) + '</b>' + (h.id === d.ve.historiaCentralId ? '<small>Historia central</small>' : '') + '<small>ROIC terminal: ' + (h.roicTerminal === 'costo_capital' ? 'costo de capital' : pct(h.roicTerminal, 1)) + '</small></td><td class="n">' + pct(h.probabilidad) + '</td><td class="n">' + pct(h.crecimiento, 1) + '</td><td class="n">' + pct(h.margen) + '</td><td class="n">' + n2(h.valor) + '</td><td class="n">' + vsPrecio(h.valor, d.precio) + '</td></tr>';
+      return '<tr><td class="hn"><b>' + esc(h.nombre) + '</b>' + (h.id === d.ve.historiaCentralId ? '<small>Historia central</small>' : '') + '<small>ROIC terminal: ' + (h.roicTerminal === 'costo_capital' ? 'costo de capital' : pct(h.roicTerminal, 1)) + '</small>' + (typeof h.terminalGrowth === 'number' ? '<small>Crecimiento terminal: ' + pct(h.terminalGrowth, 2) + '</small>' : '') + '</td><td class="n">' + pct(h.probabilidad) + '</td><td class="n">' + pct(h.crecimiento, 1) + '</td><td class="n">' + pct(h.margen) + '</td><td class="n">' + n2(h.valor) + '</td><td class="n">' + vsPrecio(h.valor, d.precio) + '</td></tr>';
     }).join('') + '</tbody></table></div>';
   }
   function unifiedHtml(d) {
