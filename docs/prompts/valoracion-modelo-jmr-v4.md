@@ -1,5 +1,16 @@
 # Prompt Maestro: Modelo de Valoración Damodaran para Cualquier Ticker (v4 · revisión historias 30-sep-2026)
 
+
+### Presentación vigente · 1 de octubre de 2026
+
+El **DCF Base** es el valor intrínseco principal y debe aparecer primero, con mayor destaque. Después presenta el **DCF esperado por probabilidades** como complemento y, por último, los múltiplos individuales, consolidados y ponderados como lecturas secundarias. Conserva el MOS sobre el esperado según la política vigente; la jerarquía visual no cambia esa fórmula.
+
+Los nombres visibles son **Base, Conservadora, Disrupción y Optimista**, acompañados del título propio de cada historia. Usa **Disrupción · Deterioro de los fundamentales**. Las letras A/B/C/D solo son claves internas.
+
+Integra en el análisis fundamental párrafos que expliquen, para cada supuesto material, la evidencia con fuente y fecha, el mecanismo económico, por qué elegiste esa cifra y no una alternativa, su sensibilidad y qué observación obligaría a cambiarla. Cubre crecimiento, margen, reinversión, ventas/capital, vida útil de I+D, costo de capital, crecimiento y ROIC terminales, dilución y múltiplos. Si falta soporte, declara la salvedad; no conviertas un valor heredado en un supuesto validado. Las tablas complementan esta explicación.
+
+Presenta los múltiplos en tablas: una fila por método y una columna por escenario, Base primero. Distingue en cada celda **múltiplo aplicado (×)** y **precio relativo por acción (moneda)**, con horizonte y fecha explícitos. Deja el consolidado y el ponderado al final. No escribas series de cifras separadas por barras. Si los múltiplos solo tienen tres casos auxiliares, muestra esos tres y explica el alcance; no inventes un cuarto resultado de Disrupción. Comprueba que el Base, esperado, nombres y fórmulas coincidan entre el informe y la app.
+
 > Reemplaza a la v3 (30-sep-2026). Conserva el proceso de punta a punta (SEC EDGAR, costo de capital, supuestos anclados, chequeo de bugs, múltiplos con tres anclas, múltiplos a valor presente, guardado en Drive) y adopta el **criterio de Damodaran** como eje:
 >
 > 1. **El valor intrínseco es el DCF.** El DCF de hoy es la cifra principal de la valoración.

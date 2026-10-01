@@ -11,7 +11,7 @@
 (function (global) {
   var PREF_KEY = 'jmr-tablero-valor-v1';
   var DEF = { h: 'hoy', mult: 1, met: 1, pond: 1 };
-  var K = ['conservador', 'base', 'optimista'];
+  var K = ['base', 'conservador', 'optimista'];
 
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function num(v) { return (typeof v === 'number' && isFinite(v)) ? v : null; }
@@ -75,15 +75,42 @@
     var h = (v.historias || []).filter(function (x) { return num(x.valor) != null && num(x.probabilidad) != null; });
     return { valor: v.valor, fecha: v.fecha || '', historias: h, escenariosUnificados: v.escenariosUnificados === true, historiaCentralId: v.historiaCentralId || 'A' };
   }
+  function appliedMultiples(rec) {
+    var out = {}, sheets = ((rec.hojas || {}).valoracion || {});
+    Object.keys(sheets).forEach(function (name) {
+      var rows = String(sheets[name]).match(/<tr\b[^>]*>[\s\S]*?<\/tr>/gi) || [];
+      var targets = rows.map(function (row) {
+        return (row.match(/<t[dh]\b[^>]*>[\s\S]*?<\/t[dh]>/gi) || []).map(function (cell) { return cell.replace(/<[^>]*>/g, '').trim(); });
+      }).filter(function (cells) { return /^Múltiplo (EV\/|P\/)/i.test(cells[0] || ''); });
+      if (targets.length !== 3) return;
+      var method = targets[0][0].replace(/^Múltiplo /, '').split(' ')[0].toUpperCase();
+      var t = {};
+      ['conservador', 'base', 'optimista'].forEach(function (key, i) {
+        var values = targets[i].slice(5, 8).map(function (x) { return /^\d[\d.,]*x$/i.test(x) ? Number(x.replace(/x$/i, '').replace(/\./g, '').replace(',', '.')) : null; });
+        if (values.length === 3 && values.every(function (v) { return num(v) != null; })) t[key] = values;
+      });
+      out[method] = t;
+    });
+    return out;
+  }
   function fromRecord(rec, extra) {
     rec = rec || {}; extra = extra || {};
-    return fromParts({ dm: rec.descuentoMultiples, vp: rec.valorPresentePonderado, metodosFY3: rec.metodos, objetivoFY3: rec.objetivoPonderado,
+    var result = fromParts({ dm: rec.descuentoMultiples, vp: rec.valorPresentePonderado, metodosFY3: rec.metodos, objetivoFY3: rec.objetivoPonderado,
       precio: extra.precio != null ? extra.precio : rec.precio, precioLbl: extra.precioLbl, mos: extra.mos != null ? extra.mos : rec.mos, hoja: rec.hojaGoogle,
       ve: rec.valorEsperado });
+    var applied = appliedMultiples(rec);
+    result.metodos.forEach(function (m) { m.aplicados = applied[String(m.nombre).toUpperCase()] || null; });
+    return result;
   }
   // Bloque del valor esperado, junto al DCF. d = resultado de fromParts/fromRecord.
   function unified(d) { return !!(d && d.ve && d.ve.escenariosUnificados && d.ve.historias.length); }
-  function centralStory(d) { return d.ve.historias.find(function(h) { return h.id === d.ve.historiaCentralId; }) || d.ve.historias[0]; }
+  function centralStory(d) { return d.ve.historias.find(function(h) { return h.id === d.ve.historiaCentralId; }) || {}; }
+  function storyName(h) {
+    var label = { A: 'Base', B: 'Conservadora', C: 'Disrupción · Deterioro de los fundamentales', D: 'Optimista' }[h.id];
+    var title = String(h.nombre || '').replace(/^[A-D]\s*·\s*/, '').replace(/^Tesis de disrupción\s*·\s*Deterioro de los fundamentales:?\s*/i, '');
+    if (label && title.indexOf(label + ' · ') === 0) return title;
+    return label ? label + (title && title !== label ? ' · ' + title : '') : title;
+  }
   // Present base and expected separately; never infer missing story probabilities.
   function primaryValues(d) {
     var base = unified(d) ? num(centralStory(d).valor) : num(d.dcf.hoy && d.dcf.hoy.base);
@@ -91,33 +118,33 @@
   }
   function primaryHtml(d) {
     var v = primaryValues(d);
-    function tile(label, value, detail) {
-      return '<div class="jvb-primary-card"><span class="jvb-kicker">' + label + '</span><div class="jvb-big"><span class="v">' + money(value) + '</span>' + vsPrecio(value, d.precio) + '</div><span class="vl">' + detail + '</span></div>';
+    function tile(label, value, detail, main) {
+      return '<div class="jvb-primary-card' + (main ? ' principal' : ' complementary') + '"><span class="jvb-kicker">' + label + '</span><div class="jvb-big"><span class="v">' + money(value) + '</span>' + vsPrecio(value, d.precio) + '</div><span class="vl">' + detail + '</span></div>';
     }
-    return '<div class="jvb-primary">' + tile('DCF base hoy', v.base, unified(d) ? 'Tesis base · historia central' : 'Caso base de la valoración') + tile('Valor intrínseco esperado hoy · DCF', v.esperado, v.esperado == null ? 'Sin historias valoradas disponibles' : 'Promedio de DCF × probabilidad') + '</div>';
+    return '<div class="jvb-primary">' + tile('DCF base hoy', v.base, unified(d) ? 'Valor intrínseco principal · tesis base' : 'Valor intrínseco principal · caso base', true) + tile('DCF esperado hoy · complemento', v.esperado, v.esperado == null ? 'Sin historias valoradas disponibles' : 'Promedio de DCF × probabilidad') + '</div>';
   }
   function storiesTable(d) {
     return '<div class="jvb-tw"><table class="jvb-vetab"><thead><tr><th>Escenario / historia</th><th>Prob.</th><th>Crec. 5 años</th><th>Margen</th><th>DCF hoy</th><th>vs. precio</th></tr></thead><tbody>' + d.ve.historias.map(function(h) {
-      return '<tr><td class="hn"><b>' + esc(h.nombre) + '</b>' + (h.id === d.ve.historiaCentralId ? '<small>Historia central</small>' : '') + '<small>ROIC terminal: ' + (h.roicTerminal === 'costo_capital' ? 'costo de capital' : pct(h.roicTerminal, 1)) + '</small>' + (typeof h.terminalGrowth === 'number' ? '<small>Crecimiento terminal: ' + pct(h.terminalGrowth, 2) + '</small>' : '') + '</td><td class="n">' + pct(h.probabilidad) + '</td><td class="n">' + pct(h.crecimiento, 1) + '</td><td class="n">' + pct(h.margen) + '</td><td class="n">' + n2(h.valor) + '</td><td class="n">' + vsPrecio(h.valor, d.precio) + '</td></tr>';
+      return '<tr><td class="hn"><b>' + esc(storyName(h)) + '</b>' + (h.id === d.ve.historiaCentralId ? '<small>Historia central</small>' : '') + '<small>ROIC terminal: ' + (h.roicTerminal === 'costo_capital' ? 'costo de capital' : pct(h.roicTerminal, 1)) + '</small>' + (typeof h.terminalGrowth === 'number' ? '<small>Crecimiento terminal: ' + pct(h.terminalGrowth, 2) + '</small>' : '') + '</td><td class="n">' + pct(h.probabilidad) + '</td><td class="n">' + pct(h.crecimiento, 1) + '</td><td class="n">' + pct(h.margen) + '</td><td class="n">' + n2(h.valor) + '</td><td class="n">' + vsPrecio(h.valor, d.precio) + '</td></tr>';
     }).join('') + '</tbody></table></div>';
   }
   function unifiedHtml(d) {
     var h = centralStory(d), values = d.ve.historias.map(function(x) { return x.valor; });
-    return '<div class="jvb-ve">' + primaryHtml(d) + '<div class="jvb-scen"><span>Rango <b>' + money(Math.min.apply(null, values)) + ' – ' + money(Math.max.apply(null, values)) + '</b></span>' + (d.mos != null ? '<span>MOS ' + pct(d.mos) + ' <b>' + money(d.ve.valor * (1-d.mos)) + '</b></span>' : '') + '</div>'  + storiesTable(d) + '<p class="jvb-venote">Cada historia se valora con un DCF completo. El valor esperado suma DCF × probabilidad; las probabilidades son juicio del analista. El MOS se aplica al esperado. El rango muestra desenlaces, no un intervalo de confianza.</p><details class="jvb-vedet"><summary>Referencia técnica de la hoja anterior</summary><p class="jvb-venote">Antiguo caso Base ' + money(d.dcf.hoy && d.dcf.hoy.base) + '. Se conserva para calibrar el motor y los supuestos auxiliares de múltiplos; no representa la historia central A.</p></details></div>';
+    return '<div class="jvb-ve">' + primaryHtml(d) + '<div class="jvb-scen"><span>Rango <b>' + money(Math.min.apply(null, values)) + ' – ' + money(Math.max.apply(null, values)) + '</b></span>' + (d.mos != null ? '<span>MOS ' + pct(d.mos) + ' <b>' + money(d.ve.valor * (1-d.mos)) + '</b></span>' : '') + '</div>'  + storiesTable(d) + '<p class="jvb-venote">Cada historia se valora con un DCF completo. El valor esperado suma DCF × probabilidad; las probabilidades son juicio del analista. El MOS se aplica al esperado. El rango muestra desenlaces, no un intervalo de confianza.</p><details class="jvb-vedet"><summary>Referencia técnica de la hoja anterior</summary><p class="jvb-venote">Antiguo caso Base ' + money(d.dcf.hoy && d.dcf.hoy.base) + '. Se conserva para calibrar el motor y los supuestos auxiliares de múltiplos; no representa la tesis Base.</p></details></div>';
   }
   function veHtml(d) {
     var ve = d && d.ve;
     if (!ve) return '';
     if (unified(d)) return unifiedHtml(d);
     var dcf = d.dcf && d.dcf.hoy ? d.dcf.hoy.base : null;
-    var letras = ve.historias.map(function (h) { return String(h.nombre || '').split(' · ')[0]; });
+    var letras = ve.historias.map(function (h) { return storyName(h).split(' · ')[0]; });
     var bar = ve.historias.map(function (h, i) {
       var cls = (num(d.precio) != null && h.valor < d.precio) ? 'lo' : 'hi';
-      return '<span class="' + cls + '" style="flex:' + (h.probabilidad * 100).toFixed(1) + '" title="' + esc(h.nombre) + ': ' + pct(h.probabilidad) + ' · ' + money(h.valor) + '">' +
+      return '<span class="' + cls + '" style="flex:' + (h.probabilidad * 100).toFixed(1) + '" title="' + esc(storyName(h)) + ': ' + pct(h.probabilidad) + ' · ' + money(h.valor) + '">' +
         esc(letras[i]) + ' ' + pct(h.probabilidad) + '</span>';
     }).join('');
     var rows = ve.historias.map(function (h) {
-      var nom = String(h.nombre || ''), i = nom.indexOf(' · ');
+      var nom = storyName(h), i = nom.indexOf(' · ');
       return '<tr><td class="hn"><b>' + esc(i > 0 ? nom.slice(0, i) : nom) + '</b>' + (i > 0 ? ' ' + esc(nom.slice(i + 3)) : '') +
         (h.roicTerminal === 'costo_capital' ? '<small>ROIC después del año 10 = costo de capital</small>' : '') + '</td>' +
         '<td class="n">' + pct(h.probabilidad) + '</td><td class="n">' + n2(h.valor) + '</td><td class="n">' + vsPrecio(h.valor, d.precio) + '</td></tr>';
@@ -138,8 +165,8 @@
   function rowsFor(d, h) {
     var r = [];
     if (!unified(d)) r.push({ g: 'dcf', cls: 'dcf', label: h === 'hoy' ? 'DCF · valor intrínseco hoy' : 'DCF llevado a FY+3', sub: h === 'hoy' ? 'flujos de caja descontados' : '× (1 + Ke)³', peso: d.dcf.peso, t: d.dcf[h] });
+    d.metodos.forEach(function (m) { r.push({ g: 'met', cls: 'met', label: m.nombre, peso: m.peso, t: m[h], aplicados: m.aplicados }); });
     r.push({ g: 'mult', cls: 'mult', label: 'Múltiplos consolidados', sub: h === 'hoy' ? 'promedio de 1, 2 y 3 años, traído a hoy' : 'precio FY+3 + dividendos', peso: d.mult.peso, t: d.mult[h] });
-    d.metodos.forEach(function (m) { r.push({ g: 'met', cls: 'met', label: m.nombre, peso: m.peso, t: m[h] }); });
     r.push({ g: 'pond', cls: 'pond', label: unified(d) ? 'Mezcla auxiliar de la hoja anterior' : 'Ponderado DCF + múltiplos', sub: unified(d) ? 'no utiliza los DCF de las cuatro historias' : 'pesos del tipo de empresa', peso: (num(d.dcf.peso) != null && num(d.mult.peso) != null) ? d.dcf.peso + d.mult.peso : null, t: d.pond[h] });
     return r.filter(function (x) { return x.t; });
   }
@@ -157,10 +184,10 @@
       out += '<tr class="jvb-row ' + x.cls + '" data-g="' + x.g + '"><td class="lbl"><span class="nm">' + esc(x.label) + '</span>' +
         (x.sub ? '<span class="sb">' + esc(x.sub) + '</span>' : '') + '<span class="pw">peso ' + pct(x.peso) + '</span></td>' +
         '<td class="n w">' + pct(x.peso) + '</td>' +
-        K.map(function (k) { return '<td class="n' + (k === 'base' ? ' b' : '') + '">' + n2(x.t[k]) + (k === 'base' ? '<span class="vsm">' + vsPrecio(x.t.base, d.precio) + '</span>' : '') + '</td>'; }).join('') +
+        K.map(function (k) { return '<td class="n' + (k === 'base' ? ' b' : '') + '">' + n2(x.t[k]) + (x.g === 'met' ? '<span class="jvb-applied">' + (x.aplicados && x.aplicados[k] ? 'Múltiplo FY+1–3: ' + (x.aplicados[k].every(function(v) { return v === x.aplicados[k][0]; }) ? n2(x.aplicados[k][0]) + '×' : x.aplicados[k].map(function(v,i) { return 'FY+' + (i+1) + ': ' + n2(v) + '×'; }).join(' · ')) : 'Múltiplo aplicado: no disponible') + '</span>' : '') + (k === 'base' ? '<span class="vsm">' + vsPrecio(x.t.base, d.precio) + '</span>' : '') + '</td>'; }).join('') +
         '<td class="n vs">' + vsPrecio(x.t.base, d.precio) + '</td></tr>';
     });
-    return '<div class="jvb-tw"><table class="jvb-table"><thead><tr><th>Método <small>US$ por acción</small></th><th class="n w">Peso</th><th class="n">Conserv.</th><th class="n b">Base</th><th class="n">Optimista</th><th class="n vs">Base vs. precio</th></tr></thead><tbody>' + out + '</tbody></table></div>';
+    return '<div class="jvb-tw"><table class="jvb-table"><thead><tr><th>Método <small>US$ por acción</small></th><th class="n w">Peso</th><th class="n b">Base</th><th class="n">Conservadora</th><th class="n">Optimista</th><th class="n vs">Base vs. precio</th></tr></thead><tbody>' + out + '</tbody></table></div>';
   }
 
   // Rango Conservador–Optimista de cada fila frente al precio («football field»).
@@ -213,7 +240,7 @@
       (both ? '<div class="jvb-seg" role="group" aria-label="Horizonte">' + seg('h', 'hoy', 'Hoy', p.h === 'hoy') + seg('h', 'fy3', 'Al cierre FY+3', p.h === 'fy3') + '</div>' : '') +
       '<div class="jvb-seg jvb-toggles" role="group" aria-label="Lecturas secundarias"><span class="jvb-segl">Mostrar</span>' +
       seg('t', 'mult', 'Múltiplos juntos', p.mult) + seg('t', 'met', 'Por método', p.met) + seg('t', 'pond', 'Ponderado', p.pond) + '</div></div>';
-    var note = (unified(d) ? 'Los casos Conservador/Base/Optimista de los múltiplos son supuestos auxiliares de precio relativo; los cuatro escenarios DCF activos son las historias A–D. ' : '') + 'US$ por acción. ' + (d.ke != null ? 'Costo del patrimonio (Ke) ' + pct(d.ke, 1) + '. ' : '') +
+    var note = (unified(d) ? 'Los casos Conservador/Base/Optimista de los múltiplos son supuestos auxiliares de precio relativo; los cuatro escenarios DCF activos son Base, Conservadora, Disrupción y Optimista. ' : '') + 'US$ por acción. ' + (d.ke != null ? 'Costo del patrimonio (Ke) ' + pct(d.ke, 1) + '. ' : '') +
       'Hoy: el DCF ya está a valor presente; cada múltiplo es el precio a FY+1, FY+2 y FY+3 más dividendos, traído a hoy con Ke y promediado. ' +
       'FY+3: el DCF de hoy × (1 + Ke)³ y los múltiplos al cierre FY+3 con dividendos. El ponderado es opcional: sirve de contraste, no reemplaza al DCF.';
     return '<section class="jvb" data-h="' + p.h + '" data-mult="' + p.mult + '" data-met="' + p.met + '" data-pond="' + p.pond + '">' +
@@ -255,6 +282,7 @@
       '.jvb .jvb-table td *,.jvb .jvb-table th *{overflow-wrap:normal;word-break:normal;hyphens:manual;max-width:none}',
       '.jvb .jvb-table td,.jvb .jvb-table th{font-size:13px}.jvb .jvb-table thead th{font-size:10.5px}',
       '.jvb-primary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:12px}.jvb-primary-card{border:1.5px solid var(--jvb-dcf,var(--accent,#806332));background:var(--surface,#fffaf0);border-radius:12px;padding:16px;min-width:0}.jvb-primary-card .vl{font-size:12px;color:var(--ink-soft)}@media(max-width:520px){.jvb-primary{grid-template-columns:1fr}}',
+      '.jvb-primary{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)}.jvb-primary-card.principal{background:var(--accent-soft,#f1e9dc);border-width:2px}.jvb-primary-card.complementary{border-color:var(--border-soft,#ddd)}.jvb-primary-card.complementary .v{font-size:24px}.jvb-applied{display:block;font-size:10px;font-weight:400;color:var(--ink-soft);margin-top:5px}@media(max-width:520px){.jvb-primary{grid-template-columns:1fr}}',
       '.jvb-hero{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:12px;margin-bottom:12px}',
       '.jvb-main{border:1.5px solid var(--jvb-dcf);background:var(--accent-soft,rgba(79,70,229,.06));border-radius:14px;padding:16px 18px;min-width:0}',
       '.jvb-kicker{display:block;font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--accent-ink,var(--accent))}',

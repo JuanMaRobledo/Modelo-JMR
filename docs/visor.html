@@ -1178,7 +1178,7 @@
   // cambia y la elección se recuerda en este navegador.
   // v2 (30-sep-2026): el valor por defecto pasa a ser el DCF de hoy (criterio
   // Damodaran: valor intrínseco = DCF; los múltiplos son precio relativo).
-  var HEADLINE_KEY = 'jmr-valor-principal-v2';
+  var HEADLINE_KEY = 'jmr-valor-principal-v3-base';
   var HEADLINE_INFO = {
     dcfHoy: { titulo: 'Valor intrínseco hoy (DCF)', hoy: true,
       desc: 'Lo que vale la acción hoy según sus flujos de caja (DCF de Damodaran). Es el valor intrínseco: no depende de cuánto paga hoy el mercado por empresas parecidas. Se compara con el precio de hoy.' },
@@ -1206,7 +1206,7 @@
     var r = currentResumen || {}, dm = r.descuentoMultiples || {};
     var map = { ponderadoHoy: dm.ponderadoHoy || r.valorPresentePonderado, dcfHoy: dm.dcfHoy, multHoy: dm.multiplesHoy, fy3: r.objetivoPonderado };
     var unified = r.valorEsperado && r.valorEsperado.escenariosUnificados;
-    if (key === 'dcfHoy' && unified) { var hs=r.valorEsperado.historias; return {conservador:Math.min.apply(null,hs.map(function(x){return x.valor;})),base:r.valorEsperado.valor,optimista:Math.max.apply(null,hs.map(function(x){return x.valor;}))}; }
+    if (key === 'dcfHoy' && unified) { var hs=r.valorEsperado.historias; return {conservador:Math.min.apply(null,hs.map(function(x){return x.valor;})),base:((hs.find(function(x){return x.id===(r.valorEsperado.historiaCentralId||'A');})||{}).valor),optimista:Math.max.apply(null,hs.map(function(x){return x.valor;}))}; }
     var t = map[key];
     return (t && typeof t.base === 'number' && isFinite(t.base)) ? t : null;
   }
@@ -1216,7 +1216,7 @@
     if(!vals && key !== 'fy3'){ vals = headlineValues('fy3'); key = 'fy3'; fallback = true; }
     var info = HEADLINE_INFO[key];
     var unified = key === 'dcfHoy' && currentResumen.valorEsperado && currentResumen.valorEsperado.escenariosUnificados;
-    return { key: key, titulo: unified ? 'Valor intrínseco esperado hoy (DCF)' : info.titulo, hoy: info.hoy, desc: unified ? 'Promedio de los cuatro DCF ponderados por probabilidades. Escenarios e historias son la misma familia; el rango muestra sus desenlaces.' : info.desc, valores: vals || {}, fallback: fallback, unified: unified };
+    return { key: key, titulo: unified ? 'Valor intrínseco principal · DCF Base hoy' : info.titulo, hoy: info.hoy, desc: unified ? 'DCF de la tesis Base como valor principal. El esperado por probabilidades se muestra como complemento; el rango contiene los cuatro escenarios.' : info.desc, valores: vals || {}, fallback: fallback, unified: unified };
   }
   function fmtVsPrecio(target, basePrice){
     if(typeof target !== 'number' || !isFinite(target) || typeof basePrice !== 'number' || !isFinite(basePrice) || !basePrice) return '—';
@@ -1316,7 +1316,7 @@
       ? JmrValueBoard.veBox(JmrValueBoard.fromRecord(currentResumen, { precio: currentResumen.precio, precioLbl: 'Precio de hoy' })) : '';
     var sel = document.getElementById('headlineSel');
     var h = headlineData();
-    ['hlC','hlB','hlO'].forEach(function(id,i){document.getElementById(id).parentElement.querySelector('.lbl').textContent=h.unified?['Mínimo de historias','DCF esperado','Máximo de historias'][i]:['Conservador','Base','Optimista'][i];});
+    ['hlC','hlB','hlO'].forEach(function(id,i){document.getElementById(id).parentElement.querySelector('.lbl').textContent=h.unified?['Mínimo de escenarios','DCF Base','Máximo de escenarios'][i]:['Conservador','Base','Optimista'][i];});
     ['dcfHoy','ponderadoHoy','multHoy'].forEach(function(k){
       var opt = sel.querySelector('option[value="' + k + '"]');
       if(opt) opt.disabled = !headlineValues(k);
