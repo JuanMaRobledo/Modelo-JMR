@@ -1,4 +1,4 @@
-const CACHE = "modelo-jmr-v126-base-narrativa-tablas";
+const CACHE = "modelo-jmr-v127-preferentes";
 const APP_SHELL = [
   "index.html",
   "visor.html",
