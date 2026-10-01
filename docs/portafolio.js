@@ -259,13 +259,9 @@
     return '' +
       '<div class="port-kv-row"><span class="port-fecha">Analizado el ' + escapeHtml(r.fecha || '—') + '</span></div>' +
       '<div class="port-kv"><span class="k">Precio al día del análisis</span><span class="v mono">' + fmtMoney(precio) + '</span></div>' +
-      (typeof JmrValueBoard !== 'undefined' ? JmrValueBoard.veBox(JmrValueBoard.fromRecord(r)) : scenarios('DCF · valor intrínseco hoy',dm.dcfHoy)) + scenarios('Múltiplos · valor hoy',dm.multiplesHoy) +
-      (r.valorPresentePonderado ? '<div class="port-kv"><span class="k">Valor ponderado hoy</span><span class="v mono">Cons ' + fmtMoney(r.valorPresentePonderado.conservador) + ' · Base ' + fmtMoney(r.valorPresentePonderado.base) + ' · Opt ' + fmtMoney(r.valorPresentePonderado.optimista) + '</span></div>' : '') +
-      scenarios('Múltiplos · objetivo FY+3',mw?multiples:null) +
-      (r.objetivoPonderado ? '<div class="port-kv"><span class="k">Combinado FY+3</span><span class="v mono">Cons ' + fmtMoney(r.objetivoPonderado.conservador) + ' · Base ' + fmtMoney(r.objetivoPonderado.base) + ' · Opt ' + fmtMoney(r.objetivoPonderado.optimista) + '</span></div>' : '') +
-      (zve ? '<div class="port-kv"><span class="k">Valor esperado · historias</span><span class="v mono">' + fmtMoney(r.valorEsperado.valor) + (isFinite(Number(r.mos)) ? ' · con MOS ' + fmtMoney(r.valorEsperado.valor * (1 - Number(r.mos))) : '') + '</span></div>' : '') +
+      (typeof JmrValueBoard !== 'undefined' ? JmrValueBoard.html(JmrValueBoard.fromRecord(r), {hero:true}) : scenarios('DCF Base hoy',dm.dcfHoy)) +
       '<div class="chart-card">' + (zve ? '<p class="port-zonas-nota">Zonas de compra sobre el valor esperado de las historias</p>' : '') +
-      (zve ? buildZonesChart(precio, zve, null, [{ value: r.valorEsperado.valor, label: 'Valor esperado', cls: 'chart-ref-base' }, { value: r.valorEsperado && r.valorEsperado.escenariosUnificados ? r.valorEsperado.valorCentral : dm.dcfHoy && dm.dcfHoy.base, label: r.valorEsperado && r.valorEsperado.escenariosUnificados ? 'Historia central A' : 'DCF Base', cls: 'chart-ref-opt' }])
+      (zve ? buildZonesChart(precio, zve, null, [{ value: r.valorEsperado.valor, label: 'Valor esperado', cls: 'chart-ref-base' }, { value: r.valorEsperado && r.valorEsperado.escenariosUnificados ? r.valorEsperado.valorCentral : dm.dcfHoy && dm.dcfHoy.base, label: r.valorEsperado && r.valorEsperado.escenariosUnificados ? 'Tesis Base' : 'DCF Base', cls: 'chart-ref-opt' }])
            : buildZonesChart(precio, r.zonas, r.objetivoPonderado)) + '</div>';
   }
 

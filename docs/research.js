@@ -4,7 +4,7 @@
   var LOCAL_KEY = 'jmr-research-library-v1';
   // Clave nueva: los cambios locales del antiguo prompt de 21 secciones
   // no deben ocultar la versión maestra v4 al actualizar la aplicación.
-  var PROMPT_KEY = 'jmr-research-prompt-v5-historias-20260930';
+  var PROMPT_KEY = 'jmr-research-prompt-v5-narrativa-20261001';
   var GH_REPO_API = 'https://api.github.com/repos/JuanMaRobledo/Modelo-JMR-datos/';
   var GH_API = GH_REPO_API + 'contents/';
   // Algunos logos del CDN de FMP desaparecen aunque la empresa siga
@@ -500,7 +500,7 @@
       return fetchJsonFile(matches[0].path).then(function (rec) { return { rec: rec, path: matches[0].path, count: matches.length }; });
     }).then(function (found) {
       var rec = found.rec;
-      state.linkedValuation = { precio: rec.precio, fecha: rec.fecha, zonas: rec.zonas, objetivoPonderado: rec.objetivoPonderado, valorPresentePonderado: rec.valorPresentePonderado, descuentoMultiples: rec.descuentoMultiples, metodos: rec.metodos, cagr: rec.cagr, mos: rec.mos, hojaGoogle: rec.hojaGoogle, valorEsperado: rec.valorEsperado, sourcePath: found.path };
+      state.linkedValuation = { precio: rec.precio, fecha: rec.fecha, zonas: rec.zonas, objetivoPonderado: rec.objetivoPonderado, valorPresentePonderado: rec.valorPresentePonderado, descuentoMultiples: rec.descuentoMultiples, metodos: rec.metodos, hojas: rec.hojas, cagr: rec.cagr, mos: rec.mos, hojaGoogle: rec.hojaGoogle, valorEsperado: rec.valorEsperado, sourcePath: found.path };
       renderPreview();
       setStatus('linkVisorStatus','Vinculado con "' + found.path + '"' + (found.count > 1 ? ' (la más reciente de ' + found.count + ' guardadas para este ticker)' : '') + '.','ok');
     }).catch(function (err) { setStatus('linkVisorStatus', err.message, 'bad'); }).finally(function () { btn.disabled = false; });
@@ -517,7 +517,7 @@
     var openedId=state.id, linkedPath=state.linkedValuation.sourcePath;
     if(linkedPath) fetchJsonFile(linkedPath).then(function(rec){
       if(state.id!==openedId||!state.linkedValuation||state.linkedValuation.sourcePath!==linkedPath)return;
-      state.linkedValuation=Object.assign({},state.linkedValuation,{valorPresentePonderado:rec.valorPresentePonderado,descuentoMultiples:rec.descuentoMultiples,metodos:rec.metodos,objetivoPonderado:rec.objetivoPonderado,mos:rec.mos,hojaGoogle:rec.hojaGoogle,valorEsperado:rec.valorEsperado});
+      state.linkedValuation=Object.assign({},state.linkedValuation,{valorPresentePonderado:rec.valorPresentePonderado,descuentoMultiples:rec.descuentoMultiples,metodos:rec.metodos,hojas:rec.hojas,objetivoPonderado:rec.objetivoPonderado,mos:rec.mos,hojaGoogle:rec.hojaGoogle,valorEsperado:rec.valorEsperado});
       renderPreview();
     }).catch(function(){});
     listValoraciones().then(function (files) {
@@ -1024,11 +1024,11 @@
     research: { file: 'prompts/research-fundamental-jmr-v5.md', key: PROMPT_KEY, download: 'JMR - PROMPT Research VIGENTE v5.md',
       title: 'Prompt maestro v5 · 18 secciones · historias y escenarios', btn: 'promptKindResearch',
       help: 'Úsalo en ChatGPT o Claude junto con la tabla del Modelo JMR. El esquema fijo hace que ambos produzcan documentos comparables.',
-      note: 'Adjunta la tabla JMR y los informes disponibles. Revisión 30-sep-2026: cuatro historias como escenarios activos, supuestos y resultados trazables, DCF base y esperado juntos; sección 12 con cálculo explicado y control de congruencia.' },
-    valuation: { file: 'prompts/valoracion-modelo-jmr-v4.md', key: 'jmr-valuation-prompt-v4-historias-20260930', download: 'JMR - PROMPT Valoracion VIGENTE v4.md',
+      note: 'Adjunta la tabla JMR y los informes disponibles. Revisión 30-sep-2026: cuatro historias como escenarios activos, supuestos y resultados trazables, DCF Base principal y esperado complementario; sección 12 con cálculo explicado y control de congruencia.' },
+    valuation: { file: 'prompts/valoracion-modelo-jmr-v4.md', key: 'jmr-valuation-prompt-v4-narrativa-20261001', download: 'JMR - PROMPT Valoracion VIGENTE v4.md',
       title: 'Prompt de valoración v4 · historias y escenarios', btn: 'promptKindValuation',
       help: 'Arma el Modelo JMR de punta a punta (SEC EDGAR, costo de capital, supuestos anclados, bugs conocidos, guardado en Drive) y elige los múltiplos con tres anclas documentadas: historia depurada, peers ajustados y múltiplo justificado.',
-      note: 'El valor intrínseco es el DCF; los múltiplos (con sus tres anclas) son precio relativo y se ponderan solo si se quiere, según el tipo de empresa. Cuatro historias son los escenarios: base, conservadora, disrupción y optimista. DCF base y esperado destacados, puente del cálculo y auditoría de congruencia; precio al final.' }
+      note: 'El valor intrínseco es el DCF; los múltiplos (con sus tres anclas) son precio relativo y se ponderan solo si se quiere, según el tipo de empresa. Cuatro historias son los escenarios: base, conservadora, disrupción y optimista. DCF Base principal y esperado complementario, puente del cálculo y auditoría de congruencia; precio al final.' }
   };
   var promptKind = 'research', defaultPrompts = {};
   try { if (localStorage.getItem('jmr-prompt-kind') === 'valuation') promptKind = 'valuation'; } catch (e) {}
