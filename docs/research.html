@@ -52,6 +52,8 @@ body.research-page .wrap{max-width:none;padding-inline:clamp(16px,2.5vw,48px)}bo
 .compare-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.compare-col{min-width:0}
 @media(max-width:900px){.compare-grid{grid-template-columns:1fr}}
 @media(max-width:600px){.research-document th,.research-document td{padding:4px;font-size:clamp(9px,2.5vw,12px);line-height:1.35}}
+/* Tablas anchas (8+ columnas, p. ej. la trayectoria anual de cada historia): en móvil se desplazan en horizontal en vez de solaparse. */
+@media(max-width:600px){.research-document table:not(.jvb-table):has(tr>:nth-child(8)){display:block;overflow-x:auto;table-layout:auto;-webkit-overflow-scrolling:touch}.research-document table:not(.jvb-table):has(tr>:nth-child(8)) th,.research-document table:not(.jvb-table):has(tr>:nth-child(8)) td{white-space:nowrap;overflow-wrap:normal}}
 @media print{.research-document th,.research-document td{padding:4px;font-size:10px}}
 .pdf-header img{width:52px;height:auto;flex:none}
 /* Tablas del análisis (30-sep-2026): contenedor redondeado, encabezado sobrio,
