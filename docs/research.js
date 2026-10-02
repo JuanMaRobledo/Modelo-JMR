@@ -1028,17 +1028,30 @@
     valuation: { file: 'prompts/valoracion-modelo-jmr-v4.md', key: 'jmr-valuation-prompt-v4-integridad-20261001', download: 'JMR - PROMPT Valoracion VIGENTE v4.md',
       title: 'Prompt de valoración v4 · historias y escenarios', btn: 'promptKindValuation',
       help: 'Arma el Modelo JMR de punta a punta (SEC EDGAR, costo de capital, supuestos anclados, bugs conocidos, guardado en Drive) y elige los múltiplos con tres anclas documentadas: historia depurada, peers ajustados y múltiplo justificado.',
-      note: 'DCF Base al presente primero. Siempre muestra métodos individuales, ponderado de múltiplos solos y ponderado DCF + múltiplos, tanto al presente como a 3 años sin descontar; pesos y dividendos explícitos. Cuatro historias: Base, Conservadora, Disrupción y Optimista. Precio al final.' }
+      note: 'DCF Base al presente primero. Siempre muestra métodos individuales, ponderado de múltiplos solos y ponderado DCF + múltiplos, tanto al presente como a 3 años sin descontar; pesos y dividendos explícitos. Fórmula única en todas las hojas (maestra + contrato): solo cambian datos enlazados y supuestos. Cuatro historias: Base, Conservadora, Disrupción y Optimista. Precio al final.' }
   };
   var promptKind = 'research', defaultPrompts = {};
   try { if (localStorage.getItem('jmr-prompt-kind') === 'valuation') promptKind = 'valuation'; } catch (e) {}
   function currentPrompt(){ return PROMPTS[promptKind]; }
+  // Bloques obligatorios (2-oct-2026) que se agregan a un prompt guardado que no los tenga, en el orden del vigente.
+  var REQUIRED_BLOCKS = ['JMR-HORIZONTES-OBLIGATORIOS-20261002', 'JMR-FORMULA-UNICA-20261002'];
   function withRequiredHorizons(saved, current) {
-    var start = '<!-- JMR-HORIZONTES-OBLIGATORIOS-20261002 -->';
-    var end = '<!-- /JMR-HORIZONTES-OBLIGATORIOS-20261002 -->';
-    if (!saved || saved.indexOf(start) !== -1) return saved;
-    var a = current.indexOf(start), b = current.indexOf(end);
-    return a >= 0 && b > a ? current.slice(a, b + end.length) + '\n\n' + saved : saved;
+    if (!saved) return saved;
+    var prevEnd = null;
+    REQUIRED_BLOCKS.forEach(function(id){
+      var start = '<!-- ' + id + ' -->', end = '<!-- /' + id + ' -->';
+      if (saved.indexOf(start) === -1) {
+        var a = current.indexOf(start), b = current.indexOf(end);
+        if (a >= 0 && b > a) {
+          var block = current.slice(a, b + end.length);
+          var at = prevEnd ? saved.indexOf(prevEnd) : -1;
+          saved = at >= 0 ? saved.slice(0, at + prevEnd.length) + '\n\n' + block + saved.slice(at + prevEnd.length)
+                          : block + '\n\n' + saved;
+        }
+      }
+      prevEnd = end;
+    });
+    return saved;
   }
   function showPromptMeta(){
     var p = currentPrompt();

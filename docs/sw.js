@@ -1,4 +1,4 @@
-const CACHE = "modelo-jmr-v129-dividendos-por-anio";
+const CACHE = "modelo-jmr-v130-formula-unica";
 const APP_SHELL = [
   "index.html",
   "visor.html",
