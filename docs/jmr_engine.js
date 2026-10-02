@@ -222,14 +222,22 @@ function precioMultiplo(inp, name, M, f, n){
 }
 var METRICAS = {evEbitda:'ebitda', evFcff:'fcff', pe:'netIncome', pfcfe:'fcfe', pocf:'ocf'};
 
-// Múltiplos a valor presente (29-sep-2026): el precio de cada múltiplo al
-// cierre del año n (n = 1, 2, 3) más los dividendos acumulados hasta ese año
-// (sumados nominalmente) se trae a hoy con el costo del patrimonio:
-//   VP_n = (Precio_n + Dividendos_1..n) / (1 + Ke)^n
+// Múltiplos a valor presente (29-sep-2026; dividendos año a año desde el
+// 2-oct-2026): el precio de cada múltiplo al cierre del año n (n = 1, 2, 3)
+// se trae a hoy con el costo del patrimonio y cada dividendo se descuenta en
+// su año de pago:
+//   VP_n = Precio_n / (1 + Ke)^n + suma(Dividendo_t / (1 + Ke)^t), t = 1..n
+// precioMasDividendos = Precio_n + Dividendos_1..n (como la hoja); dps[t] =
+// dividendo por acción del año t (sin dps, el total se descuenta entero).
 // Se consolida por método con el promedio simple de los 3 horizontes
 // ("promedio", por defecto) o solo con el de 3 años ("solo3").
-function valorPresenteMultiplo(precioMasDividendos, ke, n){
-  return precioMasDividendos/Math.pow(1+ke, n);
+function valorPresenteMultiplo(precioMasDividendos, ke, n, dps){
+  var acum = 0, vpDiv = 0;
+  for(var t=1;t<=n;t++){
+    var d = (dps && typeof dps[t] === 'number' && isFinite(dps[t])) ? dps[t] : 0;
+    acum += d; vpDiv += d/Math.pow(1+ke, t);
+  }
+  return (precioMasDividendos - acum)/Math.pow(1+ke, n) + vpDiv;
 }
 function consolidarHorizontes(vp, criterio){
   if(criterio === 'solo3') return vp[2];
@@ -304,7 +312,7 @@ function calcularModeloJMR(inp){
       for(var n=1;n<=3;n++){
         var total = precioMultiplo(inp, name, methods[name][s], f, n) + cumDiv(f, n);
         nominal.push(total);
-        vp.push(valorPresenteMultiplo(total, ke, n));
+        vp.push(valorPresenteMultiplo(total, ke, n, f.dps));
       }
       vpMetodos[name][s] = {nominal: nominal, vp: vp, consolidado: consolidarHorizontes(vp, criterio)};
     });

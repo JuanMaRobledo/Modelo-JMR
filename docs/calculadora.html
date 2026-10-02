@@ -574,7 +574,7 @@
     add('Múltiplos consolidados', v.pesoMultiplos, v.multiplos);
     add('Ponderado hoy (secundario)', v.pesoDcf + v.pesoMultiplos, v.ponderado, 'total');
     var ok = ['cons','base','opt'].every(function(k){ return v.chequeo[k].ok; });
-    document.getElementById('pvNote').textContent = 'VP = (precio FY+n + dividendos acumulados) ÷ (1 + ' + fmtPct(v.tasaDescuento) + ')^n, n = 1, 2, 3; ' +
+    document.getElementById('pvNote').textContent = 'VP = precio FY+n ÷ (1 + ' + fmtPct(v.tasaDescuento) + ')^n + cada dividendo descontado en su año, n = 1, 2, 3; ' +
       (v.criterio === 'solo3' ? 'solo el de 3 años' : 'promedio de los 3 horizontes') + ' por método. Chequeo VP 3 años < FY+3 sin descontar (Base ' +
       fmtMoney(v.chequeo.base.multiplosVP3) + ' vs ' + fmtMoney(v.chequeo.base.multiplosFY3SinDescontar) + '): ' + (ok ? 'OK' : 'REVISAR') + '.';
   }

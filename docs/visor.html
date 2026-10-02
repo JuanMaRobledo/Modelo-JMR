@@ -2805,8 +2805,8 @@
   }
 
   // Hoja «Descuento de múltiplos» (29-sep-2026): cada múltiplo se trae a
-  // valor presente en 1, 2 y 3 años — VP_n = (precio FY+n + dividendos
-  // acumulados) ÷ (1 + Ke)^n — y se consolida por método (promedio simple
+  // valor presente en 1, 2 y 3 años — VP_n = precio FY+n ÷ (1 + Ke)^n +
+  // suma(dividendo FY+t ÷ (1 + Ke)^t) — y se consolida por método (promedio simple
   // de los tres horizontes, o solo el de 3 años según la celda C6). Las
   // hojas anteriores solo tenían el puente a 3 años (Ke en D2): se leen
   // igual, sin el detalle por horizonte.
@@ -2839,7 +2839,7 @@
     return {
       version: 2, horizontes: [1, 2, 3], horizonteAnios: 3,
       costoPatrimonio: cellVal(s,'B5'), criterio: cellVal(s,'B6') || 'Promedio 1-3 años',
-      formula: 'VP_n = (Precio FY+n + Dividendos FY+1..FY+n) / (1 + Ke)^n',
+      formula: 'VP_n = Precio FY+n / (1 + Ke)^n + suma(Dividendo FY+t / (1 + Ke)^t), t = 1..n',
       dcfHoy: trio(s, 38), multiplesHoy: trio(s, 39), ponderadoHoy: trio(s, 40),
       pesoDcf: num(cellVal(s,'B38')), pesoMultiplos: num(cellVal(s,'B39')),
       metodos: metodos, consolidado: consolidado,
@@ -2887,7 +2887,7 @@
     var note = [];
     if(typeof dm.costoPatrimonio === 'number') note.push('Tasa de descuento (Ke): ' + fmtPct(dm.costoPatrimonio));
     if(dm.version >= 2){
-      note.push('VP = (precio FY+n + dividendos acumulados) ÷ (1 + Ke)^n');
+      note.push('VP = precio FY+n ÷ (1 + Ke)^n + cada dividendo descontado en su año');
       note.push('consolidado por método: ' + (dm.criterio || 'Promedio 1-3 años'));
       note.push('ponderado = DCF × peso DCF + múltiplos × peso múltiplos');
     } else {
@@ -3611,7 +3611,7 @@
     add('Múltiplos consolidados', v.pesoMultiplos, v.multiplos);
     add('Ponderado hoy (secundario)', v.pesoDcf + v.pesoMultiplos, v.ponderado, 'total');
     var ok = ['cons','base','opt'].every(function(k){ return v.chequeo[k].ok; });
-    document.getElementById('rc_pvNote').textContent = 'VP = (precio FY+n + dividendos acumulados) ÷ (1 + ' + fmtPct(v.tasaDescuento) + ')^n, n = 1, 2, 3; ' +
+    document.getElementById('rc_pvNote').textContent = 'VP = precio FY+n ÷ (1 + ' + fmtPct(v.tasaDescuento) + ')^n + cada dividendo descontado en su año, n = 1, 2, 3; ' +
       (v.criterio === 'solo3' ? 'solo el de 3 años' : 'promedio de los 3 horizontes') + ' por método. Chequeo VP 3 años < FY+3 sin descontar (Base ' +
       fmtMoney(v.chequeo.base.multiplosVP3) + ' vs ' + fmtMoney(v.chequeo.base.multiplosFY3SinDescontar) + '): ' + (ok ? 'OK' : 'REVISAR') + '.';
   }
