@@ -1,4 +1,4 @@
-const CACHE = "modelo-jmr-v127-preferentes";
+const CACHE = "modelo-jmr-v128-prompts-ambos-horizontes";
 const APP_SHELL = [
   "index.html",
   "visor.html",
@@ -61,4 +61,3 @@ self.addEventListener("fetch", (event) => {
       .catch(() => caches.match(event.request))
   );
 });
-

@@ -1028,11 +1028,18 @@
     valuation: { file: 'prompts/valoracion-modelo-jmr-v4.md', key: 'jmr-valuation-prompt-v4-integridad-20261001', download: 'JMR - PROMPT Valoracion VIGENTE v4.md',
       title: 'Prompt de valoración v4 · historias y escenarios', btn: 'promptKindValuation',
       help: 'Arma el Modelo JMR de punta a punta (SEC EDGAR, costo de capital, supuestos anclados, bugs conocidos, guardado en Drive) y elige los múltiplos con tres anclas documentadas: historia depurada, peers ajustados y múltiplo justificado.',
-      note: 'El valor intrínseco es el DCF; los múltiplos (con sus tres anclas) son precio relativo y se ponderan solo si se quiere, según el tipo de empresa. Cuatro historias son los escenarios: base, conservadora, disrupción y optimista. DCF Base principal y esperado complementario, puente del cálculo y auditoría de congruencia; precio al final.' }
+      note: 'DCF Base al presente primero. Siempre muestra métodos individuales, ponderado de múltiplos solos y ponderado DCF + múltiplos, tanto al presente como a 3 años sin descontar; pesos y dividendos explícitos. Cuatro historias: Base, Conservadora, Disrupción y Optimista. Precio al final.' }
   };
   var promptKind = 'research', defaultPrompts = {};
   try { if (localStorage.getItem('jmr-prompt-kind') === 'valuation') promptKind = 'valuation'; } catch (e) {}
   function currentPrompt(){ return PROMPTS[promptKind]; }
+  function withRequiredHorizons(saved, current) {
+    var start = '<!-- JMR-HORIZONTES-OBLIGATORIOS-20261002 -->';
+    var end = '<!-- /JMR-HORIZONTES-OBLIGATORIOS-20261002 -->';
+    if (!saved || saved.indexOf(start) !== -1) return saved;
+    var a = current.indexOf(start), b = current.indexOf(end);
+    return a >= 0 && b > a ? current.slice(a, b + end.length) + '\n\n' + saved : saved;
+  }
   function showPromptMeta(){
     var p = currentPrompt();
     el('promptTitle').textContent = p.title; el('promptHelp').textContent = p.help; el('promptNote').textContent = p.note;
@@ -1041,7 +1048,7 @@
   function loadPrompt(force) {
     var kind = promptKind, p = PROMPTS[kind];
     showPromptMeta();
-    fetch(p.file,{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.text();}).then(function(text){if(kind!==promptKind)return;defaultPrompts[kind]=text;var saved='';try{saved=localStorage.getItem(p.key)||'';}catch(e){}el('promptText').value=force||!saved?text:saved;setStatus('promptStatus','','');}).catch(function(err){setStatus('promptStatus','No se pudo cargar el prompt: '+err.message,'bad');});
+    fetch(p.file,{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.text();}).then(function(text){if(kind!==promptKind)return;defaultPrompts[kind]=text;var saved='';try{saved=localStorage.getItem(p.key)||'';var revised=withRequiredHorizons(saved,text);if(revised!==saved){saved=revised;localStorage.setItem(p.key,saved);}}catch(e){}el('promptText').value=force||!saved?text:saved;setStatus('promptStatus','','');}).catch(function(err){setStatus('promptStatus','No se pudo cargar el prompt: '+err.message,'bad');});
   }
   Object.keys(PROMPTS).forEach(function(k){ el(PROMPTS[k].btn).addEventListener('click', function(){ if (k === promptKind) return; promptKind = k; try { localStorage.setItem('jmr-prompt-kind', k); } catch (e) {} loadPrompt(false); }); });
   el('copyPromptBtn').addEventListener('click',function(){navigator.clipboard.writeText(el('promptText').value).then(function(){setStatus('promptStatus','Prompt copiado.','ok');}).catch(function(){el('promptText').select();document.execCommand('copy');setStatus('promptStatus','Prompt copiado.','ok');});});

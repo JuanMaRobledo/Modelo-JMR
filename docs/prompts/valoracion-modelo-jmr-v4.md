@@ -1,5 +1,26 @@
 # Prompt Maestro: Modelo de Valoración Damodaran para Cualquier Ticker (v4 · revisión historias 30-sep-2026)
 
+<!-- JMR-HORIZONTES-OBLIGATORIOS-20261002 -->
+## Presentación obligatoria de ambos horizontes · 2-oct-2026
+
+Esta instrucción se aplica **siempre**, a cualquier empresa y en ambos prompts, y prevalece sobre indicaciones anteriores que permitan omitir los ponderados o presentar solo uno de los horizontes. El **DCF Base al presente** aparece primero como valor intrínseco principal; el esperado por probabilidades sigue como complemento. Los múltiplos y los ponderados son lecturas secundarias.
+
+Presenta **dos tablas completas**, con moneda, fecha de valoración, horizonte y escenarios claramente identificados (Base primero):
+
+1. **Valor por acción descontado al presente:** cada método de múltiplos por separado; **ponderado de múltiplos solos al presente**; **ponderado DCF + múltiplos al presente**. Indica si el valor presente por método usa el promedio de los horizontes 1, 2 y 3 o solo el horizonte 3; muestra el criterio vigente sin cambiarlo silenciosamente.
+2. **Valor por acción a 3 años sin descontar (FY+3):** cada método de múltiplos por separado; **ponderado de múltiplos solos a 3 años sin descontar**; **ponderado DCF + múltiplos a 3 años sin descontar**. Distingue precio objetivo exdividendo, dividendos acumulados y total, cuando la hoja incluya distribuciones.
+
+El múltiplo aplicado (×) y el resultado por acción (moneda) son conceptos distintos: informa ambos y no llames «múltiplo» a un precio. No sustituyas las dos tablas por cifras separadas por barras ni por un único combinado. Si existen solo tres escenarios auxiliares de múltiplos, identifica ese alcance y no inventes Disrupción.
+
+**Pesos y fórmulas:** conserva los pesos vigentes y documenta la categoría de empresa. Para los múltiplos solos, normaliza los pesos de los métodos aplicables al **100% entre los múltiplos**: peso_relativo_i = peso_i / suma(pesos_múltiplos_aplicables); ponderado_múltiplos_h = suma(peso_relativo_i × valor_i,h). Para el combinado usa los pesos originales: ponderado_combinado_h = peso_DCF × DCF_h + suma(peso_i × valor_i,h), con suma de pesos = 100%. No confundas este ponderado de métodos con las probabilidades de las cuatro historias DCF.
+
+En el combinado presente usa **DCF al presente**. En el combinado FY+3, usa el DCF llevado al mismo horizonte con el Ke vigente y la convención de la hoja, debidamente explicada. Si se usa DCF_hoy × (1 + Ke)^3, rotúlalo **DCF capitalizado a FY+3 antes de distribuciones**: expresa riqueza capitalizada, no un nuevo DCF ni un precio exdividendo. No mezcles DCF presente con múltiplos futuros.
+
+Descuenta cada dividendo en su año de pago: VP_n = Precio_FY+n / (1 + Ke)^n + suma(Dividendo_FY+t / (1 + Ke)^t), t = 1..n. No descontar todos los dividendos acumulados como si se pagaran en el año de salida. No los sumes otra vez a un resultado que ya los incluya.
+
+**Control de cierre obligatorio:** ambas tablas contienen métodos individuales, ponderado de múltiplos solos y ponderado DCF + múltiplos; los pesos y resultados reproducen la hoja y coinciden entre informe, app y resumen final. Si un método no aplica, justifícalo y muestra sus pesos efectivos. Si falta una cifra o no existen pesos definidos, conserva la fila con «pendiente» y explica qué falta; no inventes valores ni pesos para completarla. Mostrar ambas lecturas no autoriza cambiar anclas, añadir valoración por promedios históricos ni alterar la política de MOS.
+<!-- /JMR-HORIZONTES-OBLIGATORIOS-20261002 -->
+
 
 ### Control de integridad · 1 de octubre de 2026
 
@@ -482,7 +503,8 @@ Seguí este proceso, en este orden:
 
 7. MÚLTIPLOS A VALOR PRESENTE (hoja "Descuento de múltiplos", automática)
    - La hoja trae a hoy cada múltiplo en 1, 2 y 3 años:
-     VP_n = (Precio objetivo FY+n + Dividendos acumulados FY+1..FY+n) / (1 + Ke)^n,
+     VP_n = Precio objetivo FY+n / (1 + Ke)^n
+     + suma(Dividendo FY+t / (1 + Ke)^t), para t = 1..n,
      consolida cada método con el promedio de los tres horizontes (C6 = "Solo 3
      años" usa solo el de 3 años) y pondera: DCF hoy × peso DCF + múltiplos
      consolidados hoy × peso múltiplos.
@@ -492,9 +514,9 @@ Seguí este proceso, en este orden:
      'Resumen de Valoración' C32:E34 muestra DCF hoy, múltiplos hoy y ponderado.
    - Si la hoja no existe, corré scripts/discount_multiples.py (ver Contexto).
 
-8. PONDERACIÓN OPCIONAL DE MÉTODOS (Resumen de Valoración)
+8. PONDERACIÓN DE MÉTODOS · AMBOS HORIZONTES OBLIGATORIOS (Resumen de Valoración)
    - El valor intrínseco es el DCF. El ponderado DCF + múltiplos es una lectura
-     opcional que la app muestra por aparte; los pesos dependen del tipo de
+     secundaria que debe mostrarse por aparte en ambos horizontes; los pesos dependen del tipo de
      empresa (tabla I5:U11) y solo tiene sentido si los múltiplos pasaron el
      chequeo de crecimiento implícito (6.5).
    - Revisá qué categoría de "Tipo de Empresa" (G3) mejor describe a {TICKER}
@@ -539,7 +561,8 @@ Seguí este proceso, en este orden:
         tasa, resultado); Conservador / Base / Optimista elegidos; regla y
         excepciones; celdas escritas.
      e) Tabla de resultado por escenario, separando HOY de FY+3:
-        DCF hoy · múltiplos consolidados hoy · ponderado opcional de métodos hoy ·
+        DCF Base hoy primero · métodos individuales y ponderado de múltiplos solos
+        hoy y FY+3 · ponderado DCF + múltiplos hoy y FY+3 ·
         precio con MOS hoy (sobre el valor esperado de las historias si el
         análisis fundamental ya las tiene; si no, sobre el DCF) · precio objetivo FY+3 ponderado · precio actual y
         diferencia (valor hoy / precio − 1).
@@ -569,8 +592,9 @@ Seguí este proceso, en este orden:
        6. Múltiplos (precio relativo): la tabla de origen del paso 10.d y un
           párrafo por método; chequeo de independencia (6.4).
        7. Resultados: precio FY+3 por método y escenario; los 15 valores presente
-          por escenario; consolidado por método; DCF hoy; ponderado hoy
-          (opcional); MOS; chequeo VP3 < FY+3.
+          por escenario; consolidado por método; DCF Base hoy primero; ponderado de múltiplos
+          solos hoy y FY+3; ponderado DCF + múltiplos hoy y FY+3; pesos
+          efectivos, dividendos y convención de capitalización; MOS; chequeo VP3 < FY+3.
        8. DCF vs. múltiplos (lectura Damodaran: qué expectativas reflejan los
           múltiplos, qué supone el DCF, cuál es más confiable y por qué).
        9. Sensibilidad del DCF (±2 pp de crecimiento, ±3 pp de margen, ±1 pp de
