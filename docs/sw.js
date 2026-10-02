@@ -1,4 +1,4 @@
-const CACHE = "modelo-jmr-v130-formula-unica";
+const CACHE = "modelo-jmr-v131-historias-damodaran";
 const APP_SHELL = [
   "index.html",
   "visor.html",
