@@ -21,6 +21,24 @@ Descuenta cada dividendo en su año de pago: VP_n = Precio_FY+n / (1 + Ke)^n + s
 **Control de cierre obligatorio:** ambas tablas contienen métodos individuales, ponderado de múltiplos solos y ponderado DCF + múltiplos; los pesos y resultados reproducen la hoja y coinciden entre informe, app y resumen final. Si un método no aplica, justifícalo y muestra sus pesos efectivos. Si falta una cifra o no existen pesos definidos, conserva la fila con «pendiente» y explica qué falta; no inventes valores ni pesos para completarla. Mostrar ambas lecturas no autoriza cambiar anclas, añadir valoración por promedios históricos ni alterar la política de MOS.
 <!-- /JMR-HORIZONTES-OBLIGATORIOS-20261002 -->
 
+<!-- JMR-FORMULA-UNICA-20261002 -->
+## Fórmula única en todas las hojas · 2-oct-2026
+
+Esta instrucción se aplica **siempre**, a cualquier empresa y en ambos prompts, y prevalece sobre indicaciones anteriores que permitan cambiar fórmulas de la hoja.
+
+**Una sola fórmula.** Todas las hojas usan exactamente las fórmulas de la **plantilla maestra con el contrato de escenarios** (DCF, costo de capital, conversores, opciones, proyecciones de múltiplos, pestañas de cada múltiplo, valoración histórica y Resumen). Entre empresas solo cambian los **datos reportados** y los **supuestos**; entre historias solo cambian el crecimiento inicial y objetivo, el margen inicial y objetivo, la reinversión y el ROIC terminal (según el criterio de ventaja: sin ventaja o en erosión, ROIC terminal = costo de capital). No se reescriben fórmulas de la plantilla para una empresa: si una fórmula está mal, se corrige en la maestra y en todas las hojas.
+
+**Contrato de escenarios en la hoja.** Cada escenario de múltiplos se proyecta con su historia: 'Financials Multiples' toma de 'Escenarios e historias' las ventas, el crecimiento, el margen, la tasa de impuestos (1 − NOPAT/EBIT) y la reinversión (Conservador ← Conservadora, filas 52-60; Base ← Base, filas 28-36; Optimista ← Optimista, filas 100-108). Las acciones de los múltiplos se mantienen constantes desde el año fiscal, sin recompras automáticas y sin referencias circulares. La deuda de los múltiplos EV sale de 'Valuation output' y se restan las preferentes ('Input sheet'!B76). Las zonas de compra del Resumen se miden contra el valor de hoy. El DCF a FY+3 del Resumen es el DCF de las historias × (1 + Ke)³ y la fila 38 de 'Descuento de múltiplos' es el DCF de las historias.
+
+**Datos: enlace + ajuste visible.** Cada dato de la 'Input sheet' (ventas, EBIT, intereses, patrimonio, deuda, caja, activos no operativos, acciones) se enlaza al estado financiero de la hoja. Si hace falta un ajuste (cargos de una vez, saldo de un 10-Q posterior, RSU, valor nominal de la deuda, preferentes), se escribe en la fórmula como enlace + ajuste (por ejemplo `='Balance Sheet'!L5+449,7`) y se explica en una nota de la celda con su fuente. No se escriben números fijos donde la plantilla enlaza. La deuda (B16) incluye los arrendamientos del balance solo si no se usa el conversor (B18 = "No"); con el conversor, se excluyen para no contarlos dos veces.
+
+**Supuestos que sí se escriben a mano**, con su justificación: crecimiento y márgenes del caso Base (B27-B33), tasa de impuestos proyectada (B24), costo de capital terminal (B47), ROIC terminal (B49-B50), activos no operativos cuando el analista decide excluirlos, parámetros de los escenarios técnicos en 'Valuation output', múltiplos objetivo (J8/J19/J30), el porcentaje de otros ingresos sobre EBIT proyectado ('Financials Multiples' E11/E50/E90; el promedio de tres años de la maestra falla cuando el EBIT histórico es casi nulo) y el precio fijado a la fecha de valoración.
+
+**Excepción declarada.** Las financieras con DCF del flujo al accionista (PAGS) conservan su bloque bancario de múltiplos; cualquier otra excepción se documenta y se pide aprobación antes de aplicarla.
+
+**Control.** Después de cualquier cambio de fórmulas, corre `scripts/audit_master_formulas.py` y `scripts/apply_canonical_formulas.py` (en seco: 0 celdas pendientes en cada hoja), `scripts/integridad_hojas.py` y el control de consistencia. Informa en el cierre: fórmula única verificada, datos enlazados (y cada ajuste con su nota) y supuestos escritos a mano.
+<!-- /JMR-FORMULA-UNICA-20261002 -->
+
 
 ### Control de integridad · 1 de octubre de 2026
 
