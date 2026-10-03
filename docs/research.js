@@ -1040,7 +1040,11 @@
     var prevEnd = null;
     REQUIRED_BLOCKS.forEach(function(id){
       var start = '<!-- ' + id + ' -->', end = '<!-- /' + id + ' -->';
-      if (saved.indexOf(start) === -1) {
+      var sa = saved.indexOf(start), sb = saved.indexOf(end);
+      if (sa !== -1 && sb > sa) {  // bloque ya presente: se reemplaza por la versión vigente
+        var ca = current.indexOf(start), cb = current.indexOf(end);
+        if (ca >= 0 && cb > ca) saved = saved.slice(0, sa) + current.slice(ca, cb + end.length) + saved.slice(sb + end.length);
+      } else if (saved.indexOf(start) === -1) {
         var a = current.indexOf(start), b = current.indexOf(end);
         if (a >= 0 && b > a) {
           var block = current.slice(a, b + end.length);
