@@ -572,8 +572,26 @@
     zone.addEventListener('drop',function(e){ pair[1](e.dataTransfer.files && e.dataTransfer.files[0]); });
   });
 
-  function getLocalLibrary() { try { var x=JSON.parse(localStorage.getItem(LOCAL_KEY)||'[]'); return Array.isArray(x)?x:[]; } catch(e){return [];} }
-  function setLocalLibrary(list) { localStorage.setItem(LOCAL_KEY, JSON.stringify(list)); }
+  // La biblioteca vive en memoria; localStorage es solo una copia. Los 22
+  // análisis con sus informes superan los ~5 MB que permite Safari (iPhone)
+  // por sitio: antes setItem lanzaba QuotaExceededError dentro de
+  // syncRemote(), el error se tragaba y la página mostraba «Todavía no hay
+  // análisis guardados» aunque GitHub los tuviera todos. Si no hay espacio,
+  // en el navegador quedan solo los análisis que todavía no están en GitHub
+  // (los demás se vuelven a bajar al abrir la página).
+  var memLibrary = null;
+  function getLocalLibrary() {
+    if (memLibrary) return memLibrary.slice();
+    try { var x=JSON.parse(localStorage.getItem(LOCAL_KEY)||'[]'); return Array.isArray(x)?x:[]; } catch(e){return [];}
+  }
+  function setLocalLibrary(list) {
+    memLibrary = list.slice();
+    try { localStorage.setItem(LOCAL_KEY, JSON.stringify(list)); }
+    catch (e) {
+      try { localStorage.setItem(LOCAL_KEY, JSON.stringify(list.filter(function (r) { return !r.remotePath; }))); }
+      catch (e2) { console.warn('No hay espacio en el navegador para la copia local de la biblioteca:', e2); }
+    }
+  }
   function makeId() { return 'research-' + Date.now() + '-' + Math.random().toString(36).slice(2,7); }
   function cleanRecord(r) { var copy=Object.assign({},r); delete copy.remoteSha; return copy; }
   function upsertLocal(record) {
@@ -618,7 +636,18 @@
   function syncRemote() {
     return fetch(GH_API+'analisis',{headers:ghHeaders()}).then(function(res){if(res.status===404)return[];if(!res.ok)throw new Error('HTTP '+res.status);return res.json();}).then(function(files){
       var jsons=(Array.isArray(files)?files:[]).filter(function(f){return /\.json$/i.test(f.name);});
-      return Promise.all(jsons.map(function(f){return fetch(f.url,{headers:ghHeaders()}).then(function(r){return r.json();}).then(function(data){var rec=JSON.parse(b64Decode(data.content.replace(/\n/g,'')));rec.remotePath=f.path;rec.remoteSha=f.sha;return rec;});}));
+      // Sin token, la API de GitHub permite 60 llamadas por hora: bajar cada
+      // análisis por la API (una llamada por archivo) agotaba ese cupo tras
+      // dos o tres aperturas y la biblioteca quedaba vacía. Sin token se usa
+      // la descarga directa (download_url, sin cupo de API); con token, la
+      // API, que siempre trae la última versión.
+      var raw=!getGhToken();
+      return Promise.all(jsons.map(function(f){
+        var get=(raw&&f.download_url)
+          ? fetch(f.download_url).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+          : fetch(f.url,{headers:ghHeaders()}).then(function(r){return r.json();}).then(function(data){return JSON.parse(b64Decode(data.content.replace(/\n/g,'')));});
+        return get.then(function(rec){rec.remotePath=f.path;rec.remoteSha=f.sha;return rec;});
+      }));
     }).then(function(remote){
       // La lista remota es autoritativa para los registros que alguna vez
       // estuvieron en GitHub. De otro modo, los borrados reviven desde
