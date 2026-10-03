@@ -848,18 +848,173 @@
   // debajo) es liviano y no requiere backend — si por algún motivo no
   // cargó desde el CDN, cae de vuelta a sugerir el botón de imprimir.
   function safeFileSlug(s) { return String(s || 'analisis').replace(/[^A-Za-z0-9._-]/g, '_'); }
+  // html2canvas 1.x no entiende los colores modernos (oklab/oklch, color(…)):
+  // Chrome y Safari los devuelven así en el estilo calculado de cualquier
+  // regla con color-mix(), y el PDF abortaba con «unsupported color function
+  // "oklab"». En la copia que se rasteriza se reemplazan por su rgba
+  // equivalente, que el propio navegador calcula pintando un píxel.
+  var MODERN_COLOR = /okl(?:ab|ch)\(|(?:^|[^a-z-])(?:lab|lch|color)\(/i;
+  var COLOR_PROPS = ['color', 'background-color', 'border-top-color', 'border-right-color', 'border-bottom-color',
+    'border-left-color', 'outline-color', 'text-decoration-color', 'fill', 'stroke', 'caret-color', 'column-rule-color'];
+  function fixModernColors(doc) {
+    var cv = doc.createElement('canvas'); cv.width = cv.height = 1;
+    var ctx = cv.getContext('2d', { willReadFrequently: true }), cache = {};
+    function toRgba(v) {
+      if (cache[v]) return cache[v];
+      ctx.clearRect(0, 0, 1, 1); ctx.fillStyle = 'rgba(0,0,0,0)'; ctx.fillStyle = v; ctx.fillRect(0, 0, 1, 1);
+      var d = ctx.getImageData(0, 0, 1, 1).data;
+      return (cache[v] = 'rgba(' + d[0] + ',' + d[1] + ',' + d[2] + ',' + (d[3] / 255).toFixed(3) + ')');
+    }
+    var win = doc.defaultView, nodes = [doc.documentElement, doc.body].concat(Array.prototype.slice.call(doc.body.querySelectorAll('*')));
+    nodes.forEach(function (n) {
+      var cs = win.getComputedStyle(n);
+      COLOR_PROPS.forEach(function (prop) { var v = cs.getPropertyValue(prop); if (v && MODERN_COLOR.test(v)) n.style.setProperty(prop, toRgba(v), 'important'); });
+      ['box-shadow', 'text-shadow', 'background-image'].forEach(function (prop) {
+        var v = cs.getPropertyValue(prop); if (v && MODERN_COLOR.test(v)) n.style.setProperty(prop, 'none', 'important');
+      });
+    });
+  }
+  // En pantalla las tablas anchas se desplazan de lado; en la hoja A4 no hay
+  // desplazamiento, así que en la copia del PDF se ajustan al ancho de la
+  // página (letra algo menor y celdas que parten líneas).
+  var PDF_TABLE_CSS = 'table{display:table!important;width:100%!important;max-width:100%!important;table-layout:auto!important;' +
+    'font-size:9px!important}th,td{white-space:normal!important;overflow-wrap:anywhere;word-break:normal;padding:3px 4px!important;' +
+    'min-width:0!important}pre,code{white-space:pre-wrap!important;overflow-wrap:anywhere}' +
+    '*{overflow:visible!important}';
+  function pdfOnClone(doc) {
+    var st = doc.createElement('style'); st.textContent = PDF_TABLE_CSS; doc.head.appendChild(st);
+    fixModernColors(doc);
+  }
+  // Un informe completo mide ~40.000 px de alto: rasterizado de una sola vez
+  // supera el tamaño máximo de un canvas (Chrome: 32.767 px de alto; Safari en
+  // iPhone: ~16,7 millones de píxeles) y el PDF salía en blanco o fallaba.
+  // Se rasteriza por tramos (cortando en los títulos de sección) y cada tramo
+  // sigue en una página nueva del mismo PDF.
+  var PDF_SCALE = 1.5, PDF_BLOCK_PX = 3500, PDF_PAGE_PX = Math.floor((210 - 2 * 10) * 96 / 25.4);  // medido en pantalla; en A4 el tramo crece ~1,5×
+  function pxH(n) { return n.getBoundingClientRect().height || 0; }
+  // Baja por los envoltorios de un solo hijo alto (p. ej. .preview-body >
+  // .research-document) hasta el contenedor que tiene las secciones.
+  function pdfDescend(node) {
+    var path = [node];
+    for (;;) {
+      var kids = Array.prototype.slice.call(node.children);
+      if (kids.length > 6) break;
+      var H = pxH(node), bigs = kids.filter(function (k) { return pxH(k) > 0.6 * H; });
+      if (bigs.length !== 1) return { path: path, cols: bigs.length > 1 ? bigs : null };
+      node = bigs[0]; path.push(node);
+    }
+    return { path: path, cols: null };
+  }
+  // Copia superficial de la cadena de envoltorios con los nodos indicados al
+  // fondo; los hermanos de cada envoltorio (encabezados, notas) van en el
+  // primer tramo (los anteriores) y en el último (los posteriores).
+  function pdfChain(path, nodes, first, last) {
+    var top = null, parent = null;
+    path.forEach(function (lvl, li) {
+      var c = lvl.cloneNode(false);
+      c.removeAttribute('id');
+      if (li === 0) top = c;
+      else {
+        var sib = Array.prototype.slice.call(path[li - 1].children), at = sib.indexOf(lvl);
+        if (first) sib.slice(0, at).forEach(function (x) { parent.appendChild(x.cloneNode(true)); });
+        parent.appendChild(c);
+        if (last) sib.slice(at + 1).forEach(function (x) { parent.appendChild(x.cloneNode(true)); });
+      }
+      parent = c;
+    });
+    nodes.forEach(function (n) { parent.appendChild(n.cloneNode(true)); });
+    return top;
+  }
+  function pdfChunks(nodes, n) {  // reparte nodos en n trozos de altura parecida
+    var tot = nodes.reduce(function (a, k) { return a + pxH(k); }, 0), out = [[]], acc = 0;
+    nodes.forEach(function (k) {
+      if (out[out.length - 1].length && acc >= tot / n * out.length && out.length < n) out.push([]);
+      out[out.length - 1].push(k); acc += pxH(k);
+    });
+    while (out.length < n) out.push([]);
+    return out;
+  }
+  function pdfBlocks(element) {
+    var d = pdfDescend(element), blocks = [];
+    var width = function (top) { top.style.width = PDF_PAGE_PX + 'px'; top.style.maxWidth = 'none'; return top; };
+    if (!d.cols) {
+      var node = d.path[d.path.length - 1], groups = [], cur = [], h = 0;
+      Array.prototype.slice.call(node.children).forEach(function (k) {
+        var kh = pxH(k);
+        if (cur.length && (h + kh > PDF_BLOCK_PX || (/^H[12]$/.test(k.tagName) && h > PDF_BLOCK_PX / 3))) { groups.push(cur); cur = []; h = 0; }
+        cur.push(k); h += kh;
+      });
+      if (cur.length) groups.push(cur);
+      return groups.map(function (g, gi) { return width(pdfChain(d.path, g, gi === 0, gi === groups.length - 1)); });
+    }
+    // Comparador: dos columnas largas lado a lado. Se cortan por secciones
+    // emparejadas (sección i de A junto a la sección i de B) para que cada
+    // tramo quepa en un canvas y la comparación siga alineada.
+    var cols = d.cols.map(function (col) {
+      var cd = pdfDescend(col), cont = cd.path[cd.path.length - 1], secs = [[]];
+      Array.prototype.slice.call(cont.children).forEach(function (k) {
+        if (/^H2$/.test(k.tagName) && secs[secs.length - 1].length) secs.push([]);
+        secs[secs.length - 1].push(k);
+      });
+      return { path: cd.path, secs: secs };
+    });
+    var nSec = Math.max.apply(null, cols.map(function (c) { return c.secs.length; })), units = [];
+    for (var i = 0; i < nSec; i++) {
+      var parts = cols.map(function (c) { return c.secs[i] || []; });
+      var hmax = Math.max.apply(null, parts.map(function (p) { return p.reduce(function (a, k) { return a + pxH(k); }, 0); }));
+      var n = Math.max(1, Math.ceil(hmax / PDF_BLOCK_PX));
+      var split = parts.map(function (p) { return pdfChunks(p, n); });
+      for (var j = 0; j < n; j++) units.push({ parts: split.map(function (sp) { return sp[j]; }), h: hmax / n });
+    }
+    var groups2 = [], cur2 = null;
+    units.forEach(function (u) {
+      if (cur2 && cur2.h + u.h <= PDF_BLOCK_PX) { cur2.parts = cur2.parts.map(function (p, ci) { return p.concat(u.parts[ci]); }); cur2.h += u.h; }
+      else { cur2 = { parts: u.parts.slice(), h: u.h }; groups2.push(cur2); }
+    });
+    return groups2.map(function (g, gi) {
+      var first = gi === 0, last = gi === groups2.length - 1;
+      var colNodes = cols.map(function (c, ci) { return pdfChain(c.path, g.parts[ci], first, last); });
+      return width(pdfChain(d.path, colNodes.map(function (n) { return { cloneNode: function () { return n; } }; }), first, last));
+    });
+  }
+  // El margen inferior de cada tramo quedaba a veces solo en una página nueva
+  // (páginas en blanco intercaladas): se recortan las filas blancas del final
+  // del canvas antes de pasarlo al PDF. html2pdf llama esto con this = worker.
+  function trimCanvasBottom() {
+    var c = this.prop.canvas, ctx = c.getContext('2d'), w = c.width, y = c.height, step = 64;
+    while (y > 0) {
+      var y0 = Math.max(0, y - step), d = ctx.getImageData(0, y0, w, y - y0).data, ink = -1;
+      for (var i = d.length - 4; i >= 0; i -= 4) { if (d[i] < 245 || d[i + 1] < 245 || d[i + 2] < 245) { ink = Math.floor(i / 4 / w); break; } }
+      if (ink >= 0) { y = y0 + ink + 1; break; }
+      y = y0;
+    }
+    var keep = Math.min(c.height, y + Math.round(12 * PDF_SCALE));
+    if (keep >= c.height || keep <= 0) return;
+    var t = document.createElement('canvas'); t.width = w; t.height = keep;
+    t.getContext('2d').drawImage(c, 0, 0);
+    this.prop.canvas = t;
+  }
   function downloadPdf(element, filename, btn, statusId) {
     if (typeof html2pdf === 'undefined') { if (statusId) setStatus(statusId, 'No se pudo cargar el generador de PDF — usa "Imprimir / PDF" en su lugar.', 'bad'); return; }
     if (btn) btn.disabled = true;
     if (statusId) setStatus(statusId, 'Generando PDF…');
-    html2pdf().set({
+    var opt = {
       margin: 10,
       filename: filename,
-      image: { type: 'jpeg', quality: 0.95 },
-      html2canvas: { scale: 2, useCORS: true },
+      image: { type: 'jpeg', quality: 0.92 },
+      html2canvas: { scale: PDF_SCALE, useCORS: true, onclone: pdfOnClone },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
       pagebreak: { mode: ['css', 'legacy'] }
-    }).from(element).save().then(function () {
+    };
+    var blocks = pdfBlocks(element), n = blocks.length;
+    var worker = html2pdf().set(opt).from(blocks[0]).toContainer().toCanvas().then(trimCanvasBottom).toPdf();
+    blocks.slice(1).forEach(function (blk, i) {
+      worker = worker.get('pdf').then(function (pdf) {
+        if (statusId) setStatus(statusId, 'Generando PDF… ' + Math.round((i + 1) / n * 100) + '%');
+        pdf.addPage();
+      }).from(blk).toContainer().toCanvas().then(trimCanvasBottom).toPdf();
+    });
+    worker.save().then(function () {
       if (statusId) setStatus(statusId, 'PDF descargado.', 'ok');
     }).catch(function (err) {
       if (statusId) setStatus(statusId, 'No se pudo generar el PDF: ' + err.message, 'bad');

@@ -1,4 +1,4 @@
-const CACHE = "modelo-jmr-v132-biblioteca-sin-cuota";
+const CACHE = "modelo-jmr-v133-pdf-por-tramos";
 const APP_SHELL = [
   "index.html",
   "visor.html",
