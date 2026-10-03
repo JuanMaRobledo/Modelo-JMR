@@ -1,4 +1,4 @@
-const CACHE = "modelo-jmr-v131-historias-damodaran";
+const CACHE = "modelo-jmr-v132-biblioteca-sin-cuota";
 const APP_SHELL = [
   "index.html",
   "visor.html",
