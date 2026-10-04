@@ -137,16 +137,26 @@ function runFCFEDetalle(inp, growthY2to5, roeTarget, growthY1){
     throw new Error('Insumos inválidos para DCF FCFE financiero');
   var g=growthPath(growthY2to5,gt,growthY1,inp.crecimientoAnios);
   var rate=waccPath(ke,kt), ni=[f.netIncome0], roe=[], fcfe=[], reinv=[], disc=[], pv=0;
+  // Con patrimonio contable (Damodaran, bancos): utilidad = ROE × patrimonio del año anterior y la
+  // reinversión es el aumento del patrimonio que exige crecer; sin él, la versión anterior (utilidad × g / ROE).
+  var bv0=f.bookEquity0, conPatrimonio=typeof bv0==='number' && bv0>0, bv=[conPatrimonio?bv0:null];
   for(var y=1;y<=10;y++){
-    ni[y]=ni[y-1]*(1+g[y]);
     roe[y]=y<=5?roeTarget:roeTarget+(kt-roeTarget)*(y-5)/5;
-    reinv[y]=ni[y]*Math.max(0,g[y])/roe[y];
+    if(conPatrimonio){
+      ni[y]=roe[y]*bv[y-1];
+      reinv[y]=bv[y-1]*Math.max(0,g[y]);
+      bv[y]=bv[y-1]+reinv[y];
+    }else{
+      ni[y]=ni[y-1]*(1+g[y]);
+      reinv[y]=ni[y]*Math.max(0,g[y])/roe[y];
+    }
     fcfe[y]=ni[y]-reinv[y];
     disc[y]=(y===1?1:disc[y-1])/(1+rate[y]);pv+=fcfe[y]*disc[y];
   }
-  var terminalNI=ni[10]*(1+gt), terminalFCFE=terminalNI*(1-gt/kt);
+  // En perpetuidad el ROE es el Ke terminal: el valor terminal es el patrimonio contable del año 10.
+  var terminalNI=conPatrimonio?kt*bv[10]:ni[10]*(1+gt), terminalFCFE=terminalNI*(1-gt/kt);
   var terminalValue=terminalFCFE/(kt-gt), equity=pv+terminalValue*disc[10];
-  return {valuePerShare:equity/inp.shares0,growth:g,netIncome:ni,roe:roe,
+  return {valuePerShare:equity/inp.shares0,growth:g,netIncome:ni,roe:roe,bookEquity:bv,terminalNetIncome:terminalNI,
     reinvestment:reinv,fcfe:fcfe,wacc:rate,terminalValue:terminalValue,
     sumPV:equity,valueOpAssets:null,equityValue:equity,method:'DCF FCFE financiero'};
 }
@@ -479,7 +489,8 @@ function insumosDesdeHoja(celda){
     inp.dcfFinanciero={netIncome0:n('DCF FCFE financiero','B3'),roeCons:n('DCF FCFE financiero','C5'),
       roeBase:n('DCF FCFE financiero','D5'),roeOpt:n('DCF FCFE financiero','E5'),
       terminalKe:n('DCF FCFE financiero','B4'),terminalGrowth:n('DCF FCFE financiero','B5'),
-      baseWacc:n('DCF FCFE financiero','B8'),equityWeight:n('DCF FCFE financiero','B9')};
+      baseWacc:n('DCF FCFE financiero','B8'),equityWeight:n('DCF FCFE financiero','B9'),
+      bookEquity0:n('DCF FCFE financiero','B12')};
   }
   if(!inp.daRatiosHist.every(function(x){ return typeof x === 'number' && isFinite(x); })) inp.daRatiosHist = null;
   // Cada escenario tiene su bloque en 'Financials Multiples' (filas 4, 43 y 83) con sus propias razones.
