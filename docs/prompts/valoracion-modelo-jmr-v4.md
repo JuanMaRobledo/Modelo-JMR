@@ -318,7 +318,12 @@ Seguí este proceso, en este orden:
      Bajarlo también contaría el mismo riesgo dos veces.
      Si el promedio de la industria no es representativo (NA, o menor que el
      costo de capital porque agrega empresas con pérdidas, p. ej. Software
-     (Internet)), usá la industria madura más cercana y decilo. En historias de continuidad no eleves el ROIC terminal por encima del
+     (Internet)), usá la industria madura más cercana y decilo. MISMA DEFINICIÓN (Damodaran, I+D como
+     gasto de capital): si el modelo capitaliza el I+D ('Input sheet'!B17 = Yes), llevá el ROIC de la
+     industria a esa base antes de aplicar la regla: ROC × (margen después de impuestos ajustado por
+     I+D ÷ margen sin ajustar) × capital ÷ (capital + activo de I+D), con la vida del I+D del modelo
+     (activo ≈ I+D/ventas × 2,0 con 3 años; × 3,0 con 5 años), datos de Damodaran (margin, EVA, capex).
+     Sin conversor de I+D se usa el ROIC publicado. En historias de continuidad no eleves el ROIC terminal por encima del
      actual sin evidencia; en deterioro puede quedar por debajo del costo de capital. Dejá nota en
      B50 con el veredicto de ventaja, sus fuentes, la evidencia, la amenaza y el cálculo, y
      reportá el DCF con y sin el ajuste. Registro: JMR-valuation
