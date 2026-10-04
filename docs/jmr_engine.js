@@ -26,6 +26,8 @@ function growthPath(growthY2to5, terminalGrowth, growthY1, anios){
   if(anios && anios.length === 5) for(var n=1;n<=5;n++) g[n]=anios[n-1];
   var step=(g[5]-terminalGrowth)/5;
   for(var n=6;n<=10;n++) g[n]=g[n-1]-step;
+  // Una historia puede fijar sus años 6-10 (p. ej. vencimiento de patentes): trayectoria completa de 10 años.
+  if(anios && anios.length === 10) for(var n=1;n<=10;n++) g[n]=anios[n-1];
   return g; // g[1..10]; terminal = terminalGrowth
 }
 // Margen: año 1 (Input B28) y convergencia lineal al objetivo en el año de convergencia (B31).
