@@ -1,4 +1,4 @@
-const CACHE = "modelo-jmr-v133-pdf-por-tramos";
+const CACHE = "modelo-jmr-v134-anios-6a10";
 const APP_SHELL = [
   "index.html",
   "visor.html",
