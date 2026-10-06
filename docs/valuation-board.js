@@ -100,6 +100,9 @@
       ve: rec.valorEsperado });
     var applied = appliedMultiples(rec);
     result.metodos.forEach(function (m) { m.aplicados = applied[String(m.nombre).toUpperCase()] || null; });
+    // Precio de compra de la posición (opcional, 6-oct-2026): si se pasa, las tarjetas principales muestran también
+    // la diferencia contra el costo promedio.
+    result.costo = num(extra.costo);
     return result;
   }
   // Bloque del valor esperado, junto al DCF. d = resultado de fromParts/fromRecord.
@@ -119,7 +122,8 @@
   function primaryHtml(d) {
     var v = primaryValues(d);
     function tile(label, value, detail, main) {
-      return '<div class="jvb-primary-card' + (main ? ' principal' : ' complementary') + '"><span class="jvb-kicker">' + label + '</span><div class="jvb-big"><span class="v">' + money(value) + '</span>' + vsPrecio(value, d.precio) + '</div><span class="vl">' + detail + '</span></div>';
+      return '<div class="jvb-primary-card' + (main ? ' principal' : ' complementary') + '"><span class="jvb-kicker">' + label + '</span><div class="jvb-big"><span class="v">' + money(value) + '</span>' + vsPrecio(value, d.precio) + '</div><span class="vl">' + detail + '</span>' +
+        (d.costo && num(value) != null ? '<span class="vl jvb-vscompra">vs. tu compra (' + money(d.costo) + ') ' + vsPrecio(value, d.costo) + '</span>' : '') + '</div>';
     }
     return '<div class="jvb-primary">' + tile('DCF base hoy', v.base, unified(d) ? 'Valor intrínseco principal · tesis base' : 'Valor intrínseco principal · caso base', true) + tile('DCF esperado hoy · complemento', v.esperado, v.esperado == null ? 'Sin historias valoradas disponibles' : 'Promedio de DCF × probabilidad') + '</div>';
   }
@@ -281,7 +285,7 @@
       '.jvb .jvb-table td.lbl,.jvb .jvb-table td.lbl *,.jvb .jvb-grp td,.jvb .jvb-grp td *{white-space:normal}',
       '.jvb .jvb-table td *,.jvb .jvb-table th *{overflow-wrap:normal;word-break:normal;hyphens:manual;max-width:none}',
       '.jvb .jvb-table td,.jvb .jvb-table th{font-size:13px}.jvb .jvb-table thead th{font-size:10.5px}',
-      '.jvb-primary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:12px}.jvb-primary-card{border:1.5px solid var(--jvb-dcf,var(--accent,#806332));background:var(--surface,#fffaf0);border-radius:12px;padding:16px;min-width:0}.jvb-primary-card .vl{font-size:12px;color:var(--ink-soft)}@media(max-width:520px){.jvb-primary{grid-template-columns:1fr}}',
+      '.jvb-primary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:12px}.jvb-primary-card{border:1.5px solid var(--jvb-dcf,var(--accent,#806332));background:var(--surface,#fffaf0);border-radius:12px;padding:16px;min-width:0}.jvb-primary-card .vl{font-size:12px;color:var(--ink-soft)}.jvb-primary-card .jvb-vscompra{display:block;margin-top:6px}@media(max-width:520px){.jvb-primary{grid-template-columns:1fr}}',
       '.jvb-primary{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)}.jvb-primary-card.principal{background:var(--accent-soft,#f1e9dc);border-width:2px}.jvb-primary-card.complementary{border-color:var(--border-soft,#ddd)}.jvb-primary-card.complementary .v{font-size:24px}.jvb-applied{display:block;font-size:10px;font-weight:400;color:var(--ink-soft);margin-top:5px}@media(max-width:520px){.jvb-primary{grid-template-columns:1fr}}',
       '.jvb-hero{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:12px;margin-bottom:12px}',
       '.jvb-main{border:1.5px solid var(--jvb-dcf);background:var(--accent-soft,rgba(79,70,229,.06));border-radius:14px;padding:16px 18px;min-width:0}',
