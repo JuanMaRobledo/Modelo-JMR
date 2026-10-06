@@ -36,7 +36,13 @@ Esta instrucción se aplica **siempre**, a cualquier empresa y en ambos prompts,
 
 **Supuestos que sí se escriben a mano**, con su justificación: margen inicial, convergencia y ventas/capital (B28, B31-B33; el crecimiento y el margen objetivo de cada escenario se escriben en su historia), tasa de impuestos proyectada (B24), costo de capital terminal (B47), ROIC terminal (B49-B50), activos no operativos cuando el analista decide excluirlos, parámetros de los escenarios técnicos en 'Valuation output', múltiplos objetivo (J8/J19/J30), el porcentaje de otros ingresos sobre EBIT proyectado ('Financials Multiples' E11/E50/E90; el promedio de tres años de la maestra falla cuando el EBIT histórico es casi nulo) y el precio fijado a la fecha de valoración.
 
-**Tasas comunes a toda la cartera (Damodaran) · 4-oct-2026.** Todas las valoraciones en dólares a una misma fecha usan la misma tasa libre de riesgo y la misma prima de mercado. Tasa libre de riesgo (B35) = Treasury a 10 años del día de corte (30-sep-2026: 5,29%). Prima madura ('Country equity risk premiums'!B2) = la implícita de Damodaran del último mes disponible, medida sobre el Treasury sin ajustar (septiembre de 2026: 4,09%). Prima país = la de su tabla; con el Treasury sin ajustar, EE.UU. no lleva prima país (su riesgo de impago ya está en la tasa). Costo de capital terminal: el valor por defecto del Ginzu, tasa libre de riesgo + prima madura (B46 = "No"), en empresas de mercados desarrollados; las de mercados emergentes conservan su prima país en perpetuidad (B47 escrito a mano con el diferencial justificado). El ROIC terminal nunca queda por debajo del costo de capital terminal. Ventas/capital: comprobar que el rendimiento implícito sobre el capital nuevo (margen × (1 − t) × ventas/capital) sea creíble frente al ROIC actual y al terminal (pestaña Diagnostics de Damodaran); si lo supera con holgura, justificarlo o bajarlo.
+**Tasas comunes a toda la cartera (Damodaran) · 6-oct-2026.** Todas las valoraciones en dólares a una misma fecha usan la misma tasa libre de riesgo y la misma prima de mercado, y las dos deben ser de la MISMA fecha. Tasa libre de riesgo (B35) = Treasury a 10 años del día de corte (30-sep-2026: 5,29%). Prima madura ('Country equity risk premiums'!B2) = la implícita de Damodaran calculada con esa misma tasa y con los precios de ese día (ERPOct26.xlsx, publicada el 1-oct-2026: 3,70%; no mezclar una tasa del 30-sep con una prima del 1-sep). Prima por país = madura + riesgo país de su tabla, ponderada por las ventas de cada región; con el Treasury sin ajustar, EE.UU. no lleva prima país. Costo de capital terminal: tasa libre de riesgo + prima madura (B46 = "No"; 8,99%) en mercados desarrollados; las de mercados emergentes conservan su prima país en perpetuidad (B47 escrito a mano: AFYA 10,72%, PAGS Ke terminal 11,91%). Los datos de mercado más recientes salen de scripts/datos_mercado.py (prima de Damodaran del último mes, Treasury del mismo día en FRED y cierres de Yahoo Finance → reference/corte_vigente.json) y se llevan a las hojas con scripts/aplicar_corte.py, que también recalcula el costo terminal y los ROIC terminales de punto medio. Una valoración nueva usa el corte vigente de la cartera; los hechos posteriores (8-K/6-K) se incorporan como eventos. El ROIC terminal nunca queda por debajo del costo de capital terminal.
+
+**Ventas/capital (Damodaran, Investment Valuation cap. 11, p. 44-46).** Se elige dentro del rango de tres referencias: el de la empresa hoy, el marginal de uno y tres años y el promedio del sector, y se comprueba que el rendimiento sobre el capital nuevo (margen × (1 − t) × ventas/capital) sea creíble frente al ROIC actual y al del sector. El capital invertido es operativo: patrimonio + deuda − caja − inversiones financieras, SIN impuestos diferidos activos creados de una vez al liberar una reserva de valuación (UBER, NVDA, DUOL; AJUSTES en scripts/tabla_ventas_capital.py) y CON el capital de trabajo (los prepagos y los ingresos diferidos financian crecimiento). No se topa el rendimiento contra un ROIC actual cargado de crédito mercantil.
+
+**Fecha, precio y posición (6-oct-2026).** 'Input sheet'!B4 = fecha real del análisis (el corte); 'Input sheet'!D1 = cierre de ese día, fijo; B23 (precio de mercado del modelo: peso del patrimonio, opciones, precio/valor) = D1, nunca un GOOGLEFINANCE a la fecha de B4; 'Resumen de Valoración'!C25 = D1 y B3 = C25. La posición del usuario va aparte, en 'Resumen de Valoración'!A50:E60 («Mi posición en cartera»): acciones, costo promedio y primera compra de la hoja «Seguimiento de cartera» de Drive, precio de hoy en vivo y la ganancia potencial hasta el DCF Base, el esperado y el ponderado, desde el precio de hoy y desde el precio de compra (scripts/posicion_cartera.py). La app la muestra en «Tu posición».
+
+**Los análisis salen de la hoja.** Toda cifra de los textos (tasa, beta, ventas/capital, valores de las historias) se lee de la hoja vigente (scripts/valores_hoja.py); un texto con una cifra escrita a mano que la hoja no usa es un error.
 
 **Excepción declarada.** Las financieras con DCF del flujo al accionista (PAGS) conservan su bloque bancario de múltiplos; cualquier otra excepción se documenta y se pide aprobación antes de aplicarla.
 
@@ -241,16 +247,19 @@ Seguí este proceso, en este orden:
 
 2. COST OF CAPITAL
    - En "Cost of capital worksheet", verificá la industria (Input!B9/B10) contra la
-     clasificación real de Damodaran, el approach de beta (normalmente "Single
-     Business(Global)"), y el approach de costo de deuda: si la empresa no tiene
+     clasificación real de Damodaran, el approach de beta («Single Business(US)» si la mayoría de las ventas está en
+     Norteamérica; «Single Business(Global)» si no), y el approach de costo de deuda: si la empresa no tiene
      deuda calificada real (interest expense ~0), usar "Direct Input" con un spread
      razonable en vez de dejar un rating heredado sin sentido.
    - BETA BOTTOM-UP (Damodaran): la beta de regresión de la acción es solo una
      referencia. Partí de la beta desapalancada del sector de Damodaran (tabla
      "Betas by Sector (US)", corregida por caja, fecha de la tabla), reapalancala
-     con la D/E de mercado de la empresa y justificá cualquier ajuste por riesgo
-     propio (concentración de clientes o de un distribuidor, una sola categoría,
-     moda, regulación). Documentá beta de regresión, beta del sector, beta usada
+     con la D/E de mercado de la empresa. Sin primas por riesgos propios
+     diversificables (concentración de clientes o de un distribuidor, una sola
+     categoría, moda, regulación): van en las historias Conservadora y
+     Disrupción, no en la tasa (contarlos en la tasa y en las historias los cuenta
+     dos veces). La regresión solo se usa si el sector no describe el negocio
+     (p. ej. UBER: «Transportation» no es una plataforma) y se dice. Documentá beta de regresión, beta del sector, beta usada
      y el efecto en el DCF de usar una u otra.
    - Confirmá que el WACC resultante (celda de "Cost of capital based upon approach")
      sea coherente con el perfil de riesgo de la empresa. Anotá también el costo
@@ -262,6 +271,10 @@ Seguí este proceso, en este orden:
      (crecimiento, márgenes), consenso de analistas y revisiones de precio objetivo,
      noticias relevantes de los últimos 1-2 meses, eventos corporativos (M&A,
      directorio, litigios).
+   - Leé TODOS los 8-K/6-K entre el último 10-Q/10-K y la fecha de corte (SEC
+     EDGAR, submissions): un hecho material (p. ej. el ciberataque de BSX del
+     25-ago-2026, la guía nueva de un 8-K de resultados) cambia los supuestos del
+     año 1 aunque no esté en los estados financieros todavía.
    - Buscá también los múltiplos actuales de al menos 3 comparables del mismo
      modelo de negocio (con la fecha y la definición de cada múltiplo) y verificá
      que la hoja "Sector" tenga esos peers y no los de otra empresa.
@@ -319,8 +332,12 @@ Seguí este proceso, en este orden:
      largos (7-10) si la empresa está reinvirtiendo a propósito (la propia guía de
      la empresa suele decir esto explícitamente — ej. "el margen retrocede el año
      que viene porque vamos a gastar más en marketing").
-   - Sales-to-capital (B32/B33): bottom-up con CapEx/Revenue real, no un default
-     genérico. Chequeá que el ROIC implícito del año 10 sea razonable.
+   - Sales-to-capital (B32/B33): dentro del rango empresa hoy / marginal de 1 y 3
+     años / sector (scripts/tabla_ventas_capital.py), con el capital invertido
+     operativo descrito arriba (con capital de trabajo, sin impuestos diferidos de
+     una liberación de reserva ni inversiones financieras). Chequeá que el
+     rendimiento sobre el capital nuevo sea creíble y que el ROIC implícito del
+     año 10 sea razonable.
    - ROIC después del año 10 (B49/B50), criterio Damodaran (30-sep-2026): el
      crecimiento solo crea valor si la empresa gana más que su costo de
      capital; en crecimiento estable la reinversión es g ÷ ROIC. La hoja
@@ -582,10 +599,21 @@ Seguí este proceso, en este orden:
      secundaria que debe mostrarse por aparte en ambos horizontes; los pesos dependen del tipo de
      empresa (tabla I5:U11) y solo tiene sentido si los múltiplos pasaron el
      chequeo de crecimiento implícito (6.5).
-   - Revisá qué categoría de "Tipo de Empresa" (G3) mejor describe a {TICKER}
-     (Crecimiento, Madura, Software, Financiera, REIT, Cíclica, Intensiva en
-     Capital, Infraestructura, Defensiva, Hyper-Crecimiento/Pre-Rentable,
-     Biotech/Farma, Genérico) y justificá la elección.
+   - Elegí el "Tipo de Empresa" (G3) por el CICLO DE VIDA de Damodaran y el
+     SECTOR (reference/ciclo_de_vida/clasificacion_2026-10-05.json,
+     scripts/ciclo_de_vida.py). Etapa con las cuatro variables de su cuadro
+     (crecimiento de ventas, tendencia del margen, reinversión y flujo libre;
+     SEC y la historia Base). Precio por etapa («Pricing across the Life
+     Cycle»): crecimiento alto → ventas y márgenes; crecimiento maduro → P/E
+     futuro y PEG; madura estable → P/E y EV/EBITDA; declive → libros. Sector
+     («Choosing the right multiple»): financieras → P/BV (tipo Financiera);
+     manufactura cíclica → P/E normalizado. Mapeo: «Crecimiento»/«Software» si
+     las utilidades aún no llegan a su nivel estable (margen en expansión fuerte o
+     recién positivo, o cíclico en el pico); «Madura» si son positivas y estables
+     (crecimiento maduro, estable o declive con utilidades); «Biotech/Farma» si
+     dependen de patentes que vencen o de un portafolio en desarrollo;
+     «Hyper-Crecimiento/Pre-Rentable» con pérdidas. Dejá nota en G3 con la etapa,
+     el sector y la evidencia.
    - Si ninguna encaja, o un método quedó "no aplica" en el paso 6.1 y la
      categoría le da peso, primero probá otra categoría que refleje mejor el
      historial. Solo si ninguna sirve, ajustá los pesos de la tabla compartida:

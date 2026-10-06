@@ -710,6 +710,23 @@
       </table>
     </div>
 
+    <div id="posBlock" hidden>
+      <p class="section-title">Tu posición · costo promedio de compra</p>
+      <div class="methods-scroll" style="margin-bottom:10px;">
+        <table class="price-compare">
+          <thead><tr><th>Acciones</th><th>Costo promedio</th><th>Precio de hoy</th><th>Ganancia sobre tu costo</th></tr></thead>
+          <tbody><tr><td id="posAcc">—</td><td id="posCosto">—</td><td id="posHoy">—</td><td id="posGan">—</td></tr></tbody>
+        </table>
+      </div>
+      <div class="methods-scroll" style="margin-bottom:8px;">
+        <table class="price-compare">
+          <thead><tr><th>Ganancia potencial hasta</th><th>Valor por acción</th><th>Desde el precio de hoy</th><th>Desde tu precio de compra</th></tr></thead>
+          <tbody id="posPot"></tbody>
+        </table>
+      </div>
+      <p class="price-sub" id="posNota" style="margin-bottom:22px;"></p>
+    </div>
+
     <div class="headline-card" id="headlineCard">
       <div class="headline-top">
         <p class="section-title" id="hlTitle" style="margin:0;">Valor intrínseco hoy (DCF)</p>
@@ -1452,6 +1469,49 @@
   // Actualiza la mini-tabla "Precio de hoy vs. precio al día del análisis" —
   // se llama al cargar el archivo y de nuevo cuando la consulta en vivo a
   // FMP resuelve un precio de hoy más reciente que el de Excel.
+  // «Tu posición»: costo promedio de la cartera ('Resumen de Valoración'!A50:E60, hoja «Seguimiento de cartera»)
+  // frente al precio de hoy y a los valores del modelo. La ganancia potencial se mide desde el precio de hoy y
+  // desde el precio de compra (6-oct-2026).
+  var currentPosicion = null;
+  function leerPosicion(res){
+    var acc = cellVal(res, 'B51'), costo = cellVal(res, 'B52');
+    if(!(typeof acc === 'number' && acc > 0 && typeof costo === 'number' && costo > 0)) return null;
+    var f = cellVal(res, 'B53'), iso = null;
+    if(f instanceof Date) iso = f.toISOString().slice(0, 10);
+    else if(typeof f === 'number') iso = new Date(Date.UTC(1899, 11, 30) + f * 86400000).toISOString().slice(0, 10);
+    var num = function(a){ var v = cellVal(res, a); return (typeof v === 'number' && isFinite(v)) ? v : null; };
+    // B50: «Fuente: <app Cartera | «Seguimiento de cartera» (Google Drive)>, posiciones al <fecha>»
+    var b50 = String(cellVal(res, 'B50') || '').replace(/^Fuente:\s*/, '').replace(/[«»]/g, '');
+    return { acciones: acc, costoPromedio: costo, primeraCompra: iso, compras: cellVal(res, 'C53') || null,
+             precioHoyHoja: num('B55'), dcfBase: num('B58'), dcfEsperado: num('B59'), ponderadoBase: num('B60'),
+             fuente: b50 || 'Seguimiento de cartera (Google Drive)' };
+  }
+  function badgePct(x){
+    if(!(typeof x === 'number' && isFinite(x))) return '—';
+    var cls = x > 0 ? 'pos' : (x < 0 ? 'neg' : 'flat'), arrow = x > 0 ? '▲' : (x < 0 ? '▼' : '—');
+    return '<span class="chg-badge ' + cls + '">' + arrow + ' ' + (x >= 0 ? '+' : '') + (x * 100).toFixed(1) + '%</span>';
+  }
+  function renderPosicion(pos, precioHoy, fuentePrecio){
+    var el = document.getElementById('posBlock');
+    if(!pos){ el.hidden = true; return; }
+    el.hidden = false;
+    var hoy = (typeof precioHoy === 'number' && isFinite(precioHoy)) ? precioHoy : pos.precioHoyHoja;
+    var c = pos.costoPromedio;
+    document.getElementById('posAcc').textContent = (Math.round(pos.acciones * 10000) / 10000).toLocaleString('es-CO');
+    document.getElementById('posCosto').textContent = fmtMoney(c);
+    document.getElementById('posHoy').textContent = fmtMoney(hoy);
+    var gan = (typeof hoy === 'number') ? hoy / c - 1 : null;
+    document.getElementById('posGan').innerHTML = badgePct(gan) +
+      ((typeof hoy === 'number') ? ' · ' + ((hoy - c) * pos.acciones >= 0 ? '+' : '') + fmtMoney((hoy - c) * pos.acciones) : '');
+    var filas = [['DCF Base hoy (valor intrínseco)', pos.dcfBase], ['DCF esperado de las historias', pos.dcfEsperado],
+                 ['Ponderado DCF + múltiplos (secundario)', pos.ponderadoBase]];
+    document.getElementById('posPot').innerHTML = filas.filter(function(f){ return typeof f[1] === 'number'; }).map(function(f){
+      return '<tr><td>' + f[0] + '</td><td>' + fmtMoney(f[1]) + '</td><td>' +
+        badgePct(typeof hoy === 'number' ? f[1] / hoy - 1 : null) + '</td><td>' + badgePct(f[1] / c - 1) + '</td></tr>';
+    }).join('');
+    document.getElementById('posNota').textContent = 'Primera compra: ' + (pos.primeraCompra || '—') +
+      '. Precio de hoy: ' + (fuentePrecio || 'guardado con la valoración') + '. Fuente del costo: ' + pos.fuente + '.';
+  }
   function renderPriceCompare(precioAnalisis, precioHoy){
     document.getElementById('rPrecioAnalisis').textContent = fmtMoney(precioAnalisis);
     document.getElementById('rPrecioHoy').textContent = fmtMoney(precioHoy);
@@ -1578,6 +1638,8 @@
     document.getElementById('rPriceNote').textContent = (precio === precioExcelD1 ? 'Del Excel (Input sheet)' : 'Precio al día del análisis') + (hasApiKey() ? ' — actualizando al precio de hoy…' : '');
     currentPrecioAnalisis = (typeof precioAnalisis === 'number' && isFinite(precioAnalisis)) ? precioAnalisis : null;
     renderPriceCompare(currentPrecioAnalisis, precio);
+    currentPosicion = leerPosicion(res);
+    renderPosicion(currentPosicion, currentPosicion && currentPosicion.precioHoyHoja, 'GOOGLEFINANCE en la hoja');
     document.getElementById('rTipo').textContent = tipo || '—';
     document.getElementById('rMOS').textContent = fmtPct(mos);
     document.getElementById('rPrecioMOS').textContent = typeof cellVal(res,'D36') === 'number' ? fmtMoney(cellVal(res,'C36')) + ' – ' + fmtMoney(cellVal(res,'D36')) : fmtMoney(cellVal(res,'C19')) + ' – ' + fmtMoney(cellVal(res,'B19'));
@@ -1632,6 +1694,7 @@
       fecha: fechaTxt || null,
       precio: precio,
       precioAnalisis: (typeof precioAnalisis === 'number' && isFinite(precioAnalisis)) ? precioAnalisis : null,
+      posicion: currentPosicion,
       tipo: tipo || null,
       mos: mos,
       precioMOS: cellVal(res,'C19'),
@@ -2906,9 +2969,19 @@
     sheetLink.hidden = !/^https:\/\/docs\.google\.com\/spreadsheets\/d\/[\w-]+\//.test(rec.hojaGoogle || '');
     if(!sheetLink.hidden) sheetLink.href = rec.hojaGoogle;
     document.getElementById('rPrice').textContent = fmtMoney(rec.precio);
-    document.getElementById('rPriceNote').textContent = 'Dato guardado' + (hasApiKey() ? ' — actualizando al precio de hoy…' : '');
+    document.getElementById('rPriceNote').textContent = 'Precio guardado · consulta: ' +
+      (rec.precioReferenciaConsultadoAt || 'fecha no registrada') +
+      (hasApiKey() ? ' — actualizando al precio de hoy…' : '');
     currentPrecioAnalisis = (typeof rec.precioAnalisis === 'number' && isFinite(rec.precioAnalisis)) ? rec.precioAnalisis : null;
     renderPriceCompare(currentPrecioAnalisis, rec.precio);
+    currentPosicion = rec.posicion ? Object.assign({}, rec.posicion) : null;
+    if(currentPosicion && currentPosicion.dcfEsperado == null && rec.valorEsperado &&
+       typeof rec.valorEsperado.valor === 'number' && isFinite(rec.valorEsperado.valor)){
+      currentPosicion.dcfEsperado = rec.valorEsperado.valor;
+    }
+    var hoyPos = (currentPosicion && currentPosicion.precioHoyHoja != null) ? currentPosicion.precioHoyHoja : rec.precio;
+    renderPosicion(currentPosicion, hoyPos,
+      currentPosicion && currentPosicion.precioHoyHoja != null ? 'precio guardado con la posición; fecha de cotización no registrada' : 'precio guardado con la valoración; consulta: ' + (rec.precioReferenciaConsultadoAt || 'fecha no registrada'));
     document.getElementById('rTipo').textContent = rec.tipo || '—';
     document.getElementById('rMOS').textContent = fmtPct(rec.mos);
     var mosHoy = rec.precioMOSHoy;
@@ -3349,6 +3422,7 @@
         document.getElementById('rPrice').textContent = fmtMoney(q.price);
         note.textContent = 'En vivo · ' + new Date().toLocaleTimeString();
         renderPriceCompare(currentPrecioAnalisis, q.price);
+        renderPosicion(currentPosicion, q.price, 'en vivo (Financial Modeling Prep)');
         if(currentResumen){ currentResumen.precio = q.price; renderHeadline(); renderCharts(); }
       } else {
         note.textContent = 'Dato del Excel (FMP no reportó precio para este ticker)';
@@ -3932,4 +4006,3 @@ if("serviceWorker" in navigator){
 </script>
 </body>
 </html>
-
