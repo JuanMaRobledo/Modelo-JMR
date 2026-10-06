@@ -206,6 +206,7 @@
     {k:"score", t:"Puntaje", get:function(r){return r.score;}, html:function(r){
       if(r.score==null) return "—";
       return '<span class="bar"><i style="width:'+Math.max(0,Math.min(100,r.score))+'%"></i></span>'+r.score.toFixed(0);}},
+    {k:"coverage", t:"Datos", get:function(r){return r.quality && r.quality.coverage;}, fmt:pct},
     {k:"roic", metricKey:"roic_median_5y", t:"ROIC 5a", get:m("roic_median_5y"), fmt:pctColor(0.15, 0.10)},
     {k:"gm", metricKey:"gross_margin_median_5y", t:"Mg. bruto", get:m("gross_margin_median_5y"), fmt:pct},
     {k:"fcfm", metricKey:"fcf_margin_median_5y", t:"Mg. FCF", get:m("fcf_margin_median_5y"), fmt:pctColor(0.15, 0.05)},
@@ -214,6 +215,7 @@
     {k:"nd", metricKey:"net_debt_to_ebitda", t:"DN/EBITDA", get:m("net_debt_to_ebitda"), fmt:function(v){
       if(v==null) return "—"; var c = v>3?"bad":(v<=1?"good":""); return '<span class="'+c+'">'+v.toFixed(1)+'x</span>';}},
     {k:"price", t:"Precio", get:v("price"), fmt:function(x){return x==null?"—":"$"+x.toFixed(2);}},
+    {k:"priceDate", t:"Fecha precio", get:v("price_as_of"), fmt:function(x){return x ? esc(x) : "Sin fecha";}},
     {k:"mcap", t:"Market cap", get:v("market_cap"), fmt:money},
     {k:"fy", t:"FCF yield", get:v("fcf_yield"), fmt:pctColor(0.05, 0.02, 1)},
     {k:"pe", t:"P/E", get:mc("pe"), html:multCell("pe")},
@@ -307,7 +309,7 @@
     if(vs<=0.10) return "En linea con su historia";
     return "Cara vs su historia";
   }
-  function repriced(v, p){
+  function repriced(v, p, date){
     var k = p / v.price;
     var mcap = v.shares ? v.shares * p : v.market_cap * k;
     var full = v.ltm && v.net_debt != null;  // JSON nuevo: recalculo exacto
@@ -330,31 +332,45 @@
     if(v.eps_growth > 0) v.peg = v.pe ? v.pe / (v.eps_growth * 100) : null;
     else if(v.peg != null) v.peg = v.peg * k;
     v.label = priceLabel(v.p_fcf_vs_hist != null ? v.p_fcf_vs_hist : v.pe_vs_hist);
-    v.price = Math.round(p * 100) / 100; v.market_cap = mcap; v.live = true;
+    v.price = Math.round(p * 100) / 100; v.market_cap = mcap; v.price_as_of = date;
   }
   function loadLivePrices(){
     var results = (state.data && state.data.results) || [];
     var tickers = results.filter(function(r){ return r.valuation && r.valuation.price > 0; }).map(function(r){ return r.ticker; });
     if(!tickers.length) return;
     setLive("Actualizando precios…");
-    fetch("api/quotes?symbols=" + encodeURIComponent(tickers.join(",")), {cache:"no-store"})
-      .then(function(r){ if(!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
-      .then(function(q){
-        var n = 0, prices = q.prices || {};
+    var batches = [];
+    for(var i=0; i<tickers.length; i+=150) batches.push(tickers.slice(i,i+150));
+    Promise.all(batches.map(function(batch){
+      return fetch("api/quotes?symbols=" + encodeURIComponent(batch.join(",")), {cache:"no-store"})
+        .then(function(r){ if(!r.ok) throw new Error("HTTP " + r.status); return r.json(); });
+    }))
+      .then(function(responses){
+        var n = 0, prices = {}, dates = {}, days = [];
+        responses.forEach(function(q){ Object.assign(prices, q.prices || {}); Object.assign(dates, q.priceDates || {}); });
         results.forEach(function(r){
-          var p = prices[r.ticker];
-          if(r.valuation && p > 0){ repriced(r.valuation, p); n++; }
+          var p = prices[r.ticker], day = dates[r.ticker];
+          if(r.valuation && p > 0 && /^\d{4}-\d{2}-\d{2}$/.test(day || "")){
+            repriced(r.valuation, p, day); n++; days.push(day);
+          }
         });
-        var t = new Date(q.asOf || Date.now());
-        setLive("Precios en vivo " + t.toLocaleString("es-CO", {day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit"}) +
-          " (" + n + " de " + tickers.length + ")", true);
+        var uniqueDays = Array.from(new Set(days)).sort();
+        setLive(n ? "Cotizaciones con fecha de mercado " +
+          (uniqueDays.length === 1 ? uniqueDays[0] : uniqueDays[0] + " a " + uniqueDays[uniqueDays.length-1]) +
+          " (" + n + " de " + tickers.length + ")" :
+          "No se recibieron cotizaciones fechadas; se conserva el último cálculo.", !!n);
         render();
       })
       .catch(function(err){
         setLive("No se pudieron actualizar los precios (" + err.message + "): se muestran los del " + (state.data.generated || "último cálculo") + ".");
       });
   }
-  function setLive(text, ok){ var el = $("live"); el.textContent = text; el.className = "live" + (ok ? " ok" : ""); }
+  function setLive(text, ok){
+    var el = $("live"), c = state.data && state.data.criteria;
+    var legacy = !c || !c.hard_filters || c.hard_filters.min_roic_observations_5y == null;
+    el.textContent = (legacy ? "Clasificación histórica sin validación de cobertura y cinco intervalos fiscales. Revalidar el ranking. · " : "") + text;
+    el.className = "live" + (ok && !legacy ? " ok" : "");
+  }
 
   function load(payload){
     state.data = payload;
@@ -457,13 +473,13 @@
       return '<tr><td class="l">'+esc(w.group)+'</td><td class="l">'+esc(METRIC_LABELS[w.metric]||w.metric)+'</td><td class="num">'+w.weight+'</td><td class="num">'+fmtMetric(w.metric, w.bad)+'</td><td class="num">'+fmtMetric(w.metric, w.good)+'</td><td class="l">'+better+'</td></tr>';}).join("");
     var tiers = (c.tiers||[]).map(function(t){return esc(t.label)+" ≥ "+t.min_score;}).join(" · ");
     $("method").innerHTML =
-      '<p><strong>1. Filtros duros</strong> (si falla uno, no puede ser maravillosa): al menos '+(hf.min_years||5)+' años de 10-K, ROIC mediano de 5 años ≥ '+pct(hf.min_roic_median_5y)+
-      ', FCF positivo en al menos '+(hf.min_fcf_positive_last_5y||4)+' de los últimos 5 años, deuda neta/EBITDA ≤ '+(hf.max_net_debt_to_ebitda||3)+'x (el <em>red flag</em> del Paso 3) y ventas que no caen en 5 años. Bancos, aseguradoras y REITs se excluyen: se valoran con P/VL y ROE.</p>'+
-      '<p><strong>2. Puntaje 0-100</strong>: cada métrica suma entre 0 (en el umbral "malo") y su peso completo (en el umbral "excelente"), con una rampa lineal entre ambos. Si falta un dato (p. ej. margen bruto en empresas que no reportan costo de ventas) se saca del cálculo y el resto se renormaliza. Clases: '+tiers+'.</p>'+
+      '<p><strong>1. Filtros duros</strong> (si falla uno, no puede ser maravillosa): al menos '+(hf.min_years||6)+' cierres fiscales para calcular 5 años de crecimiento, ROIC con datos en '+(hf.min_roic_observations_5y||4)+' de los últimos 5 años y mediana ≥ '+pct(hf.min_roic_median_5y)+
+      ', FCF reportado en '+(hf.min_fcf_observations_5y||5)+' años y positivo en al menos '+(hf.min_fcf_positive_last_5y||4)+', EBITDA positivo, deuda neta/EBITDA ≤ '+(hf.max_net_debt_to_ebitda||3)+'x y ventas que no caen en 5 años. Bancos, aseguradoras y REITs se excluyen: se valoran con P/VL y ROE.</p>'+
+      '<p><strong>2. Puntaje 0-100</strong>: cada métrica suma entre 0 (en el umbral "malo") y su peso completo (en el umbral "excelente"), con una rampa lineal entre ambos. Si falta un dato se renormaliza el resto; la clase Maravillosa exige cobertura ≥ '+pct(c.min_top_tier_coverage||0.90)+'. Clases: '+tiers+'.</p>'+
       '<div class="table-wrap" style="box-shadow:none"><table><thead><tr><th class="l">Grupo</th><th class="l">Métrica</th><th>Peso</th><th>Malo</th><th>Excelente</th><th class="l">Sentido</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
       '<p><strong>3. Precio vs su historia</strong> (Paso 4): P/FCF de hoy contra la mediana del P/FCF de cada cierre fiscal de los últimos ~10 años (P/E si no hay FCF). "Barata" = 20% o más por debajo de su mediana. Una empresa maravillosa rara vez está barata en términos absolutos: lo que se busca es el descuento relativo.</p>'+
       '<p><strong>Múltiplos</strong>: los cinco del Modelo JMR (EV/EBITDA, EV/FCFF, P/E, P/FCFE, P/OCF) más P/FCF y EV/EBIT, con el dato LTM de hoy. Cada uno se pinta verde si está 5% o más por debajo de su mediana histórica y rojo si está más de 10% por encima (pasá el cursor para ver la mediana). FCFF = OCF − CapEx + intereses × (1 − t); FCFE = OCF − CapEx + endeudamiento neto del año. <strong>PEG</strong> = P/E ÷ crecimiento anual del EPS de 5 años (en %): ≤ 1 en verde, > 2 en rojo; no se calcula si el EPS no creció.</p>'+
-      '<p><strong>Actualización</strong>: los precios se traen en vivo cada vez que abrís la página y con ellos se recalculan market cap, múltiplos, FCF yield, PEG y la etiqueta de precio. Los fundamentales (10-K, ROIC, márgenes, medianas históricas) se recalculan solos de lunes a viernes después del cierre de Nueva York (GitHub Actions → “Screener diario”, que también se puede correr a mano y con otro universo). Para una lista propia: en <code>JMR-valuation</code>, <code>python scripts/run_screener.py --tickers …</code> y abrir el JSON con “Abrir JSON local”.</p>'+
+      '<p><strong>Universo y actualización</strong>: por defecto se ejecuta el S&P 500 (puede tener más de 500 símbolos por clases de acciones). En GitHub Actions → “Screener diario” también podés elegir S&P 400, S&P 600 o sp1500 combinado; la corrida manual reemplaza temporalmente el universo publicado hasta la siguiente corrida programada. Las cotizaciones se consultan al abrir la página y muestran la fecha real de mercado, que puede ser anterior en fines de semana. Los fundamentales se recalculan de lunes a viernes después del cierre. El Modelo JMR se usa después para valorar las candidatas. Para una lista propia: <code>python scripts/run_screener.py --tickers …</code> en JMR-valuation.</p>'+
       '<p><strong>Exportar</strong>: “Exportar Excel” y “Exportar CSV” bajan la lista tal como está filtrada y ordenada, con todas las métricas y múltiplos (no solo las columnas visibles). El CSV usa <code>;</code> y coma decimal para abrir directo en Excel en español.</p>';
   }
 
@@ -481,10 +497,12 @@
       {h:"Clase", t:"text", get:function(r){return r.tier;}},
       {h:"Puntaje", t:"num", get:function(r){return r.score;}}
     ];
+    cols.push({h:"Cobertura de datos", t:"pct", get:function(r){return r.quality && r.quality.coverage;}});
     Object.keys(METRIC_LABELS).forEach(function(k){
       cols.push({h:METRIC_LABELS[k], t:X_METRICS[k] ? "x" : "pct", get:m(k)});
     });
     cols.push({h:"Precio", t:"money", get:v("price")});
+    cols.push({h:"Fecha del precio", t:"text", get:v("price_as_of")});
     cols.push({h:"Market cap", t:"money", get:v("market_cap")});
     cols.push({h:"FCF yield", t:"pct", get:v("fcf_yield")});
     cols.push({h:"PEG", t:"num2", get:v("peg")});
