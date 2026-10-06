@@ -2969,13 +2969,19 @@
     sheetLink.hidden = !/^https:\/\/docs\.google\.com\/spreadsheets\/d\/[\w-]+\//.test(rec.hojaGoogle || '');
     if(!sheetLink.hidden) sheetLink.href = rec.hojaGoogle;
     document.getElementById('rPrice').textContent = fmtMoney(rec.precio);
-    document.getElementById('rPriceNote').textContent = 'Dato guardado' + (hasApiKey() ? ' — actualizando al precio de hoy…' : '');
+    document.getElementById('rPriceNote').textContent = 'Precio guardado · consulta: ' +
+      (rec.precioReferenciaConsultadoAt || 'fecha no registrada') +
+      (hasApiKey() ? ' — actualizando al precio de hoy…' : '');
     currentPrecioAnalisis = (typeof rec.precioAnalisis === 'number' && isFinite(rec.precioAnalisis)) ? rec.precioAnalisis : null;
     renderPriceCompare(currentPrecioAnalisis, rec.precio);
-    currentPosicion = rec.posicion || null;
+    currentPosicion = rec.posicion ? Object.assign({}, rec.posicion) : null;
+    if(currentPosicion && currentPosicion.dcfEsperado == null && rec.valorEsperado &&
+       typeof rec.valorEsperado.valor === 'number' && isFinite(rec.valorEsperado.valor)){
+      currentPosicion.dcfEsperado = rec.valorEsperado.valor;
+    }
     var hoyPos = (currentPosicion && currentPosicion.precioHoyHoja != null) ? currentPosicion.precioHoyHoja : rec.precio;
     renderPosicion(currentPosicion, hoyPos,
-      currentPosicion && currentPosicion.precioHoyHoja != null ? 'GOOGLEFINANCE al guardar la valoración' : 'cierre del corte');
+      currentPosicion && currentPosicion.precioHoyHoja != null ? 'precio guardado con la posición; fecha de cotización no registrada' : 'precio guardado con la valoración; consulta: ' + (rec.precioReferenciaConsultadoAt || 'fecha no registrada'));
     document.getElementById('rTipo').textContent = rec.tipo || '—';
     document.getElementById('rMOS').textContent = fmtPct(rec.mos);
     var mosHoy = rec.precioMOSHoy;
@@ -4000,4 +4006,3 @@ if("serviceWorker" in navigator){
 </script>
 </body>
 </html>
-

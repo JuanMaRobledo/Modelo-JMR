@@ -1,4 +1,4 @@
-const CACHE = "modelo-jmr-v136-precio-compra";
+const CACHE = "modelo-jmr-v137-referencias-precio";
 const APP_SHELL = [
   "index.html",
   "visor.html",
