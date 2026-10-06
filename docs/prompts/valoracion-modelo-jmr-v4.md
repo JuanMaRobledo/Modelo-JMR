@@ -49,6 +49,42 @@ Esta instrucción se aplica **siempre**, a cualquier empresa y en ambos prompts,
 **Control.** Después de cualquier cambio de fórmulas, corre `scripts/audit_master_formulas.py` y `scripts/apply_canonical_formulas.py` (en seco: 0 celdas pendientes en cada hoja), `scripts/integridad_hojas.py` y el control de consistencia. Informa en el cierre: fórmula única verificada, datos enlazados (y cada ajuste con su nota) y supuestos escritos a mano.
 <!-- /JMR-FORMULA-UNICA-20261002 -->
 
+<!-- JMR-DESDE-CERO-20261006 -->
+## Flujo desde cero, datos de la SEC y criterio Damodaran · 6-oct-2026 (aprendido con MCD)
+
+Esta instrucción se aplica **siempre**, a cualquier empresa y en ambos prompts, y prevalece sobre indicaciones anteriores sobre plantillas, datos o scripts.
+
+**Plantilla y archivo.** La única plantilla maestra es **«Modelo_JMR_Plantilla_Maestra»** ([hoja 19PRUFiYsNavUcN6WwHBVlp-VRMozp3rNSE2R1zt7N-g](https://docs.google.com/spreadsheets/d/19PRUFiYsNavUcN6WwHBVlp-VRMozp3rNSE2R1zt7N-g/edit)), la que cumple la fórmula única y el contrato de escenarios y contra la que comparan `audit_master_formulas.py` y `apply_canonical_formulas.py`. No uses la «Plantilla maestra reconstruida — 2026-10-02» (1akerGnP…: sin bloque Disrupción ni contrato de escenarios) ni la «Plantilla maestra reutilizable (vigente)» de la carpeta NVIDIA (es la hoja de NVDA). Para cada valoración nueva copiá la maestra con el conector de Drive (la cuenta de servicio no puede crear archivos) en AAA Finanzas › Análisis › <empresa>, buscando la carpeta por ticker y nombre, con el nombre «Modelo JMR - {TICKER} (desde cero AAAA-MM-DD)». Nunca sobrescribas la maestra, la hoja de otra empresa ni una copia anterior de la misma empresa: la anterior queda como referencia. Para actualizar una valoración existente, trabajá sobre su hoja con respaldo.
+
+**Orden de scripts (JMR-valuation, `scripts/desde_cero.sh`).** `datos` → importador de la SEC, `nueva_empresa.py` (anclas, pestaña «Escenarios e historias» semilla y registro en la app), `auditar_estados_sec.py` + `aplicar_cambios_celdas.py` y `apply_lease_conversion.py` (con `--gasto=T:US$M` si el gasto de arrendamientos no está etiquetado). Después, el juicio del analista en `run_<t>_cero.py` y la ficha `<t>_cero_spec.py`. `historias` → `damodaran_stories.py`, `build_story_sheet.py`, `multiples_anchors.py`, decisión de múltiplos, `apply_multiples_v3.py`, `implied_growth.py`, `apply_canonical_formulas.py` en seco e `integridad_hojas.py`. `app` → `regenerar_cartera.sh`, `research_md_a_app.py` y `subir_drive.py`. No reemplaces un script del repositorio por un cálculo a mano: si un paso automático no cubre el caso, corregí el script o documentá la excepción.
+
+**Datos de la SEC: controles obligatorios después del importador.** Corré siempre `auditar_estados_sec.py` y revisá además, contra el 10-K y el último 10-Q:
+1. **D&A total**: la del estado de flujos de caja (DepreciationAndAmortization). Si conviven etiquetas de distinto alcance (MCD: la D&A corporativa dentro del SG&A, US$457 M, frente a US$2.199 M totales), vale la mayor; una D&A parcial deforma el EBITDA y el EV/EBITDA históricos. Al corregirla, compensá «Other Operating Expenses» y los flujos para no mover EBIT ni flujo operativo.
+2. **Acciones y BPA**: algunas empresas etiquetan las acciones en millones aunque la unidad diga «shares» (MCD desde 2023); acciones en 0 o BPA en millones son error del importador.
+3. **Partidas no etiquetadas**: SG&A o D&A en 0 entre años con dato se completan con el 10-K, con nota.
+4. **Balance LTM** = último 10-Q (el importador puede repetir el cierre anual).
+5. **Deuda**: los vencimientos corrientes que la empresa ya clasifica dentro del largo plazo (respaldados por una línea de crédito) no se suman otra vez; la deuda incluye el papel comercial.
+6. **Arrendamientos**: en «Leases» solo los financieros (son deuda); los operativos van por el conversor (US GAAP) y no deben aparecer en la deuda histórica de unos años sí y otros no, porque rompen la comparabilidad de los múltiplos EV.
+7. **Reexpresiones**: si la SEC muestra otra cifra para años viejos (reclasificaciones), informala; no la corrijas sin evidencia.
+8. **Fuentes secundarias**: cualquier cifra de un agregador (resúmenes de llamadas, sitios de noticias) se verifica contra el comunicado o el 10-Q antes de usarla; si no coincide, gana la primaria y la secundaria solo sirve para citas cualitativas.
+
+**Precio, fecha y tasas.** 'Input sheet'!D1 y B4 al cierre de la fecha de corte, 'Resumen de Valoración'!C25 al mismo precio (el importador lo congela con la fecha que trae la maestra), y verificá que 'Country equity risk premiums'!B2 sea la prima madura vigente: la maestra puede estar atrasada.
+
+**Criterios de Damodaran aplicados (ver `reference/criterios_damodaran_2026-10-04.md`).**
+- **Cargos que se repiten** tres años o más (reestructuración, litigios) son costo recurrente: no se suman al EBIT normalizado (*Investment Valuation*, cap. 9).
+- **Arrendamientos operativos**: valor presente de los compromisos al costo de la deuda **antes de impuestos** del modelo, como en *Dealing with Operating Leases in Valuation*; si la tasa incremental de la empresa es muy distinta, mostrá el pasivo con ella como sensibilidad.
+- **Beta bottom-up**: tabla **global** de Damodaran si más de la mitad de las ventas está fuera de EE.UU.; tabla de EE.UU. si la mayoría está en EE.UU.; la otra se informa como sensibilidad. El riesgo propio va en las historias, no en la tasa.
+- **Prima por regiones**: ventas por región del 10-K; si solo hay segmentos sin países, repartí por locales, activos o ventas del sistema y declaralo como estimación.
+- **Ventas/capital**: el rendimiento del capital nuevo (margen objetivo × (1 − t) × ventas/capital) debe ser creíble frente al ROIC actual con arrendamientos; en negocios con inmuebles propios (franquiciadores dueños de los locales) el ancla es el ROIC propio, no el ventas/capital de la industria. `damodaran_stories.py` avisa si el rendimiento supera el doble del ROIC terminal.
+- **Cambios de mezcla** (refranquiciamiento, desinversiones, paso de venta propia a regalías): modelá las historias **por fuente de ingresos** (por ejemplo franquicias, restaurantes propios y otros) y explicá que los ingresos reportados pueden caer mientras crecen las ventas del sistema. Con ventas/capital, la caída de ingresos libera capital (reinversión negativa): solo es válido si el capital sale de verdad (lo que se cobra por los activos vendidos, menos capital de trabajo). `damodaran_stories.py` avisa cuando supera 10% del NOPAT; justificalo con lo cobrado o subí el ventas/capital propio de la historia en esos años (la reinversión es Δingresos ÷ ventas/capital: un ventas/capital mayor libera menos), y declaralo en el informe. Referencia: en el refranquiciamiento de 2015-2018 McDonald's cobró ~US$0,35 por dólar de venta de restaurantes propios que dejó de tener (US$2.823M frente a una caída de US$8.156M, XBRL de la SEC); la Disrupción de MCD usa 1,70 en los años 1-5 para liberar solo eso.
+- **Patrimonio contable negativo** (recompras financiadas con deuda): el ROE no es significativo y el múltiplo justificado del P/E no se calcula; usá capital invertido, no patrimonio, y explicá que no es insolvencia.
+- **Peers**: excluí los que están en dificultades (comparables negativas sostenidas, ingresos en caída, múltiplos absurdos como un P/OCF de 3×) y los de otro modelo de negocio (operador frente a franquiciador), con el motivo.
+- **DCF inverso**: el de `damodaran_stories.py` y el de `implied_growth.py` usan la trayectoria real de crecimiento de la hoja (desde hoy el segundo calibra con los años 1-5 de 'Valuation output'!C4:G4, no con el año 2). Si los dos difieren, informá ambos y explicá la causa.
+
+**Informes.** El informe de valoración es el de 14 secciones del paso 11 (modelos: `data/CELH_Valoracion_Modelo_JMR_2026-10-05.md`, `data/MCD_Valoracion_Modelo_JMR_2026-10-06.md`); `valuation_report_v3.py` genera un anexo auxiliar, no el entregable. El research v5 integra en su sección 12 la salida de `damodaran_stories.py` (`data/<T>_Analisis_Damodaran_*.md`), la comprobación de ventaja y ROIC terminal y las dos tablas de horizontes, y se carga en la app con `research_md_a_app.py`.
+<!-- /JMR-DESDE-CERO-20261006 -->
+
+
 
 ### Control de integridad · 1 de octubre de 2026
 

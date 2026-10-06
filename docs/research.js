@@ -1221,7 +1221,7 @@
   try { if (localStorage.getItem('jmr-prompt-kind') === 'valuation') promptKind = 'valuation'; } catch (e) {}
   function currentPrompt(){ return PROMPTS[promptKind]; }
   // Bloques obligatorios (2-oct-2026) que se agregan a un prompt guardado que no los tenga, en el orden del vigente.
-  var REQUIRED_BLOCKS = ['JMR-HORIZONTES-OBLIGATORIOS-20261002', 'JMR-FORMULA-UNICA-20261002'];
+  var REQUIRED_BLOCKS = ['JMR-HORIZONTES-OBLIGATORIOS-20261002', 'JMR-FORMULA-UNICA-20261002', 'JMR-DESDE-CERO-20261006'];
   function withRequiredHorizons(saved, current) {
     if (!saved) return saved;
     var prevEnd = null;
