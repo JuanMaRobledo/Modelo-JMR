@@ -1480,9 +1480,11 @@
     if(f instanceof Date) iso = f.toISOString().slice(0, 10);
     else if(typeof f === 'number') iso = new Date(Date.UTC(1899, 11, 30) + f * 86400000).toISOString().slice(0, 10);
     var num = function(a){ var v = cellVal(res, a); return (typeof v === 'number' && isFinite(v)) ? v : null; };
+    // B50: «Fuente: <app Cartera | «Seguimiento de cartera» (Google Drive)>, posiciones al <fecha>»
+    var b50 = String(cellVal(res, 'B50') || '').replace(/^Fuente:\s*/, '').replace(/[«»]/g, '');
     return { acciones: acc, costoPromedio: costo, primeraCompra: iso, compras: cellVal(res, 'C53') || null,
              precioHoyHoja: num('B55'), dcfBase: num('B58'), dcfEsperado: num('B59'), ponderadoBase: num('B60'),
-             fuente: 'Seguimiento de cartera (Google Drive)' };
+             fuente: b50 || 'Seguimiento de cartera (Google Drive)' };
   }
   function badgePct(x){
     if(!(typeof x === 'number' && isFinite(x))) return '—';
