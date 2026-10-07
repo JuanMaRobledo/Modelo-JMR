@@ -1,5 +1,26 @@
 # Prompt Maestro: Modelo de Valoración Damodaran para Cualquier Ticker (v4 · revisión historias 30-sep-2026)
 
+<!-- JMR-AISLAMIENTO-EMPRESA-20261007 -->
+## Aislamiento obligatorio por empresa · 7-oct-2026
+
+Esta regla tiene prioridad sobre cualquier ejemplo, caso histórico o instrucción anterior del prompt.
+
+**Principio:** cada valoración y cada research se ejecutan como un expediente nuevo y aislado. El único punto de partida permitido para una empresa nueva es una **copia nueva de la plantilla maestra vigente**. Nunca se usa como base la hoja, el informe, el JSON, los supuestos, los textos ni el script específico de otra empresa.
+
+1. **Identidad cerrada.** Al iniciar fija TICKER_OBJETIVO, nombre legal, bolsa/moneda, SHEET_ID_OBJETIVO y fecha de corte. Desde ese momento, todo dato cuantitativo o cualitativo debe pertenecer explícitamente a esa identidad. Si una fuente, archivo o registro corresponde a otro ticker, se excluye del contexto de trabajo salvo que sea un comparable declarado.
+2. **Copia limpia.** Para una empresa nueva: plantilla maestra inmutable → copia nueva → asignar ID nuevo → poblar únicamente esa copia. Está prohibido duplicar una valoración ya llena de otra empresa. La plantilla maestra nunca recibe datos de compañías.
+3. **Cero herencia de contenido.** No reutilices cifras, márgenes, crecimiento, WACC/Ke, beta, primas regionales, ventas/capital, ROIC, deuda, caja, acciones, múltiplos, peers, probabilidades, historias, tesis, riesgos, catalizadores, textos o ajustes de otra empresa. Los valores comunes de mercado solo pueden venir del corte común vigente y deben identificarse como tales.
+4. **Ejemplos no son datos.** Cualquier ticker o cifra nombrados en este prompt, en documentación, casos de estudio o scripts históricos son solo ejemplos metodológicos. Nunca se copian al expediente objetivo. Las excepciones de una empresa no se generalizan a otra.
+5. **Estado efímero por ejecución.** Los artefactos intermedios de investigación y cálculo deben quedar bajo el ticker objetivo. No cargues automáticamente el último análisis, la última hoja abierta ni resultados de una ejecución previa como entrada de una nueva valoración.
+6. **Comparables encapsulados.** Los peers solo pueden aportar las métricas expresamente usadas para comparables/benchmark. Sus datos no pueden sustituir datos operativos de la empresa objetivo ni contaminar sus historias.
+7. **Validación anti-contaminación antes de escribir.** Comprueba que ticker, nombre, moneda, sheet ID y fecha coinciden en todas las salidas. Busca nombres/tickers ajenos en celdas de texto, notas, JSON y documentos. Todo ticker ajeno debe estar justificado como peer, fuente o ejemplo; de lo contrario, detén la publicación y corrígelo.
+8. **Validación anti-contaminación al cerrar.** El informe, research, app y hoja deben poder reconstruirse usando únicamente: (a) la copia de la plantilla maestra del ticker objetivo, (b) fuentes primarias/secundarias de esa empresa, (c) datos comunes de mercado declarados y (d) comparables declarados. Si dependen de una valoración anterior de otra empresa, el cierre falla.
+9. **Actualizaciones.** Si la empresa ya tiene una valoración y el usuario pide actualizarla, se puede trabajar sobre **su propia hoja** con respaldo; nunca sobre la de otra empresa. Si pide rehacerla desde cero, se vuelve a copiar la maestra y la valoración anterior queda solo como referencia externa, no como semilla.
+10. **Regla de conflicto.** Ante cualquier contradicción entre velocidad/reutilización y aislamiento, prevalece el aislamiento. Es preferible dejar un dato como pendiente antes que heredarlo o inferirlo desde otra empresa.
+
+**Control obligatorio de salida:** AISLAMIENTO = OK solo si no hay datos heredados de otra empresa, la hoja procede de la maestra vigente y todos los artefactos apuntan al mismo ticker/ID. Sin AISLAMIENTO = OK, no publicar.
+<!-- /JMR-AISLAMIENTO-EMPRESA-20261007 -->
+
 <!-- JMR-HORIZONTES-OBLIGATORIOS-20261002 -->
 ## Presentación obligatoria de ambos horizontes · 2-oct-2026
 
