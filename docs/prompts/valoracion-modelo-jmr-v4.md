@@ -797,3 +797,22 @@ Motivo: en la evaluación del 29-sep-2026, 100 de 110 múltiplos Base de las 22 
 | 14 | El Resumen mezclaba el DCF (valor hoy) con los múltiplos (precio FY+3) | Auditoría A3: DCF × (1+Ke)³ para el bloque FY+3; y hoja «Descuento de múltiplos» (29-sep-2026) con los múltiplos traídos a hoy en 1, 2 y 3 años, DCF hoy, múltiplos hoy y ponderado por separado |
 
 **Regla de oro para cualquier ticker nuevo:** antes de confiar en cualquier output del DCF, verificá con datos reales (no con la fórmula "tal como está") la congruencia entre ingresos, crecimiento, márgenes, reinversión y ROIC de las cuatro historias activas. Si el valor no corresponde a la severidad de la tesis, investiga las referencias y explica el mecanismo económico; no fuerces el orden de todas las variables. **Y para los múltiplos:** si su valor hoy coincide casi exactamente con el DCF, sospechá que no son independientes y revisá de dónde salieron.
+
+
+---
+
+## JMR-MULTIPLOS-HISTORICOS-20261007 · Lectura histórica independiente
+
+Cuando exista historia suficiente de múltiplos, añadir una capa separada de **Múltiplos históricos normalizados**.
+
+Reglas obligatorias:
+- No modifica el DCF, las cuatro historias, los múltiplos de salida vigentes ni sus ponderaciones.
+- No entra automáticamente al precio objetivo ponderado ni al valor intrínseco.
+- Usa únicamente la historia del ticker objetivo. No hereda series, múltiplos ni exclusiones de otra empresa.
+- Para estadísticas históricas usar cierres fiscales positivos e interpretables; excluir denominadores negativos/casi cero y outliers documentados. LTM se muestra como referencia actual, pero no entra en la estadística histórica.
+- Mostrar como mínimo: múltiplo actual, mínimo histórico válido, P25, mediana 5 años, promedio 5 años, mediana histórica depurada, descuento/prima actual frente a mediana y percentil actual.
+- Si se traduce la historia a precio, aplicar cada ancla a la métrica Base de FY+3 y traer el precio a valor presente con Ke. Mostrar este resultado como **lectura de reversión a la media**, nunca como valor intrínseco.
+- Frase de control obligatoria: **«Barato frente a su historia no equivale a infravalorado intrínsecamente.»**
+- Si no hay al menos 3 cierres fiscales válidos para un método, mostrarlo como no interpretable y no consolidarlo.
+- Los métodos declarados no aplicables en la valoración vigente no entran al consolidado histórico salvo justificación explícita.
+- El bloque debe declarar afecta_dcf = false y afecta_ponderado = false.
