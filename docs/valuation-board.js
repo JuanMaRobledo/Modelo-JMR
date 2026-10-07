@@ -75,6 +75,16 @@
     var h = (v.historias || []).filter(function (x) { return num(x.valor) != null && num(x.probabilidad) != null; });
     return { valor: v.valor, fecha: v.fecha || '', historias: h, escenariosUnificados: v.escenariosUnificados === true, historiaCentralId: v.historiaCentralId || 'A', dcfBaseTecnicoAnterior: num(v.dcfBaseTecnicoAnterior) };
   }
+  function histFrom(h) {
+    if (!h || !Array.isArray(h.metodos)) return null;
+    var methods = h.metodos.filter(function (m) { return m && m.estadisticas && num(m.estadisticas.n) !== 0; });
+    if (!methods.length) return null;
+    return {
+      fecha: h.fecha || '', nota: h.nota || '', metodos: methods,
+      consolidado: h.consolidado_vp || {}, pesos: h.pesos_relativos || {},
+      afectaDcf: h.afecta_dcf === true, afectaPonderado: h.afecta_ponderado === true
+    };
+  }
   function appliedMultiples(rec) {
     var out = {}, sheets = ((rec.hojas || {}).valoracion || {});
     Object.keys(sheets).forEach(function (name) {
@@ -103,6 +113,7 @@
     // Precio de compra de la posición (opcional, 6-oct-2026): si se pasa, las tarjetas principales muestran también
     // la diferencia contra el costo promedio.
     result.costo = num(extra.costo);
+    result.hist = histFrom(rec.multiplesHistoricos);
     return result;
   }
   // Bloque del valor esperado, junto al DCF. d = resultado de fromParts/fromRecord.
@@ -163,6 +174,35 @@
       '<p class="jvb-venote">El DCF base y el valor esperado son lecturas distintas; el valor esperado promedia todas las historias (cada una un DCF completo) según la probabilidad que les asigna el análisis. El margen de seguridad se aplica sobre el valor esperado' +
       (ve.fecha ? ' (análisis del ' + esc(ve.fecha) + ')' : '') + '. Las probabilidades son juicio del analista.</p></div>';
   }
+  function historicalHtml(d) {
+    var h = d && d.hist;
+    if (!h) return '';
+    var mrows = h.metodos.map(function (m) {
+      var s = m.estadisticas || {}, dv = num(m.descuento_vs_mediana), pc = num(m.percentil_actual);
+      var disc = dv == null ? '—' : '<span class="jvb-chip ' + (dv <= 0 ? 'pos' : 'neg') + '">' + (dv > 0 ? '+' : '−') + Math.abs(dv * 100).toFixed(0) + '%</span>';
+      var per = pc == null ? '—' : (pc * 100).toFixed(0) + '%';
+      return '<tr><td class="lbl"><b>' + esc(m.nombre) + '</b><small>' + (m.aplica ? 'Usado en la lectura histórica' : 'Solo referencia') + '</small></td>' +
+        '<td class="n">' + n2(m.actual) + '×</td><td class="n">' + n2(s.min) + '×</td><td class="n">' + n2(s.p25) + '×</td>' +
+        '<td class="n">' + n2(s.mediana_5a) + '×</td><td class="n">' + n2(s.promedio_5a) + '×</td><td class="n b">' + n2(s.mediana_10a) + '×</td>' +
+        '<td class="n">' + disc + '</td><td class="n">' + per + '</td></tr>';
+    }).join('');
+    var keys = [
+      ['min','Mínimo válido'], ['p25','P25'], ['mediana_5a','Mediana 5A'],
+      ['promedio_5a','Promedio 5A'], ['mediana_10a','Mediana histórica']
+    ];
+    var chips = keys.map(function (x) {
+      var v = num(h.consolidado[x[0]]);
+      return v == null ? '' : '<div class="jvb-hist-card"><span>' + esc(x[1]) + '</span><b>' + money(v) + '</b><small>VP hoy · lectura histórica</small></div>';
+    }).join('');
+    return '<section class="jvb-hist">' +
+      '<div class="jvb-hist-head"><div><span class="jvb-kicker">Lectura independiente</span><h4>Múltiplos históricos normalizados</h4></div>' +
+      '<span class="jvb-tag">No entra al DCF ni al ponderado</span></div>' +
+      '<p class="jvb-hist-note">Compara el múltiplo actual con cierres fiscales depurados de la propia empresa. Los años con denominadores negativos/casi cero y los outliers documentados se excluyen. <b>Barato frente a su historia no significa, por sí solo, infravalorado intrínsecamente.</b></p>' +
+      '<div class="jvb-tw"><table class="jvb-table jvb-hist-table"><thead><tr><th>Método</th><th class="n">Actual</th><th class="n">Mín.</th><th class="n">P25</th><th class="n">Mediana 5A</th><th class="n">Prom. 5A</th><th class="n">Mediana hist.</th><th class="n">vs mediana</th><th class="n">Percentil</th></tr></thead><tbody>' + mrows + '</tbody></table></div>' +
+      (chips ? '<div class="jvb-hist-cards">' + chips + '</div>' : '') +
+      '<p class="jvb-note">Los importes de las tarjetas aplican cada ancla histórica a la métrica Base proyectada a FY+3 y la traen a valor presente con Ke. Son una referencia de reversión a la media, no un valor intrínseco ni un nuevo precio objetivo principal.</p></section>';
+  }
+
   function hasData(d) { return !!(d && (d.dcf.hoy || d.dcf.fy3)); }
 
   // Filas del tablero para un horizonte.
@@ -251,6 +291,7 @@
       (opts.hero === false ? (unified(d) ? unifiedHtml(d) : '') : heroHtml(d)) + bar +
       '<div class="jvb-hz" data-hz="hoy">' + (d.dcf.hoy ? tableHtml(d, 'hoy') + rangeHtml(d, 'hoy') : '') + '</div>' +
       '<div class="jvb-hz" data-hz="fy3">' + (d.dcf.fy3 ? tableHtml(d, 'fy3') + rangeHtml(d, 'fy3') : '') + '</div>' +
+      historicalHtml(d) +
       '<p class="jvb-note">' + esc(note) + (d.hoja && opts.hoja !== false ? ' <a href="' + esc(d.hoja) + '" target="_blank" rel="noopener noreferrer">Abrir hoja con fórmulas →</a>' : '') + '</p></section>';
   }
 
@@ -349,6 +390,13 @@
       '.jvb-rr.axis .rt{height:18px}.jvb-rr.axis .rt::before{display:none}',
       '.jvb-rr .rpl{position:absolute;top:0;transform:translateX(-50%);font:700 11px "IBM Plex Mono",ui-monospace,monospace;color:var(--negative);white-space:nowrap}',
       '.jvb-note{font-size:11.5px;line-height:1.5;color:var(--ink-faint);margin:10px 2px 0}',
+      '.jvb-hist{margin-top:18px;padding-top:16px;border-top:1px solid var(--border-soft)}',
+      '.jvb-hist-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:8px}.jvb-hist-head h4{margin:3px 0 0;font-size:17px;color:var(--ink)}',
+      '.jvb-hist-note{margin:0 0 10px;font-size:12px;line-height:1.5;color:var(--ink-soft)}',
+      '.jvb-hist-table td.lbl small{display:block;color:var(--ink-faint);font-size:10.5px;font-weight:400;margin-top:2px}',
+      '.jvb-hist-cards{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-top:10px}',
+      '.jvb-hist-card{border:1px solid var(--border-soft);border-radius:10px;padding:10px;background:var(--surface-2)}.jvb-hist-card span,.jvb-hist-card small{display:block;font-size:10.5px;color:var(--ink-faint)}.jvb-hist-card b{display:block;margin:3px 0;font:700 16px "IBM Plex Mono",ui-monospace,monospace;color:var(--ink)}',
+      '@media(max-width:760px){.jvb-hist-cards{grid-template-columns:repeat(2,minmax(0,1fr))}.jvb-hist-head{flex-direction:column}.jvb-hist-table{min-width:760px!important}}',
       '.jvb-vebox{--jvb-dcf:var(--accent);font-variant-numeric:tabular-nums;margin-top:12px}',
       '.jvb-ve{margin-top:14px;padding-top:14px;border-top:1.5px solid color-mix(in oklab,var(--jvb-dcf) 30%,transparent)}',
       '.jvb-vebox .jvb-ve{margin-top:0;padding:14px 16px;border:1px solid var(--border-soft);border-radius:14px;background:var(--surface)}',
@@ -372,7 +420,7 @@
     document.head.appendChild(st);
   }
 
-  global.JmrValueBoard = { fromParts: fromParts, fromRecord: fromRecord, html: html, hasData: hasData, veHtml: veHtml,
+  global.JmrValueBoard = { fromParts: fromParts, fromRecord: fromRecord, html: html, hasData: hasData, veHtml: veHtml, historicalHtml: historicalHtml,
     primaryValues: primaryValues, primaryHtml: primaryHtml, veBox: function (d) { var h = unified(d) ? unifiedHtml(d) : primaryHtml(d) + veHtml(d); return h ? '<div class="jvb-vebox">' + h + '</div>' : ''; },
     apply: function () { apply(prefs()); } };
 })(window);
