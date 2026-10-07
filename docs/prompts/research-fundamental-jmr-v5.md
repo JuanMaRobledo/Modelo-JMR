@@ -850,3 +850,16 @@ Debajo de la tabla incluye estas ocho confirmaciones, cada una en una línea sep
 6. Las noticias están fechadas y son relevantes para la tesis, o declaré expresamente que no hubo eventos materiales.
 7. Las incertidumbres y los datos no disponibles están declarados en su sección, no omitidos; confirmé además la presencia literal y sustantiva de `### Las 5 fuerzas de Porter` y `### Síntesis final`.
 8. El documento no está envuelto en bloques de código y no contiene texto antes de los metadatos ni después de esta confirmación.
+
+
+---
+
+## JMR-MULTIPLOS-HISTORICOS-20261007 · Cómo tratar la valoración histórica en el research
+
+Si la valoración tiene el módulo **Múltiplos históricos normalizados**, comentarlo como una lectura separada del valor intrínseco:
+- distinguir explícitamente «barato/caro frente a su propia historia» de «infravalorado/sobrevalorado por DCF»;
+- explicar por qué se excluyeron años no interpretables (beneficio, EBITDA o flujo negativo/casi cero; outliers);
+- no usar la media/mediana histórica como argumento suficiente de compra o venta;
+- no modificar por esta lectura las probabilidades de las historias ni los supuestos del DCF salvo que exista evidencia operativa independiente;
+- si el múltiplo actual está bajo pero el DCF sigue bajo, describir la tensión como **compresión de valoración relativa vs. generación intrínseca de caja**;
+- conservar la frase: **«Barato frente a su historia no equivale a infravalorado intrínsecamente.»**
