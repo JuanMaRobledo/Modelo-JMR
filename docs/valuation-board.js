@@ -65,6 +65,7 @@
       metodos: metodos,
       pond: { hoy: trio(dm.ponderadoHoy || o.vp), fy3: trio(o.objetivoFY3) },
       ve: veFrom(o.ve),
+      hist: histFrom(o.hist || o.multiplesHistoricos),
       hoja: o.hoja || ''
     };
   }
