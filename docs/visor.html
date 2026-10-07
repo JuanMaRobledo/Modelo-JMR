@@ -1142,7 +1142,7 @@
   // etc.), que son insumos genéricos de la plantilla y no de esta empresa.
   var SHEET_GROUPS = {
     financieros: ['Income Statement', 'Balance Sheet', 'Cash Flow Statement'],
-    valoracion: ['Resumen de Valoración', 'Descuento de múltiplos', 'Valuation output', 'Trailing Valuation', 'Forward Valuation', 'EVEBITDA', 'EVFCFF', 'PE', 'PFCFE', 'POCF', 'Financials Multiples'],
+    valoracion: ['Resumen de Valoración', 'Descuento de múltiplos', 'Múltiplos históricos', 'Valuation output', 'Trailing Valuation', 'Forward Valuation', 'EVEBITDA', 'EVFCFF', 'PE', 'PFCFE', 'POCF', 'Financials Multiples'],
     analisis: ['Tesis de Inversión y Supuestos', 'Márgenes', 'Eficiencia de capital', 'Salud Financiera', 'Por acción', 'Dividendos', 'Estadísticas', 'Crecimiento y Márgenes', 'Diagnostics']
   };
   var sheetHtmlCache = {};
@@ -1218,6 +1218,28 @@
     var hs=[];
     for(var row=5;row<=8;row++) hs.push({id:String.fromCharCode(60+row),nombre:cellVal(ws,'A'+row),probabilidad:cellVal(ws,'B'+row),crecimiento:cellVal(ws,'C'+row),margen:cellVal(ws,'D'+row),salesToCapital:cellVal(ws,'E'+row),salesToCapital2:cellVal(ws,'F'+row),roicTerminal:row===6||row===7?'costo_capital':cellVal(ws,'G'+row),valor:cellVal(ws,'H'+row)});
     return {valor:cellVal(ws,'H10'),valorCentral:cellVal(ws,'H11'),historias:hs,escenariosUnificados:true,historiaCentralId:'A',rango:{min:cellVal(ws,'H12'),max:cellVal(ws,'H13')}};
+  }
+  function readHistoricalMultiples(wb){
+    var ws=wb && wb.Sheets && wb.Sheets['Múltiplos históricos'];
+    if(!ws || !String(cellVal(ws,'A1') || '').match(/MÚLTIPLOS HISTÓRICOS/i)) return null;
+    var methods=[];
+    for(var row=5;row<=20;row++){
+      var name=String(cellVal(ws,'A'+row) || '').trim();
+      if(!/^(EV\/EBITDA|EV\/FCFF|P\/E|P\/FCFE|P\/OCF)$/i.test(name)) continue;
+      methods.push({
+        nombre:name, aplica:true, actual:cellVal(ws,'B'+row),
+        estadisticas:{min:cellVal(ws,'C'+row),p25:cellVal(ws,'D'+row),mediana_5a:cellVal(ws,'E'+row),promedio_5a:cellVal(ws,'F'+row),mediana_10a:cellVal(ws,'G'+row),n:cellVal(ws,'J'+row)},
+        descuento_vs_mediana:cellVal(ws,'H'+row), percentil_actual:cellVal(ws,'I'+row)
+      });
+    }
+    if(!methods.length) return null;
+    var keyByLabel={'Mínimo histórico válido':'min','Percentil 25':'p25','Mediana 5 años':'mediana_5a','Promedio 5 años':'promedio_5a','Mediana histórica depurada':'mediana_10a'};
+    var cons={};
+    for(var r=10;r<=25;r++){
+      var label=String(cellVal(ws,'A'+r) || '').trim(), key=keyByLabel[label];
+      if(key) cons[key]=cellVal(ws,'B'+r);
+    }
+    return {version:1,independiente:true,afecta_dcf:false,afecta_ponderado:false,metodos:methods,consolidado_vp:cons,nota:'Barato frente a su historia no equivale a infravalorado intrínsecamente.'};
   }
   function headlineValues(key){
     var r = currentResumen || {}, dm = r.descuentoMultiples || {};
@@ -1708,6 +1730,7 @@
       descuentoMultiples: descuento,
       crecimientoImplicito: readCrecimientoImplicito(wb),
       valorEsperado: readUnifiedStories(wb),
+      multiplesHistoricos: readHistoricalMultiples(wb),
       precioMOSHoy: { conservador: cellVal(res,'C36'), base: cellVal(res,'D36'), optimista: cellVal(res,'E36') },
       cagr: { conservador: cellVal(res,'C13'), base: cellVal(res,'D13'), optimista: cellVal(res,'E13') },
       zonas: {
@@ -2919,7 +2942,7 @@
     var box = document.getElementById('valueBoard');
     if(!box || !boardParts || typeof JmrValueBoard === 'undefined') return;
     var r = currentResumen || {};
-    var d = JmrValueBoard.fromParts(Object.assign({}, boardParts, { precio: r.precio, precioLbl: 'Precio de hoy', mos: r.mos, hoja: r.hojaGoogle, ve: r.valorEsperado }));
+    var d = JmrValueBoard.fromParts(Object.assign({}, boardParts, { precio: r.precio, precioLbl: 'Precio de hoy', mos: r.mos, hoja: r.hojaGoogle, ve: r.valorEsperado, hist: r.multiplesHistoricos }));
     box.innerHTML = JmrValueBoard.html(d, { hero: false });
   }
   function renderPresentValue(dm, vp, metodosFY3, objetivoFY3){
