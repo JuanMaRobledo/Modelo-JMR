@@ -1211,12 +1211,12 @@
     try { v = localStorage.getItem(HEADLINE_KEY); } catch(e){}
     return HEADLINE_INFO[v] ? v : 'dcfHoy';
   }
-  // Read the authoritative four-story family when importing the updated native ADBE workbook.
+  // Read each scenario assumption from the authoritative native workbook.
   function readUnifiedStories(wb){
     var ws=wb && wb.Sheets && wb.Sheets['Escenarios e historias'];
     if(!ws || typeof cellVal(ws,'H10')!=='number') return null;
     var hs=[];
-    for(var row=5;row<=8;row++) hs.push({id:String.fromCharCode(60+row),nombre:cellVal(ws,'A'+row),probabilidad:cellVal(ws,'B'+row),crecimiento:cellVal(ws,'C'+row),margen:cellVal(ws,'D'+row),salesToCapital:cellVal(ws,'E'+row),salesToCapital2:cellVal(ws,'F'+row),roicTerminal:row===6||row===7?'costo_capital':cellVal(ws,'G'+row),valor:cellVal(ws,'H'+row)});
+    for(var row=5;row<=8;row++) hs.push({id:String.fromCharCode(60+row),nombre:cellVal(ws,'A'+row),probabilidad:cellVal(ws,'B'+row),crecimiento:cellVal(ws,'C'+row),margen:cellVal(ws,'D'+row),salesToCapital:cellVal(ws,'E'+row),salesToCapital2:cellVal(ws,'F'+row),roicTerminal:cellVal(ws,'G'+row),terminalGrowth:cellVal(ws,'J'+row),valor:cellVal(ws,'H'+row)});
     return {valor:cellVal(ws,'H10'),valorCentral:cellVal(ws,'H11'),historias:hs,escenariosUnificados:true,historiaCentralId:'A',rango:{min:cellVal(ws,'H12'),max:cellVal(ws,'H13')}};
   }
   function readHistoricalMultiples(wb){
@@ -1392,7 +1392,7 @@
     var barW = 54, gap = 18;
     var totalW = barW * 3 + gap * 2;
     var startX = (W - totalW) / 2;
-    var labels = storyRange ? ['Mínimo', 'Esperado', 'Máximo'] : ['Conservador', 'Base', 'Optimista'];
+    var labels = storyRange ? ['Mínimo', 'DCF Base', 'Máximo'] : ['Conservador', 'Base', 'Optimista'];
     var fills = [
       'color-mix(in oklab, var(--accent) 28%, var(--surface))',
       'color-mix(in oklab, var(--accent) 58%, var(--surface))',
@@ -1425,7 +1425,7 @@
   // para no agrandar el gráfico ni encimar texto. Color verde
   // (--positive) en las barras a propósito: son zonas de entrada
   // atractiva, no precios objetivo.
-  function buildZonesChart(precioActual, zonas, objetivoPonderado){
+  function buildZonesChart(precioActual, zonas, objetivoPonderado, storyRange){
     if(!zonas) return '<div class="chart-empty">Sin datos suficientes.</div>';
     var rows = [
       { label: 'Precio con MOS', z: zonas.conMOS },
@@ -1437,9 +1437,9 @@
 
     var targets = [];
     if(objetivoPonderado){
-      if(typeof objetivoPonderado.conservador === 'number' && isFinite(objetivoPonderado.conservador)) targets.push({ value: objetivoPonderado.conservador, label: 'Conservador', cls: 'chart-ref-cons' });
-      if(typeof objetivoPonderado.base === 'number' && isFinite(objetivoPonderado.base)) targets.push({ value: objetivoPonderado.base, label: 'Base', cls: 'chart-ref-base' });
-      if(typeof objetivoPonderado.optimista === 'number' && isFinite(objetivoPonderado.optimista)) targets.push({ value: objetivoPonderado.optimista, label: 'Optimista', cls: 'chart-ref-opt' });
+      if(typeof objetivoPonderado.conservador === 'number' && isFinite(objetivoPonderado.conservador)) targets.push({ value: objetivoPonderado.conservador, label: storyRange ? 'Mínimo' : 'Conservador', cls: 'chart-ref-cons' });
+      if(typeof objetivoPonderado.base === 'number' && isFinite(objetivoPonderado.base)) targets.push({ value: objetivoPonderado.base, label: storyRange ? 'DCF Base' : 'Base', cls: 'chart-ref-base' });
+      if(typeof objetivoPonderado.optimista === 'number' && isFinite(objetivoPonderado.optimista)) targets.push({ value: objetivoPonderado.optimista, label: storyRange ? 'Máximo' : 'Optimista', cls: 'chart-ref-opt' });
     }
 
     var W = 320, rowH = 36, padTop = 16, padBottom = 6, padLeft = 108, padRight = 12;
@@ -1485,7 +1485,18 @@
     var t = document.getElementById('chartScenariosTitle');
     if(t) t.textContent = sel.titulo + ' por escenario';
     scEl.innerHTML = buildScenarioChart(currentResumen.precio, sel.valores, sel.unified);
-    zEl.innerHTML = buildZonesChart(currentResumen.precio, currentResumen.zonas, sel.valores);
+    var zonas = currentResumen.zonas;
+    var expected = currentResumen.valorEsperado && Number(currentResumen.valorEsperado.valor);
+    var mos = Number(currentResumen.mos);
+    if(expected > 0){
+      zonas = {
+        value: {min: expected * 0.65, max: expected * 0.70},
+        deepValue: {min: expected * 0.55, max: expected * 0.60},
+        historica: {min: expected * 0.45, max: expected * 0.50},
+        conMOS: isFinite(mos) ? {min: expected * (1-mos), max: expected * (1-mos)} : null
+      };
+    }
+    zEl.innerHTML = buildZonesChart(currentResumen.precio, zonas, sel.valores, sel.unified);
   }
 
   // Actualiza la mini-tabla "Precio de hoy vs. precio al día del análisis" —
