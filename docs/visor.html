@@ -1759,7 +1759,7 @@
         conMOS: { min: cellVal(res,'C19'), max: cellVal(res,'B19') }
       }
     };
-    if(currentResumen.valorEsperado && currentResumen.valorEsperado.escenariosUnificados){ currentResumen.precioMOS=currentResumen.valorEsperado.valor*(1-mos); currentResumen.precioMOSMax=currentResumen.precioMOS; currentResumen.baseMOS='valorEsperado'; }
+    if(currentResumen.valorEsperado && currentResumen.valorEsperado.escenariosUnificados){ currentResumen.precioMOS=currentResumen.valorEsperado.valor*(1-mos); currentResumen.precioMOSMax=currentResumen.precioMOS; currentResumen.precioMOSHoy={conservador:currentResumen.precioMOS,base:currentResumen.precioMOS,optimista:currentResumen.precioMOS}; currentResumen.baseMOS='valorEsperado'; }
     sheetHtmlCache = {};
     cualitativoOverride = null;
     fundamentalOverride = null;
@@ -3027,6 +3027,7 @@
     document.getElementById('rTipo').textContent = rec.tipo || '—';
     document.getElementById('rMOS').textContent = fmtPct(rec.mos);
     var mosHoy = rec.precioMOSHoy;
+    if(rec.valorEsperado && rec.valorEsperado.escenariosUnificados && typeof rec.valorEsperado.valor === 'number'){ var pmEsperado=rec.valorEsperado.valor*(1-(Number(rec.mos)||0)); mosHoy={conservador:pmEsperado,base:pmEsperado,optimista:pmEsperado}; }
     document.getElementById('rPrecioMOS').textContent = mosHoy ? fmtMoney(mosHoy.conservador) + ' – ' + fmtMoney(mosHoy.base) : fmtMoney(rec.precioMOS) + (rec.precioMOSMax != null ? ' – ' + fmtMoney(rec.precioMOSMax) : '');
     var tbody = document.getElementById('methodsBody');
     tbody.innerHTML = '';

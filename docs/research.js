@@ -233,7 +233,7 @@
     var board = typeof JmrValueBoard !== 'undefined' ? JmrValueBoard.fromRecord(lv, { precioLbl: 'Precio guardado' }) : null;
     var boardHtml = board && JmrValueBoard.hasData(board) ? JmrValueBoard.html(board, { hero: true }) : '';
     var visorLink = lv.sourcePath ? '<a class="linked-visor-link" href="visor.html?path=' + encodeURIComponent(lv.sourcePath) + '">Ver en el Visor →</a>' : '';
-    var zones = zoneKv('Zona Value (sobre el objetivo FY+3)', z.value) + zoneKv('Zona Deep Value', z.deepValue) + zoneKv('Zona histórica', z.historica);
+    var zones = zoneKv(lv.baseMOS === 'valorEsperado' ? 'Zona Value (sobre el DCF esperado)' : 'Zona Value (sobre el objetivo FY+3)', z.value) + zoneKv('Zona Deep Value', z.deepValue) + zoneKv('Zona histórica', z.historica);
     return '<section class="valuation-block linked-valuation"><span class="linked-tag">✓ Vinculado con el Visor · ' + escapeHtml(lv.sourcePath || '') + '</span>' + visorLink + '<h2>Valoración cuantitativa (Visor)</h2>' +
       boardHtml + '<div class="linked-grid">' + kv('Fecha de valoración', escapeHtml(lv.fechaValoracion || lv.fecha || '—')) +
       kv('Precio al día del análisis', money(lv.precioAnalisis)) +
