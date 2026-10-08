@@ -1495,6 +1495,14 @@
         historica: {min: expected * 0.45, max: expected * 0.50},
         conMOS: isFinite(mos) ? {min: expected * (1-mos), max: expected * (1-mos)} : null
       };
+      currentResumen.zonas = zonas;
+      document.getElementById('zonasTitle').textContent = 'Zonas de valor (sobre el valor esperado de las historias)';
+      [['zValue','value'],['zDeep','deepValue'],['zHist','historica'],['zMOS','conMOS']].forEach(function(pair){
+        var zone = zonas[pair[1]], el = document.getElementById(pair[0]);
+        if(el && zone) el.textContent = zone.min === zone.max ? fmtMoney(zone.min) : fmtMoney(zone.min) + ' – ' + fmtMoney(zone.max);
+      });
+      var mosCard = document.getElementById('zMOS');
+      if(mosCard) mosCard.parentElement.querySelector('.lbl').textContent = 'Precio con MOS sobre el esperado';
     }
     zEl.innerHTML = buildZonesChart(currentResumen.precio, zonas, sel.valores, sel.unified);
   }
