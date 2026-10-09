@@ -43,6 +43,12 @@ export const CATALOG = [
     website: "https://argos.co/",
   },
   {
+    ticker: "PFDAVVNDA.CL",
+    name: "Banco Davivienda · preferencial",
+    model: "financial",
+    website: "https://ir.davivienda.com/acciones/",
+  },
+  {
     ticker: "MINEROS.CL",
     name: "Mineros",
     model: "commodity",
