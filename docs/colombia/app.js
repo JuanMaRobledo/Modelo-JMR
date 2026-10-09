@@ -148,6 +148,43 @@ const fmt = (v, unit = "COP") =>
     ? "Pendiente"
     : new Intl.NumberFormat("es-CO", { maximumFractionDigits: 2 }).format(v) +
       (unit ? " " + unit : "");
+function renderReport(id, content) {
+  const root = $(id);
+  root.replaceChildren();
+  if (!content) return;
+  const body = content.replace(/^---\s*\n[\s\S]*?\n---\s*\n/, "");
+  if (!window.marked || !window.DOMPurify) { root.textContent = body; return; }
+  root.innerHTML = DOMPurify.sanitize(marked.parse(body, { gfm: true }), { FORBID_TAGS: ["style", "form", "input"] });
+  const toc = document.createElement("nav");
+  toc.className = "report-toc";
+  toc.setAttribute("aria-label", "Índice del informe");
+  const title = document.createElement("strong"); title.textContent = "Contenido"; toc.append(title);
+  root.querySelectorAll("h2,h3").forEach((heading, i) => {
+    const oldId = heading.id;
+    heading.id = `${id}-section-${i}`;
+    if (oldId) root.querySelectorAll("a").forEach(a => { if (a.getAttribute("href") === "#" + oldId) a.href = "#" + heading.id; });
+    const a = document.createElement("a"); a.href = "#" + heading.id; a.textContent = heading.textContent; toc.append(a);
+  });
+  if (toc.children.length > 1) root.prepend(toc);
+  root.querySelectorAll("table").forEach(table => { const wrap = document.createElement("div"); wrap.className = "table-wrap"; table.replaceWith(wrap); wrap.append(table); });
+}
+function renderValuationStats() {
+  const root = $("valuationStats"); root.replaceChildren();
+  const v = dossier?.valuationSummary;
+  if (!v) return;
+  for (const [label, value, note] of [
+    ["DCF Base · principal", v.base, "COP por acción · " + dossier.analysisDate],
+    ["Precio del análisis", v.marketPrice, "Referencia · " + (v.priceDate || dossier.analysisDate)],
+    ["DCF ponderado · secundario", v.expected, "COP por acción"],
+  ]) {
+    const box = document.createElement("div"); box.className = "stat" + (root.children.length === 0 ? " featured" : "");
+    const small = document.createElement("small"); small.textContent = label;
+    const strong = document.createElement("strong"); strong.textContent = fmt(value);
+    const sub = document.createElement("small"); sub.textContent = note;
+    box.append(small, strong, sub); root.append(box);
+  }
+}
+$("printBtn").onclick = () => window.print();
 function render() {
   ["jsonBtn", "csvBtn", "xlsxBtn"].forEach((id) => ($(id).disabled = !dossier));
   $("companyHeading").textContent = dossier
@@ -156,6 +193,7 @@ function render() {
   for (const id of ["stats", "financialTable", "warnings", "sourceLinks"])
     $(id).replaceChildren();
   $("coverageNote").textContent = "";
+  renderValuationStats();
   if (!dossier) {
     $("modelNote").textContent =
       "Selecciona el negocio y obtén sus datos antes de preparar la valoración.";
@@ -254,8 +292,8 @@ function render() {
   }
   $("modelNote").textContent =
     `Modelo: ${MODELS[dossier.instrument.model] || MODELS.unknown}. ${dossier.instrument.model === "financial" ? "Revisar ROE, capital regulatorio y costo de patrimonio. El FCFF industrial no aplica." : dossier.instrument.model === "holding" ? "Valorar participaciones y matriz; evitar doble conteo de deuda, dividendos y flujos consolidados." : "Revisar reinversión, moneda y ROIC terminal antes de calcular."}`;
-  $("researchPreview").textContent = dossier.reports?.research?.content || "";
-  $("valuationPreview").textContent = dossier.reports?.valuation?.content || "";
+  renderReport("researchPreview", dossier.reports?.research?.content);
+  renderReport("valuationPreview", dossier.reports?.valuation?.content);
 }
 $("jsonBtn").onclick = () => {
   if (dossier)
@@ -433,7 +471,7 @@ function open(d) {
     ? dossier.ticker
     : "";
   render();
-  activate("data");
+  activate(dossier.reports?.valuation ? "valuation" : "data");
 }
 function renderLibrary() {
   const root = $("library");
@@ -456,7 +494,12 @@ function renderLibrary() {
     b.className = "btn";
     b.textContent = "Abrir expediente";
     b.onclick = () => open(d);
-    card.append(h, p, b);
+    const value = document.createElement("strong");
+    value.textContent = d.valuationSummary?.base != null ? "DCF Base · " + fmt(d.valuationSummary.base) : "Valoración pendiente";
+    const research = document.createElement("button"); research.className = "btn"; research.textContent = "Análisis fundamental";
+    research.onclick = () => { open(d); activate("research"); };
+    b.textContent = d.reports?.valuation ? "Ver valoración" : "Abrir expediente";
+    card.append(h, p, value, b, research);
     root.append(card);
   }
 }
@@ -557,7 +600,7 @@ $("connectBtn").onclick = () => window.GhOAuth.startLogin();
 $("syncBtn").onclick = async () => {
   try {
     const response = await fetch(GH, {
-      headers: GhOAuth.ghHeaders(),
+      headers: { Accept: "application/vnd.github+json" },
       cache: "no-store",
     });
     if (response.status === 404) {
@@ -571,7 +614,7 @@ $("syncBtn").onclick = async () => {
     for (const entry of entries) {
       if (entry.type !== "file" || !entry.name.endsWith(".json")) continue;
       const r = await fetch(GH + encodeURIComponent(entry.name), {
-        headers: GhOAuth.ghHeaders(),
+        headers: { Accept: "application/vnd.github+json" },
         cache: "no-store",
       });
       if (!r.ok) throw new Error("Expediente no disponible: " + entry.name);
@@ -600,7 +643,12 @@ $("syncBtn").onclick = async () => {
     }
     localStorage.setItem(KEY, JSON.stringify(records));
     renderLibrary();
-    status("saveStatus", "Expedientes Colombia sincronizados.");
+    if (!dossier) {
+      const ticker = new URLSearchParams(location.search).get("ticker");
+      const selected = records.filter(d => !ticker || d.ticker === ticker).sort((a,b) => (b.updatedAt || b.retrievedAt).localeCompare(a.updatedAt || a.retrievedAt))[0];
+      if (ticker && selected) open(selected);
+    }
+    status("saveStatus", "Valoraciones Colombia sincronizadas.");
   } catch (e) {
     status("saveStatus", e.message, true);
   }
@@ -676,6 +724,7 @@ $("themeBtn").onclick = () => {
 };
 render();
 renderLibrary();
+activate("library");
 // Mostrar expedientes Colombia ya publicados al abrir, sin importación manual.
 // Reutiliza la sincronización existente; conserva expedientes locales ajenos.
 $("syncBtn").click();
