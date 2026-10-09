@@ -155,6 +155,9 @@ function renderReport(id, content) {
   const body = content.replace(/^---\s*\n[\s\S]*?\n---\s*\n/, "");
   if (!window.marked || !window.DOMPurify) { root.textContent = body; return; }
   root.innerHTML = DOMPurify.sanitize(marked.parse(body, { gfm: true }), { FORBID_TAGS: ["style", "form", "input"] });
+  const anchors = new Map();
+  root.querySelectorAll("[id]").forEach(node => { const old = node.id; node.id = `${id}-${old}`; anchors.set(old, node.id); });
+  root.querySelectorAll('a[href^="#"]').forEach(a => { const target = anchors.get(a.getAttribute("href").slice(1)); if (target) a.setAttribute("href", "#" + target); });
   const toc = document.createElement("nav");
   toc.className = "report-toc";
   toc.setAttribute("aria-label", "Índice del informe");
@@ -173,14 +176,14 @@ function renderValuationStats() {
   const v = dossier?.valuationSummary;
   if (!v) return;
   for (const [label, value, note] of [
-    ["DCF Base · principal", v.base, "COP por acción · " + dossier.analysisDate],
+    ["Valor intrínseco Base · principal", v.base, "COP por acción · " + dossier.analysisDate],
     ["Precio del análisis", v.marketPrice, "Referencia · " + (v.priceDate || dossier.analysisDate)],
-    ["DCF ponderado · secundario", v.expected, "COP por acción"],
+    ["Valor esperado · secundario", v.expected, "COP por acción"],
   ]) {
     const box = document.createElement("div"); box.className = "stat" + (root.children.length === 0 ? " featured" : "");
     const small = document.createElement("small"); small.textContent = label;
     const strong = document.createElement("strong"); strong.textContent = fmt(value);
-    const sub = document.createElement("small"); sub.textContent = note;
+    const sub = document.createElement("small"); sub.textContent = note + (root.children.length === 0 && v.scopeLabel ? " · " + v.scopeLabel : "");
     box.append(small, strong, sub); root.append(box);
   }
 }
@@ -206,9 +209,9 @@ function render() {
     [
       "Última cotización",
       fmt(price.price),
-      new Date(price.quotedAt).toLocaleString("es-CO", {
+      price.sessionDate || (price.quotedAt ? new Date(price.quotedAt).toLocaleString("es-CO", {
         timeZone: "America/Bogota",
-      }),
+      }) : "Fecha/hora pendiente"),
     ],
     [
       "Historia de ingresos",
@@ -220,7 +223,7 @@ function render() {
       dossier.coverage.reportingCurrencies.join(" / ") || "Pendiente",
       "Importes en unidades originales",
     ],
-    ["Estado", "Datos obtenidos", "Conciliación y valoración pendientes"],
+    ["Estado", dossier.audit.valuationReady ? "Revisión completada" : "Datos obtenidos", dossier.valuationSummary?.scopeLabel || "Conciliación y valoración pendientes"],
   ];
   for (const [label, value, note] of cells) {
     const box = document.createElement("div");
@@ -235,7 +238,7 @@ function render() {
     $("stats").append(box);
   }
   $("coverageNote").textContent =
-    `Consultado: ${new Date(dossier.retrievedAt).toLocaleString("es-CO", { timeZone: "America/Bogota" })}. Importes monetarios en millones de la moneda indicada; acciones en millones de acciones. FY es cierre anual; los últimos doce meses están pendientes de verificar.`;
+    `Consultado: ${new Date(dossier.updatedAt || dossier.retrievedAt).toLocaleString("es-CO", { timeZone: "America/Bogota" })}. La tabla presenta moneda y acciones en millones, respetando la escala original. FY es cierre anual. ${dossier.coverage.ltmAvailable ? "La cobertura UDM consta en el expediente." : "UDM homogéneo no disponible; no confundir semestres anualizados con UDM."}`;
   const table = document.createElement("table"),
     head = document.createElement("tr"),
     annual = annualTable(dossier.observations);
@@ -260,7 +263,7 @@ function render() {
         o = row[field];
       cell.textContent = o
         ? fmt(
-            o.value / 1e6,
+            o.value / (o.unit?.includes("millones") ? 1 : 1e6),
             o.unit === "shares" ? "acciones" : o.unit || "moneda pendiente",
           )
         : "Pendiente";
@@ -347,8 +350,8 @@ $("xlsxBtn").onclick = async () => {
         ["run_id", snapshot.runId],
         ["model", snapshot.instrument.model],
         ["quote_currency", "COP"],
-        ["security_class", "pending-verification"],
-        ["valuation_ready", false],
+        ["security_class", snapshot.instrument.securityClass || "pending-verification"],
+        ["valuation_ready", snapshot.audit.valuationReady],
       ],
       Cotizacion: [
         ["price", "currency", "quoted_at", "retrieved_at", "type"],
@@ -391,13 +394,13 @@ $("xlsxBtn").onclick = async () => {
         ["input", "value", "source"],
         ...Object.keys(snapshot.assumptions).map((k) => [
           k,
-          null,
-          "Pendiente: no heredado",
+          typeof snapshot.assumptions[k] === "object" ? JSON.stringify(snapshot.assumptions[k]) : snapshot.assumptions[k],
+          snapshot.audit.valuationReady ? "Ver informe y hoja enlazada" : "Pendiente: no heredado",
         ]),
       ],
       Historias: [
         ["name", "probability", "value"],
-        ...snapshot.scenarios.map((s) => [s.name, null, null]),
+        ...snapshot.scenarios.map((s) => [s.name, s.probability ?? null, s.value ?? null]),
       ],
       Fuentes: [
         ["role", "url", "retrieved_at"],
@@ -405,7 +408,8 @@ $("xlsxBtn").onclick = async () => {
       ],
       Controles: [
         ["check", "status"],
-        ...snapshot.audit.warnings.map((w) => [w, "Pendiente"]),
+        ...Object.entries(snapshot.audit.checks || {}),
+        ...snapshot.audit.warnings.map((w) => [w, "Limitación / supuesto"]),
       ],
     };
     for (const [group, title] of [

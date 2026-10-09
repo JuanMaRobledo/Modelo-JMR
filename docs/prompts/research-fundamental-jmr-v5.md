@@ -1,5 +1,37 @@
 # Prompt maestro - Research Fundamental Modelo JMR v5 · revisión historias 30-sep-2026 — narrativa, auditoría de datos y valor con criterio Damodaran
 
+<!-- JMR-PRECISION-20261009 -->
+# Controles de precisión JMR · 9-oct-2026
+
+Estas reglas prevalecen sobre ejemplos numéricos, atajos y afirmaciones incompatibles del prompt. Conservan el flujo, las 14 secciones de valoración y las 18 de research, las cuatro historias y la prioridad del valor intrínseco Base. No autorizan modificar otras valoraciones ni mezclar el flujo Colombia con el de EEUU.
+
+## Evidencia y corte
+
+Para cada entrada material registra emisor legal, clase/ISIN, consolidado o separado, moneda, escala, inicio y fin del período, duración, fecha de publicación, consulta, fuente directa y página/nota/celda. Fecha fiscal no equivale a publicación. Separa saldo de cierre, promedio, acumulado y trimestre aislado. Un semestre acumulado nunca se rotula trimestre ni UDM. UDM = anual anterior + acumulado actual − acumulado comparable solo si duración, perímetro y políticas son homogéneos; si hay integración o discontinuadas, concilia proforma o exclúyelo. Anualizar un semestre es una aproximación estacional explícita, no UDM.
+
+Ausente permanece vacío/null, no cero. Conserva dato original, ajuste y derivado por separado. Verifica millones, miles de millones, acciones actuales y promedio ponderado antes de multiplicar/dividir. Los informes, JSON, tabla y exportación deben respetar la misma escala. No confundir precio preferencial × todas las acciones con capitalización observada multiclase; justifica la asignación económica por clase. Cierre, máximo, última operación y precio intradía son campos distintos. Si la nueva consulta falla, conserva referencia fechada y declara la consulta fallida; no renueves la hora de cotización ni la presentes como precio vivo.
+
+## Tasas y exposición
+
+Identifica convención y fecha de Rf, ERP, spread soberano, CRP, beta y ponderaciones. Usa el corte disponible sin incorporar información posterior; las series mensuales/anuales no adquieren falsamente la fecha diaria. No copies cifras históricas escritas en el prompt. Declara método de ERP implícita y cualquier ajuste soberano de la tasa base. Construye Ke = Rf + beta × ERP madura + lambda × CRP por exposición, o una alternativa equivalente explicada: no dupliques spread en Rf, ERP y CRP. No asignes riesgo país por moneda de cotización. Explica si ponderas ventas, activos o cartera y prueba la alternativa material. Beta sectorial es proxy documentada, no beta local empíricamente verificada. No añadir primas arbitrarias de liquidez ni elevar Ke de cada historia por el mismo deterioro ya incluido en los flujos. Explica cambios de riesgo y convergencia de tasas; con tasa variable descuenta usando el producto anual.
+
+## Modelo y terminal
+
+La fórmula industrial canónica corresponde a empresas operativas. Bancos usan FCFE compatible con capital, dividendos sostenibles o exceso de retornos al Ke; depósitos y deuda operativa no se restan otra vez. Concilia libro controlador + NCI − ajustes regulatorios netos con CET1. Evalúa CET1, Tier 1, capital total y apalancamiento; incorpora AT1/Tier 2, vencimientos, OCI, deducciones, capital aportado y propiedad/dilución. No sustituir ese puente por un porcentaje fijo de conversión sin respaldo. Retención y FCFE negativos deben revelar financiación, sin presentarlos como dividendos legales ni ocultarlos con cero. Separa VAN económico negativo, piso del título por responsabilidad limitada y liquidación, solo si esta tiene evidencia.
+
+Comprueba continuidad FY10–FY11: todos los componentes de ingreso, gasto, impuestos, activos, RWA, capital, deducciones, NCI y distribuciones alcanzan el régimen descrito. g/ROIC o g/ROE no reemplaza una restricción regulatoria vinculante. No imponer un ROIC/ROE mínimo artificial para eliminar destrucción de valor: exige evidencia de ventaja para retorno superior al costo; puede quedar por debajo si el deterioro persiste. Valida Ke/WACC > g, identidad de flujos/retención, clean surplus con OCI y una extensión explícita del terminal cuando sea material. Sensibilidad de solo g terminal y sensibilidad económica con toda la convergencia son pruebas distintas y se rotulan.
+
+## Anclas, eventos y publicación
+
+Reconstruye ratios históricos con denominador atribuible, derechos, fecha, dilución y acciones corporativas. Documenta años y peers efectivamente verificados; no declares diez años si verificaste cinco. Excluye P/E con pérdidas y períodos no comparables; no promedies pérdidas como ratios baratos. Las anclas histórica, peer ajustado y fundamental se justifican por separado; ninguna se infiere del precio DCF. La ancla fundamental comparte supuestos y no representa evidencia independiente adicional. Informa múltiplos aplicados, pesos efectivos y tres lecturas: presente, FY+3 exdistribuciones y paquete FY+3 descontado al presente con cada distribución descontada en su año. No sumar distribuciones dos veces ni mezclar horizontes.
+
+Distingue operación anunciada, autorizada, perfeccionada y consolidada. Ante una cesión/adquisición material con precio o perímetro efectivo desconocidos, entrega el valor del perímetro reportado y un puente incremental separado: PV de flujos después de capital − contraprestación − costos adicionales − financiación, con acciones/dilución coherentes. No tratar contraprestación desconocida como cero ni afirmar valor posoperación definitivo. La publicación autorizada puede mostrar ese alcance y su límite visible; no bloquees toda la entrega por un dato externo no divulgado.
+
+Antes de publicar, relee resultados efectivos de la hoja, busca errores, reproduce independientemente cálculos materiales y concilia las cuatro historias, probabilidades, ambos horizontes, ponderados y precio congelado contra informes y JSON. Actualiza estados y advertencias obsoletos junto con cifras y enlaces. Revisión del modelo no equivale a auditoría contable ni certificación económica. Solicita autorización de publicación únicamente si no existe en la sesión; una autorización expresa vigente permite publicar sin preguntar otra vez. Comprueba la versión remota y la entrega/despliegue; no confundir commit enviado con app verificada.
+
+<!-- /JMR-PRECISION-20261009 -->
+
+
 <!-- JMR-AISLAMIENTO-EMPRESA-20261007 -->
 ## Aislamiento obligatorio por empresa · 7-oct-2026
 
