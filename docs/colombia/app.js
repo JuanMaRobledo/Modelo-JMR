@@ -175,16 +175,50 @@ function renderValuationStats() {
   const root = $("valuationStats"); root.replaceChildren();
   const v = dossier?.valuationSummary;
   if (!v) return;
-  for (const [label, value, note] of [
+  // El NAV y los múltiplos relativos nunca sustituyen el valor intrínseco.
+  const entries = [
     ["Valor intrínseco Base · principal", v.base, "COP por acción · " + dossier.analysisDate],
     ["Precio del análisis", v.marketPrice, "Referencia · " + (v.priceDate || dossier.analysisDate)],
     ["Valor esperado · secundario", v.expected, "COP por acción"],
-  ]) {
-    const box = document.createElement("div"); box.className = "stat" + (root.children.length === 0 ? " featured" : "");
+    ["Múltiplos · ponderado independiente", v.multiplesWeightedToday, v.multiplesStatus || "No verificado"],
+    ["Combinado intrínseco + múltiplos", v.combinedWeightedToday, v.combinedStatus || "No verificado"],
+    ["Múltiplos ponderados · objetivo FY+3", v.multiplesWeightedYear3, "COP por acción · sin descontar"],
+    ["Múltiplos ponderados · paquete FY+3 VP", v.multiplesWeightedYear3PV, "COP por acción · descontado hoy"],
+    ["Combinado · objetivo FY+3", v.combinedWeightedYear3, "COP por acción · sin descontar"],
+    ["Combinado · paquete FY+3 VP", v.combinedWeightedYear3PV, "COP por acción · descontado hoy"],
+  ];
+  if (v.navReference != null)
+    entries.push(["NAV bursátil · no intrínseco", v.navReference, "Referencia provisional; no margen de seguridad DCF"]);
+  for (const [label, value, note] of entries) {
+    const box = document.createElement("div");
+    box.className = "stat" + (root.children.length === 0 ? " featured" : "");
     const small = document.createElement("small"); small.textContent = label;
     const strong = document.createElement("strong"); strong.textContent = fmt(value);
-    const sub = document.createElement("small"); sub.textContent = note + (root.children.length === 0 && v.scopeLabel ? " · " + v.scopeLabel : "");
+    const sub = document.createElement("small");
+    sub.textContent = note + (root.children.length === 0 && v.scopeLabel ? " · " + v.scopeLabel : "");
     box.append(small, strong, sub); root.append(box);
+  }
+  const details = v.multiplesMethods || [];
+  if (details.length) {
+    const wrap = document.createElement("div"); wrap.className = "table-wrap";
+    const table = document.createElement("table");
+    const header = document.createElement("tr");
+    ["Método","Presente","FY+3","FY+3 descontado","Peso","Estado"].forEach(t => {
+      const th = document.createElement("th"); th.textContent = t; header.append(th);
+    });
+    const thead = document.createElement("thead"); thead.append(header); table.append(thead);
+    const tbody = document.createElement("tbody");
+    for (const method of details) {
+      const tr = document.createElement("tr");
+      const values = [method.name, method.today == null ? "Pendiente" : fmt(method.today),
+        method.year3 == null ? "Pendiente" : fmt(method.year3),
+        method.year3PV == null ? "Pendiente" : fmt(method.year3PV),
+        method.weight == null ? "—" : (method.weight * 100).toFixed(0) + "%",
+        method.status || "No verificado"];
+      values.forEach(t => { const td = document.createElement("td"); td.textContent = t; tr.append(td); });
+      tbody.append(tr);
+    }
+    table.append(tbody); wrap.append(table); root.append(wrap);
   }
 }
 $("printBtn").onclick = () => window.print();
@@ -499,7 +533,7 @@ function renderLibrary() {
     b.textContent = "Abrir expediente";
     b.onclick = () => open(d);
     const value = document.createElement("strong");
-    value.textContent = d.valuationSummary?.base != null ? "DCF Base · " + fmt(d.valuationSummary.base) : "Valoración pendiente";
+    value.textContent = d.valuationSummary?.base != null ? "Intrínseco Base · " + fmt(d.valuationSummary.base) : d.valuationSummary?.navReference != null ? "NAV provisional · " + fmt(d.valuationSummary.navReference) : "Valoración pendiente";
     const research = document.createElement("button"); research.className = "btn"; research.textContent = "Análisis fundamental";
     research.onclick = () => { open(d); activate("research"); };
     b.textContent = d.reports?.valuation ? "Ver valoración" : "Abrir expediente";
