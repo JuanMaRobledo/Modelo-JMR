@@ -91,3 +91,12 @@ Ver el detalle completo en `modelo/METODOLOGIA.md`.
 
 > Nota: este documento y sus conclusiones tienen finalidad educativa y de organización personal
 > de información. No constituyen asesoría financiera ni recomendación de compra o venta.
+
+## Acciones colombianas · flujo independiente
+
+El apartado [Acciones colombianas](docs/colombia.html) consulta por ticker local
+precios e historia financiera, exporta JSON/CSV/Excel y mantiene research,
+valoración, prompts y expedientes propios. La extracción se comparte con el
+descargador por consola y no usa el pipeline SEC ni supuestos de EEUU.
+La cobertura y la conciliación oficial pendiente se muestran explícitamente.
+Ver [contrato, límites y validación](docs/COLOMBIA.md).

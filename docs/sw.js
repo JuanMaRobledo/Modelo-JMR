@@ -1,6 +1,12 @@
-const CACHE = "modelo-jmr-v139-auditoria-roic";
+const CACHE = "modelo-jmr-v140-colombia-aislada";
 const APP_SHELL = [
   "index.html",
+  "colombia.html",
+  "colombia/app.js",
+  "colombia/core.js",
+  "colombia/catalog.js",
+  "prompts/colombia-research-v1.md",
+  "prompts/colombia-valuation-v1.md",
   "visor.html",
   "screener.html",
   "calculadora.html",
@@ -50,7 +56,8 @@ self.addEventListener("fetch", (event) => {
   // financialmodelingprep.com pasan sin cachear: son datos vivos (precios,
   // análisis, hipótesis) y cachearlas podía terminar sirviendo una
   // respuesta vieja como si fuera la actual ante cualquier hipo de red.
-  if (new URL(event.request.url).origin !== self.location.origin) return;
+  const requestUrl = new URL(event.request.url);
+  if (requestUrl.origin !== self.location.origin || requestUrl.pathname.startsWith("/api/")) return;
   event.respondWith(
     fetch(event.request)
       .then((res) => {

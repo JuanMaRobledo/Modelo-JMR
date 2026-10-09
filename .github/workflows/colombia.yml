@@ -1,0 +1,24 @@
+name: Colombia - aislamiento y contrato
+on:
+  pull_request:
+    paths:
+      - 'docs/colombia/**'
+      - 'docs/colombia.html'
+      - 'docs/market_data.js'
+      - 'docs/sw.js'
+      - 'api/colombia.js'
+      - 'tests/colombia.test.js'
+      - '.github/workflows/colombia.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/colombia.test.js
+      - run: node tests/terminal-capital.cjs
