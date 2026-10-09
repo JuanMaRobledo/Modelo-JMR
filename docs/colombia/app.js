@@ -171,56 +171,143 @@ function renderReport(id, content) {
   if (toc.children.length > 1) root.prepend(toc);
   root.querySelectorAll("table").forEach(table => { const wrap = document.createElement("div"); wrap.className = "table-wrap"; table.replaceWith(wrap); wrap.append(table); });
 }
+
 function renderValuationStats() {
-  const root = $("valuationStats"); root.replaceChildren();
+  const root = $("valuationStats");
+  root.replaceChildren();
+  root.classList.add("col-value-board");
   const v = dossier?.valuationSummary;
   if (!v) return;
-  // El NAV y los múltiplos relativos nunca sustituyen el valor intrínseco.
-  const entries = [
-    ["Valor intrínseco Base · principal", v.base, "COP por acción · " + dossier.analysisDate],
-    ["Precio del análisis", v.marketPrice, "Referencia · " + (v.priceDate || dossier.analysisDate)],
-    ["Valor esperado · secundario", v.expected, "COP por acción"],
-    ["Múltiplos · ponderado independiente", v.multiplesWeightedToday, v.multiplesStatus || "No verificado"],
-    ["Combinado intrínseco + múltiplos", v.combinedWeightedToday, v.combinedStatus || "No verificado"],
-    ["Múltiplos ponderados · objetivo FY+3", v.multiplesWeightedYear3, "COP por acción · sin descontar"],
-    ["Múltiplos ponderados · paquete FY+3 VP", v.multiplesWeightedYear3PV, "COP por acción · descontado hoy"],
-    ["Combinado · objetivo FY+3", v.combinedWeightedYear3, "COP por acción · sin descontar"],
-    ["Combinado · paquete FY+3 VP", v.combinedWeightedYear3PV, "COP por acción · descontado hoy"],
-  ];
-  if (v.navReference != null)
-    entries.push(["NAV bursátil · no intrínseco", v.navReference, "Referencia provisional; no margen de seguridad DCF"]);
-  for (const [label, value, note] of entries) {
-    const box = document.createElement("div");
-    box.className = "stat" + (root.children.length === 0 ? " featured" : "");
-    const small = document.createElement("small"); small.textContent = label;
-    const strong = document.createElement("strong"); strong.textContent = fmt(value);
-    const sub = document.createElement("small");
-    sub.textContent = note + (root.children.length === 0 && v.scopeLabel ? " · " + v.scopeLabel : "");
-    box.append(small, strong, sub); root.append(box);
+  const status = dossier.audit?.valuationReady ? "Revisado" : "Condicionado · no certificado";
+  const priceDate = v.priceDate || dossier.analysisDate;
+  const numeric = x => typeof x === "number" && Number.isFinite(x);
+  const cop = x => numeric(x) ? new Intl.NumberFormat("es-CO", {
+    style: "currency", currency: "COP", maximumFractionDigits: 0
+  }).format(x) : "Pendiente";
+  const el = (tag, cls, value) => {
+    const n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (value !== undefined) n.textContent = value;
+    return n;
+  };
+  const box = (label, number, annotation, extraClass = "") => {
+    const b = el("div", "col-value-kpi " + extraClass);
+    b.append(el("small", "", label), el("strong", "", cop(number)),
+      el("small", "col-value-note", annotation));
+    return b;
+  };
+  const heading = el("div", "col-value-heading");
+  heading.append(el("div", "col-value-eyebrow", "MODELO JMR · COLOMBIA"),
+    el("h3", "", dossier.company + " · " + dossier.ticker),
+    el("span", "col-value-badge", status));
+  root.append(heading);
+
+  const hero = el("div", "col-value-hero");
+  hero.append(
+    box("Valor intrínseco Base · principal", v.base,
+      v.base == null ? "No hay DCF/SOTP certificado" : (v.scopeLabel || "Modelo fundamental condicionado"),
+      "featured"),
+    box("Cotización del análisis", v.marketPrice, "Sesión " + priceDate),
+    box("Valor esperado · escenarios", v.expected, "Secundario; no reemplaza el Base")
+  );
+  root.append(hero);
+
+  if (numeric(v.navReference)) {
+    const nav = el("div", "col-value-banner");
+    nav.append(el("strong", "", "NAV de mercado (no DCF): " + cop(v.navReference)),
+      el("span", "", " Se muestra únicamente como contraste; no equivale a valor intrínseco ni a margen de seguridad."));
+    root.append(nav);
   }
-  const details = v.multiplesMethods || [];
-  if (details.length) {
-    const wrap = document.createElement("div"); wrap.className = "table-wrap"; wrap.style.gridColumn = "1 / -1";
-    const table = document.createElement("table");
-    const header = document.createElement("tr");
-    ["Método","Presente","FY+3","FY+3 descontado","Peso","Estado"].forEach(t => {
-      const th = document.createElement("th"); th.textContent = t; header.append(th);
+
+  const methods = Array.isArray(v.multiplesMethods) ? v.multiplesMethods : [];
+  const sectionTitle = el("div", "col-value-section-title");
+  sectionTitle.append(el("h3", "", "Múltiplos · cada método por separado"),
+    el("p", "", "Precio relativo independiente del valor intrínseco. Sin evidencia, el resultado permanece pendiente."));
+  root.append(sectionTitle);
+
+  const storageKey = "jmr-colombia-horizonte-v2";
+  let horizon = "today";
+  try { horizon = localStorage.getItem(storageKey) || "today"; } catch (_) {}
+  if (!["today","year3","year3PV"].includes(horizon)) horizon = "today";
+  const switcher = el("div", "col-value-switch");
+  switcher.setAttribute("role", "group");
+  switcher.setAttribute("aria-label", "Horizonte de múltiplos");
+  [
+    ["today", "Hoy · VP"],
+    ["year3", "Objetivo a 3 años"],
+    ["year3PV", "Año 3 descontado"]
+  ].forEach(([key, text]) => {
+    const button = el("button", "btn" + (horizon === key ? " active" : ""), text);
+    button.type = "button";
+    button.setAttribute("aria-pressed", String(horizon === key));
+    button.onclick = () => {
+      try { localStorage.setItem(storageKey, key); } catch (_) {}
+      renderValuationStats();
+    };
+    switcher.append(button);
+  });
+  root.append(switcher);
+
+  const cards = el("div", "col-value-method-grid");
+  methods.forEach((m, index) => {
+    const item = el("article", "col-value-method-card");
+    const top = el("div", "col-value-method-top");
+    top.append(el("span", "col-value-method-index", String(index + 1).padStart(2, "0")),
+      el("h4", "", m.name || "Método sin nombre"));
+    item.append(top, el("strong", "col-value-method-number", cop(m[horizon])));
+    const meta = el("div", "col-value-method-meta");
+    const weight = numeric(m.weight) ? (m.weight * 100).toFixed(0) + "%" : "Sin ponderar";
+    meta.append(el("span", "", "Peso relativo: " + weight),
+      el("span", "", m.status || "No certificado"));
+    item.append(meta);
+    const horizons = el("dl", "col-value-horizon-row");
+    [["VP hoy",m.today],["FY+3",m.year3],["FY+3 a VP",m.year3PV]].forEach(([lbl,val]) => {
+      const group = el("div", "");
+      group.append(el("dt", "", lbl), el("dd", "", cop(val)));
+      horizons.append(group);
     });
-    const thead = document.createElement("thead"); thead.append(header); table.append(thead);
-    const tbody = document.createElement("tbody");
-    for (const method of details) {
-      const tr = document.createElement("tr");
-      const values = [method.name, method.today == null ? "Pendiente" : fmt(method.today),
-        method.year3 == null ? "Pendiente" : fmt(method.year3),
-        method.year3PV == null ? "Pendiente" : fmt(method.year3PV),
-        method.weight == null ? "—" : (method.weight * 100).toFixed(0) + "%",
-        method.status || "No verificado"];
-      values.forEach(t => { const td = document.createElement("td"); td.textContent = t; tr.append(td); });
-      tbody.append(tr);
+    item.append(horizons);
+    cards.append(item);
+  });
+  if (methods.length) root.append(cards);
+  else root.append(el("p", "col-value-empty", "No se han publicado anclas individuales verificadas."));
+
+  const pTitle = el("div", "col-value-section-title");
+  pTitle.append(el("h3", "", "Ponderaciones · secundarias"),
+    el("p", "", "El ponderado relativo no debe mezclarse con el DCF sin mostrar ambos resultados y sus pesos."));
+  root.append(pTitle);
+  const weighted = el("div", "col-value-weighted");
+  const one = {today:v.multiplesWeightedToday,year3:v.multiplesWeightedYear3,year3PV:v.multiplesWeightedYear3PV};
+  const two = {today:v.combinedWeightedToday,year3:v.combinedWeightedYear3,year3PV:v.combinedWeightedYear3PV};
+  weighted.append(box("Múltiplos · ponderado independiente",one[horizon],v.multiplesStatus || "Sin ponderado verificable"),
+    box("DCF/SOTP + múltiplos · combinado",two[horizon],v.combinedStatus || "Ponderación no certificada"));
+  root.append(weighted);
+
+  const details = Array.isArray(v.dcfComponents) ? v.dcfComponents : [];
+  if (details.length) {
+    const title = el("div","col-value-section-title");
+    title.append(el("h3","","DCF por negocio · suma de partes"),
+      el("p","","El valor operativo EV no es valor patrimonial ni cotización del holding; faltantes se mantienen visibles."));
+    root.append(title);
+    const components = el("div","col-value-method-grid");
+    for (const comp of details) {
+      const article = el("article","col-value-method-card");
+      article.append(el("h4","",comp.name),el("small","","EV operativo Base · COP millones"),
+        el("strong","col-value-method-number",numeric(comp.enterpriseValue) ?
+          new Intl.NumberFormat("es-CO",{maximumFractionDigits:0}).format(comp.enterpriseValue)+" M" : "Pendiente"),
+        el("p","col-value-note",comp.status || "Por verificar"));
+      components.append(article);
     }
-    table.append(tbody); wrap.append(table); root.append(wrap);
+    root.append(components);
+  }
+
+  if (v.sheetUrl && /^https:\/\//.test(v.sheetUrl)) {
+    const a = el("a", "btn col-value-sheet-link", "Abrir hoja y fórmulas de valoración");
+    a.href = v.sheetUrl; a.target = "_blank"; a.rel = "noopener noreferrer";
+    root.append(a);
   }
 }
+
 $("printBtn").onclick = () => window.print();
 function render() {
   ["jsonBtn", "csvBtn", "xlsxBtn"].forEach((id) => ($(id).disabled = !dossier));
