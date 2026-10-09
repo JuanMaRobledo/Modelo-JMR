@@ -624,7 +624,22 @@ function renderLibrary() {
     const research = document.createElement("button"); research.className = "btn"; research.textContent = "Análisis fundamental";
     research.onclick = () => { open(d); activate("research"); };
     b.textContent = d.reports?.valuation ? "Ver valoración" : "Abrir expediente";
-    card.append(h, p, value, b, research);
+    const snippets = document.createElement("div");
+    snippets.className = "col-library-snapshot";
+    const cur = d.valuationSummary || {};
+    const vals = [
+      ["Múltiplos ponderados", cur.multiplesWeightedToday],
+      ["Combinado relativo", cur.combinedWeightedToday]
+    ];
+    for (const [label, amount] of vals) {
+      const item = document.createElement("div"); item.className = "col-library-snapshot-item";
+      const cap = document.createElement("small"); cap.textContent = label;
+      const amt = document.createElement("strong"); amt.textContent = typeof amount === "number" && Number.isFinite(amount) ? fmt(amount) : "Pendiente";
+      item.append(cap, amt); snippets.append(item);
+    }
+    const info = document.createElement("small"); info.className = "col-library-scope";
+    info.textContent = cur.scopeLabel || "Sin valoración certificada";
+    card.append(h, p, value, snippets, info, b, research);
     root.append(card);
   }
 }
