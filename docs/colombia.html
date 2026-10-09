@@ -363,6 +363,14 @@
   .col-value-method-grid{grid-template-columns:repeat(2,1fr);}
   .col-value-method-card,.col-value-kpi{break-inside:avoid;}
 }
+
+/* Resumen homogéneo de valoraciones en la biblioteca Colombia */
+.col-library-snapshot{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:10px 0;border-top:1px solid var(--border);margin:12px 0 6px;}
+.col-library-snapshot-item{background:var(--surface-2);min-width:0;padding:9px;border-radius:8px;}
+.col-library-snapshot-item small{font-size:10px;display:block;line-height:1.4;}
+.col-library-snapshot-item strong{font-size:15px;display:block;overflow-wrap:anywhere;margin-top:5px;}
+.col-library-scope{font-size:11px!important;color:var(--ink-soft);display:block;line-height:1.45;margin-bottom:12px;}
+@media(max-width:540px){.col-library-snapshot-item strong{font-size:14px}}
 </style>
   </head>
   <body>
