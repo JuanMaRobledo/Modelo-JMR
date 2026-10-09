@@ -178,7 +178,7 @@ function renderValuationStats() {
   root.classList.add("col-value-board");
   const v = dossier?.valuationSummary;
   if (!v) return;
-  const status = dossier.audit?.valuationReady ? "Revisado" : "Condicionado · no certificado";
+  const status = dossier.audit?.valuationReady ? "Modelo revisado · alcance limitado" : "Valoración incompleta o condicionada";
   const priceDate = v.priceDate || dossier.analysisDate;
   const numeric = x => typeof x === "number" && Number.isFinite(x);
   const cop = x => numeric(x) ? new Intl.NumberFormat("es-CO", {
@@ -211,6 +211,21 @@ function renderValuationStats() {
     box("Valor esperado · escenarios", v.expected, "Secundario; no reemplaza el Base")
   );
   root.append(hero);
+
+  const conclusion = el("div", "col-value-banner");
+  const conclusionText = v.conclusion || (
+    !numeric(v.base)
+      ? "No hay una conclusión intrínseca por acción: falta cerrar la suma de partes y sus puentes patrimoniales. El NAV de mercado es solo una referencia; los múltiplos pendientes no permiten una conclusión relativa ni un ponderado."
+      : !dossier.audit?.valuationReady
+        ? "El Base de " + cop(v.base) + " es una estimación condicionada. " +
+          (numeric(v.marketPrice) ? "Está " + (v.base < v.marketPrice ? "por debajo" : "por encima") + " del precio del análisis de " + cop(v.marketPrice) + ". " : "") +
+          "Falta validar capital regulatorio, capacidad distribuible y supuestos. Los múltiplos numéricos disponibles son referencias condicionadas; los ponderados no resuelven estas limitaciones."
+        : "Consultar la conclusión del informe y las limitaciones del perímetro revisado."
+  );
+  conclusion.append(el("strong", "", "Conclusión y alcance"),
+    el("p", "col-value-note", conclusionText));
+  if (v.horizonNote) conclusion.append(el("p", "col-value-note", v.horizonNote));
+  root.append(conclusion);
 
   if (numeric(v.navReference)) {
     const nav = el("div", "col-value-banner");
