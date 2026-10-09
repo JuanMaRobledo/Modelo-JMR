@@ -1,5 +1,48 @@
 # JMR Colombia · Reglas independientes v1
 
+<!-- JMR-CIERRE-20261009 -->
+## Cierre obligatorio de valoración y supuestos explícitos
+
+Este protocolo prevalece sobre instrucciones incompatibles que ordenen detenerse por falta de plantilla sectorial, historia perfecta o un input estimable. Conserva controles de evidencia, aislamiento, moneda, derechos, capital y publicación. Un encargo de valoración completa incluye investigación, construcción/adaptación de la copia, cálculo, conciliación y conclusión; un informe de avance no satisface ese encargo.
+
+### Datos faltantes: resolver antes de clasificar como bloqueo
+Distingue hechos reportados, cálculos derivados y supuestos del analista. Un hecho desconocido conserva null; su estimación se registra en un campo separado, nunca como hecho verificado. Para cada input material registra fuente disponible, supuesto Base, fundamento económico, alternativa/contraevidencia, rango y efecto sobre el valor por acción. No igualar falta de certeza con imposibilidad de modelar.
+
+Busca primero estados/notas del emisor, luego regulador y documentación sectorial/comparables. Si el dato no está divulgado, decide explícitamente: (a) derivable por conciliación; (b) estimable con proxy defendible y sensibilidad; (c) crítico no identificable. En (a) y (b), continúa el cálculo con trazabilidad. En (c), demuestra por qué un rango razonable no permite resolverlo y entrega el perímetro identificable o un rango condicionado con el puente incremental separado. Identidad, derechos contractuales, perímetro y operaciones desconocidas no se inventan. No convertir contraprestaciones, deuda, caja restringida o capital faltante en cero para cerrar.
+
+Una serie histórica menor de diez años no bloquea por sí misma: documenta cobertura real, normaliza con lo disponible y prueba sensibilidad. Beta local poco robusta puede sustituirse por beta sectorial documentada; nunca por un número heredado. Cada pendiente debe terminar como resuelto, supuesto modelado, excluido justificadamente o bloqueo crítico demostrado. No dejar como siguiente tarea un cálculo que sí puede ejecutarse en el encargo actual.
+
+### Copia de plantilla y adaptación sectorial
+Utiliza la maestra limpia indicada por el usuario y conserva su identidad/procedencia. Si no contiene los bloques necesarios, créalos y valida sus fórmulas dentro de la copia independiente, sin escribir sobre la maestra ni reutilizar datos de otro emisor. La ausencia de una pestaña bancaria o holding no es motivo para detener la construcción. Si no se puede acceder a la maestra, prepara el cálculo reproducible por separado y declara la sincronización pendiente; no afirmes que la copia fue creada o actualizada.
+
+### Holding: cierre de cada negocio y de la matriz
+Inventaría todas las participaciones y activos, porcentajes económicos, control, cruces y clases. Justifica materialidad; valora todos los negocios materiales, y agrupa solo activos menores con método y sensibilidad explícitos. No omitas una participada porque no tiene ticker ni valores estructurados.
+
+Por cada negocio operativo construye un DCF con Base, Conservadora, Optimista y Disrupción, proyectando ingresos, EBIT, impuestos, reinversión y terminal. Por cada financiera usa la rama patrimonial. En concesiones modela flujo distribuible por activo, deuda de proyecto y vencimiento; no inventes perpetuidad tras terminar la concesión. En fondos distingue gestor y participación económica del inversionista; usar fair value reportado como proxy requiere explicar método subyacente, ajustes y sensibilidad, y mantiene el rótulo de valoración mixta hasta sustituir la parte material por una valoración intrínseca propia.
+
+Cierra el puente de cada parte: EV operativo + activos no operativos y caja disponible - deuda/reclamaciones - intereses no controladores, ajustado al alcance del flujo, antes de aplicar la participación económica. No restes minoritarios otra vez si el flujo ya es atribuible. No sustituyas valor de minoritarios por libro sin justificar y probar su efecto.
+
+Cierra la matriz: suma de valores patrimoniales atribuibles + activos propios/caja libre - deuda y obligaciones propias - VP de costos corporativos. Elimina cruces, dividendos intragrupo y duplicaciones de caja/deuda, fondos y activos subyacentes. Asigna el patrimonio entre clases según derechos económicos y acciones actuales netas de autocartera. No dividir beneficio o valor de todas las clases solo entre preferenciales; no imponer ratio bursátil como derecho económico. Entrega valor por acción de cada historia y tabla de contribución de las partes. NAV de mercado queda como contraste separado.
+
+### Bancos, aseguradoras y gestoras
+Bancos: proyecta beneficio atribuible, ROE, activos/cartera, calidad crediticia, RWA y capital; calcula FCFE después de la retención requerida por restricciones regulatorias, con Ke. Modela aportes, dilución y financiación cuando hagan falta. Comprueba FCFE contra exceso de retornos cuando clean surplus y los puentes permitan equivalencia; explica diferencias en lugar de forzarla. Depósitos/fondeo operativo no se restan como deuda industrial.
+
+Aseguradoras: distribuciones sostenibles o exceso de retornos, con reservas y solvencia. Gestoras: elige FCFF/FCFE según operación y financiación; no imponer mecánicamente capital bancario. Cada financiera incluida en una holding necesita su propia rama, moneda, exposición país, retorno y convergencia. Cierra FY10/FY11 y capital terminal; g/ROE no sustituye solvencia vinculante.
+
+### Múltiplos y cierre de la opinión relativa
+Calcula cada método aplicable por separado, con denominador normalizado, muestra, fecha, fuente, múltiplo objetivo y puente por clase. Busca historia comparable y pares ajustados; documenta ancla fundamental como dependiente de sus supuestos, sin contarla como evidencia independiente del DCF. Si una ancla no es defendible, exclúyela y explica pesos efectivos. Un método no aplicable no necesita un precio inventado; una sola ancla numérica no se presenta como validación por varios métodos.
+
+Entrega (1) referencias actuales; (2) precios objetivo FY+3 exdistribuciones; (3) FY+3 descontado, con distribuciones intermedias separadas y sus fechas. Para cada horizonte muestra métodos individuales, ponderado de múltiplos solos y combinado secundario con pesos visibles. No mezclar DCF presente con múltiplos futuros. Justifica los pesos por pertinencia y calidad de evidencia; registra cambios y no los ajuste para acercar el resultado a la cotización.
+
+### Definición de trabajo completo y entrega
+Conserva las 14 secciones de valoración y las 18 de research. Antes de cerrar verifica: cuatro historias numéricas, probabilidades sumando 100%, Base principal, puentes EV/patrimonio/clase, todas las partes materiales, tasas y terminal, sensibilidad de supuestos estimados, métodos relativos aplicables y ponderados, coincidencia de hoja/informe/JSON y conclusión explícita sobre precio y margen. Reproduce cálculos materiales por una vía independiente. Un fallo invalida la etiqueta de completado, no autoriza inventar un valor.
+
+La conclusión debe explicar qué sostiene el Base, por qué difiere de múltiplos, alcance, supuestos decisivos y qué cambiaría la opinión. No confundir revisión de modelo con auditoría contable ni certeza económica. Si existe un bloqueo crítico real, entrega lo calculado con su alcance y el insumo exacto necesario; no declare valoración completa ni repita genéricamente "datos pendientes".
+
+Si el encargo incluye ambos informes, termina la valoración antes de cerrar la sección 12 del research y concilia sus cifras; si se pidió solo research, respeta esa separación. Guarda y sincroniza entregables dentro del expediente Colombia. Publica únicamente con autorización vigente; no pedirla de nuevo si ya existe. Comprueba resultados remotos y despliegue. Si se interrumpe por límites de ejecución, conserva un checkpoint con cálculos, supuestos y siguiente operación exacta; no inventes continuidad en segundo plano.
+<!-- /JMR-CIERRE-20261009 -->
+
+
 <!-- JMR-PRECISION-20261009 -->
 # Controles de precisión JMR · 9-oct-2026
 
@@ -38,7 +81,7 @@ El único emisor objetivo es el del expediente jmr-colombia-dossier-v1 adjunto. 
 
 Este proceso es independiente del de Estados Unidos. No ejecutes el pipeline SEC/US ni reutilices run_pfgruposura.py, scripts de otra empresa, valoraciones ya llenas, research, supuestos o referencias específicas de otro emisor como semilla. Los comparables se declaran y quedan separados; sus números no sustituyen los del objetivo.
 
-Parte de una copia NUEVA de la plantilla maestra de la rama correspondiente: empresa operativa, patrimonio financiero o holding. Registra procedencia, versión e ID. La maestra no recibe datos; no copies una hoja ya valorada. Si no existe plantilla apropiada o no puedes leerla, informa el bloqueo sin fingir que la industrial sirve para todo. Conserva las fórmulas canónicas de esa rama; cualquier reparación queda documentada.
+Parte de una copia NUEVA de la plantilla maestra de la rama correspondiente: empresa operativa, patrimonio financiero o holding. Registra procedencia, versión e ID. La maestra no recibe datos; no copies una hoja ya valorada. Si faltan bloques sectoriales, constrúyelos y verifica sus fórmulas en la copia limpia, según el protocolo de cierre. Si falla el acceso, conserva un cálculo reproducible separado y declara qué sincronización falta. Conserva las fórmulas canónicas de esa rama; cualquier reparación queda documentada.
 
 ## Datos automáticos y evidencia primaria
 El expediente devuelve cotización local y estados estructurados de Yahoo Finance. Esa descarga no implica conciliación oficial ni garantiza diez años o LTM. No presentes los datos del agregador como si fueran obtenidos directamente del emisor. Las fechas retrievedAt, quotedAt y fiscalDate son distintas; publishedAt=null significa que falta verificar cuándo fue pública la cifra. Una fecha fiscal anterior al corte no demuestra que el reporte estuviera disponible al corte.
@@ -82,7 +125,7 @@ run_id: ID exacto del expediente
 company: emisor objetivo
 currency: moneda del informe
 
-Los entregables quedan en el expediente Colombia del ticker. NO publicar, subir a la app ni escribir en bibliotecas de EEUU automáticamente. Completa y revisa el resultado, muestra qué se subiría y pregunta si el usuario autoriza publicarlo. Si no hay datos críticos, entrega lo verificable e informa el bloqueo; no declares auditoría completa.
+Los entregables quedan en el expediente Colombia del ticker. NO publicar, subir a la app ni escribir en bibliotecas de EEUU automáticamente. Completa y revisa el resultado, muestra qué se subiría y pregunta si el usuario autoriza publicarlo. Si faltan datos, aplica la clasificación del protocolo de cierre: deriva o estima con evidencia y sensibilidad; limita el alcance solo ante un bloqueo crítico demostrado.
 
 
 ---
