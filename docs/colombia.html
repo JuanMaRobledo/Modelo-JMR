@@ -315,7 +315,55 @@
       .card {background:var(--surface);box-shadow:var(--shadow)}
       .card strong {display:block;font-family:"IBM Plex Mono",monospace;font-size:21px;color:var(--accent)}
       @media print {nav,.tabs,.actions,.hero,.flow {display:none}.panel[hidden]{display:none}.report-toc{display:none}.box{box-shadow:none}}
-    </style>
+    
+/* Modelo JMR · Colombia: intrínseco primero; múltiplos y ponderados por separado */
+.stats.col-value-board{display:block;width:100%;min-width:0;margin:18px 0;}
+.col-value-board>*{margin-bottom:18px;}
+.col-value-heading{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:5px 0 13px;border-bottom:1px solid var(--border);}
+.col-value-heading h3{font-size:clamp(17px,2vw,23px);margin:0;flex:1 1 240px;}
+.col-value-eyebrow{flex:0 0 100%;font-size:11px;font-weight:800;letter-spacing:.14em;color:var(--accent-ink);}
+.col-value-badge{font-size:12px;font-weight:700;border:1px solid var(--border);background:var(--surface-2);border-radius:30px;padding:6px 10px;}
+.col-value-hero{display:grid;grid-template-columns:minmax(220px,1.3fr) repeat(2,minmax(170px,1fr));gap:12px;}
+.col-value-kpi{min-width:0;display:flex;flex-direction:column;gap:6px;padding:18px;border:1px solid var(--border);background:var(--surface-2);border-radius:13px;}
+.col-value-kpi.featured{background:var(--accent-soft);border:2px solid var(--accent);}
+.col-value-kpi small{color:var(--ink-soft);font-size:12px;line-height:1.45;}
+.col-value-kpi strong{font-size:clamp(20px,2.4vw,29px);font-weight:800;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;}
+.col-value-kpi .col-value-note{font-size:11px;line-height:1.5;}
+.col-value-banner{padding:13px 16px;border-left:4px solid var(--accent);background:var(--accent-soft);border-radius:8px;line-height:1.55;display:flex;gap:9px;flex-wrap:wrap;}
+.col-value-section-title{margin-top:27px;margin-bottom:10px;}
+.col-value-section-title h3{margin:0 0 6px;font-size:19px;}
+.col-value-section-title p{margin:0;font-size:13px;color:var(--ink-soft);line-height:1.5;}
+.col-value-switch{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:14px;}
+.col-value-switch .btn{font-size:12px;padding:8px 12px;}
+.col-value-switch .btn.active{background:var(--accent);color:white;border-color:var(--accent);}
+.col-value-method-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:12px;}
+.col-value-method-card{min-width:0;display:flex;flex-direction:column;gap:12px;padding:17px;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:0 2px 9px rgba(24,34,30,.035);}
+.col-value-method-top{display:flex;align-items:start;gap:9px;}
+.col-value-method-top h4{margin:0;font-size:15px;line-height:1.35;}
+.col-value-method-index{font-size:11px;font-weight:700;color:var(--ink-soft);padding:4px 7px;border:1px solid var(--border);border-radius:6px;white-space:nowrap;}
+.col-value-method-number{font-size:clamp(20px,2vw,26px);font-weight:800;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;}
+.col-value-method-meta{font-size:12px;color:var(--ink-soft);display:flex;gap:6px;flex-wrap:wrap;flex-direction:column;}
+.col-value-horizon-row{margin:auto 0 0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid var(--border);padding-top:12px;gap:5px;}
+.col-value-horizon-row div{min-width:0;}
+.col-value-horizon-row dt{font-size:10px;color:var(--ink-soft);}
+.col-value-horizon-row dd{font-size:11px;font-weight:700;margin:3px 0 0;overflow-wrap:anywhere;font-variant-numeric:tabular-nums;}
+.col-value-weighted{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+.col-value-sheet-link{display:inline-flex;width:max-content;max-width:100%;margin-top:10px;}
+.col-value-empty{color:var(--ink-soft);font-size:13px;}
+@media(max-width:760px){
+  .col-value-hero{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .col-value-hero .featured{grid-column:1 / -1;}
+  .col-value-weighted{grid-template-columns:1fr;}
+  .col-value-method-grid{grid-template-columns:1fr;}
+  .col-value-kpi{padding:13px;}
+  .col-value-horizon-row dd{font-size:11px;}
+}
+@media print{
+  .col-value-switch,.col-value-sheet-link{display:none!important;}
+  .col-value-method-grid{grid-template-columns:repeat(2,1fr);}
+  .col-value-method-card,.col-value-kpi{break-inside:avoid;}
+}
+</style>
   </head>
   <body>
     <script src="auth.js"></script>
