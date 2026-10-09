@@ -661,6 +661,9 @@ $("themeBtn").onclick = () => {
 };
 render();
 renderLibrary();
+// Mostrar expedientes Colombia ya publicados al abrir, sin importación manual.
+// Reutiliza la sincronización existente; conserva expedientes locales ajenos.
+$("syncBtn").click();
 document
   .querySelector("nav.appnav a.active")
   .scrollIntoView({ inline: "center", block: "nearest" });
