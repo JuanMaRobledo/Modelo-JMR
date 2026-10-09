@@ -71,7 +71,16 @@ function runDCFDetalle(inp, growthY2to5, marginTarget, growthY1, marginY1){
   var m = marginPath(num(marginY1, inp.ebit0 / inp.revenue0), marginTarget, inp.convergenceYear);
   var tax = taxPath(inp.taxEffective, inp.taxMarginal);
   var wacc = waccPath(inp.wacc, waccTerminal);
-  var s2c = function(n){ return n <= 5 ? inp.salesToCapital : num(inp.salesToCapital2, inp.salesToCapital); };
+  var roicTerminal = (inp.roicTerminal > 0) ? inp.roicTerminal : waccTerminal;
+  // Optional JMR transition: capital per dollar of incremental revenue converges
+  // over years 6-10. This does not force average book ROIC to equal incremental ROIC.
+  var capitalIntensity = function(n){
+    var initial = 1 / (n <= 5 ? inp.salesToCapital : num(inp.salesToCapital2, inp.salesToCapital));
+    if(!inp.smoothTerminalCapital || n <= 5) return initial;
+    var alpha = (n - 5) / 5;
+    return (1 - alpha) * initial + alpha * m[n] * (1 - tax[n]) / roicTerminal;
+  };
+  var s2c = function(n){ return 1 / capitalIntensity(n); };
 
   var rev = new Array(12); rev[0]=inp.revenue0;
   for(var n=1;n<=10;n++) rev[n]=rev[n-1]*(1+g[n]);
@@ -96,7 +105,6 @@ function runDCFDetalle(inp, growthY2to5, marginTarget, growthY1, marginY1){
   for(var n=1;n<=10;n++) reinvest[n] = (lag0 ? rev[n]-rev[n-1] : rev[n+1]-rev[n])/s2c(n);
   // Retorno sobre el capital después del año 10: por defecto igual al costo de capital (sin retornos
   // excedentes); inp.roicTerminal lo fija si la empresa tiene ventajas duraderas (criterio Damodaran).
-  var roicTerminal = (inp.roicTerminal > 0) ? inp.roicTerminal : waccTerminal;
   var reinvestTerminal = ebit1tTerminal*terminalGrowth/roicTerminal;
 
   var fcff = new Array(11);
@@ -465,7 +473,8 @@ function insumosDesdeHoja(celda){
     terminalGrowth: n(VO, 'M4'),
     roicTerminal: si(IS, 'B49') ? z(n(IS, 'B50')) : 0,
     convergenceYear: n(IS, 'B31'),
-    salesToCapital: n(VO, 'C40'), salesToCapital2: n(VO, 'H40'),
+    salesToCapital: n(VO, 'C40'), salesToCapital2: si(IS, 'B78') ? n(IS, 'B33') : n(VO, 'H40'),
+    smoothTerminalCapital: si(IS, 'B78'),
     reinvestLag: si(IS, 'B57') ? n(IS, 'B58') : 1,
     costoPatrimonio: n('Cost of capital worksheet', 'B63'),
     growthY1Cons: n(VO, 'C55'), growthCons: n(VO, 'D55'), marginY1Cons: n(VO, 'C57'), marginCons: n(VO, 'C45'),
