@@ -580,8 +580,23 @@ $("syncBtn").onclick = async () => {
         JSON.parse(GhOAuth.b64DecodeUnicode(file.content.replace(/\s/g, ""))),
       );
       const idx = records.findIndex((x) => x.runId === d.runId);
-      if (idx < 0)
-        records.push(d); /* keep local work if the same run already exists */
+      if (idx < 0) {
+        records.push(d);
+      } else {
+        // Only replace an already-cached dossier when the published revision
+        // is genuinely newer. Preserve unpublished local work otherwise.
+        const remoteRevision = d.publication?.revisedAt || "";
+        const localRevision =
+          records[idx].publication?.revisedAt ||
+          records[idx].publication?.publishedAt || "";
+        if (remoteRevision && remoteRevision > localRevision) {
+          records[idx] = d;
+          if (dossier?.runId === d.runId) {
+            dossier = structuredClone(d);
+            render();
+          }
+        }
+      }
     }
     localStorage.setItem(KEY, JSON.stringify(records));
     renderLibrary();
