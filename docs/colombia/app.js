@@ -200,7 +200,7 @@ function renderValuationStats() {
   }
   const details = v.multiplesMethods || [];
   if (details.length) {
-    const wrap = document.createElement("div"); wrap.className = "table-wrap";
+    const wrap = document.createElement("div"); wrap.className = "table-wrap"; wrap.style.gridColumn = "1 / -1";
     const table = document.createElement("table");
     const header = document.createElement("tr");
     ["Método","Presente","FY+3","FY+3 descontado","Peso","Estado"].forEach(t => {
