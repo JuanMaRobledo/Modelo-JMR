@@ -285,17 +285,41 @@ function renderValuationStats() {
 
   const details = Array.isArray(v.dcfComponents) ? v.dcfComponents : [];
   if (details.length) {
-    const title = el("div","col-value-section-title");
-    title.append(el("h3","","DCF por negocio · suma de partes"),
-      el("p","","El valor operativo EV no es valor patrimonial ni cotización del holding; faltantes se mantienen visibles."));
+    const title = el("div", "col-value-section-title");
+    title.append(
+      el("h3", "", "Negocios y fondos · suma de partes"),
+      el("p", "", "Distingue EV por DCF, inversiones a valor razonable NIIF y costos de matriz. Ninguno es por sí mismo el precio de la preferencial.")
+    );
     root.append(title);
-    const components = el("div","col-value-method-grid");
+    const components = el("div", "col-value-method-grid");
     for (const comp of details) {
-      const article = el("article","col-value-method-card");
-      article.append(el("h4","",comp.name),el("small","","EV operativo Base · COP millones"),
-        el("strong","col-value-method-number",numeric(comp.enterpriseValue) ?
-          new Intl.NumberFormat("es-CO",{maximumFractionDigits:0}).format(comp.enterpriseValue)+" M" : "Pendiente"),
-        el("p","col-value-note",comp.status || "Por verificar"));
+      const article = el("article", "col-value-method-card");
+      const value = numeric(comp.metricValue) ? comp.metricValue : comp.enterpriseValue;
+      article.append(
+        el("h4", "", comp.name),
+        el("small", "", comp.metricLabel || "Valor empresa · EV FCFF Base · COP millones"),
+        el("strong", "col-value-method-number", numeric(value)
+          ? new Intl.NumberFormat("es-CO", {maximumFractionDigits: 0}).format(value) + " M"
+          : "Pendiente"),
+        el("p", "col-value-note", comp.status || "Por verificar")
+      );
+      const scenarios = comp.scenarios;
+      if (scenarios && typeof scenarios === "object") {
+        const grid = el("dl", "col-value-horizon-row");
+        grid.style.gridTemplateColumns = "repeat(2, minmax(0, 1fr))";
+        for (const [label, key] of [
+          ["Base", "Base"], ["Conservadora", "Conservadora"],
+          ["Optimista", "Optimista"], ["Disrupción", "Disrupcion"]
+        ]) {
+          const value = scenarios[key];
+          const item = el("div", "");
+          item.append(el("dt", "", label), el("dd", "", numeric(value)
+            ? new Intl.NumberFormat("es-CO", {maximumFractionDigits: 0}).format(value) + " M"
+            : "Pendiente"));
+          grid.append(item);
+        }
+        article.append(grid);
+      }
       components.append(article);
     }
     root.append(components);
