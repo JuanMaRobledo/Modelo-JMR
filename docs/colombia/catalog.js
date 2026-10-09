@@ -37,6 +37,12 @@ export const CATALOG = [
     website: "https://www.gruposura.com/",
   },
   {
+    ticker: "PFGRUPOARG.CL",
+    name: "Grupo Argos · preferencial",
+    model: "holding",
+    website: "https://www.grupoargos.com/",
+  },
+  {
     ticker: "CEMARGOS.CL",
     name: "Cementos Argos · ordinaria",
     model: "operating",
