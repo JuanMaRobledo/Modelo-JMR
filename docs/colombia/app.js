@@ -506,7 +506,7 @@ function renderValuationStats() {
   const one = {today:v.multiplesWeightedToday,year3:v.multiplesWeightedYear3,year3PV:v.multiplesWeightedYear3PV};
   const two = {today:v.combinedWeightedToday,year3:v.combinedWeightedYear3,year3PV:v.combinedWeightedYear3PV};
   weighted.append(box("Múltiplos · ponderado independiente",one[horizon],v.multiplesStatus || "Sin ponderado verificable"),
-    box(horizon === "today" && v.valuationOutput ? "DCF FCFF 60% + múltiplos 40% (secundario)" : "SOTP + múltiplos histórico (no DCF)",two[horizon],v.combinedStatus || "Ponderación no certificada"));
+    box(v.valuationOutput ? (horizon === "year3PV" ? "VP precio FY+3 exdiv · DCF60% y múltiplos40%" : "DCF FCFF 60% + múltiplos 40% (secundario)") : "SOTP + múltiplos histórico (no DCF)",two[horizon],v.combinedStatus || "Ponderación no certificada"));
   root.append(weighted);
 
   const details = Array.isArray(v.dcfComponents) ? v.dcfComponents : [];
