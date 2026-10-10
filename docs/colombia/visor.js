@@ -116,27 +116,49 @@ function render(ticker){
   missing.length?missing.map(m=>[m.name,"N/D",m.status||"Sin denominadores ni comparables confirmados"]):[["Todos los métodos presentados","—","Los métodos numéricos aparecen en el tablero"]]);
  replaceTable("methods",["Método","Valor hoy","Objetivo FY+3 (exdiv.)","FY+3 descontado","Peso relativo","Fundamento"],
   all.map(m=>[m.name,cop(m.today),cop(m.year3),cop(m.year3PV),numeric(m.weight)?pct(m.weight):"No incluido",m.status||"Sin fundamento documentado"]));
+
  const sotp=$("sotp");sotp.replaceChildren();
- for(const [label,value] of [["SOTP bursátil / NIIF · Base",v.base],["Múltiplos independientes · VP hoy",v.multiplesWeightedToday],["DCF FCFF 60% + múltiplos 40% · ponderado secundario",v.valuationOutput?.dcf60Multiples40COP ?? v.combinedWeightedToday]]){
+ const sc=Array.isArray(v.valuationOutput?.sotpScenarios)?v.valuationOutput.sotpScenarios:[];
+ const mainSotp=sc.find(s=>s.name==="Base")||{};
+ const nav=numeric(v.valuationOutput?.sotpCheck?.hybridNAVBaseCOP)?v.valuationOutput.sotpCheck.hybridNAVBaseCOP:v.base;
+ for(const [label,value] of [
+  ["SOTP FCFF (patrimonio atribuible) · valor principal",mainSotp.valuePerPreferredShareCOP ?? v.valuationOutput?.dcfBaseCOP],
+  ["SOTP de cotizaciones / NIIF · NO es DCF",nav],
+  ["NAV de la gerencia febrero 2026 · distinto método y fecha",v.valuationOutput?.sotpCheck?.managementNAVFebCOP],
+  ["Múltiplos independientes · VP hoy",v.multiplesWeightedToday],
+  ["DCF FCFF 60% + múltiplos 40% · ponderado secundario",v.valuationOutput?.dcf60Multiples40COP ?? v.combinedWeightedToday]
+ ]){
   const el=document.createElement("div");el.className="metric";
   const l=document.createElement("small");l.textContent=label;
   const x=document.createElement("strong");x.textContent=cop(value);
   el.append(l,x);sotp.append(el);
  }
- const comps=cases.find(c=>c.name==="Base")?.breakdownCOPtrillions||{};
- const map={
-  cementosConsolidatedEV:"Cementos · EV operativo",cementosEquityGroup:"Cementos · equity Grupo",
-  argosUSFCFFAdditional:"Argos Materials · FCFF incremental",celsiaCoreEV:"Celsia · EV servicios",
-  celsiaGrowthEV:"Celsia · EV Growth y JV",celsiaEquityGroup:"Celsia · equity Grupo",
-  odinsaConcessionsEV:"Odinsa · EV concesiones",odinsaGP_EV:"Odinsa · EV gestor",
-  odinsaEquityGroup:"Odinsa · equity Grupo",pactiaFundEV:"Pactia · EV fondo",
-  pactiaGP_EV:"Pactia · EV gestor",pactiaEquityGroup:"Pactia · equity Grupo",
-  urbanFCFF:"Desarrollo urbano · VPN",otherFCFF:"Otros · VPN",
-  parentResidual:"Matriz · otros activos y pasivos netos",parentHQFCFFCost:"Matriz · VPN gastos",
-  buybackCash:"Recompra · ajuste de caja"
- };
- replaceTable("components",["Concepto Base","COP billones","Naturaleza"],
-  Object.entries(comps).map(([k,val])=>[map[k]||k,numeric(val)?n0(val*1000)+" mil millones":"N/D",/EV/.test(k)?"Valor empresa; NO sumar si ya se usa equity del mismo negocio":/Equity/.test(k)?"Patrimonio atribuible":"Ajuste del holding"]));
+ const partList=Array.isArray(mainSotp.componentEquityCOPtrillions)?mainSotp.componentEquityCOPtrillions:[];
+ const shares=numeric(mainSotp.economicShares)?mainSotp.economicShares:0;
+ const bn=x=>numeric(x)?new Intl.NumberFormat("es-CO",{minimumFractionDigits:3,maximumFractionDigits:3}).format(x):"N/D";
+ const partRows=partList.map(p=>[p.company,bn(p.equity),shares?cop(p.equity*1e12/shares):"N/D","Equity atribuible: SÍ suma al SOTP"]);
+ if(partList.length)partRows.push(["TOTAL · SOTP FCFF",bn(mainSotp.totalEquityCOPtrillions),cop(mainSotp.valuePerPreferredShareCOP),"Valor intrínseco por acción del holding; proyecciones condicionadas"]);
+ replaceTable("components",["Participación patrimonial (NO EV bruto)","COP billones","COP por PF","Tratamiento"],
+   partRows.length?partRows:[["SOTP no disponible en este expediente","N/D","N/D","Se requiere el puente EV → equity por empresa"]]);
+ const diffs=Array.isArray(v.valuationOutput?.sotpVarianceBase)?v.valuationOutput.sotpVarianceBase:[];
+ replaceTable("sotpWaterfall",["Negocio / ajuste","FCFF equity · billones","Bolsa/NIIF · billones","Diferencia COP/PF","Explicación"],
+  diffs.length?[
+  ...diffs.map(t=>[t.component,bn(t.dcfCOPtrillions),bn(t.hybridMarketNAVCOPtrillions),cop(t.gapCOPPerShare),t.note]),
+  ["TOTAL",bn(mainSotp.totalEquityCOPtrillions),bn(v.valuationOutput?.sotpCheck?.hybridNAVBaseCOP*shares/1e12),cop(v.valuationOutput?.sotpCheck?.gapCOPPerShare),"Comparación de dos SOTP distintos; no se suma NAV al FCFF"]
+  ]:[["Sin conciliación publicada","N/D","N/D","N/D","Ver hoja Valuation output"]]);
+ const comps=sc.find(s=>s.name==="Base")?.componentEquityCOPtrillions||[];
+ const breakdown=v.fcffComponentsBase||{};
+ const evKeys=[
+  ["cementosConsolidatedEV","Cementos EV FCFF (antes de deuda/caja/NCI)"],
+  ["celsiaCoreEV","Celsia Core EV FCFF"],
+  ["celsiaGrowthEV","Celsia Growth EV estimado incremental"],
+  ["odinsaConcessionsEV","Odinsa FCP concesiones EV 100% fondo"],
+  ["odinsaGP_EV","Odinsa gestor GP EV"],
+  ["pactiaFundEV","Pactia FCP EV 100% fondo"],
+  ["pactiaGP_EV","Pactia gestor GP EV"]
+ ];
+ replaceTable("evDetails",["Motor de negocio","EV · COP billones","Regla de consolidación"],
+   evKeys.map(([key,label])=>[label,bn(breakdown[key]),"NO sumar EV; aplicar puente EV→equity y cuota económica"]));
  const sens=Array.isArray(v.valuationOutput?.sensitivities)?v.valuationOutput.sensitivities:[];
  replaceTable("sensitivity",["Variable aislada","Efecto sobre DCF/PF","DCF Base resultante","Alcance y salvedad"],
   sens.length?sens.map(s=>[s.driver,cop(s.deltaCOPperShare),cop(s.adjustedFCFFCOP),s.scope||"Hipótesis de analista"]):[["Sin sensibilidad enlazada","N/D","N/D","Consultar controles de Valuation output"]]);
