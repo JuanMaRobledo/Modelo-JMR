@@ -1,5 +1,17 @@
 # JMR Colombia · Reglas independientes v1
 
+<!-- JMR-AUDITORIA-VIVA-HOLDING-20261010 -->
+## Auditoría viva y confianza de supuestos · extensión obligatoria
+
+En cada holding, el DCF operativo se calcula desde un modelo independiente editable por participada, con **FCFF descontado a WACC propio** (no un WACC artificial de toda la holding). Las salidas EV de cada negocio deben llegar por referencias de celda a puentes patrimoniales y a `Valuation output` ORIGINAL. La tabla de flujos anuales y los controles de la valoración deben apuntar a las **mismas copias por participada que alimentan el DCF**, nunca a un motor antiguo paralelo. Si el diseño internacional mononegocio no es pertinente, rotularlo como no aplicable e incorporar en la misma pestaña una sección FCFF y descuento por subsidiaria con enlaces dinámicos; mantener visible el DCF Base y sus cuatro historias.
+
+**Verificar la diferencia entre transcripción y juicio:** distinguir efectivo total, efectivo legalmente restringido, efectivo comprometido operativamente y porcentaje realmente excedente; comparar la fecha del saldo con aportes efectivamente pagados para no restar dos veces el CAPEX. Acreditar capitalización y acciones **en circulación** a fecha de balance, descontando readquisiciones y sin confundir acciones emitidas, circulantes o capital autorizado. Para consolidación, controlar NCI valor justo, coparticipaciones, tasas por negocio, ventas intercompañía, fondos y plataformas Growth por separado. Los valores supuestos de concesiones e inmobiliario se identifican como hipótesis y se prueban con escenario alternativo, no como certeza.
+
+**Pruebas vivas:** calcular con fórmulas no literales resultados de cada DCF por 10 años, valor terminal y chequeos g inferior a ROIC y WACC; comparar los EV por motor con una suma independiente de flujos y terminal; reconciliar los cuatro puentes EV→equity y valorar por acción del holding con tolerancia numérica. El resumen de controles debe contar celdas “OK” realmente calculadas, no almacenar un “OK” pegado de una auditoría pasada. Rehacer cada prueba cuando se edite una participada, y publicar solo el resultado consistente de la copia de ese ticker.
+
+**Sensibilidad material sin crear hojas innecesarias:** incorporarla en la pestaña ORIGINAL `Valuation output`. Variar, uno por uno, WACC de principales negocios ±1 punto porcentual recalculando los diez FCFF y el terminal, proporción de caja excedente, NCI a valor justo, perímetro Growth, flujos concesionales y pasivos de matriz. Reportar delta y nuevo valor por acción, mantener Base sin alterarlo y señalar que impactos univariantes no pueden sumarse automáticamente. Afirmar “aritmética reconciliada” solo si los controles vivos son OK; nunca “certificado” cuando entradas económicas sigan siendo estimativas.
+
+
 <!-- JMR-FY3-EXDIV-ANTI-DOBLE-CONTEO-20261010 -->
 ## Control obligatorio de horizonte FY+3 y duplicación de modelos en holdings
 
