@@ -265,6 +265,31 @@ function renderValuationStats() {
     root.append(cards);
   }
 
+  if (isPrimaryFCFF && v.externalValueAudit) {
+    const audit = v.externalValueAudit;
+    const heading = el("div", "col-value-section-title");
+    heading.append(el("h3", "", "Contraste: valor declarado y consenso PF"),
+      el("p", "", "Son referencias de SOTP y analistas; NINGUNA constituye nuestro valor intrínseco FCFF."));
+    root.append(heading);
+    const cases = [
+      ["Emisor · SOTP feb2026", audit.managementFebruary2026?.perShareCOP, "Mercado de participadas más libros; no DCF."],
+      ["Investing · PF objetivo 12 meses", audit.preferredAnalystTargets?.[0]?.targetCOP, "Un analista, no auditoría de FCFF."],
+      ["Fintel · PF objetivo 12 meses", audit.preferredAnalystTargets?.[1]?.targetCOP, "Referencia del 2 octubre 2026, rango 18.180–25.095."],
+      ["SOTP JMR octubre · secundaria", v.base, "NAV de mercado/NIIF; NO DCF FCFF."]
+    ];
+    const cards = el("div", "col-value-method-grid");
+    for (const [label, amount, note] of cases) {
+      const item = el("article", "col-value-method-card");
+      item.append(el("h4", "", label), el("strong", "col-value-method-number", cop(amount)),
+        el("p", "col-value-note", note));
+      cards.append(item);
+    }
+    root.append(cards);
+    const note = el("div", "col-value-banner");
+    note.append(el("strong", "", "Conciliación SOTP del emisor vs JMR"),
+      el("p", "col-value-note", "Emisor: patrimonio COP 14,90 billones en febrero; JMR: COP 12,83 billones en octubre. Diferencia 2,07 billones por fechas/perímetros y valoraciones de Cementos, Celsia, Odinsa, deuda neta y gastos holding. No sumarla al FCFF como activo imaginario."));
+    root.append(note);
+  }
   if (Array.isArray(v.sotpScenarios) && v.sotpScenarios.length) {
     const storyTitle = el("div", "col-value-section-title");
     storyTitle.append(el("h3", "", "Cuatro escenarios · SOTP híbrida"),
