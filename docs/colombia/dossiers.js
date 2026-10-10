@@ -50,8 +50,8 @@ export function valuationNumbers(d) {
   const book = typeof o.bookValueProformaCOP === "number" ? o.bookValueProformaCOP : null;
   return {
     holding,
-    primary: holding ? (book !== null ? book : marketSotp) : (typeof o.dcfBaseCOP === "number" ? o.dcfBaseCOP : s.dcfPrimaryIntrinsicPerShareCOP),
-    primaryLabel: holding ? "Valor contable NIIF pro forma" : "Valor intrínseco DCF",
+    primary: holding ? (typeof s.primaryValueCOP === 'number' ? s.primaryValueCOP : (book !== null ? book : marketSotp)) : (typeof o.dcfBaseCOP === "number" ? o.dcfBaseCOP : s.dcfPrimaryIntrinsicPerShareCOP),
+    primaryLabel: holding ? (s.primaryValueMethod === 'SOTP_MULTIPLES_BLEND' ? 'Valor Base SOTP + múltiplos' : 'Valor contable NIIF pro forma') : "Valor intrínseco DCF",
     marketSotp: holding ? marketSotp : null,
     book,
     base: typeof o.dcfBaseCOP === "number" ? o.dcfBaseCOP : s.dcfPrimaryIntrinsicPerShareCOP,
