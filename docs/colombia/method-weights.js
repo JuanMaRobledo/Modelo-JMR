@@ -6,7 +6,7 @@ const fmt = n => typeof n === "number" && Number.isFinite(n)
   ? "COP " + Math.round(n).toLocaleString("es-CO") : "N/D";
 const pct = n => (n * 100).toLocaleString("es-CO", {maximumFractionDigits:1}) + "%";
 const numeric = n => typeof n === "number" && Number.isFinite(n);
-const STORE = "jmr-colombia-metodos-v2-"; // Configuración coherente con el libro publicado: contable50/DCF25/SOTP10/P-B10/yield5.
+const STORE = "jmr-colombia-metodos-v3-"; // Nueva política holdings SOTP60/PB24/yield16; libro/DCF opcionales.
 
 export function calculateWeights(methods, selected = {}, weights = {}) {
   const rows = methods.map(m => {
@@ -28,24 +28,24 @@ export function buildMethodCandidates(d) {
   const holding = d.instrument?.model === "holding";
   const options = [
     {id:"book", name:"Valor contable NIIF pro forma", value:holding?c.book:null,
-      defaultWeight:holding?50:0,defaultSelected:holding,
-      detail:"Patrimonio separado pro forma / acciones; referencia principal para holdings. No representa efectivo realizable."},
+      defaultWeight:0,defaultSelected:false,
+      detail:"Patrimonio separado pro forma / acciones; indicador opcional, no representa efectivo realizable."},
     {id:"sotp_book", name:"SOTP contable por participadas · mismo libro NIIF", value:holding?c.book:null,
       defaultWeight:0,defaultSelected:false,
       detail:"Reconcilia el valor en libros desglosando las participadas. MISMA base económica que el método contable puro; desactivado por defecto para evitar duplicación estadística."},
     {id:"market_sotp", name:"SOTP de mercado / NIIF", value:holding?c.marketSotp:null,
-      defaultWeight:holding?10:0,defaultSelected:holding,
+      defaultWeight:holding?60:0,defaultSelected:holding,
       detail:"Participadas cotizadas a mercado y activos privados a libros; correlacionado con el patrimonio."},
     {id:"dcf", name:"DCF FCFF / SOTP por FCFF", value:c.base,
-      defaultWeight:holding?25:60,defaultSelected:true,
+      defaultWeight:holding?0:60,defaultSelected:!holding,
       detail:"Suma de valores patrimoniales de flujos descontados. En holdings puede depender de estimaciones privadas."}
   ];
   const m = Array.isArray(v.multiplesMethods)?v.multiplesMethods:[];
   const pb=m.find(x=>/P\/B|patrimonio/i.test(x.name)), dividend=m.find(x=>/dividend|dividendo|rendimiento/i.test(x.name));
   options.push({id:"pb",name:pb?.name||"P/B ajustado",value:pb?.today,
-    defaultWeight:holding?10:24,defaultSelected:numeric(pb?.today),detail:pb?.status||"Múltiplo relativo; requiere anclas verificables."});
+    defaultWeight:holding?24:24,defaultSelected:numeric(pb?.today),detail:pb?.status||"Múltiplo relativo; requiere anclas verificables."});
   options.push({id:"yield",name:dividend?.name||"Rendimiento por dividendo",value:dividend?.today,
-    defaultWeight:holding?5:16,defaultSelected:numeric(dividend?.today),detail:dividend?.status||"Rendimiento exigido; pagos futuros pueden ser hipotéticos."});
+    defaultWeight:holding?16:16,defaultSelected:numeric(dividend?.today),detail:dividend?.status||"Rendimiento exigido; pagos futuros pueden ser hipotéticos."});
   const industrialNames=["EV/EBITDA","EV/FCFF","P/E","P/FCFE","P/OCF"];
   for(const name of industrialNames) {
     // Un método individual solo se activa con su propio denominador comparable.
@@ -78,7 +78,7 @@ export function renderWeightSelector(d,root,onUpdate) {
   const state={selected:{...(saved.selected||{})},weights:{...(saved.weights||{})}};
   root.replaceChildren();
   const caption=document.createElement("p");caption.className="note";
-  caption.textContent="Activa o desactiva cada método y edita los puntos de peso. Los pesos de los métodos elegidos y disponibles se normalizan automáticamente al 100 %. Por defecto, en holdings: valor contable 50, DCF 25, SOTP mercado 10, P/B 10 y dividendos 5, iguales a la copia maestra publicada. El libro sigue siendo la referencia principal, aunque el ponderado personalizado cambie. Las preferencias se guardan por acción en este navegador, no en Google Sheets ni en otros dispositivos.";
+  caption.textContent="Activa o desactiva cada método y edita los puntos de peso. Los pesos de los métodos elegidos y disponibles se normalizan automáticamente al 100 %. Por defecto, en holdings: SOTP 60%, múltiplos históricos P/B 24% y rendimiento por dividendos 16%; valor contable y DCF desactivados y seleccionables. Una única observación histórica 2025 no certifica promedios 5/10 años. Las preferencias se guardan por acción en este navegador, no en Google Sheets ni en otros dispositivos.";
   root.append(caption);
   const wrap=document.createElement("div");wrap.className="table-wrap";
   const table=document.createElement("table");table.className="method-weight-table";
