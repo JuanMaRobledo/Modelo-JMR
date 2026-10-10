@@ -276,6 +276,70 @@
       (side ? '<div class="jvb-side"><span class="jvb-sidet">Lecturas secundarias</span>' + side + '</div>' : '') + '</div>';
   }
 
+
+  // Ponderación personalizada por método, INDEPENDIENTE de los resultados guardados.
+  // Sólo se agregan métodos elegidos con valor numérico para el horizonte.
+  function selectionRows(d) {
+    var methods = (d.metodos || []), sum = methods.reduce(function(a,m) { return a + (num(m.peso) || 0); }, 0);
+    var mw = num(d.mult && d.mult.peso) == null ? 0.4 : d.mult.peso;
+    var factor = sum > 0 ? (Math.abs(sum-mw) < 0.001 ? 1 : mw/sum) : 0;
+    return [{id:"dcf",label:"DCF · Base (método principal industrial)",hoy:num(d.dcf?.hoy?.base),fy3:num(d.dcf?.fy3?.base),weight:100*(num(d.dcf?.peso) == null ? 0.6 : d.dcf.peso)}]
+     .concat(methods.map(function(m,i) {return {id:"rel"+i,label:m.nombre,hoy:num(m.hoy && m.hoy.base),fy3:num(m.fy3 && m.fy3.base),weight:100*(num(m.peso)||0)*factor};}));
+  }
+  function selectionKey(d) { return "jmr-pesos-individuales-v1:"+String(d.ticker || d.hoja || d.precioLbl || "instrumento").slice(0,240); }
+  function selectionPrefs(key) {try {return JSON.parse(localStorage.getItem(key)||"{}")||{};}catch(e){return {};}}
+  function selectedValue(items, h) {
+    var total=0,sum=0;
+    items.forEach(function(x) {if(x.enabled && num(x[h])!=null && x.weight>0){total+=x.weight;sum+=x.weight*x[h];}});
+    return total>0?sum/total:null;
+  }
+  function weightedSelectorHtml(d) {
+    var methods=selectionRows(d),key=selectionKey(d),prior=selectionPrefs(key);
+    var data=methods.map(function(m){
+      var config=prior[m.id]||{};
+      return {id:m.id,label:m.label,hoy:m.hoy,fy3:m.fy3,
+        weight:num(config.weight)==null?Math.max(0,m.weight):Math.max(0,config.weight),
+        enabled:typeof config.enabled==="boolean"?config.enabled:m.weight>0,
+        available:m.hoy!=null||m.fy3!=null};
+    });
+    var today=selectedValue(data,"hoy"),fy3=selectedValue(data,"fy3");
+    var total=data.reduce(function(a,m){return a+(m.enabled&&m.available&&m.hoy!=null?m.weight:0);},0);
+    var rows=data.map(function(m) {
+      var incl=m.available&&m.enabled&&m.weight>0;
+      var effective=total>0&&incl&&m.hoy!=null?m.weight/total:0;
+      return '<tr data-weight-row="' + esc(m.id) + '" data-value-hoy="' + (m.hoy==null?"":m.hoy) + '" data-value-fy3="' + (m.fy3==null?"":m.fy3) + '">' +
+        '<td><input type="checkbox" aria-label="Incluir ' + esc(m.label) + '" data-weight-check ' + (m.enabled?'checked ':'') + (m.available?'':'disabled ') + '></td>' +
+        '<td>' + esc(m.label) + '</td><td class="n">' + money(m.hoy) + '</td>' +
+        '<td><input type="number" min="0" step="1" max="10000" aria-label="Peso de ' + esc(m.label) + '" data-weight-input value="' + m.weight + '"' + (m.available?'':' disabled') + '></td>' +
+        '<td data-weight-effective class="n">' + pct(effective,1) + '</td></tr>';
+    }).join('');
+    return '<div class="jvb-weights" data-weight-store="' + esc(key) + '">' +
+      '<details><summary>Seleccionar cada método y rebalancear su peso</summary><p class="jvb-note">Marca cada método, ajusta sus puntos y el total se normaliza al 100% entre los seleccionados con precio calculable. El DCF y los múltiplos originales NO cambian. Las preferencias se guardan para este activo.</p>' +
+      '<div class="jvb-tw"><table class="jvb-table jvb-weights-table"><thead><tr><th>Usar</th><th>Método</th><th>Valor hoy</th><th>Puntos</th><th>Peso efectivo</th></tr></thead><tbody>'+rows+'</tbody></table></div>' +
+      '<p class="jvb-weights-result"><strong>Ponderado personalizado HOY: <span data-weight-total-hoy>'+money(today)+'</span></strong> · FY+3: <span data-weight-total-fy3>'+money(fy3)+'</span> · Suma efectiva hoy: <span data-weight-sum>'+(total>0?'100%':'0%')+'</span></p>' +
+      '<p class="jvb-note">Métodos no disponibles quedan fuera. El ponderado es un análisis opcional, no una nueva valoración intrínseca; las estimaciones pueden estar correlacionadas.</p>' +
+      '<button type="button" data-weight-reset class="jvb-weights-reset">Restablecer selección</button></details></div>';
+  }
+  function recalcWeights(root) {
+    var data=[],state={};
+    root.querySelectorAll('[data-weight-row]').forEach(function(tr){
+      var check=tr.querySelector('[data-weight-check]'),input=tr.querySelector('[data-weight-input]'),id=tr.getAttribute('data-weight-row');
+      var raw=parseFloat(input.value),w=isFinite(raw)?Math.max(0,raw):0;
+      var hoy=parseFloat(tr.getAttribute('data-value-hoy')),fy3=parseFloat(tr.getAttribute('data-value-fy3'));
+      var r={id:id,enabled:!!check.checked&&!check.disabled,weight:w,hoy:isFinite(hoy)?hoy:null,fy3:isFinite(fy3)?fy3:null};
+      data.push(r);state[id]={enabled:r.enabled,weight:w};
+    });
+    var today=selectedValue(data,"hoy"),fy3=selectedValue(data,"fy3");
+    var total=data.reduce(function(a,r){return a+(r.enabled&&r.hoy!=null&&r.weight>0?r.weight:0);},0);
+    data.forEach(function(r){
+      var tr=Array.prototype.find.call(root.querySelectorAll('[data-weight-row]'),function(x){return x.getAttribute('data-weight-row')===r.id;});
+      if(tr)tr.querySelector('[data-weight-effective]').textContent=pct(total>0&&r.enabled&&r.hoy!=null?r.weight/total:0,1);
+    });
+    root.querySelector('[data-weight-total-hoy]').textContent=money(today);
+    root.querySelector('[data-weight-total-fy3]').textContent=money(fy3);
+    root.querySelector('[data-weight-sum]').textContent=total>0?'100%':'0%';
+    try {localStorage.setItem(root.getAttribute('data-weight-store'),JSON.stringify(state));}catch(e){}
+  }
   function html(d, opts) {
     opts = opts || {};
     DISPLAY_CURRENCY = d?.currency === 'COP' ? 'COP' : 'USD';
@@ -291,7 +355,7 @@
       'Hoy: el DCF ya está a valor presente; cada múltiplo es el precio a FY+1, FY+2 y FY+3 más dividendos, traído a hoy con Ke y promediado. ' +
       'FY+3: el DCF de hoy × (1 + Ke)³ y los múltiplos al cierre FY+3 con dividendos. El ponderado es opcional: sirve de contraste, no reemplaza al DCF.';
     return '<section class="jvb" data-h="' + p.h + '" data-mult="' + p.mult + '" data-met="' + p.met + '" data-pond="' + p.pond + '">' +
-      (opts.hero === false ? (unified(d) ? unifiedHtml(d) : '') : heroHtml(d)) + bar +
+      (opts.hero === false ? (unified(d) ? unifiedHtml(d) : '') : heroHtml(d)) + bar + (DISPLAY_CURRENCY === 'COP' ? '' : weightedSelectorHtml(d)) +
       '<div class="jvb-hz" data-hz="hoy">' + (d.dcf.hoy ? tableHtml(d, 'hoy') + rangeHtml(d, 'hoy') : '') + '</div>' +
       '<div class="jvb-hz" data-hz="fy3">' + (d.dcf.fy3 ? tableHtml(d, 'fy3') + rangeHtml(d, 'fy3') : '') + '</div>' +
       historicalHtml(d) +
@@ -317,11 +381,33 @@
     savePrefs(p); apply(p);
   });
 
+
+  if (global.document) {
+    function onSelectionChange(e) {
+      var control=e.target.closest && e.target.closest('[data-weight-check],[data-weight-input],[data-weight-reset]');
+      if(!control)return;
+      var root=control.closest('.jvb-weights');if(!root)return;
+      if(control.hasAttribute('data-weight-reset')) {
+        e.preventDefault();
+        try {localStorage.removeItem(root.getAttribute('data-weight-store'));}catch(err){}
+        root.querySelectorAll('[data-weight-row]').forEach(function(tr) {
+          var initial=tr.getAttribute('data-weight-row')==='dcf'?60:parseFloat(tr.querySelector('[data-weight-input]').defaultValue)||0;
+          tr.querySelector('[data-weight-input]').value=String(initial);
+          tr.querySelector('[data-weight-check]').checked=initial>0;
+        });
+      }
+      recalcWeights(root);
+    }
+    document.addEventListener('change',onSelectionChange);
+    document.addEventListener('input',onSelectionChange);
+    document.addEventListener('click',function(e) {if(e.target.closest&&e.target.closest('[data-weight-reset]'))onSelectionChange(e);});
+  }
   if (global.document && !document.getElementById('jvb-css')) {
     var st = document.createElement('style'); st.id = 'jvb-css';
     st.textContent = [
       '.jvb{--jvb-dcf:var(--accent);--jvb-mult:color-mix(in oklab,var(--ink-soft,#5b6474) 70%,var(--surface,#fff));--jvb-met:color-mix(in oklab,var(--ink-soft,#5b6474) 38%,var(--surface,#fff));--jvb-pond:color-mix(in oklab,#b7791f 75%,var(--surface,#fff));margin:0 0 18px;font-variant-numeric:tabular-nums}',
       '.jvb *{box-sizing:border-box}',
+      '.jvb-weights{padding:10px 12px;border:1px solid var(--border-soft,#ccc);background:var(--surface,#fff);border-radius:10px;margin:9px 0 13px}.jvb-weights summary{cursor:pointer;font-weight:650;font-size:13px}.jvb-weights input[type=checkbox]{width:16px;height:16px;cursor:pointer}.jvb-weights input[type=number]{width:76px;padding:6px;border:1px solid var(--border-soft,#ccc);border-radius:7px;background:var(--surface);color:var(--ink)}.jvb-weights-table td{white-space:normal!important}.jvb-weights-result{padding:8px 10px;background:var(--accent-soft,#faf3e6);border-radius:8px;font-size:12px}.jvb-weights-reset{padding:7px 9px;border:1px solid var(--border-soft);border-radius:8px;background:var(--surface);color:var(--ink);cursor:pointer}',
       '.jvb p{text-align:left}',
       '.jvb .jvb-table{display:table;table-layout:auto;max-width:none;margin:0;overflow:visible}',
       '.jvb .jvb-table th,.jvb .jvb-table td{border:0;white-space:nowrap;overflow-wrap:normal;vertical-align:middle;line-height:1.35}',
