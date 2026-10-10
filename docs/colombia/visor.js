@@ -1,5 +1,6 @@
 import { FIELDS } from "./core.js";
 import { loadColombiaDossiers, valuationNumbers } from "./dossiers.js";
+import { renderWeightSelector } from "./method-weights.js";
 const $ = id => document.getElementById(id);
 const ROOT = "https://api.github.com/repos/JuanMaRobledo/Modelo-JMR-datos/contents/colombia/expedientes/";
 const STORE = "jmr-colombia-dossiers-v1";
@@ -100,7 +101,7 @@ function render(ticker){
  safeText("meta","Valoración del "+d.analysisDate+" · "+(d.instrument?.model||"modelo pendiente")+" · COP");
  const holding = canonical.holding && numeric(canonical.marketSotp);
  $("holdingPrimaryMetrics").hidden=!holding;
- $("primaryLabel").textContent=holding?"Holding · SOTP de mercado como referencia principal":"Modelo JMR Colombia · métodos de valoración";
+ $("primaryLabel").textContent=holding?"Holding · valor contable NIIF como referencia principal":"Modelo JMR Colombia · métodos de valoración";
  safeText("primaryValue",cop(canonical.primary));
  safeText("bookValue",cop(canonical.book));
  safeText("primaryUpside",numeric(v.marketPrice)&&v.marketPrice>0&&numeric(canonical.primary)?pct(canonical.primary/v.marketPrice-1):"N/D");
@@ -108,6 +109,7 @@ function render(ticker){
  safeText("priceAt",cop(v.marketPrice));safeText("priceAtDate",date);
  safeText("priceToday",cop(quote.price));safeText("priceTodayDate","Última cotización disponible: "+qDate);
  safeText("change",numeric(v.marketPrice)&&numeric(quote.price)&&v.marketPrice>0?pct(quote.price/v.marketPrice-1):"N/D");
+ renderWeightSelector(d,$("methodWeights"));
  const {output,methods,dcf}=buildBoard(d);
  safeText("dcfBase",cop(numeric(canonical.base)?canonical.base:dcf.base));
  safeText("dcfExp",cop(canonical.expected));
@@ -128,8 +130,8 @@ function render(ticker){
  const mainSotp=sc.find(s=>s.name==="Base")||{};
  const nav=numeric(v.valuationOutput?.sotpCheck?.hybridNAVBaseCOP)?v.valuationOutput.sotpCheck.hybridNAVBaseCOP:v.base;
  for(const [label,value] of [
-  ["SOTP MERCADO / NIIF · PRINCIPAL DEL HOLDING",nav],
-  ["Valor contable puro NIIF · pro forma",canonical.book],
+  ["VALOR CONTABLE NIIF PRO FORMA · REFERENCIA PRINCIPAL",canonical.book],
+  ["SOTP MERCADO / NIIF · COMPARADOR",nav],
   ["SOTP FCFF (patrimonio atribuible) · método secundario",mainSotp.valuePerPreferredShareCOP ?? v.valuationOutput?.dcfBaseCOP],
   ["NAV de la gerencia febrero 2026 · distinto método y fecha",v.valuationOutput?.sotpCheck?.managementNAVFebCOP],
   ["Múltiplos independientes · VP hoy",v.multiplesWeightedToday],
