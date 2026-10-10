@@ -134,7 +134,7 @@ document.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()
 }));
 window.addEventListener("hashchange",()=>switchTab(location.hash.slice(1)));
 $("copyReport").onclick=async()=>{
-  const md=String(active?.reports?.research?.content||"").replace(/^---\\s*\\n[\\s\\S]*?\\n---\\s*\\n/,"").trim();
+  const md=String(active?.reports?.research?.content||"").replace(/^---\s*\n[\s\S]*?\n---\s*\n/,"").trim();
   if(!md){status("No hay informe publicado para copiar.");return;}
   try{await navigator.clipboard.writeText(md);status("Análisis fundamental copiado, con 18 secciones y tablas.");}
   catch(e){status("No se pudo copiar automáticamente: "+(e?.message||"revisa los permisos del navegador"));}
