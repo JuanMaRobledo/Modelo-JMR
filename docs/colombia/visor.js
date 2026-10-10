@@ -1,4 +1,5 @@
-import { validateDossier, FIELDS } from "./core.js";
+import { FIELDS } from "./core.js";
+import { loadColombiaDossiers, valuationNumbers } from "./dossiers.js";
 const $ = id => document.getElementById(id);
 const ROOT = "https://api.github.com/repos/JuanMaRobledo/Modelo-JMR-datos/contents/colombia/expedientes/";
 const STORE = "jmr-colombia-dossiers-v1";
@@ -30,42 +31,10 @@ function markdown(id,content){
   for(const a of root.querySelectorAll("a[href^='http']")){a.target="_blank";a.rel="noopener noreferrer";}
  }else root.textContent=body;
 }
-function getLocal(){
- try{const x=JSON.parse(localStorage.getItem(STORE)||"[]");
-   return (Array.isArray(x)?x:[]).filter(d=>{try{validateDossier(d);return true;}catch{return false;}});
- }catch{return [];}
-}
-async function remote(){
- const res=await fetch(ROOT,{cache:"no-store",headers:{Accept:"application/vnd.github+json"}});
- if(!res.ok)throw Error("Sin acceso a expedientes publicados (HTTP "+res.status+")");
- const entries=await res.json();
- const paths=entries.filter(e=>e.type==="file"&&e.name.endsWith(".json"));
- const all=[];
- for(let i=0;i<paths.length;i+=8){
-  const chunk=paths.slice(i,i+8);
-  const records=await Promise.all(chunk.map(async entry=>{
-   const r=await fetch(ROOT+encodeURIComponent(entry.name),{cache:"no-store"});
-   if(!r.ok)return null;
-   const file=await r.json();
-   try{
-    const bytes=Uint8Array.from(atob((file.content||"").replace(/\s/g,"")),c=>c.charCodeAt(0));
-    const d=JSON.parse(new TextDecoder().decode(bytes));return validateDossier(d);
-   }catch{return null;}
-  }));
-  all.push(...records.filter(Boolean));
- }
- return all;
-}
-function ordered(a,b){
- return String(b.updatedAt||b.publication?.revisedAt||b.retrievedAt||"").localeCompare(String(a.updatedAt||a.publication?.revisedAt||a.retrievedAt||""));
-}
 async function load(){
  showStatus("Sincronizando biblioteca Colombia…");
- const local=getLocal();let cloud=[],problem="";
- try{cloud=await remote();}catch(e){problem=e.message;}
- const merged=new Map();
- [...local,...cloud].sort(ordered).forEach(d=>{if(!merged.has(d.ticker))merged.set(d.ticker,d);});
- dossiers=[...merged.values()].sort((a,b)=>a.ticker.localeCompare(b.ticker));
+ const {dossiers:records,warning:problem}=await loadColombiaDossiers();
+ dossiers=records;
  const select=$("ticker"),chosen=select.value||new URLSearchParams(location.search).get("ticker")||"PFGRUPOARG.CL";
  select.replaceChildren();
  for(const d of dossiers){const o=new Option((d.company||d.ticker)+" · "+d.ticker,d.ticker);select.add(o);}
@@ -123,6 +92,7 @@ function render(ticker){
  const d=dossiers.find(x=>x.ticker===ticker);
  if(!d)return;active=d;
  const v=d.valuationSummary||{},quote=d.quote||{};
+ const canonical=valuationNumbers(d);
  $("page").hidden=false;
  const date=v.priceDate||d.analysisDate;
  const qDate=quote.quotedAt?new Date(quote.quotedAt).toLocaleDateString("es-CO",{timeZone:"America/Bogota"}):"fecha no disponible";
@@ -133,8 +103,8 @@ function render(ticker){
  safeText("priceToday",cop(quote.price));safeText("priceTodayDate","Última cotización disponible: "+qDate);
  safeText("change",numeric(v.marketPrice)&&numeric(quote.price)&&v.marketPrice>0?pct(quote.price/v.marketPrice-1):"N/D");
  const {output,methods,dcf}=buildBoard(d);
- safeText("dcfBase",cop(dcf.base));
- safeText("dcfExp",cop(numeric(v.valuationOutput?.dcfExpectedCOP)?v.valuationOutput.dcfExpectedCOP:v.dcfPrimaryExpectedCOP));
+ safeText("dcfBase",cop(numeric(canonical.base)?canonical.base:dcf.base));
+ safeText("dcfExp",cop(canonical.expected));
  safeText("pDcf",numeric(v.marketPrice)&&numeric(dcf.base)&&dcf.base>0?(v.marketPrice/dcf.base).toFixed(2).replace(".",",")+"×":"N/D");
  $("board").innerHTML=output?JmrValueBoard.html(output):'<p class="note">El DCF principal todavía no está calculado. El SOTP no se presenta como si fuera FCFF.</p>';
  const cases=Array.isArray(v.dcfFcffIntrinsicScenarios)?v.dcfFcffIntrinsicScenarios:[];
@@ -177,14 +147,14 @@ function render(ticker){
  replaceTable("financials",["Concepto",...years],rows);
  markdown("fundamentalReport",d.reports?.research?.content);
  markdown("valuationReport",d.reports?.valuation?.content);
- const url=v.valuationOutput?.sheetUrl||v.sheetUrl||v.cleanMasterSheetUrl;
+ const url=canonical.sheet;
  $("links").replaceChildren();
  if(url){$("links").append(doc(url,"Hoja DCF · Modelo JMR y auditoría aritmética"));$("links").append(document.createElement("br"));}
  if(v.valuationOutput){const note=document.createElement("p");note.className="note";note.textContent="Fuente final: Valuation output. Corte de publicación: "+new Date(v.valuationOutput.synchronizedAt).toLocaleString("es-CO",{timeZone:"America/Bogota"})+". La app muestra una copia publicada de esas celdas; cambios posteriores en la hoja requieren resincronizar el expediente."; $("links").append(note);}
  for(const s of d.sources||[]){if(/^https:\/\//.test(s.url)){ $("links").append(doc(s.url,s.role||"Fuente"));$("links").append(document.createElement("br"));}}
  const q="ticker="+encodeURIComponent(d.ticker);
  $("linked").href="colombia.html?"+q+"#valuation";
- $("editResearch").href="colombia.html?"+q+"#research";
+ $("editResearch").href="fundamental-colombia.html?"+q;
  history.replaceState(null,"",location.pathname+"?"+q+location.hash);
  const hash=location.hash.slice(1);activate(["resumen","fundamental","financieros","valoracion","analisis","fuentes"].includes(hash)?hash:"resumen");
 }
