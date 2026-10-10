@@ -189,8 +189,11 @@ function renderValuationStats() {
   root.classList.add("col-value-board");
   const v = dossier?.valuationSummary;
   if (!v) return;
+  const isHolding = dossier?.instrument?.model === "holding";
+  const sotpMarket = typeof v.valuationOutput?.marketSotpPrimaryCOP === "number" ? v.valuationOutput.marketSotpPrimaryCOP : v.valuationOutput?.sotpCheck?.hybridNAVBaseCOP;
+  const bookPure = v.valuationOutput?.bookValueProformaCOP;
   const isPrimaryFCFF = v.dcfPrimaryMethod === "FCFF";
-  const status = isPrimaryFCFF ? (typeof v.dcfPrimaryIntrinsicPerShareCOP === "number" ? "FCFF por negocios · estimación no certificada" : "FCFF operativo calculado · equity por PF pendiente") : (v.baseIsIntrinsic === false ? "SOTP híbrida estimada · NO DCF certificado" : (dossier.audit?.valuationReady ? "Modelo revisado · alcance limitado" : "Valoración incompleta o condicionada"));
+  const status = isHolding && typeof sotpMarket === "number" ? "SOTP mercado/NIIF PRINCIPAL · no equivale a FCFF ni libro puro" : isPrimaryFCFF ? (typeof v.dcfPrimaryIntrinsicPerShareCOP === "number" ? "FCFF por negocios · estimación no certificada" : "FCFF operativo calculado · equity por PF pendiente") : (v.baseIsIntrinsic === false ? "SOTP híbrida estimada · NO DCF certificado" : (dossier.audit?.valuationReady ? "Modelo revisado · alcance limitado" : "Valoración incompleta o condicionada"));
   const priceDate = v.priceDate || dossier.analysisDate;
   const numeric = x => typeof x === "number" && Number.isFinite(x);
   const cop = x => numeric(x) ? new Intl.NumberFormat("es-CO", {
@@ -214,8 +217,8 @@ function renderValuationStats() {
     el("span", "col-value-badge", status));
   root.append(heading);
 
-  // El DCF es la referencia principal. Mostrar el precio por FCFF con una métrica
-  // homogénea antes de los comparadores; los múltiplos no calculables son N/D.
+  // En holdings el SOTP de mercado/NIIF es principal; el DCF FCFF queda visible como método complementario.
+  // Los múltiplos no calculables se indican N/D.
   const priceVsDcf = numeric(v.marketPrice) && numeric(v.dcfPrimaryIntrinsicPerShareCOP) && v.dcfPrimaryIntrinsicPerShareCOP > 0
     ? v.marketPrice / v.dcfPrimaryIntrinsicPerShareCOP : null;
   if (isPrimaryFCFF) {
@@ -226,7 +229,14 @@ function renderValuationStats() {
     root.append(ratio);
   }
   const hero = el("div", "col-value-hero");
-  if (isPrimaryFCFF) {
+  if (isHolding && numeric(sotpMarket)) {
+    hero.append(
+      box("SOTP mercado/NIIF · PRINCIPAL", sotpMarket, "Participadas cotizadas a mercado y privadas a valor NIIF; valoración mixta, no libro puro ni DCF.", "featured"),
+      box("Valor contable NIIF · pro forma", bookPure, "Patrimonio separado pro forma, método secundario"),
+      box("SOTP DCF FCFF Base · secundario", v.dcfPrimaryIntrinsicPerShareCOP, "FCFF por negocio con WACC y puente patrimonial; supuestos no certificados")
+    );
+    hero.append(box("Múltiplos ponderados · secundarios", v.multiplesWeightedToday, "P/B, yield y otros métodos disponibles por separado"));
+  } else if (isPrimaryFCFF) {
     const primary = v.dcfFcffIntrinsicScenarios?.[0];
     hero.append(
       box("FCFF Base por PF · ESTIMACIÓN", v.dcfPrimaryIntrinsicPerShareCOP, numeric(v.dcfPrimaryIntrinsicPerShareCOP) ? "FCFF 10 años descontado al WACC y puente de empresa a equity. NO CERTIFICADO." : "FCFF por PF pendiente, NO equivale a cero.", "featured"),
@@ -324,7 +334,7 @@ function renderValuationStats() {
       ["Emisor · SOTP feb2026", audit.managementFebruary2026?.perShareCOP, "Mercado de participadas más libros; no DCF."],
       ["Investing · PF objetivo 12 meses", audit.preferredAnalystTargets?.[0]?.targetCOP, "Un analista, no auditoría de FCFF."],
       ["Fintel · PF objetivo 12 meses", audit.preferredAnalystTargets?.[1]?.targetCOP, "Referencia del 2 octubre 2026, rango 18.180–25.095."],
-      ["SOTP JMR octubre · secundaria", v.base, "NAV de mercado/NIIF; NO DCF FCFF."]
+      ["SOTP JMR octubre · PRINCIPAL para holdings", v.base, "NAV de mercado/NIIF; NO DCF FCFF."]
     ];
     const cards = el("div", "col-value-method-grid");
     for (const [label, amount, note] of cases) {
