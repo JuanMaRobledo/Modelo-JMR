@@ -178,7 +178,7 @@ function renderValuationStats() {
   root.classList.add("col-value-board");
   const v = dossier?.valuationSummary;
   if (!v) return;
-  const status = dossier.audit?.valuationReady ? "Modelo revisado · alcance limitado" : "Valoración incompleta o condicionada";
+  const status = v.baseIsIntrinsic === false ? "SOTP híbrida estimada · NO DCF certificado" : (dossier.audit?.valuationReady ? "Modelo revisado · alcance limitado" : "Valoración incompleta o condicionada");
   const priceDate = v.priceDate || dossier.analysisDate;
   const numeric = x => typeof x === "number" && Number.isFinite(x);
   const cop = x => numeric(x) ? new Intl.NumberFormat("es-CO", {
@@ -204,13 +204,40 @@ function renderValuationStats() {
 
   const hero = el("div", "col-value-hero");
   hero.append(
-    box("Valor intrínseco Base · principal", v.base,
+    box(v.baseIsIntrinsic === false ? "SOTP Base · estimación condicionada" : "Valor intrínseco Base · principal", v.base,
       v.base == null ? "No hay DCF/SOTP certificado" : (v.scopeLabel || "Modelo fundamental condicionado"),
       "featured"),
     box("Cotización del análisis", v.marketPrice, "Sesión " + priceDate),
     box("Valor esperado · escenarios", v.expected, "Secundario; no reemplaza el Base")
   );
   root.append(hero);
+
+  if (Array.isArray(v.sotpScenarios) && v.sotpScenarios.length) {
+    const storyTitle = el("div", "col-value-section-title");
+    storyTitle.append(el("h3", "", "Cuatro escenarios · SOTP híbrida"),
+      el("p", "", "Probabilidades subjetivas. Base principal; no equivale a DCF intrínseco certificado."));
+    root.append(storyTitle);
+    const storyGrid = el("div", "col-value-method-grid");
+    for (const scenario of v.sotpScenarios) {
+      const item = el("article", "col-value-method-card");
+      item.append(el("h4", "", scenario.name || "Escenario"),
+        el("small", "", "Probabilidad: " + (100 * (scenario.p || 0)).toFixed(0) + "%"),
+        el("strong", "col-value-method-number", cop(scenario.value)),
+        el("p", "col-value-note", numeric(scenario.upside)
+          ? "Frente a cotización de análisis: " + (scenario.upside * 100).toFixed(1).replace(".", ",") + "%"
+          : "Consultar informe"));
+      storyGrid.append(item);
+    }
+    root.append(storyGrid);
+  }
+  if (v.baseIsIntrinsic === false) {
+    const caution = el("div", "col-value-banner");
+    caution.append(el("strong", "", "Alcance y confiabilidad"),
+      el("p", "col-value-note",
+        "SOTP Base combinando precios de participadas listadas, libros y NIIF privados. No es DCF completo por negocio. Faltan FCFE de concesiones, minoritarios a valor razonable y datos de activos no operativos para certificar valor intrínseco."));
+    root.append(caution);
+  }
+
 
   const conclusion = el("div", "col-value-banner");
   const conclusionText = v.conclusion || (
