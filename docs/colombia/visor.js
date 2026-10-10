@@ -109,7 +109,7 @@ function render(ticker){
  safeText("priceAt",cop(v.marketPrice));safeText("priceAtDate",date);
  safeText("priceToday",cop(quote.price));safeText("priceTodayDate","Última cotización disponible: "+qDate);
  safeText("change",numeric(v.marketPrice)&&numeric(quote.price)&&v.marketPrice>0?pct(quote.price/v.marketPrice-1):"N/D");
- renderWeightSelector(d,$("methodWeights"));
+ renderWeightSelector(d,$("methodWeights"),result=>safeText("selectedWeightedValue",result.valid?cop(result.weighted):"N/D"));
  const {output,methods,dcf}=buildBoard(d);
  safeText("dcfBase",cop(numeric(canonical.base)?canonical.base:dcf.base));
  safeText("dcfExp",cop(canonical.expected));
