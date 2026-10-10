@@ -81,9 +81,9 @@ function buildBoard(d){
  const board={
   currency:"COP",precio:numeric(v.marketPrice)?v.marketPrice:d.quote?.price,
   precioLbl:"PF precio de análisis",mos:null,ke:numeric(ke)?ke:null,
-  dcf:{hoy:dcf,peso:0.6,fy3:null},
-  metodos:methodRows,mult:{hoy:multi,fy3:null,peso:0.4},
-  pond:{hoy:combined,fy3:null},ve:null,hist:null,
+  dcf:{hoy:dcf,peso:0.6,fy3:canonical.dcfYear3ExDividend||null},
+  metodos:methodRows,mult:{hoy:multi,fy3:canonical.relativeYear3ExDividend||null,peso:0.4},
+  pond:{hoy:combined,fy3:canonical.weightedYear3ExDividend||null},ve:null,hist:null,
   hoja:v.sheetUrl||v.cleanMasterSheetUrl||""
  };
  return {output:board,methods:info,dcf};
