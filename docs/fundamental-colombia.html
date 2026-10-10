@@ -65,6 +65,8 @@ a{color:var(--accent-ink)}.smallprint{font-size:12px;color:var(--ink-soft)}
 @media(max-width:930px){.report-layout{display:flex;flex-direction:column-reverse;gap:12px}.toc{position:static;max-height:none;width:100%;display:block}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:520px){.metrics{grid-template-columns:1fr}.wrap{width:94%}.report th,.report td{padding:6px;font-size:11px}}
 @media print{nav.appnav,.controls,.tabbar,.toc,.detail-links,.btn{display:none!important}.panel{display:none!important}#mainPanel{display:block!important}.report-layout{display:block}.card{border:0;padding:0}}
+
+.method-weight-table th:first-child,.method-weight-table td:first-child{text-align:center;width:50px}.method-weight-table td:nth-child(3),.method-weight-table td:nth-child(4),.method-weight-table td:nth-child(5){white-space:nowrap}.method-weight-table small{display:block;max-width:500px;font-size:11px;line-height:1.45}.method-weight-table input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);cursor:pointer}.method-weight-table input[type=number]{border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--ink);padding:7px;max-width:90px}.method-weight-table tr[data-active=false]{opacity:.7}.method-weight-result{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:14px;background:var(--accent-soft);border-radius:10px;margin:12px 0}.method-weight-result span{font-size:12px;color:var(--ink-soft)}.method-weight-price{font:700 23px "IBM Plex Mono",monospace;margin-right:auto}@media(max-width:700px){.method-weight-table{min-width:640px}}
 </style>
 </head>
 <body>
@@ -80,7 +82,7 @@ a{color:var(--accent-ink)}.smallprint{font-size:12px;color:var(--ink-soft)}
 <main class="wrap">
 <div class="eyebrow">Modelo JMR · Acciones de Colombia</div>
 <h1>Análisis Fundamental · Colombia</h1>
-<p class="subtitle">Análisis fundamental con las mismas 18 secciones, índice navegable, escenarios, tesis y controles que las acciones internacionales. Para holdings el SOTP de mercado/NIIF es la referencia principal; el libro NIIF, DCF FCFF y múltiplos permanecen separados y vinculados a «Valuation output».</p>
+<p class="subtitle">Análisis fundamental con las mismas 18 secciones, índice navegable, escenarios, tesis y controles que las acciones internacionales. Para holdings el valor contable NIIF pro forma es la referencia principal; el SOTP de mercado/NIIF, el DCF FCFF, los múltiplos y sus ponderaciones seleccionables se muestran por separado y vinculados a «Valuation output».</p>
 <div class="controls">
 <label for="ticker">Acción</label>
 <select id="ticker"><option value="">Cargando expedientes…</option></select>
@@ -96,12 +98,13 @@ a{color:var(--accent-ink)}.smallprint{font-size:12px;color:var(--ink-soft)}
 <div class="identity"><small class="eyebrow">Análisis fundamental vinculado a valoración</small>
 <h2 id="company"></h2><p class="muted" id="meta"></p><p class="smallprint" id="scope"></p></div>
 <div class="metrics">
-<div class="stat main"><small id="primaryLabel">SOTP mercado/NIIF · PRINCIPAL</small><strong id="primary"></strong><small>Principal para holdings; participadas cotizadas a mercado y privadas a NIIF. No es DCF ni libro puro.</small></div>
-<div class="stat"><small>Valor contable NIIF pro forma</small><strong id="book"></strong><small>Método secundario; patrimonio separado con recompra.</small></div>
+<div class="stat main"><small id="primaryLabel">Valor contable NIIF pro forma · PRINCIPAL</small><strong id="primary"></strong><small>Referencia principal para holdings; patrimonio separado NIIF, ajustado por recompra. No equivale a precio realizable.</small></div>
+<div class="stat"><small>SOTP de mercado / NIIF</small><strong id="marketSotp"></strong><small>Referente secundario: cotizaciones de participadas listadas y libros de inversiones privadas.</small></div>
 <div class="stat"><small>DCF FCFF Base</small><strong id="dcf"></strong><small>Método intrínseco por negocios, secundario en holdings.</small></div>
 <div class="stat"><small>DCF esperado · cuatro historias</small><strong id="expected"></strong><small>Probabilidades analíticas de los DCF.</small></div>
+<div class="stat"><small>Ponderado con los métodos seleccionados</small><strong id="weightedFund"></strong><small>Los pesos activos se reequilibran al 100 %; valor independiente de la referencia principal.</small></div>
 <div class="stat"><small>Precio al día del análisis</small><strong id="price"></strong><small id="priceDate">Fecha de cierre</small></div>
-<div class="stat"><small id="upsideLabel">Potencial frente a SOTP mercado</small><strong id="upside"></strong><small>Valor principal / precio − 1; no garantiza materialización.</small></div>
+<div class="stat"><small id="upsideLabel">Potencial frente a valor contable NIIF</small><strong id="upside"></strong><small>Valor principal / precio − 1; no garantiza materialización.</small></div>
 </div>
 <div class="tabbar" role="tablist" aria-label="Secciones del análisis fundamental">
 <button type="button" class="active" data-tab="informe">Informe fundamental · 18 secciones</button>
@@ -116,8 +119,9 @@ a{color:var(--accent-ink)}.smallprint{font-size:12px;color:var(--ink-soft)}
 <section class="panel" data-panel="tesis" hidden>
 <div class="card"><h3>Escenarios fundamentales y flujos descontados</h3><p class="smallprint">La narración de cada historia está en el informe. Esta tabla usa el mismo expediente que el visor, y los valores por acción se sincronizan desde «Valuation output» cuando están publicados.</p>
 <div class="table-wrap" id="scenarios"></div><div class="detail-links"><a class="btn" id="openDCF" href="visor-colombia.html">Abrir desglose DCF y múltiplos →</a></div></div>
+<div class="card"><h3>Selección individual y ponderación dinámica de métodos</h3><p class="smallprint">Activa los métodos que deseas ponderar: cada uno mantiene su valor independiente y los pesos activos se normalizan automáticamente al 100 %. La referencia principal contable no cambia.</p><div id="methodWeightsFund"></div><p class="smallprint">Ponderado personalizado actual: <strong id="selectedWeightedFund">N/D</strong></p></div>
 <div class="card"><h3>Múltiplos secundarios · individuales y ponderados</h3><div class="table-wrap" id="relative"></div>
-<p class="smallprint">Múltiplos sin denominador homogéneo se indican como N/D. El SOTP de mercado es principal en holdings; el DCF se muestra por separado y los múltiplos se mantienen secundarios.</p></div>
+<p class="smallprint">Múltiplos sin denominador homogéneo se indican como N/D. El valor contable NIIF pro forma es la referencia principal en holdings; el SOTP de mercado, el DCF y los múltiplos se mantienen visibles y el usuario puede asignar pesos individuales a cada método.</p></div>
 </section>
 <section class="panel" data-panel="fuentes" hidden>
 <div class="card"><h3>Documentos y procedencia</h3><ul id="sources" class="source-list"></ul><p id="sync" class="smallprint"></p>
