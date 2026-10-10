@@ -180,6 +180,8 @@ function renderReport(id, content) {
 }
 
 function renderValuationStats() {
+  const viewer = $("openColombiaVisor");
+  if (viewer) viewer.href = dossier ? "visor-colombia.html?ticker=" + encodeURIComponent(dossier.ticker) : "visor-colombia.html";
   const root = $("valuationStats");
   root.replaceChildren();
   root.classList.add("col-value-board");
@@ -944,7 +946,8 @@ function renderLibrary() {
     value.textContent = d.valuationSummary?.dcfPrimaryMethod === "FCFF" && typeof d.valuationSummary?.dcfPrimaryIntrinsicPerShareCOP === "number" ? "FCFF Base estimativa · " + fmt(d.valuationSummary.dcfPrimaryIntrinsicPerShareCOP) + " (no certificada)" : d.valuationSummary?.base != null ? "NAV de mercado · " + fmt(d.valuationSummary.base) : d.valuationSummary?.navReference != null ? "NAV provisional · " + fmt(d.valuationSummary.navReference) : "Valoración pendiente";
     const research = document.createElement("button"); research.className = "btn"; research.textContent = "Análisis fundamental";
     research.onclick = () => { open(d); activate("research"); };
-    b.textContent = d.reports?.valuation ? "Ver valoración" : "Abrir expediente";
+    b.textContent = d.reports?.valuation ? "Ver en visor JMR" : "Abrir expediente";
+    if (d.reports?.valuation) b.onclick = () => { location.href = "visor-colombia.html?ticker=" + encodeURIComponent(d.ticker); };
     const snippets = document.createElement("div");
     snippets.className = "col-library-snapshot";
     const cur = d.valuationSummary || {};
