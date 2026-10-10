@@ -394,17 +394,18 @@ function renderValuationStats() {
         el("p", "col-value-note",
           "Ke " + percent(record.ke) + " · Kd " + percent(record.kd) +
           " · Deuda / valor " + percent(record.debtOverMarketCapital) +
-          " · WACC alternativo TES " + percent(record.tesAlternativeWacc) +
-          ". Beta, prima país y estructura financiera pendientes de validación final.")
+          (numeric(record.tesAlternativeWacc) ? " · WACC alternativo TES " + percent(record.tesAlternativeWacc) : "") +
+          ". Tabla Damodaran enero 2026; Rf sintética, beta, prima país por exposición y D/V sujetos a validación final.")
       );
       rateCards.append(item);
     }
     root.append(rateCards);
   }
   const bridge = v.dcfBridgeAudit;
-  if (bridge?.celsia?.equityBeforeOtherAssetsAndFairValueNci) {
+  const equityBridge = bridge?.celsia?.equityBeforeNonOperatingAndNciFairValue || bridge?.celsia?.equityBeforeOtherAssetsAndFairValueNci;
+  if (equityBridge) {
     const audit = el("div", "col-value-banner");
-    const mechanical = bridge.celsia.equityBeforeOtherAssetsAndFairValueNci.Base;
+    const mechanical = equityBridge.Base;
     const formatted = numeric(mechanical)
       ? new Intl.NumberFormat("es-CO", {maximumFractionDigits: 0}).format(mechanical)
       : "Pendiente";
@@ -416,6 +417,36 @@ function renderValuationStats() {
         "Requiere inversiones fuera del FCFF, minoritarios a valor razonable y conciliación del capital invertido.")
     );
     root.append(audit);
+  }
+
+  const auditFive = v.auditFiveFronts;
+  if (auditFive) {
+    const fiveHeading = el("div", "col-value-section-title");
+    fiveHeading.append(
+      el("h3", "", "Auditoría de cinco frentes · fuentes y conciliaciones"),
+      el("p", "", "Certificación limitada de la suma de partes tipo NAV/arbitraje, no de un DCF intrínseco independiente de todos los negocios.")
+    );
+    root.append(fiveHeading);
+    const fiveCards = el("div", "col-value-method-grid");
+    const tests = [
+      ["Celsia · diferencia de perímetro", auditFive.celsia?.scopeGapCOPbillions, "COP miles de millones · EV mercado menos DCF parcial; se mantiene equity bursátil para NAV"],
+      ["Cementos · caja neta contable", auditFive.cementos?.netCashCOPbillions, "COP miles de millones · incluida en capitalización bursátil, no sumarla nuevamente"],
+      ["Odinsa · valor libro 2T2026", auditFive.odinsa?.bookStakeJun2026COPbillions, "COP miles de millones · NAV gerencia dic2025 de 2,4 a 3,0 billones como sensibilidad independiente"],
+      ["Urbano · libro / avalúo", auditFive.urban?.bookTotalCOPbillions, "COP miles de millones · concilia con 2.100,0 publicados por el emisor"],
+      ["WACC Cementos / Celsia", auditFive.capitalCost?.WACC_Cementos, "Fracción · Cementos, Celsia " + (numeric(auditFive.capitalCost?.WACC_Celsia) ? (auditFive.capitalCost.WACC_Celsia * 100).toFixed(2).replace(".", ",") + "%" : "pendiente") + ". ERP/CRP Damodaran enero 2026"]
+    ];
+    for (const [name, metric, note] of tests) {
+      const item = el("article", "col-value-method-card");
+      item.append(
+        el("h4", "", name),
+        el("strong", "col-value-method-number", numeric(metric)
+          ? (name.startsWith("WACC") ? (metric * 100).toFixed(2).replace(".", ",") + "%" : new Intl.NumberFormat("es-CO", {maximumFractionDigits: 1}).format(metric))
+          : "Pendiente"),
+        el("p", "col-value-note", note)
+      );
+      fiveCards.append(item);
+    }
+    root.append(fiveCards);
   }
 
   if (v.sheetUrl && /^https:\/\//.test(v.sheetUrl)) {
