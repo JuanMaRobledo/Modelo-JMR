@@ -98,6 +98,12 @@ function render(ticker){
  const qDate=quote.quotedAt?new Date(quote.quotedAt).toLocaleDateString("es-CO",{timeZone:"America/Bogota"}):"fecha no disponible";
  safeText("company",(d.company||d.ticker)+" · "+d.ticker);
  safeText("meta","Valoración del "+d.analysisDate+" · "+(d.instrument?.model||"modelo pendiente")+" · COP");
+ const holding = canonical.holding && numeric(canonical.marketSotp);
+ $("holdingPrimaryMetrics").hidden=!holding;
+ $("primaryLabel").textContent=holding?"Holding · SOTP de mercado como referencia principal":"Modelo JMR Colombia · métodos de valoración";
+ safeText("primaryValue",cop(canonical.primary));
+ safeText("bookValue",cop(canonical.book));
+ safeText("primaryUpside",numeric(v.marketPrice)&&v.marketPrice>0&&numeric(canonical.primary)?pct(canonical.primary/v.marketPrice-1):"N/D");
  safeText("price",cop(v.marketPrice));safeText("priceDate","Fuente de cierre: "+date+(v.valuationOutput ? " · DCF desde Valuation output" : " · DCF legado por expediente"));
  safeText("priceAt",cop(v.marketPrice));safeText("priceAtDate",date);
  safeText("priceToday",cop(quote.price));safeText("priceTodayDate","Última cotización disponible: "+qDate);
@@ -122,8 +128,9 @@ function render(ticker){
  const mainSotp=sc.find(s=>s.name==="Base")||{};
  const nav=numeric(v.valuationOutput?.sotpCheck?.hybridNAVBaseCOP)?v.valuationOutput.sotpCheck.hybridNAVBaseCOP:v.base;
  for(const [label,value] of [
-  ["SOTP FCFF (patrimonio atribuible) · valor principal",mainSotp.valuePerPreferredShareCOP ?? v.valuationOutput?.dcfBaseCOP],
-  ["SOTP de cotizaciones / NIIF · NO es DCF",nav],
+  ["SOTP MERCADO / NIIF · PRINCIPAL DEL HOLDING",nav],
+  ["Valor contable puro NIIF · pro forma",canonical.book],
+  ["SOTP FCFF (patrimonio atribuible) · método secundario",mainSotp.valuePerPreferredShareCOP ?? v.valuationOutput?.dcfBaseCOP],
   ["NAV de la gerencia febrero 2026 · distinto método y fecha",v.valuationOutput?.sotpCheck?.managementNAVFebCOP],
   ["Múltiplos independientes · VP hoy",v.multiplesWeightedToday],
   ["DCF FCFF 60% + múltiplos 40% · ponderado secundario",v.valuationOutput?.dcf60Multiples40COP ?? v.combinedWeightedToday]
