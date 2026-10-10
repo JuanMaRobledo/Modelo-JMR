@@ -74,7 +74,6 @@ function showReport(d) {
   $("meta").textContent="Análisis del "+d.analysisDate+" · BVC · "+(d.instrument?.model||"modelo sin clasificar");
   $("scope").textContent=n.note;
   $("primary").textContent=cop(n.primary);
-  $("book").textContent=cop(n.book);
   $("marketSotp").textContent=cop(n.marketSotp);
   $("primaryLabel").textContent=n.holding?"Valor contable NIIF pro forma · PRINCIPAL":"Valor intrínseco principal";
   $("upsideLabel").textContent=n.holding?"Potencial frente a valor contable NIIF":"Potencial frente a valor intrínseco";
