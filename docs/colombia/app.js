@@ -337,7 +337,7 @@ function renderValuationStats() {
       ["Emisor · SOTP feb2026", audit.managementFebruary2026?.perShareCOP, "Mercado de participadas más libros; no DCF."],
       ["Investing · PF objetivo 12 meses", audit.preferredAnalystTargets?.[0]?.targetCOP, "Un analista, no auditoría de FCFF."],
       ["Fintel · PF objetivo 12 meses", audit.preferredAnalystTargets?.[1]?.targetCOP, "Referencia del 2 octubre 2026, rango 18.180–25.095."],
-      ["SOTP JMR octubre · PRINCIPAL para holdings", v.base, "NAV de mercado/NIIF; NO DCF FCFF."]
+      ["VALOR BASE JMR · SOTP + MÚLTIPLOS", v.primaryValueCOP ?? v.base, "Ponderado por métodos seleccionados; DCF y libro opcionales."]
     ];
     const cards = el("div", "col-value-method-grid");
     for (const [label, amount, note] of cases) {
