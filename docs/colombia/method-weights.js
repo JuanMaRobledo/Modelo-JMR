@@ -100,7 +100,9 @@ export function renderWeightSelector(d,root,onUpdate) {
   const state={selected:{...(saved.selected||{})},weights:{...(saved.weights||{})}};
   root.replaceChildren();
   const caption=document.createElement("p");caption.className="note";
-  caption.textContent=(isSura(d) ? "Grupo SURA: por defecto 60% valor patrimonial consolidado y 40% SOTP intrínseco Base. Cada método puede activarse individualmente; NAV look-through, ROE terminal=Ke y P/E proxy son contrastes dependientes o no certificados. Los pesos activos se renormalizan al 100%. Preferencias por clase y ticker SOLO en" : "Activa o desactiva cada método y edita los puntos de peso. Los pesos de los métodos elegidos y disponibles se normalizan automáticamente al 100 %. Por defecto en holdings: 60 puntos SOTP económico mixto + 40 puntos SOTP por múltiplos sectoriales EV/EBITDA de participadas; libro, DCF, P/B y rendimiento histórico son opcionales. La ruta privada de Odinsa/Pactia se comparte, NO hay independencia plena. Las preferencias se guardan por ticker SOLO en") el navegador. Las preferencias se guardan por acción en este navegador, no en Google Sheets ni en otros dispositivos.";
+  caption.textContent = (isSura(d)
+    ? "Grupo SURA: por defecto, 60% patrimonio consolidado y 40% SOTP Base. NAV, convergencia ROE=Ke y P/E son referencias opcionales, no necesariamente independientes. Ajusta y renormaliza métodos individualmente."
+    : "Activa o desactiva cada método y edita los puntos de peso. En otros holdings se conserva su ponderación original. Las preferencias se guardan por ticker en el navegador.");
   root.append(caption);
   const wrap=document.createElement("div");wrap.className="table-wrap";
   const table=document.createElement("table");table.className="method-weight-table";
