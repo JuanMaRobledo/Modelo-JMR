@@ -6,7 +6,9 @@ const fmt = n => typeof n === "number" && Number.isFinite(n)
   ? "COP " + Math.round(n).toLocaleString("es-CO") : "N/D";
 const pct = n => (n * 100).toLocaleString("es-CO", {maximumFractionDigits:1}) + "%";
 const numeric = n => typeof n === "number" && Number.isFinite(n);
-const STORE = "jmr-colombia-metodos-v4-"; // Holdings: SOTP mixto60/sector peers40; otros métodos opcionales; preferencias antiguas no migradas silenciosamente.
+const STORE = "jmr-colombia-metodos-v3-"; // No modificar preferencias guardadas de otros tickers.
+const NEW_ARGOS_STORE = "jmr-colombia-metodos-v4-"; // Solo PFGRUPOARG cambia su selección predeterminada a SOTP60/peers40.
+const preferenceKey = d => (d.ticker === "PFGRUPOARG.CL" ? NEW_ARGOS_STORE : STORE) + d.ticker;
 
 export function calculateWeights(methods, selected = {}, weights = {}) {
   const rows = methods.map(m => {
@@ -67,11 +69,11 @@ export function buildMethodCandidates(d) {
 }
 
 function getSaved(d) {
-  try { const v=JSON.parse(localStorage.getItem(STORE+d.ticker)||"{}");return v&&typeof v==="object"?v:{}; }
+  try { const v=JSON.parse(localStorage.getItem(preferenceKey(d))||"{}");return v&&typeof v==="object"?v:{}; }
   catch {return {};}
 }
 function save(d, state) {
-  try {localStorage.setItem(STORE+d.ticker,JSON.stringify(state));}catch {}
+  try {localStorage.setItem(preferenceKey(d),JSON.stringify(state));}catch {}
 }
 function cell(row,content) {const td=document.createElement("td");if(content instanceof Node)td.append(content);else td.textContent=String(content??"");row.append(td);return td;}
 
