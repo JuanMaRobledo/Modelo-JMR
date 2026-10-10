@@ -75,7 +75,7 @@ function showReport(d) {
   $("scope").textContent=n.note;
   $("primary").textContent=cop(n.primary);
   $("marketSotp").textContent=cop(n.marketSotp);
-  $("primaryLabel").textContent=n.holding?"Valor Base SOTP + múltiplos":"Valor intrínseco principal";
+  $("primaryLabel").textContent=n.holding?"Valor Base SOTP económico + comparables sectoriales":"Valor intrínseco principal";
   $("upsideLabel").textContent=n.holding?"Potencial frente a Base SOTP+múltiplos":"Potencial frente a valor intrínseco";
   $("dcf").textContent=cop(n.base);
   $("expected").textContent=cop(n.expected);
