@@ -179,7 +179,7 @@ function renderValuationStats() {
   const v = dossier?.valuationSummary;
   if (!v) return;
   const isPrimaryFCFF = v.dcfPrimaryMethod === "FCFF";
-  const status = isPrimaryFCFF ? "FCFF operativo calculado · equity por PF pendiente" : (v.baseIsIntrinsic === false ? "SOTP híbrida estimada · NO DCF certificado" : (dossier.audit?.valuationReady ? "Modelo revisado · alcance limitado" : "Valoración incompleta o condicionada"));
+  const status = isPrimaryFCFF ? (typeof v.dcfPrimaryIntrinsicPerShareCOP === "number" ? "FCFF por negocios · estimación no certificada" : "FCFF operativo calculado · equity por PF pendiente") : (v.baseIsIntrinsic === false ? "SOTP híbrida estimada · NO DCF certificado" : (dossier.audit?.valuationReady ? "Modelo revisado · alcance limitado" : "Valoración incompleta o condicionada"));
   const priceDate = v.priceDate || dossier.analysisDate;
   const numeric = x => typeof x === "number" && Number.isFinite(x);
   const cop = x => numeric(x) ? new Intl.NumberFormat("es-CO", {
@@ -207,7 +207,7 @@ function renderValuationStats() {
   if (isPrimaryFCFF) {
     const primary = v.dcfFcffIntrinsicScenarios?.[0];
     hero.append(
-      box("Valor intrínseco FCFF por PF", v.dcfPrimaryIntrinsicPerShareCOP, "Sin cifra aún: faltan puentes del EV a patrimonio; NO equivale a cero.", "featured"),
+      box("FCFF Base por PF · ESTIMACIÓN", v.dcfPrimaryIntrinsicPerShareCOP, numeric(v.dcfPrimaryIntrinsicPerShareCOP) ? "FCFF 10 años descontado al WACC y puente de empresa a equity. NO CERTIFICADO." : "FCFF por PF pendiente, NO equivale a cero.", "featured"),
       box("Cementos · EV FCFF (COP millones)", primary?.enterpriseValueCementosCOPm, "Valor de empresa operativa, NO precio de acción"),
       box("Celsia · EV FCFF (COP millones)", primary?.enterpriseValueCelsiaCOPm, "EV de perímetro INCOMPLETO Yield/Growth; no equivale a patrimonio")
     );
@@ -313,7 +313,7 @@ function renderValuationStats() {
     caution.append(el("strong", "", "Alcance y confiabilidad"),
       el("p", "col-value-note",
         isPrimaryFCFF
-          ? "FCFF descontado al WACC es el único DCF principal. No hay precio por PF hasta conciliar deuda, caja excedente, minoritarios y todas las participadas. Los COP 13.708 del antiguo FCFE mixto y el DDM COP 12.518 se archivan como secundarios, NO precio intrínseco FCFF."
+          ? "El FCFF descontado al WACC es el único DCF principal: precio Base estimativo COP 9.779 en cuatro escenarios, FCFF por negocios y puente patrimonial. NO certificado: supuestos materiales en Celsia Growth, Odinsa, Pactia, NDU, caja Summit y minoritarios. FCFE13.708 y DDM12.518 sólo antecedentes."
           : numeric(v.dcfLookthroughBase)
           ? "Existen dos DCF numéricos adicionales. El look-through tiene hipótesis fuertes de FCFE Celsia, NAV 2035 Odinsa y capex estadounidense; Pactia sigue por NIIF. Son DCF prospectivos estimativos, no un dictamen certificado de valor intrínseco. No sumar valor de mercado y flujo del mismo activo."
           : "SOTP Base combinando precios de participadas listadas, libros y NIIF privados. No es DCF completo por negocio. Faltan FCFE de concesiones, minoritarios a valor razonable y datos de activos no operativos para certificar valor intrínseco."));
