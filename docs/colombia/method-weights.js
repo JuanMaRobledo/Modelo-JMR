@@ -80,13 +80,14 @@ export function renderWeightSelector(d,root,onUpdate) {
   const wrap=document.createElement("div");wrap.className="table-wrap";
   const table=document.createElement("table");table.className="method-weight-table";
   const head=document.createElement("thead");const header=document.createElement("tr");
-  ["Usar","Método","Valor por acción","Peso inicial","Peso rebalanceado"].forEach(h=>{const th=document.createElement("th");th.textContent=h;header.append(th)});head.append(header);table.append(head);
+  ["Usar","Método","Valor por acción","Peso inicial","Peso rebalanceado","Aporte COP/PF"].forEach(h=>{const th=document.createElement("th");th.textContent=h;header.append(th)});head.append(header);table.append(head);
   const body=document.createElement("tbody"), fields=[];
   const refresh=()=>{
     const result=calculateWeights(methods,state.selected,state.weights);
     for(const item of fields){
       const row=result.rows.find(r=>r.id===item.id);
       item.effective.textContent=row.available?pct(row.effectiveWeight):"N/D";
+      item.contribution.textContent=row.available&&row.effectiveWeight>0?fmt(row.value*row.effectiveWeight):"—";
       item.tr.dataset.active=String(row.active);
       item.checkbox.checked=row.active;
       item.checkbox.disabled=!row.available;
@@ -105,10 +106,11 @@ export function renderWeightSelector(d,root,onUpdate) {
     const title=document.createElement("div");title.append(name,description);
     const input=document.createElement("input");input.type="number";input.min="0";input.max="10000";input.step="1";input.inputMode="decimal";input.value=String(Object.prototype.hasOwnProperty.call(state.weights,m.id)?state.weights[m.id]:m.defaultWeight);input.style.width="82px";input.setAttribute("aria-label","Peso inicial de "+m.name);input.disabled=!numeric(m.value);
     const eff=document.createElement("span");
-    cell(tr,check);cell(tr,title);cell(tr,fmt(m.value));cell(tr,input);cell(tr,eff);
+    const contribution=document.createElement("span");
+    cell(tr,check);cell(tr,title);cell(tr,fmt(m.value));cell(tr,input);cell(tr,eff);cell(tr,contribution);
     check.addEventListener("change",()=>{state.selected[m.id]=check.checked;if(check.checked && !(Number(state.weights[m.id] ?? m.defaultWeight)>0)){state.weights[m.id]=10;input.value="10";}refresh();});
     input.addEventListener("input",()=>{state.weights[m.id]=Math.max(0,Number(input.value)||0);refresh();});
-    body.append(tr);fields.push({id:m.id,tr,checkbox:check,weightInput:input,effective:eff});
+    body.append(tr);fields.push({id:m.id,tr,checkbox:check,weightInput:input,effective:eff,contribution});
   }
   table.append(body);wrap.append(table);root.append(wrap);
   const totals=document.createElement("div");totals.className="method-weight-result";
