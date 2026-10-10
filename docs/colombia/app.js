@@ -30,6 +30,9 @@ function filename(suffix) {
   return `${dossier.ticker}-${dossier.analysisDate}-${dossier.runId.slice(0, 8)}-${suffix}`;
 }
 function activate(tab) {
+  if (["data", "research", "valuation", "library", "prompts"].includes(tab) && location.hash !== "#" + tab) {
+    history.replaceState(null, "", location.pathname + location.search + "#" + tab);
+  }
   document.querySelectorAll("[data-tab]").forEach((b) => {
     b.classList.toggle("active", b.dataset.tab === tab);
     b.setAttribute("aria-selected", String(b.dataset.tab === tab));
@@ -41,6 +44,10 @@ function activate(tab) {
 document
   .querySelectorAll("[data-tab]")
   .forEach((b) => (b.onclick = () => activate(b.dataset.tab)));
+window.addEventListener("hashchange", () => {
+  const tab = location.hash.slice(1);
+  if (["data", "research", "valuation", "library", "prompts"].includes(tab)) activate(tab);
+});
 for (const i of CATALOG) {
   const o = new Option(i.name, i.ticker);
   $("instrumentSelect").add(o);
@@ -203,6 +210,17 @@ function renderValuationStats() {
     el("span", "col-value-badge", status));
   root.append(heading);
 
+  // El DCF es la referencia principal. Mostrar el precio por FCFF con una métrica
+  // homogénea antes de los comparadores; los múltiplos no calculables son N/D.
+  const priceVsDcf = numeric(v.marketPrice) && numeric(v.dcfPrimaryIntrinsicPerShareCOP) && v.dcfPrimaryIntrinsicPerShareCOP > 0
+    ? v.marketPrice / v.dcfPrimaryIntrinsicPerShareCOP : null;
+  if (isPrimaryFCFF) {
+    const ratio = el("p", "col-value-note",
+      "Precio / DCF FCFF Base: " + (numeric(priceVsDcf) ? priceVsDcf.toFixed(2).replace(".", ",") + "×" : "N/D") +
+      " · valor intrínseco DCF de hoy: " + cop(v.dcfPrimaryIntrinsicPerShareCOP) +
+      " · fecha de precio: " + priceDate + ". El precio no es un múltiplo de valoración independiente.");
+    root.append(ratio);
+  }
   const hero = el("div", "col-value-hero");
   if (isPrimaryFCFF) {
     const primary = v.dcfFcffIntrinsicScenarios?.[0];
@@ -379,6 +397,51 @@ function renderValuationStats() {
   }
 
   const methods = Array.isArray(v.multiplesMethods) ? v.multiplesMethods : [];
+  // Tabla JMR Colombia: el mismo orden visual DCF → múltiplos individuales →
+  // ponderación relativa → ponderación DCF/múltiplos. Nunca sustituir DCF por SOTP.
+  if (isPrimaryFCFF) {
+    const title = el("div", "col-value-section-title");
+    title.append(el("h3", "", "Resumen de valoración · Modelo JMR Colombia"),
+      el("p", "", "COP por acción preferencial. DCF FCFF Base es el valor intrínseco principal; los relativos son secundarios. N/D indica que no hay un denominador homologado."));
+    root.append(title);
+    const wrap = el("div", "table-wrap");
+    const table = el("table", "colombia-jmr-table");
+    const thead = document.createElement("thead");
+    const header = document.createElement("tr");
+    ["Método", "Base hoy", "Conservadora", "Optimista", "Peso", "Condición"].forEach(label => header.append(el("th", "", label)));
+    thead.append(header);
+    const tbody = document.createElement("tbody");
+    const byName = name => (v.dcfFcffIntrinsicScenarios || []).find(s => s.name?.toLowerCase().includes(name));
+    const dcfBase = v.dcfPrimaryIntrinsicPerShareCOP;
+    const dcfCon = byName("conserv")?.intrinsicPerPreferredShareCOP;
+    const dcfOpt = byName("optim")?.intrinsicPerPreferredShareCOP;
+    const toWeight = w => numeric(w) ? (100 * w).toFixed(0) + "%" : "—";
+    const append = (name, base, con, opt, weight, note, main = false) => {
+      const tr = document.createElement("tr");
+      if (main) tr.className = "colombia-jmr-main";
+      [name, cop(base), cop(con), cop(opt), toWeight(weight), note].forEach(value => tr.append(el("td", "", value)));
+      tbody.append(tr);
+    };
+    append("DCF FCFF · valor intrínseco", dcfBase, dcfCon, dcfOpt, 0.6, "Principal · 10 años y puente patrimonial", true);
+    const anchors = m => Array.isArray(m.anchors) && m.anchors.length === 3 ? m.anchors : [];
+    for (const m of methods) {
+      const a = anchors(m);
+      append(m.name || "Múltiplo", m.today, a[0], a[2],
+        numeric(m.weight) ? 0.4 * m.weight : 0,
+        m.today == null ? "N/D · sin comparables homogéneos" : (m.status || "Valor relativo"));
+    }
+    const valid = methods.filter(m => numeric(m.today) && numeric(m.weight));
+    const relative = valid.reduce((total, m) => total + m.today * m.weight, 0);
+    const rw = valid.reduce((total, m) => total + m.weight, 0);
+    append("Ponderado de múltiplos", rw > 0 ? relative / rw : null, null, null, rw > 0 ? 0.4 : null,
+      rw > 0 ? "Solo métodos con datos y ponderación publicados" : "N/D");
+    append("DCF 60% + múltiplos 40%", rw > 0 && numeric(dcfBase) ? 0.6 * dcfBase + 0.4 * relative / rw : null,
+      null, null, 1, "Combinado secundario; NO sustituye el DCF", true);
+    append("SOTP / NAV bursátil", v.base, null, null, null, "Comparador externo al DCF y al ponderado JMR");
+    table.append(thead, tbody);
+    wrap.append(table);
+    root.append(wrap);
+  }
   const sectionTitle = el("div", "col-value-section-title");
   sectionTitle.append(el("h3", "", "Múltiplos · cada método por separado"),
     el("p", "", "Precio relativo independiente del valor intrínseco. Sin evidencia, el resultado permanece pendiente."));
@@ -439,7 +502,7 @@ function renderValuationStats() {
   const one = {today:v.multiplesWeightedToday,year3:v.multiplesWeightedYear3,year3PV:v.multiplesWeightedYear3PV};
   const two = {today:v.combinedWeightedToday,year3:v.combinedWeightedYear3,year3PV:v.combinedWeightedYear3PV};
   weighted.append(box("Múltiplos · ponderado independiente",one[horizon],v.multiplesStatus || "Sin ponderado verificable"),
-    box("DCF/SOTP + múltiplos · combinado",two[horizon],v.combinedStatus || "Ponderación no certificada"));
+    box("SOTP + múltiplos · combinado (no DCF)",two[horizon],v.combinedStatus || "Ponderación no certificada"));
   root.append(weighted);
 
   const details = Array.isArray(v.dcfComponents) ? v.dcfComponents : [];
@@ -853,7 +916,8 @@ function open(d) {
     ? dossier.ticker
     : "";
   render();
-  activate(dossier.reports?.valuation ? "valuation" : "data");
+  const requested = location.hash.slice(1);
+  activate(["research", "valuation"].includes(requested) ? requested : (dossier.reports?.valuation ? "valuation" : "data"));
 }
 function renderLibrary() {
   const root = $("library");
@@ -1121,7 +1185,8 @@ $("themeBtn").onclick = () => {
 };
 render();
 renderLibrary();
-activate("library");
+activate(["data", "research", "valuation", "library", "prompts"].includes(location.hash.slice(1))
+  ? location.hash.slice(1) : "library");
 // Mostrar expedientes Colombia ya publicados al abrir, sin importación manual.
 // Reutiliza la sincronización existente; conserva expedientes locales ajenos.
 $("syncBtn").click();
