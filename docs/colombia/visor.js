@@ -137,6 +137,9 @@ function render(ticker){
  };
  replaceTable("components",["Concepto Base","COP billones","Naturaleza"],
   Object.entries(comps).map(([k,val])=>[map[k]||k,numeric(val)?n0(val*1000)+" mil millones":"N/D",/EV/.test(k)?"Valor empresa; NO sumar si ya se usa equity del mismo negocio":/Equity/.test(k)?"Patrimonio atribuible":"Ajuste del holding"]));
+ const sens=Array.isArray(v.valuationOutput?.sensitivities)?v.valuationOutput.sensitivities:[];
+ replaceTable("sensitivity",["Variable aislada","Efecto sobre DCF/PF","DCF Base resultante","Alcance y salvedad"],
+  sens.length?sens.map(s=>[s.driver,cop(s.deltaCOPperShare),cop(s.adjustedFCFFCOP),s.scope||"Hipótesis de analista"]):[["Sin sensibilidad enlazada","N/D","N/D","Consultar controles de Valuation output"]]);
  const annual=d.observations.filter(o=>o.frequency==="annual");
  const years=[...new Set(annual.map(o=>o.fiscalDate))].sort().reverse().slice(0,10).reverse();
  const cols=["TotalRevenue","OperatingIncome","EBITDA","NetIncome","TotalDebt","CashAndCashEquivalents","OperatingCashFlow","CapitalExpenditure"];
