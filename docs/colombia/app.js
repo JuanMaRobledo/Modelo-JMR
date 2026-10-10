@@ -203,19 +203,64 @@ function renderValuationStats() {
   root.append(heading);
 
   const hero = el("div", "col-value-hero");
-  hero.append(
-    box(v.baseIsIntrinsic === false ? "SOTP Base · estimación condicionada" : "Valor intrínseco Base · principal", v.base,
-      v.base == null ? "No hay DCF/SOTP certificado" : (v.scopeLabel || "Modelo fundamental condicionado"),
-      "featured"),
-    box("Cotización del análisis", v.marketPrice, "Sesión " + priceDate),
-    box("Valor esperado · escenarios", v.expected, "Secundario; no reemplaza el Base")
-  );
+  if (numeric(v.dcfLookthroughBase)) {
+    hero.append(
+      box("DCF por negocios · Base estimativa", v.dcfLookthroughBase,
+        "Flujos futuros descontados por negocio, con NIIF Pactia y NAV 2035 Odinsa. NO certificado.", "featured"),
+      box("DCF dividendos holding · Base", v.dcfDividendsBase,
+        "Diez años de dividendos + terminal; depende de políticas futuras"),
+      box("SOTP arbitraje · Base bursátil", v.base,
+        "Comparador NAV basado en cotizaciones y activos contables. No DCF.")
+    );
+  } else {
+    hero.append(
+      box(v.baseIsIntrinsic === false ? "SOTP Base · estimación condicionada" : "Valor intrínseco Base · principal", v.base,
+        v.base == null ? "No hay DCF/SOTP certificado" : (v.scopeLabel || "Modelo fundamental condicionado"), "featured"),
+      box("Cotización del análisis", v.marketPrice, "Sesión " + priceDate),
+      box("Valor esperado · escenarios", v.expected, "Secundario; no reemplaza el Base")
+    );
+  }
   root.append(hero);
+
+  if (Array.isArray(v.dcfLookthroughScenarios) && v.dcfLookthroughScenarios.length) {
+    const heading = el("div", "col-value-section-title");
+    heading.append(el("h3", "", "Cuatro historias · DCF por negocios"),
+      el("p", "", "Valores por acción derivados de flujos y valores terminales explícitos; la prima de voto de la PF y varios flujos privados siguen sin certificación."));
+    root.append(heading);
+    const cards = el("div", "col-value-method-grid");
+    for (const scenario of v.dcfLookthroughScenarios) {
+      const item = el("article", "col-value-method-card");
+      item.append(el("h4", "", scenario.name),
+        el("small", "", "Peso narrativo: " + (100 * scenario.p).toFixed(0) + "%"),
+        el("strong", "col-value-method-number", cop(scenario.value)),
+        el("p", "col-value-note", "Futuros FCFE y supuestos analíticos; valor calculado, no garantizado."));
+      cards.append(item);
+    }
+    root.append(cards);
+    const weighted = el("div", "col-value-banner");
+    weighted.append(el("strong", "", "Valor esperado de escenarios DCF: " + cop(v.dcfLookthroughExpected)),
+      el("p", "col-value-note", "La probabilidad de las historias es subjetiva. Se mantiene el DCF Base como referencia principal."));
+    root.append(weighted);
+  }
+  if (Array.isArray(v.dcfDividendScenarios) && v.dcfDividendScenarios.length) {
+    const heading = el("div", "col-value-section-title");
+    heading.append(el("h3", "", "DCF por dividendos de la acción · 10 años"),
+      el("p", "", "Dividendos 2027–2036 y terminal, separados del DCF por negocios. El plan corporativo de dividendos futuros no equivale a pagos aprobados."));
+    root.append(heading);
+    const cards = el("div", "col-value-method-grid");
+    for (const story of v.dcfDividendScenarios) {
+      const item = el("article", "col-value-method-card");
+      item.append(el("h4", "", story.name), el("strong", "col-value-method-number", cop(story.value)),
+        el("p", "col-value-note", "Escenario del flujo efectivo pagado a accionistas."));
+      cards.append(item);
+    }
+    root.append(cards);
+  }
 
   if (Array.isArray(v.sotpScenarios) && v.sotpScenarios.length) {
     const storyTitle = el("div", "col-value-section-title");
     storyTitle.append(el("h3", "", "Cuatro escenarios · SOTP híbrida"),
-      el("p", "", "Probabilidades subjetivas. Base principal; no equivale a DCF intrínseco certificado."));
+      el("p", "", "COMPARADOR bursátil SOTP, no DCF. Probabilidades subjetivas; se muestra en segundo plano tras la valoración de flujos."));
     root.append(storyTitle);
     const storyGrid = el("div", "col-value-method-grid");
     for (const scenario of v.sotpScenarios) {
@@ -234,7 +279,9 @@ function renderValuationStats() {
     const caution = el("div", "col-value-banner");
     caution.append(el("strong", "", "Alcance y confiabilidad"),
       el("p", "col-value-note",
-        "SOTP Base combinando precios de participadas listadas, libros y NIIF privados. No es DCF completo por negocio. Faltan FCFE de concesiones, minoritarios a valor razonable y datos de activos no operativos para certificar valor intrínseco."));
+        numeric(v.dcfLookthroughBase)
+          ? "Existen dos DCF numéricos adicionales. El look-through tiene hipótesis fuertes de FCFE Celsia, NAV 2035 Odinsa y capex estadounidense; Pactia sigue por NIIF. Son DCF prospectivos estimativos, no un dictamen certificado de valor intrínseco. No sumar valor de mercado y flujo del mismo activo."
+          : "SOTP Base combinando precios de participadas listadas, libros y NIIF privados. No es DCF completo por negocio. Faltan FCFE de concesiones, minoritarios a valor razonable y datos de activos no operativos para certificar valor intrínseco."));
     root.append(caution);
   }
 
