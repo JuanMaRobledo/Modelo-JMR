@@ -65,7 +65,7 @@ function showSources(d, valuation) {
   }
   const sheet=$("openSheet");
   if(valuation.sheet){sheet.href=valuation.sheet;sheet.hidden=false;}else{sheet.hidden=true;sheet.removeAttribute("href");}
-  $("sync").textContent=(valuation.holding?"El valor contable NIIF pro forma es la referencia principal; SOTP mercado/NIIF, DCF FCFF y múltiplos son métodos separados. ":"") +"Los modelos proceden de "+valuation.source+(valuation.asOf?" · copia de resultados actualizada "+new Date(valuation.asOf).toLocaleString("es-CO",{timeZone:"America/Bogota"}):"")+". Cambios posteriores en la hoja requieren publicar de nuevo el expediente.";
+  $("sync").textContent=(valuation.holding?"El Base del holding es SOTP de mercado/NIIF + múltiplos históricos ponderados; contable y DCF FCFF son métodos opcionales. ":"") +"Los modelos proceden de "+valuation.source+(valuation.asOf?" · copia de resultados actualizada "+new Date(valuation.asOf).toLocaleString("es-CO",{timeZone:"America/Bogota"}):"")+". Cambios posteriores en la hoja requieren publicar de nuevo el expediente.";
 }
 function showReport(d) {
   const v=d.valuationSummary||{}, n=valuationNumbers(d), q="ticker="+encodeURIComponent(d.ticker);
@@ -75,8 +75,8 @@ function showReport(d) {
   $("scope").textContent=n.note;
   $("primary").textContent=cop(n.primary);
   $("marketSotp").textContent=cop(n.marketSotp);
-  $("primaryLabel").textContent=n.holding?"Valor contable NIIF pro forma · PRINCIPAL":"Valor intrínseco principal";
-  $("upsideLabel").textContent=n.holding?"Potencial frente a valor contable NIIF":"Potencial frente a valor intrínseco";
+  $("primaryLabel").textContent=n.holding?"Valor Base SOTP + múltiplos":"Valor intrínseco principal";
+  $("upsideLabel").textContent=n.holding?"Potencial frente a Base SOTP+múltiplos":"Potencial frente a valor intrínseco";
   $("dcf").textContent=cop(n.base);
   $("expected").textContent=cop(n.expected);
   $("price").textContent=cop(n.price);
