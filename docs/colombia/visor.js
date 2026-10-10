@@ -114,7 +114,7 @@ function render(ticker){
  safeText("dcfBase",cop(numeric(canonical.base)?canonical.base:dcf.base));
  safeText("dcfExp",cop(canonical.expected));
  safeText("pDcf",numeric(v.marketPrice)&&numeric(dcf.base)&&dcf.base>0?(v.marketPrice/dcf.base).toFixed(2).replace(".",",")+"×":"N/D");
- $("board").innerHTML=output?JmrValueBoard.html(output):'<p class="note">El DCF principal todavía no está calculado. El SOTP no se presenta como si fuera FCFF.</p>';
+ $("board").innerHTML=holding ? '<p class="note">Holding: Base publicado = SOTP económico 60% + SOTP de múltiplos sectoriales 40%. El selector permite rebalancear los métodos; libro y DCF FCFF aparecen por separado como opcionales. Los valores privados comparten referencias y no son DCF certificado.</p>' : output ? JmrValueBoard.html(output) : '<p class="note">El DCF principal todavía no está calculado.</p>';
  const cases=Array.isArray(v.dcfFcffIntrinsicScenarios)?v.dcfFcffIntrinsicScenarios:[];
  replaceTable("scenarios",["Escenario","Probabilidad","DCF por PF (COP)","EV Cementos (millones COP)","EV Celsia (millones COP)"],
   cases.map(c=>[c.name,pct(c.weight),cop(c.intrinsicPerPreferredShareCOP),n0(c.enterpriseValueCementosCOPm),n0(c.enterpriseValueCelsiaCOPm)]));
@@ -135,7 +135,7 @@ function render(ticker){
   ["SOTP FCFF (patrimonio atribuible) · método secundario",mainSotp.valuePerPreferredShareCOP ?? v.valuationOutput?.dcfBaseCOP],
   ["NAV de la gerencia febrero 2026 · distinto método y fecha",v.valuationOutput?.sotpCheck?.managementNAVFebCOP],
   ["Múltiplos ponderados · PRINCIPAL",v.multiplesWeightedToday],
-  ["DCF FCFF 60% + múltiplos 40% · LEGADO (NO BASE)",v.valuationOutput?.dcf60Multiples40COP ?? v.combinedWeightedToday]
+  ["VALOR BASE SOTP + SECTOR · 60%/40%",v.primaryValueCOP ?? v.combinedWeightedToday]
  ]){
   const el=document.createElement("div");el.className="metric";
   const l=document.createElement("small");l.textContent=label;
