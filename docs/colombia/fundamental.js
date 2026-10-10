@@ -133,4 +133,19 @@ document.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()
   switchTab(b.dataset.tab);
 }));
 window.addEventListener("hashchange",()=>switchTab(location.hash.slice(1)));
+$("copyReport").onclick=async()=>{
+  const md=String(active?.reports?.research?.content||"").replace(/^---\\s*\\n[\\s\\S]*?\\n---\\s*\\n/,"").trim();
+  if(!md){status("No hay informe publicado para copiar.");return;}
+  try{await navigator.clipboard.writeText(md);status("Análisis fundamental copiado, con 18 secciones y tablas.");}
+  catch(e){status("No se pudo copiar automáticamente: "+(e?.message||"revisa los permisos del navegador"));}
+};
+$("exportMd").onclick=()=>{
+  const md=String(active?.reports?.research?.content||"");
+  if(!md){status("No hay informe publicado para exportar.");return;}
+  const filename=(active.ticker||"Colombia").replace(/[^a-zA-Z0-9._-]/g,"_")+"-analisis-fundamental-"+(active.analysisDate||"reporte")+".md";
+  const url=URL.createObjectURL(new Blob([md],{type:"text/markdown;charset=utf-8"}));
+  const a=document.createElement("a");a.href=url;a.download=filename;a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+  status("Archivo Markdown generado: "+filename);
+};
 load();
