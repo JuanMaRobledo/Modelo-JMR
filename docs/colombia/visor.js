@@ -99,9 +99,10 @@ function render(ticker){
  const qDate=quote.quotedAt?new Date(quote.quotedAt).toLocaleDateString("es-CO",{timeZone:"America/Bogota"}):"fecha no disponible";
  safeText("company",(d.company||d.ticker)+" · "+d.ticker);
  safeText("meta","Valoración del "+d.analysisDate+" · "+(d.instrument?.model||"modelo pendiente")+" · COP");
- const holding = canonical.holding; // La prioridad de holdings publicada es SOTP+múltiplos; libro y FCFF siguen como métodos opcionales.
+ const holding = canonical.holding;
+ const isSura = d.ticker === "GRUPOSURA.CL" || d.ticker === "PFGRUPSURA.CL";
  $("holdingPrimaryMetrics").hidden=!holding;
- $("primaryLabel").textContent=holding?"Holding · valor Base SOTP + múltiplos":"Modelo JMR Colombia · métodos de valoración";
+ $("primaryLabel").textContent=isSura?"Holding financiero · SOTP Base RE/DDM":holding?"Holding · valor Base SOTP + múltiplos":"Modelo JMR Colombia · métodos de valoración";
  safeText("primaryValue",cop(canonical.primary));
  safeText("bookValue",cop(canonical.book));
  safeText("primaryUpside",numeric(v.marketPrice)&&v.marketPrice>0&&numeric(canonical.primary)?pct(canonical.primary/v.marketPrice-1):"N/D");
@@ -114,10 +115,10 @@ function render(ticker){
  safeText("dcfBase",cop(numeric(canonical.base)?canonical.base:dcf.base));
  safeText("dcfExp",cop(canonical.expected));
  safeText("pDcf",numeric(v.marketPrice)&&numeric(dcf.base)&&dcf.base>0?(v.marketPrice/dcf.base).toFixed(2).replace(".",",")+"×":"N/D");
- $("board").innerHTML=holding ? '<p class="note">Holding: Base publicado = SOTP económico 60% + SOTP de múltiplos sectoriales 40%. El selector permite rebalancear los métodos; libro y DCF FCFF aparecen por separado como opcionales. Los valores privados comparten referencias y no son DCF certificado.</p>' : output ? JmrValueBoard.html(output) : '<p class="note">El DCF principal todavía no está calculado.</p>';
+ $("board").innerHTML=isSura ? '<p class="note">Grupo SURA: Base intrínseco por SOTP RE/DDM financiero (condicionado); valor contable, NAV look-through y P/E por filiales son referencias distintas. Por defecto el selector pondera 60% contable + 40% SOTP Base. La convergencia ROE terminal=Ke es sensibilidad, no un nuevo objetivo. Consulte las tablas por método y ambos horizontes.</p>' : holding ? '<p class="note">Holding: Base publicado = SOTP económico 60% + SOTP de múltiplos sectoriales 40%. El selector permite rebalancear los métodos; libro y DCF FCFF aparecen por separado como opcionales. Los valores privados comparten referencias y no son DCF certificado.</p>' : output ? JmrValueBoard.html(output) : '<p class="note">El DCF principal todavía no está calculado.</p>';
  const cases=Array.isArray(v.dcfFcffIntrinsicScenarios)?v.dcfFcffIntrinsicScenarios:[];
- replaceTable("scenarios",["Escenario","Probabilidad","DCF por PF (COP)","EV Cementos (millones COP)","EV Celsia (millones COP)"],
-  cases.map(c=>[c.name,pct(c.weight),cop(c.intrinsicPerPreferredShareCOP),n0(c.enterpriseValueCementosCOPm),n0(c.enterpriseValueCelsiaCOPm)]));
+ replaceTable("scenarios",isSura?["Historia","Probabilidad","SOTP equity COP/acción","Año 3 exdiv COP/acción","Estado"]:["Escenario","Probabilidad","DCF por PF (COP)","EV Cementos (millones COP)","EV Celsia (millones COP)"],
+  cases.map(c=>isSura?[c.name,pct(c.weight),cop(c.intrinsicPerPreferredShareCOP),cop(c.year3ExDividendCOP),"Valor condicionado"]: [c.name,pct(c.weight),cop(c.intrinsicPerPreferredShareCOP),n0(c.enterpriseValueCementosCOPm),n0(c.enterpriseValueCelsiaCOPm)]));
  const all=methods.all;
  const missing=all.filter(m=>!numeric(m.today));
  replaceTable("unavailable",["Método","Valor","Explicación"],
@@ -130,12 +131,12 @@ function render(ticker){
  const mainSotp=sc.find(s=>s.name==="Base")||{};
  const nav=numeric(v.valuationOutput?.marketSotpPrimaryCOP)?v.valuationOutput.marketSotpPrimaryCOP:(numeric(v.valuationOutput?.sotpCheck?.hybridNAVBaseCOP)?v.valuationOutput.sotpCheck.hybridNAVBaseCOP:v.base);
  for(const [label,value] of [
-  ["VALOR CONTABLE NIIF PRO FORMA · OPCIONAL",canonical.book],
-  ["SOTP MERCADO / NIIF · PRINCIPAL",nav],
-  ["SOTP FCFF (patrimonio atribuible) · método secundario",mainSotp.valuePerPreferredShareCOP ?? v.valuationOutput?.dcfBaseCOP],
+  [isSura?"PATRIMONIO CONSOLIDADO CONTROLADOR · REFERENCIA":"VALOR CONTABLE NIIF PRO FORMA · OPCIONAL",canonical.book],
+  [isSura?"NAV CONTABLE LOOK-THROUGH · CONTRASTE":"SOTP MERCADO / NIIF · PRINCIPAL",nav],
+  [isSura?"SOTP INTRÍNSECO BASE · RE/DDM FINANCIERAS":"SOTP FCFF (patrimonio atribuible) · método secundario",mainSotp.valuePerPreferredShareCOP ?? v.valuationOutput?.dcfBaseCOP],
   ["NAV de la gerencia febrero 2026 · distinto método y fecha",v.valuationOutput?.sotpCheck?.managementNAVFebCOP],
-  ["Múltiplos ponderados · PRINCIPAL",v.multiplesWeightedToday],
-  ["VALOR BASE SOTP + SECTOR · 60%/40%",v.primaryValueCOP ?? v.combinedWeightedToday]
+  [isSura?"P/E POR PARTICIPADAS · ÚNICO PROXY NO VALIDADO":"Múltiplos ponderados · PRINCIPAL",v.multiplesWeightedToday],
+  [isSura?"VALOR INTRÍNSECO BASE CONDICIONADO":"VALOR BASE SOTP + SECTOR · 60%/40%",v.primaryValueCOP ?? v.combinedWeightedToday]
  ]){
   const el=document.createElement("div");el.className="metric";
   const l=document.createElement("small");l.textContent=label;
@@ -146,8 +147,8 @@ function render(ticker){
  const shares=numeric(mainSotp.economicShares)?mainSotp.economicShares:0;
  const bn=x=>numeric(x)?new Intl.NumberFormat("es-CO",{minimumFractionDigits:3,maximumFractionDigits:3}).format(x):"N/D";
  const partRows=partList.map(p=>[p.company,bn(p.equity),shares?cop(p.equity*1e12/shares):"N/D","Equity atribuible: SÍ suma al SOTP"]);
- if(partList.length)partRows.push(["TOTAL · SOTP FCFF",bn(mainSotp.totalEquityCOPtrillions),cop(mainSotp.valuePerPreferredShareCOP),"Valor intrínseco por acción del holding; proyecciones condicionadas"]);
- replaceTable("components",["Participación patrimonial (NO EV bruto)","COP billones","COP por PF","Tratamiento"],
+ if(partList.length)partRows.push([isSura?"TOTAL · SOTP RE/DDM FINANCIERO":"TOTAL · SOTP FCFF",bn(mainSotp.totalEquityCOPtrillions),cop(mainSotp.valuePerPreferredShareCOP),"Valor por acción del holding; proyecciones condicionadas"]);
+ replaceTable("components",["Participación patrimonial (NO EV bruto)","COP billones",isSura?"COP por acción residual":"COP por PF","Tratamiento"],
    partRows.length?partRows:[["SOTP no disponible en este expediente","N/D","N/D","Se requiere el puente EV → equity por empresa"]]);
  const diffs=Array.isArray(v.valuationOutput?.sotpVarianceBase)?v.valuationOutput.sotpVarianceBase:[];
  replaceTable("sotpWaterfall",["Negocio / ajuste","FCFF equity · billones","Bolsa/NIIF · billones","Diferencia COP/PF","Explicación"],
