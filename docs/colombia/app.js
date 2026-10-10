@@ -506,7 +506,7 @@ function renderValuationStats() {
   const one = {today:v.multiplesWeightedToday,year3:v.multiplesWeightedYear3,year3PV:v.multiplesWeightedYear3PV};
   const two = {today:v.combinedWeightedToday,year3:v.combinedWeightedYear3,year3PV:v.combinedWeightedYear3PV};
   weighted.append(box("Múltiplos · ponderado independiente",one[horizon],v.multiplesStatus || "Sin ponderado verificable"),
-    box("SOTP + múltiplos · combinado (no DCF)",two[horizon],v.combinedStatus || "Ponderación no certificada"));
+    box(horizon === "today" && v.valuationOutput ? "DCF FCFF 60% + múltiplos 40% (secundario)" : "SOTP + múltiplos histórico (no DCF)",two[horizon],v.combinedStatus || "Ponderación no certificada"));
   root.append(weighted);
 
   const details = Array.isArray(v.dcfComponents) ? v.dcfComponents : [];
@@ -955,7 +955,7 @@ function renderLibrary() {
     const cur = d.valuationSummary || {};
     const vals = [
       ["Múltiplos ponderados", cur.multiplesWeightedToday],
-      ["Combinado relativo", cur.combinedWeightedToday]
+      [cur.valuationOutput ? "DCF 60% + relativos 40%" : "Combinado relativo", cur.combinedWeightedToday]
     ];
     for (const [label, amount] of vals) {
       const item = document.createElement("div"); item.className = "col-library-snapshot-item";
