@@ -72,7 +72,7 @@ a{color:var(--accent-ink)}
 <div class="metric"><small>Última cotización de proveedor</small><strong id="priceToday"></strong><small id="priceTodayDate"></small></div>
 <div class="metric"><small>Variación entre ambas fechas</small><strong id="change"></strong><small>Si la fecha de la cotización no es posterior, no indica evolución real.</small></div>
 </div>
-<p class="section-title" id="primaryLabel">Holding · valor contable NIIF como referencia principal</p>
+<p class="section-title" id="primaryLabel">Holding · valor Base SOTP + múltiplos</p>
 <div class="metrics" id="holdingPrimaryMetrics">
 <div class="metric main"><small>Valor contable NIIF pro forma · REFERENCIA PRINCIPAL</small><strong id="primaryValue"></strong><small>Patrimonio separado ajustado por recompra / acciones económicas. Referencia preferida del holding, no precio de liquidación garantizado.</small></div>
 <div class="metric"><small>Patrimonio contable NIIF pro forma</small><strong id="bookValue"></strong><small>Referencia contable, mostrada también junto al SOTP de mercado, DCF y todos los múltiplos.</small></div>
@@ -80,7 +80,7 @@ a{color:var(--accent-ink)}
 </div>
 <p class="section-title">Otros métodos · SOTP de mercado/NIIF, FCFF, escenarios y múltiplos</p>
 <div class="metrics">
-<div class="metric"><small>DCF FCFF · Base (secundario en holdings)</small><strong id="dcfBase"></strong><small>Valor presente por acción mediante flujos independientes; sujeto a supuestos.</small></div>
+<div class="metric"><small>Valor intrínseco por flujos · Base (FCFF; RE/DDM en financieras)</small><strong id="dcfBase"></strong><small>Valor presente por acción mediante flujos independientes; sujeto a supuestos.</small></div>
 <div class="metric"><small>DCF · Valor esperado de historias</small><strong id="dcfExp"></strong><small>Probabilidades declaradas por el analista</small></div>
 <div class="metric"><small>Ponderado personalizado · métodos activos</small><strong id="selectedWeightedValue"></strong><small>Casillas y pesos editables; se rebalancea al 100% sin alterar DCF ni valor contable.</small></div>
 <div class="metric"><small>Precio / DCF Base</small><strong id="pDcf"></strong><small>Comparador P/DCF, no una valoración alternativa</small></div>
