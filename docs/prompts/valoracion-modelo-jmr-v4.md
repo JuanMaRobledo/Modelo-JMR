@@ -1,5 +1,14 @@
 # Prompt Maestro: Modelo de Valoración Damodaran para Cualquier Ticker (v4 · revisión historias 30-sep-2026)
 
+<!-- JMR-HOLDING-BOOK-REBALANCE-CANONICAL-20261010 -->
+## Regla operativa vigente — prioridad contable, selección de métodos y paridad internacional
+
+1. Para un **holding**, la **referencia principal visible es el valor contable NIIF pro forma por acción**: patrimonio separado de la matriz atribuible y posterior ajuste de recompras *en numerador y denominador*. Mostrar **SOTP mercado/NIIF, SOTP DCF FCFF, P/B, rentabilidad por dividendos, EV/EBITDA, EV/FCFF, P/E, P/FCFE y P/OCF individualmente**, incluso cuando sean N/D. El SOTP cotizado/NIIF **no es idéntico al valor contable puro**, y no debe etiquetarse principal por error. Para industriales no holdings, mantener DCF FCFF principal; para entidades financieras, método de patrimonio/regulatorio apropiado. No alterar DCF ni contabilidad cuando cambia selección de ponderación.
+2. Permitir en hoja `Resumen de Valoración` y **en ambas páginas** `visor-colombia.html` y `fundamental-colombia.html` seleccionar cada método por checkbox y editar sus puntos de peso; calcular peso efectivo solo para métodos incluidos y con valor numérico válido: `w_efectivo = w_base / SUM(w_base de activos válidos)`. Excluir N/D sin atribuirles valor cero; permitir excluir todos, mostrando N/D en lugar de fabricar un promedio. Cambios en la app se recuerdan por ticker en el mismo navegador, **no** se anuncian como sincronizados con la hoja o dispositivos distintos. El valor contable sigue de primero, independientemente del ponderado personalizable.
+3. Para **la copia publicada de Grupo Argos PF del 10-oct-2026** los pesos de partida son: **valor contable 50, DCF FCFF 25, SOTP mercado/NIIF 10, P/B 10, rentabilidad por dividendo 5** (100 puntos). El ponderado inicial, sin ediciones, debe coincidir entre el visor, el análisis fundamental, los metadatos y la copia maestra: **COP13.933,8612 por PF**. Cambiar ponderaciones predeterminadas solo al cambiar explícitamente la configuración maestra autorizada, no para acomodar precios objetivos. La hoja publicada es `1NAxSGF9ICJgDQHw0325SbGghVFsoCbvt32KW21afco0`; selector en `Resumen de Valoración!A55:J80`, resultado `B70`, valor contable en `Valuation output!B346`.
+4. El informe **Análisis Fundamental Colombia** debe reproducir las **18 secciones y el índice clicable** internacionales, incluir tabla de escenarios, historia Base destacada, revisión Damodaran, riesgos y tesis alcista/bajista, y un acceso cruzado a la misma valoración y métodos ponderables. Debe dejar documentada la fecha de precios/NIIF y distinguir cifras auditadas de supuestos de flujos.
+
+
 <!-- JMR-HOLDINGS-LIBRO-PRIMARIO-PONDERACION-DINAMICA-20261010 -->
 ## Regla vigente y de precedencia: holdings NIIF principal, métodos seleccionables y análisis fundamental internacional
 
