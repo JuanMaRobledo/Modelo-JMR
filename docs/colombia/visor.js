@@ -117,7 +117,7 @@ function render(ticker){
  replaceTable("methods",["Método","Valor hoy","Objetivo FY+3 (exdiv.)","FY+3 descontado","Peso relativo","Fundamento"],
   all.map(m=>[m.name,cop(m.today),cop(m.year3),cop(m.year3PV),numeric(m.weight)?pct(m.weight):"No incluido",m.status||"Sin fundamento documentado"]));
  const sotp=$("sotp");sotp.replaceChildren();
- for(const [label,value] of [["SOTP bursátil / NIIF · Base",v.base],["Múltiplos independientes · VP hoy",v.multiplesWeightedToday],["SOTP + múltiplos · combinado antiguo",v.combinedWeightedToday]]){
+ for(const [label,value] of [["SOTP bursátil / NIIF · Base",v.base],["Múltiplos independientes · VP hoy",v.multiplesWeightedToday],["DCF FCFF 60% + múltiplos 40% · ponderado secundario",v.valuationOutput?.dcf60Multiples40COP ?? v.combinedWeightedToday]]){
   const el=document.createElement("div");el.className="metric";
   const l=document.createElement("small");l.textContent=label;
   const x=document.createElement("strong");x.textContent=cop(value);
@@ -150,7 +150,23 @@ function render(ticker){
  const url=canonical.sheet;
  $("links").replaceChildren();
  if(url){$("links").append(doc(url,"Hoja DCF · Modelo JMR y auditoría aritmética"));$("links").append(document.createElement("br"));}
- if(v.valuationOutput){const note=document.createElement("p");note.className="note";note.textContent="Fuente final: Valuation output. Corte de publicación: "+new Date(v.valuationOutput.synchronizedAt).toLocaleString("es-CO",{timeZone:"America/Bogota"})+". La app muestra una copia publicada de esas celdas; cambios posteriores en la hoja requieren resincronizar el expediente."; $("links").append(note);}
+ if(v.valuationOutput){
+   const note=document.createElement("p");note.className="note";
+   note.textContent="Fuente final: Valuation output. Corte de publicación: "+new Date(v.valuationOutput.synchronizedAt).toLocaleString("es-CO",{timeZone:"America/Bogota"})+". La app muestra una copia publicada de esas celdas; cambios posteriores en la hoja requieren resincronizar el expediente.";
+   $("links").append(note);
+   const models=v.valuationOutput.submodels || [];
+   if(models.length){
+     const h=document.createElement("h4");h.textContent="Motores DCF individuales vinculados a Valuation output";$("links").append(h);
+     const listing=document.createElement("div");listing.className="detail-links";
+     for(const item of models){
+       const a=doc(item.url,item.company+" · "+item.title);
+       a.title=item.method||"Modelo DCF del negocio";
+       a.style.display="block";a.style.margin="8px 0";
+       listing.append(a);
+     }
+     $("links").append(listing);
+   }
+ }
  for(const s of d.sources||[]){if(/^https:\/\//.test(s.url)){ $("links").append(doc(s.url,s.role||"Fuente"));$("links").append(document.createElement("br"));}}
  const q="ticker="+encodeURIComponent(d.ticker);
  $("linked").href="colombia.html?"+q+"#valuation";
