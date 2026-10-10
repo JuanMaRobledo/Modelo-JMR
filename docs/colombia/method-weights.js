@@ -55,8 +55,8 @@ export function buildMethodCandidates(d) {
       detail:eligible && match?.status?match.status:
       "N/D: faltan comparables homogéneos por participada. No se sustituye por cero ni por el propio DCF."});
   }
-  if(holding) options.push({id:"issuer",name:"SOTP declarado por el emisor",value:o.sotpCheck?.managementNAVFebCOP ?? v.managementComparator?.perShare,
-    defaultWeight:0,defaultSelected:false,detail:"Referencia gerencial externa; distinta fecha, metodología y posible correlación. No es un DCF independiente."});
+  if(holding) options.push({id:"issuer",name:"SOTP declarado por el emisor",value:null, // Referencia externa: permanece visible en el SOTP, pero no puede incluirse en un promedio de métodos propios.
+    defaultWeight:0,defaultSelected:false,detail:"Solo referencia del emisor, NO metodología independiente ponderable. Consultar el importe en el panel SOTP."});
   return options;
 }
 
