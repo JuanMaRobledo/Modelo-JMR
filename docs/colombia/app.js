@@ -348,6 +348,49 @@ function renderValuationStats() {
     root.append(components);
   }
 
+  const rateAudit = v.dcfRateAudit;
+  if (Array.isArray(rateAudit?.company) && rateAudit.company.length) {
+    const header = el("div", "col-value-section-title");
+    header.append(
+      el("h3", "", "Costo de capital · DCF corregido"),
+      el("p", "", "WACC nominal COP sintético construido con Ke, Kd y financiación; supuestos del analista, no tasas certificadas.")
+    );
+    root.append(header);
+    const rateCards = el("div", "col-value-method-grid");
+    for (const record of rateAudit.company) {
+      const item = el("article", "col-value-method-card");
+      const percent = x => numeric(x) ? (x * 100).toFixed(2).replace(".", ",") + "%" : "Pendiente";
+      item.append(
+        el("h4", "", record.business || "Negocio"),
+        el("small", "", "WACC sintético aplicado a los cuatro escenarios"),
+        el("strong", "col-value-method-number", percent(record.wacc)),
+        el("p", "col-value-note",
+          "Ke " + percent(record.ke) + " · Kd " + percent(record.kd) +
+          " · Deuda / valor " + percent(record.debtOverMarketCapital) +
+          " · WACC alternativo TES " + percent(record.tesAlternativeWacc) +
+          ". Beta, prima país y estructura financiera pendientes de validación final.")
+      );
+      rateCards.append(item);
+    }
+    root.append(rateCards);
+  }
+  const bridge = v.dcfBridgeAudit;
+  if (bridge?.celsia?.equityBeforeOtherAssetsAndFairValueNci) {
+    const audit = el("div", "col-value-banner");
+    const mechanical = bridge.celsia.equityBeforeOtherAssetsAndFairValueNci.Base;
+    const formatted = numeric(mechanical)
+      ? new Intl.NumberFormat("es-CO", {maximumFractionDigits: 0}).format(mechanical)
+      : "Pendiente";
+    audit.append(
+      el("strong", "", "Control del puente patrimonial de Celsia"),
+      el("p", "col-value-note",
+        "EV DCF Base menos deuda neta y minoritarios contables: " + formatted +
+        " COP millones. Es un puente INCOMPLETO, no una valoración de cero ni del título PF. " +
+        "Requiere inversiones fuera del FCFF, minoritarios a valor razonable y conciliación del capital invertido.")
+    );
+    root.append(audit);
+  }
+
   if (v.sheetUrl && /^https:\/\//.test(v.sheetUrl)) {
     const a = el("a", "btn col-value-sheet-link", "Abrir hoja y fórmulas de valoración");
     a.href = v.sheetUrl; a.target = "_blank"; a.rel = "noopener noreferrer";
