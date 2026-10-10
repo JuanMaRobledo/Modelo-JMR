@@ -46,12 +46,13 @@ export function valuationNumbers(d) {
   const s = d?.valuationSummary || {};
   const o = s.valuationOutput || {};
   const holding = d?.instrument?.model === "holding";
+  const isSura = d?.ticker === "GRUPOSURA.CL" || d?.ticker === "PFGRUPSURA.CL";
   const marketSotp = typeof o.marketSotpPrimaryCOP === "number" ? o.marketSotpPrimaryCOP : typeof o.sotpCheck?.hybridNAVBaseCOP === "number" ? o.sotpCheck.hybridNAVBaseCOP : s.base;
   const book = typeof o.bookValueProformaCOP === "number" ? o.bookValueProformaCOP : null;
   return {
     holding,
     primary: holding ? (typeof s.primaryValueCOP === 'number' ? s.primaryValueCOP : (book !== null ? book : marketSotp)) : (typeof o.dcfBaseCOP === "number" ? o.dcfBaseCOP : s.dcfPrimaryIntrinsicPerShareCOP),
-    primaryLabel: holding ? (s.primaryValueMethod === 'SOTP_MULTIPLES_BLEND' ? 'Valor Base SOTP + múltiplos' : 'Valor contable NIIF pro forma') : "Valor intrínseco DCF",
+    primaryLabel: isSura ? "SOTP intrínseco Base · rendimientos excedentes" : holding ? (s.primaryValueMethod === 'SOTP_MULTIPLES_BLEND' ? 'Valor Base SOTP + múltiplos' : 'Valor contable NIIF pro forma') : "Valor intrínseco DCF",
     marketSotp: holding ? marketSotp : null,
     book,
     base: typeof o.dcfBaseCOP === "number" ? o.dcfBaseCOP : s.dcfPrimaryIntrinsicPerShareCOP,
