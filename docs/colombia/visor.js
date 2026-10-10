@@ -99,9 +99,9 @@ function render(ticker){
  const qDate=quote.quotedAt?new Date(quote.quotedAt).toLocaleDateString("es-CO",{timeZone:"America/Bogota"}):"fecha no disponible";
  safeText("company",(d.company||d.ticker)+" · "+d.ticker);
  safeText("meta","Valoración del "+d.analysisDate+" · "+(d.instrument?.model||"modelo pendiente")+" · COP");
- const holding = canonical.holding; // La referencia contable principal no depende de disponer de SOTP a mercado.
+ const holding = canonical.holding; // La prioridad de holdings publicada es SOTP+múltiplos; libro y FCFF siguen como métodos opcionales.
  $("holdingPrimaryMetrics").hidden=!holding;
- $("primaryLabel").textContent=holding?"Holding · valor contable NIIF como referencia principal":"Modelo JMR Colombia · métodos de valoración";
+ $("primaryLabel").textContent=holding?"Holding · valor Base SOTP + múltiplos":"Modelo JMR Colombia · métodos de valoración";
  safeText("primaryValue",cop(canonical.primary));
  safeText("bookValue",cop(canonical.book));
  safeText("primaryUpside",numeric(v.marketPrice)&&v.marketPrice>0&&numeric(canonical.primary)?pct(canonical.primary/v.marketPrice-1):"N/D");
@@ -130,12 +130,12 @@ function render(ticker){
  const mainSotp=sc.find(s=>s.name==="Base")||{};
  const nav=numeric(v.valuationOutput?.sotpCheck?.hybridNAVBaseCOP)?v.valuationOutput.sotpCheck.hybridNAVBaseCOP:v.base;
  for(const [label,value] of [
-  ["VALOR CONTABLE NIIF PRO FORMA · REFERENCIA PRINCIPAL",canonical.book],
-  ["SOTP MERCADO / NIIF · COMPARADOR",nav],
+  ["VALOR CONTABLE NIIF PRO FORMA · OPCIONAL",canonical.book],
+  ["SOTP MERCADO / NIIF · PRINCIPAL",nav],
   ["SOTP FCFF (patrimonio atribuible) · método secundario",mainSotp.valuePerPreferredShareCOP ?? v.valuationOutput?.dcfBaseCOP],
   ["NAV de la gerencia febrero 2026 · distinto método y fecha",v.valuationOutput?.sotpCheck?.managementNAVFebCOP],
-  ["Múltiplos independientes · VP hoy",v.multiplesWeightedToday],
-  ["DCF FCFF 60% + múltiplos 40% · ponderado secundario",v.valuationOutput?.dcf60Multiples40COP ?? v.combinedWeightedToday]
+  ["Múltiplos ponderados · PRINCIPAL",v.multiplesWeightedToday],
+  ["DCF FCFF 60% + múltiplos 40% · LEGADO (NO BASE)",v.valuationOutput?.dcf60Multiples40COP ?? v.combinedWeightedToday]
  ]){
   const el=document.createElement("div");el.className="metric";
   const l=document.createElement("small");l.textContent=label;
