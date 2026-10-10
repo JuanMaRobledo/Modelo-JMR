@@ -8,7 +8,7 @@ const pct = n => (n * 100).toLocaleString("es-CO", {maximumFractionDigits:1}) + 
 const numeric = n => typeof n === "number" && Number.isFinite(n);
 const STORE = "jmr-colombia-metodos-v3-"; // No modificar preferencias guardadas de otros tickers.
 const NEW_ARGOS_STORE = "jmr-colombia-metodos-v4-"; // Mantener preferencias de Argos separadas.
-const NEW_SURA_STORE = "jmr-colombia-sura-damodaran-v1-"; // Sin heredar selección de otra valoración de SURA.
+const NEW_SURA_STORE = "jmr-colombia-sura-damodaran-v2-"; // r2: base 60/40; no heredar la selección libro 60% + RE 40% anterior.
 const isSura = d => d.ticker === "GRUPOSURA.CL" || d.ticker === "PFGRUPSURA.CL";
 const preferenceKey = d => (isSura(d) ? NEW_SURA_STORE : d.ticker === "PFGRUPOARG.CL" ? NEW_ARGOS_STORE : STORE) + d.ticker;
 
@@ -32,15 +32,14 @@ export function buildMethodCandidates(d) {
   const holding = d.instrument?.model === "holding";
   if (isSura(d)) {
     const b = o.bookValueProformaCOP, nav = o.bookLookThroughCOP, alt = o.roeterminalKeSensitivityCOP;
-    const pe = Array.isArray(v.multiplesMethods) ? v.multiplesMethods.find(m => /P\/E sectorial por partes/i.test(m.name)) : null;
-    // Los métodos que reutilizan la misma evidencia no son promedios independientes por defecto.
+    // Regla canónica de holdings: 60% SOTP económico + 40% SOTP de múltiplos; el intrínseco RE se ofrece aparte.
     return [
-      {id:"book",name:"Patrimonio consolidado atribuible (NIIF)",value:b,defaultWeight:60,defaultSelected:true,detail:"Referencia oficial 2T26: no representa una venta forzosa ni NAV de mercado."},
-      {id:"dcf",name:"SOTP intrínseco Base · RE/DDM financieras",value:c.base,defaultWeight:40,defaultSelected:true,detail:"12 ramas, participaciones económicas y deuda matriz; hipótesis ROE, Ke y capital regulatorio aún condicionadas."},
-      {id:"sotp_book",name:"NAV libro look-through · participadas",value:nav,defaultWeight:0,defaultSelected:false,detail:"Sustituye libro de tres inversiones por cuota económica de equity; no ponderar junto al consolidado por defecto."},
-      {id:"roe_ke",name:"SOTP si ROE terminal converge a Ke",value:alt,defaultWeight:0,defaultSelected:false,detail:"Sensibilidad de diez años, no precio Base revisado ni segundo método independiente."},
-      {id:"mult:P/E",name:"P/E sectorial por participadas · proxy",value:pe?.today,defaultWeight:0,defaultSelected:false,detail:"No validado en muestra individual, beneficios normalizados provisionales; conservar como contraste."},
-      {id:"pb",name:"P/B pares financieros homogéneos",value:null,defaultWeight:0,defaultSelected:false,detail:"No calcular hasta reconstruir comparables por rentabilidad y país."},
+      {id:"market_sotp",name:"SOTP económico · Cibest a bolsa + RE de SURA AM y Suramericana",value:o.marketSotpPrimaryCOP,defaultWeight:60,defaultSelected:true,detail:"Cibest al cierre BVC; privadas por rendimientos excedentes; resta deuda neta y VP de gastos de la matriz."},
+      {id:"sector_sotp",name:"SOTP por P/E sectorial por participada",value:v.sectorSotpMultiplesCOP,defaultWeight:40,defaultSelected:true,detail:"P/E = promedio de mediana de pares LatAm y Damodaran emergentes; utilidad UDM del emisor."},
+      {id:"dcf",name:"Valor intrínseco Damodaran · RE/DDM de las tres participadas",value:c.base,defaultWeight:0,defaultSelected:false,detail:"Único valor por flujos; Ke CAPM con prima país y ROE terminal según regla Damodaran. Condicionado a capital regulatorio."},
+      {id:"book",name:"Patrimonio consolidado atribuible (NIIF)",value:b,defaultWeight:0,defaultSelected:false,detail:"Referencia oficial 2T26: no representa una venta forzosa ni NAV de mercado."},
+      {id:"sotp_book",name:"NAV libro look-through · participadas",value:nav,defaultWeight:0,defaultSelected:false,detail:"Cuota económica del patrimonio de cada participada; correlacionado con el libro consolidado."},
+      {id:"roe_ke",name:"Intrínseco RE si ROE terminal = Ke en las tres",value:alt,defaultWeight:0,defaultSelected:false,detail:"Sensibilidad, no segundo método independiente."},
       {id:"yield",name:"Dividendos/FCFE regulatorio",value:null,defaultWeight:0,defaultSelected:false,detail:"Pendiente CET1/RWA, reservas y dividendos legalmente distribuibles."},
       {id:"EV_EBITDA",name:"EV/EBITDA industrial",value:null,defaultWeight:0,defaultSelected:false,detail:"No aplica al holding financiero consolidado."}
     ];
@@ -101,7 +100,7 @@ export function renderWeightSelector(d,root,onUpdate) {
   root.replaceChildren();
   const caption=document.createElement("p");caption.className="note";
   caption.textContent = (isSura(d)
-    ? "Grupo SURA: por defecto, 60% patrimonio consolidado y 40% SOTP Base. NAV, convergencia ROE=Ke y P/E son referencias opcionales, no necesariamente independientes. Ajusta y renormaliza métodos individualmente."
+    ? "Grupo SURA: por defecto, 60% SOTP económico y 40% SOTP de múltiplos (regla canónica de holdings). El intrínseco Damodaran, el libro y el NAV contable son opcionales. Ajusta y renormaliza métodos individualmente."
     : "Activa o desactiva cada método y edita los puntos de peso. En otros holdings se conserva su ponderación original. Las preferencias se guardan por ticker en el navegador.");
   root.append(caption);
   const wrap=document.createElement("div");wrap.className="table-wrap";

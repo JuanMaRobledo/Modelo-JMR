@@ -52,7 +52,7 @@ export function valuationNumbers(d) {
   return {
     holding,
     primary: holding ? (typeof s.primaryValueCOP === 'number' ? s.primaryValueCOP : (book !== null ? book : marketSotp)) : (typeof o.dcfBaseCOP === "number" ? o.dcfBaseCOP : s.dcfPrimaryIntrinsicPerShareCOP),
-    primaryLabel: isSura ? "SOTP intrínseco Base · rendimientos excedentes" : holding ? (s.primaryValueMethod === 'SOTP_MULTIPLES_BLEND' ? 'Valor Base SOTP + múltiplos' : 'Valor contable NIIF pro forma') : "Valor intrínseco DCF",
+    primaryLabel: isSura ? "Base 60/40 · SOTP económico + múltiplos" : holding ? (/SOTP_(MULTIPLES|ECONOMIC_SECTOR_PEER)_BLEND/.test(s.primaryValueMethod || "") ? 'Valor Base SOTP + múltiplos' : 'Valor contable NIIF pro forma') : "Valor intrínseco DCF",
     marketSotp: holding ? marketSotp : null,
     book,
     base: typeof o.dcfBaseCOP === "number" ? o.dcfBaseCOP : s.dcfPrimaryIntrinsicPerShareCOP,
