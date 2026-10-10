@@ -72,9 +72,15 @@ a{color:var(--accent-ink)}
 <div class="metric"><small>Última cotización de proveedor</small><strong id="priceToday"></strong><small id="priceTodayDate"></small></div>
 <div class="metric"><small>Variación entre ambas fechas</small><strong id="change"></strong><small>Si la fecha de la cotización no es posterior, no indica evolución real.</small></div>
 </div>
-<p class="section-title">Valor intrínseco hoy · descuento de flujos</p>
+<p class="section-title" id="primaryLabel">Holding · SOTP de mercado como referencia principal</p>
+<div class="metrics" id="holdingPrimaryMetrics">
+<div class="metric main"><small>SOTP de mercado / NIIF · PRINCIPAL</small><strong id="primaryValue"></strong><small>Participadas cotizadas a mercado + no cotizadas a valor NIIF. No es DCF ni libro puro.</small></div>
+<div class="metric"><small>Valor contable NIIF pro forma</small><strong id="bookValue"></strong><small>Patrimonio separado ajustado por recompra; método secundario.</small></div>
+<div class="metric"><small>Potencial SOTP de mercado vs precio</small><strong id="primaryUpside"></strong><small>Comparación frente a precio del análisis; no garantiza convergencia.</small></div>
+</div>
+<p class="section-title">Métodos secundarios · DCF FCFF, escenarios y múltiplos</p>
 <div class="metrics">
-<div class="metric main"><small>DCF FCFF · Base</small><strong id="dcfBase"></strong><small>Valor presente por acción; no sustituido por SOTP</small></div>
+<div class="metric"><small>DCF FCFF · Base (secundario en holdings)</small><strong id="dcfBase"></strong><small>Valor presente por acción mediante flujos independientes; sujeto a supuestos.</small></div>
 <div class="metric"><small>DCF · Valor esperado de historias</small><strong id="dcfExp"></strong><small>Probabilidades declaradas por el analista</small></div>
 <div class="metric"><small>Precio / DCF Base</small><strong id="pDcf"></strong><small>Comparador P/DCF, no una valoración alternativa</small></div>
 </div>
@@ -91,7 +97,7 @@ a{color:var(--accent-ink)}
 <div class="card"><h3>Cuatro escenarios DCF</h3><div class="table-wrap" id="scenarios"></div></div>
 <div class="card"><h3>Múltiplos no disponibles y observaciones</h3><div class="table-wrap" id="unavailable"></div>
 <p class="note">EV/EBITDA, EV/FCFF, P/E, P/FCFE y P/OCF solo deben mostrar valores cuando los flujos y perímetros sean comparables. No se reemplazan por cero ni por cifras de otra empresa.</p></div>
-<div class="card"><h3>Comparación SOTP (separada del DCF)</h3><div class="grid2" id="sotp"></div></div>
+<div class="card"><h3>SOTP de mercado principal · comparación con el DCF y el valor contable</h3><div class="grid2" id="sotp"></div></div>
 </section>
 <section class="panel" data-panel="fundamental" hidden><div class="card"><h3>Análisis fundamental · Colombia</h3>
 <p class="note">Informe vinculado al mismo expediente y ticker. <a id="editResearch" href="fundamental-colombia.html">Abrir análisis fundamental completo →</a></p>
