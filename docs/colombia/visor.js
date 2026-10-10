@@ -99,7 +99,7 @@ function render(ticker){
  const qDate=quote.quotedAt?new Date(quote.quotedAt).toLocaleDateString("es-CO",{timeZone:"America/Bogota"}):"fecha no disponible";
  safeText("company",(d.company||d.ticker)+" · "+d.ticker);
  safeText("meta","Valoración del "+d.analysisDate+" · "+(d.instrument?.model||"modelo pendiente")+" · COP");
- const holding = canonical.holding && numeric(canonical.marketSotp);
+ const holding = canonical.holding; // La referencia contable principal no depende de disponer de SOTP a mercado.
  $("holdingPrimaryMetrics").hidden=!holding;
  $("primaryLabel").textContent=holding?"Holding · valor contable NIIF como referencia principal":"Modelo JMR Colombia · métodos de valoración";
  safeText("primaryValue",cop(canonical.primary));
