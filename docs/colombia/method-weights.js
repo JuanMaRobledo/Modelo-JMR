@@ -7,8 +7,10 @@ const fmt = n => typeof n === "number" && Number.isFinite(n)
 const pct = n => (n * 100).toLocaleString("es-CO", {maximumFractionDigits:1}) + "%";
 const numeric = n => typeof n === "number" && Number.isFinite(n);
 const STORE = "jmr-colombia-metodos-v3-"; // No modificar preferencias guardadas de otros tickers.
-const NEW_ARGOS_STORE = "jmr-colombia-metodos-v4-"; // Solo PFGRUPOARG cambia su selección predeterminada a SOTP60/peers40.
-const preferenceKey = d => (d.ticker === "PFGRUPOARG.CL" ? NEW_ARGOS_STORE : STORE) + d.ticker;
+const NEW_ARGOS_STORE = "jmr-colombia-metodos-v4-"; // Mantener preferencias de Argos separadas.
+const NEW_SURA_STORE = "jmr-colombia-sura-damodaran-v1-"; // Sin heredar selección de otra valoración de SURA.
+const isSura = d => d.ticker === "GRUPOSURA.CL" || d.ticker === "PFGRUPSURA.CL";
+const preferenceKey = d => (isSura(d) ? NEW_SURA_STORE : d.ticker === "PFGRUPOARG.CL" ? NEW_ARGOS_STORE : STORE) + d.ticker;
 
 export function calculateWeights(methods, selected = {}, weights = {}) {
   const rows = methods.map(m => {
@@ -28,6 +30,21 @@ export function calculateWeights(methods, selected = {}, weights = {}) {
 export function buildMethodCandidates(d) {
   const v = d.valuationSummary || {}, c = valuationNumbers(d), o = v.valuationOutput || {};
   const holding = d.instrument?.model === "holding";
+  if (isSura(d)) {
+    const b = o.bookValueProformaCOP, nav = o.bookLookThroughCOP, alt = o.roeterminalKeSensitivityCOP;
+    const pe = Array.isArray(v.multiplesMethods) ? v.multiplesMethods.find(m => /P\/E sectorial por partes/i.test(m.name)) : null;
+    // Los métodos que reutilizan la misma evidencia no son promedios independientes por defecto.
+    return [
+      {id:"book",name:"Patrimonio consolidado atribuible (NIIF)",value:b,defaultWeight:60,defaultSelected:true,detail:"Referencia oficial 2T26: no representa una venta forzosa ni NAV de mercado."},
+      {id:"dcf",name:"SOTP intrínseco Base · RE/DDM financieras",value:c.base,defaultWeight:40,defaultSelected:true,detail:"12 ramas, participaciones económicas y deuda matriz; hipótesis ROE, Ke y capital regulatorio aún condicionadas."},
+      {id:"sotp_book",name:"NAV libro look-through · participadas",value:nav,defaultWeight:0,defaultSelected:false,detail:"Sustituye libro de tres inversiones por cuota económica de equity; no ponderar junto al consolidado por defecto."},
+      {id:"roe_ke",name:"SOTP si ROE terminal converge a Ke",value:alt,defaultWeight:0,defaultSelected:false,detail:"Sensibilidad de diez años, no precio Base revisado ni segundo método independiente."},
+      {id:"mult:P/E",name:"P/E sectorial por participadas · proxy",value:pe?.today,defaultWeight:0,defaultSelected:false,detail:"No validado en muestra individual, beneficios normalizados provisionales; conservar como contraste."},
+      {id:"pb",name:"P/B pares financieros homogéneos",value:null,defaultWeight:0,defaultSelected:false,detail:"No calcular hasta reconstruir comparables por rentabilidad y país."},
+      {id:"yield",name:"Dividendos/FCFE regulatorio",value:null,defaultWeight:0,defaultSelected:false,detail:"Pendiente CET1/RWA, reservas y dividendos legalmente distribuibles."},
+      {id:"EV_EBITDA",name:"EV/EBITDA industrial",value:null,defaultWeight:0,defaultSelected:false,detail:"No aplica al holding financiero consolidado."}
+    ];
+  }
   const options = [
     {id:"book", name:"Valor contable NIIF pro forma", value:holding?c.book:null,
       defaultWeight:0,defaultSelected:false,
@@ -83,7 +100,7 @@ export function renderWeightSelector(d,root,onUpdate) {
   const state={selected:{...(saved.selected||{})},weights:{...(saved.weights||{})}};
   root.replaceChildren();
   const caption=document.createElement("p");caption.className="note";
-  caption.textContent="Activa o desactiva cada método y edita los puntos de peso. Los pesos de los métodos elegidos y disponibles se normalizan automáticamente al 100 %. Por defecto en holdings: 60 puntos SOTP económico mixto + 40 puntos SOTP por múltiplos sectoriales EV/EBITDA de participadas; libro, DCF, P/B y rendimiento histórico son opcionales. La ruta privada de Odinsa/Pactia se comparte, NO hay independencia plena. Las preferencias se guardan por ticker SOLO en el navegador. Las preferencias se guardan por acción en este navegador, no en Google Sheets ni en otros dispositivos.";
+  caption.textContent=(isSura(d) ? "Grupo SURA: por defecto 60% valor patrimonial consolidado y 40% SOTP intrínseco Base. Cada método puede activarse individualmente; NAV look-through, ROE terminal=Ke y P/E proxy son contrastes dependientes o no certificados. Los pesos activos se renormalizan al 100%. Preferencias por clase y ticker SOLO en" : "Activa o desactiva cada método y edita los puntos de peso. Los pesos de los métodos elegidos y disponibles se normalizan automáticamente al 100 %. Por defecto en holdings: 60 puntos SOTP económico mixto + 40 puntos SOTP por múltiplos sectoriales EV/EBITDA de participadas; libro, DCF, P/B y rendimiento histórico son opcionales. La ruta privada de Odinsa/Pactia se comparte, NO hay independencia plena. Las preferencias se guardan por ticker SOLO en") el navegador. Las preferencias se guardan por acción en este navegador, no en Google Sheets ni en otros dispositivos.";
   root.append(caption);
   const wrap=document.createElement("div");wrap.className="table-wrap";
   const table=document.createElement("table");table.className="method-weight-table";
