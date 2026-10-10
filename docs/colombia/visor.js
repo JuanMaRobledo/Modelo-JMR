@@ -82,11 +82,14 @@ function mapMethods(v){
 }
 function buildBoard(d){
  const v=d.valuationSummary||{};
+ const canonical=v.valuationOutput||{};
  const cases=Array.isArray(v.dcfFcffIntrinsicScenarios)?v.dcfFcffIntrinsicScenarios:[];
  const get=n=>cases.find(c=>String(c.name).toLowerCase().includes(n))||{};
- const dcf={base:numeric(v.dcfPrimaryIntrinsicPerShareCOP)?v.dcfPrimaryIntrinsicPerShareCOP:null,
-   conservador:get("conserv").intrinsicPerPreferredShareCOP,
-   optimista:get("optim").intrinsicPerPreferredShareCOP};
+ const dcf={
+   base:numeric(canonical.dcfBaseCOP)?canonical.dcfBaseCOP:(numeric(v.dcfPrimaryIntrinsicPerShareCOP)?v.dcfPrimaryIntrinsicPerShareCOP:null),
+   conservador:numeric(canonical.dcfConservativeCOP)?canonical.dcfConservativeCOP:get("conserv").intrinsicPerPreferredShareCOP,
+   optimista:numeric(canonical.dcfOptimisticCOP)?canonical.dcfOptimisticCOP:get("optim").intrinsicPerPreferredShareCOP
+ };
  if(!numeric(dcf.base))return {output:null,methods:mapMethods(v),dcf};
  const info=mapMethods(v);
  const w=info.weight;
@@ -125,13 +128,13 @@ function render(ticker){
  const qDate=quote.quotedAt?new Date(quote.quotedAt).toLocaleDateString("es-CO",{timeZone:"America/Bogota"}):"fecha no disponible";
  safeText("company",(d.company||d.ticker)+" · "+d.ticker);
  safeText("meta","Valoración del "+d.analysisDate+" · "+(d.instrument?.model||"modelo pendiente")+" · COP");
- safeText("price",cop(v.marketPrice));safeText("priceDate","Fuente de cierre: "+date);
+ safeText("price",cop(v.marketPrice));safeText("priceDate","Fuente de cierre: "+date+(v.valuationOutput ? " · DCF desde Valuation output" : " · DCF legado por expediente"));
  safeText("priceAt",cop(v.marketPrice));safeText("priceAtDate",date);
  safeText("priceToday",cop(quote.price));safeText("priceTodayDate","Última cotización disponible: "+qDate);
  safeText("change",numeric(v.marketPrice)&&numeric(quote.price)&&v.marketPrice>0?pct(quote.price/v.marketPrice-1):"N/D");
  const {output,methods,dcf}=buildBoard(d);
  safeText("dcfBase",cop(dcf.base));
- safeText("dcfExp",cop(v.dcfPrimaryExpectedCOP));
+ safeText("dcfExp",cop(numeric(v.valuationOutput?.dcfExpectedCOP)?v.valuationOutput.dcfExpectedCOP:v.dcfPrimaryExpectedCOP));
  safeText("pDcf",numeric(v.marketPrice)&&numeric(dcf.base)&&dcf.base>0?(v.marketPrice/dcf.base).toFixed(2).replace(".",",")+"×":"N/D");
  $("board").innerHTML=output?JmrValueBoard.html(output):'<p class="note">El DCF principal todavía no está calculado. El SOTP no se presenta como si fuera FCFF.</p>';
  const cases=Array.isArray(v.dcfFcffIntrinsicScenarios)?v.dcfFcffIntrinsicScenarios:[];
@@ -174,9 +177,10 @@ function render(ticker){
  replaceTable("financials",["Concepto",...years],rows);
  markdown("fundamentalReport",d.reports?.research?.content);
  markdown("valuationReport",d.reports?.valuation?.content);
- const url=v.sheetUrl||v.cleanMasterSheetUrl;
+ const url=v.valuationOutput?.sheetUrl||v.sheetUrl||v.cleanMasterSheetUrl;
  $("links").replaceChildren();
  if(url){$("links").append(doc(url,"Hoja DCF · Modelo JMR y auditoría aritmética"));$("links").append(document.createElement("br"));}
+ if(v.valuationOutput){const note=document.createElement("p");note.className="note";note.textContent="Fuente final: Valuation output. Corte de publicación: "+new Date(v.valuationOutput.synchronizedAt).toLocaleString("es-CO",{timeZone:"America/Bogota"})+". La app muestra una copia publicada de esas celdas; cambios posteriores en la hoja requieren resincronizar el expediente."; $("links").append(note);}
  for(const s of d.sources||[]){if(/^https:\/\//.test(s.url)){ $("links").append(doc(s.url,s.role||"Fuente"));$("links").append(document.createElement("br"));}}
  const q="ticker="+encodeURIComponent(d.ticker);
  $("linked").href="colombia.html?"+q+"#valuation";
