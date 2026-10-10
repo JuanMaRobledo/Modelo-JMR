@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Análisis Fundamental · Modelo JMR Colombia</title>
+<link rel="icon" href="favicon.ico"><link rel="stylesheet" href="jmr-theme.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+<style>
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);margin:0;font-family:"Public Sans",sans-serif;line-height:1.65}
+nav.appnav,.wrap{width:min(1600px,96%);margin-inline:auto}
+nav.appnav{display:flex;gap:4px;white-space:nowrap;overflow-x:auto}
+nav.appnav a{text-decoration:none;color:var(--ink-soft);font-size:13px}
+nav.appnav a.active{background:var(--accent-soft);color:var(--accent-ink)}
+.wrap{padding:24px 0 55px}
+h1,h2,h3{font-family:"Fraunces",Georgia,serif;line-height:1.24}
+h1{font-size:clamp(29px,4vw,43px);margin:8px 0}
+.eyebrow{color:var(--accent);font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+.subtitle,.muted{color:var(--ink-soft);font-size:13px}
+.controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:18px 0}
+.controls label{font-size:12px;font-weight:700}
+select,.btn{font:inherit;font-size:13px;border:1px solid var(--border);border-radius:9px;background:var(--surface);color:var(--ink);padding:9px 12px}
+select{min-width:220px;max-width:100%;flex:1 1 270px}
+.btn{display:inline-block;text-decoration:none;cursor:pointer;max-width:100%}.btn:hover{background:var(--surface-2)}
+.btn.primary{background:var(--accent);color:white;border-color:var(--accent)}
+#status{min-height:21px;color:var(--ink-soft);font-size:12px}
+.identity{background:var(--surface);border:1px solid var(--border-soft);padding:18px 22px;border-radius:15px;box-shadow:var(--shadow);margin:18px 0}
+.identity h2{font:700 clamp(19px,3vw,26px) "Public Sans",sans-serif;margin:4px 0}
+.identity p{margin:4px 0}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:16px 0}
+.stat{padding:14px 16px;background:var(--surface);border:1px solid var(--border-soft);border-radius:12px;min-width:0}
+.stat.main{background:var(--accent-soft);border:2px solid var(--accent)}
+.stat small{display:block;font-size:11px;color:var(--ink-soft)}
+.stat strong{display:block;font:750 clamp(18px,2.5vw,25px) "IBM Plex Mono",monospace;margin:5px 0;overflow-wrap:anywhere}
+.tabbar{display:flex;overflow-x:auto;border-bottom:1px solid var(--border);gap:4px;margin:20px 0}
+.tabbar button{border:0;background:transparent;border-bottom:2px solid transparent;color:var(--ink-soft);font-weight:700;font-size:13px;padding:12px 16px;white-space:nowrap;cursor:pointer}
+.tabbar button.active{color:var(--accent);border-color:var(--accent)}
+.panel[hidden],#page[hidden]{display:none}
+.panel{padding:8px 0}
+.card{background:var(--surface);border:1px solid var(--border-soft);border-radius:14px;padding:clamp(16px,3vw,26px);margin-bottom:18px}
+.card h3{font-size:19px;margin:0 0 10px}
+.report-layout{display:grid;grid-template-columns:minmax(0,1fr) 230px;gap:22px;align-items:start}
+.report{min-width:0;max-width:none;overflow-wrap:anywhere;line-height:1.8}
+.report h1{font-size:clamp(24px,3vw,36px)}
+.report h2{margin-top:36px;padding:8px 0;border-top:1px solid var(--border-soft)}
+.report h3{margin-top:26px}
+.report table,.table-wrap table{width:100%;border-collapse:collapse;display:table;font-size:12.5px}
+.report table{display:block;overflow-x:auto}
+.report th,.report td,.table-wrap th,.table-wrap td{padding:9px 11px;border-bottom:1px solid var(--border-soft);vertical-align:top;overflow-wrap:anywhere}
+.report th,.table-wrap th{background:var(--surface-2);text-align:left}
+.report blockquote{border-left:3px solid var(--accent);padding:8px 17px;background:var(--accent-soft)}
+.report img{max-width:100%;height:auto}
+.toc{position:sticky;top:20px;background:var(--surface-2);border:1px solid var(--border-soft);border-radius:11px;padding:13px;max-height:80vh;overflow:auto}
+.toc strong{display:block;font-size:12px;margin-bottom:12px}
+.toc a{display:block;color:var(--ink-soft);font-size:11.5px;text-decoration:none;margin:7px 0;line-height:1.35}
+.toc a.depth3{padding-left:12px;font-size:11px}
+.toc a:hover{color:var(--accent-ink);text-decoration:underline}
+.table-wrap{overflow-x:auto;margin:14px 0;border:1px solid var(--border-soft);border-radius:12px}
+.table-wrap table{min-width:570px}.table-wrap td:not(:first-child){font-variant-numeric:tabular-nums}
+a{color:var(--accent-ink)}.smallprint{font-size:12px;color:var(--ink-soft)}
+.detail-links{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px}
+.source-list{list-style:none;padding:0}.source-list li{padding:9px 0;border-bottom:1px solid var(--border-soft);overflow-wrap:anywhere}
+@media(max-width:930px){.report-layout{display:flex;flex-direction:column-reverse;gap:12px}.toc{position:static;max-height:none;width:100%;display:block}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.metrics{grid-template-columns:1fr}.wrap{width:94%}.report th,.report td{padding:6px;font-size:11px}}
+@media print{nav.appnav,.controls,.tabbar,.toc,.detail-links,.btn{display:none!important}.panel{display:none!important}#mainPanel{display:block!important}.report-layout{display:block}.card{border:0;padding:0}}
+</style>
+</head>
+<body>
+<script src="auth.js"></script>
+<nav class="appnav" aria-label="Navegación principal">
+<a class="jmr-home" href="https://cartera-two-eta.vercel.app/">JMR</a>
+<a href="index.html">Bitácora</a><a href="research.html">Análisis fundamental · Internacionales</a>
+<a href="visor.html">Valoración · Internacionales</a>
+<a href="colombia.html">Colombia · Expedientes</a>
+<a href="visor-colombia.html">Valoración · Modelo JMR Colombia</a>
+<a class="active" aria-current="page" href="fundamental-colombia.html">Análisis Fundamental · Colombia</a>
+</nav>
+<main class="wrap">
+<div class="eyebrow">Modelo JMR · Acciones de Colombia</div>
+<h1>Análisis Fundamental · Colombia</h1>
+<p class="subtitle">Vista vinculada a la misma compañía, fecha y expediente que la valoración. La tesis fundamental conserva su texto y fuentes; el DCF proviene de «Valuation output», no del SOTP.</p>
+<div class="controls">
+<label for="ticker">Acción</label>
+<select id="ticker"><option value="">Cargando expedientes…</option></select>
+<button type="button" class="btn" id="reload">Actualizar análisis</button>
+<a class="btn primary" id="viewValuation" href="visor-colombia.html">Ver valoración JMR Colombia →</a>
+<a class="btn" id="edit" href="colombia.html#research">Editar / importar en expediente</a>
+<button type="button" class="btn" onclick="window.print()">Imprimir</button>
+</div>
+<p id="status" role="status" aria-live="polite"></p>
+<div id="page" hidden>
+<div class="identity"><small class="eyebrow">Análisis fundamental vinculado a valoración</small>
+<h2 id="company"></h2><p class="muted" id="meta"></p><p class="smallprint" id="scope"></p></div>
+<div class="metrics">
+<div class="stat main"><small>DCF FCFF · Base hoy</small><strong id="dcf"></strong><small>Valor intrínseco principal en COP por acción</small></div>
+<div class="stat"><small>DCF esperado · cuatro historias</small><strong id="expected"></strong><small>Ponderado por probabilidad de escenarios</small></div>
+<div class="stat"><small>Precio al día del análisis</small><strong id="price"></strong><small id="priceDate">Fecha de cierre</small></div>
+<div class="stat"><small>Margen vs DCF Base</small><strong id="upside"></strong><small>Valor / precio − 1; no implica rentabilidad garantizada</small></div>
+</div>
+<div class="tabbar" role="tablist" aria-label="Secciones del análisis fundamental">
+<button type="button" class="active" data-tab="informe">Informe fundamental</button>
+<button type="button" data-tab="tesis">Escenarios y DCF vinculado</button>
+<button type="button" data-tab="fuentes">Fuentes y trazabilidad</button>
+</div>
+<section class="panel" data-panel="informe" id="mainPanel">
+<div class="report-layout">
+<article class="card report" id="report"><p>Sin informe publicado.</p></article>
+<aside class="toc" id="toc" aria-label="Índice del análisis"><strong>Contenido</strong></aside>
+</div></section>
+<section class="panel" data-panel="tesis" hidden>
+<div class="card"><h3>Escenarios fundamentales y flujos descontados</h3><p class="smallprint">La narración de cada historia está en el informe. Esta tabla usa el mismo expediente que el visor, y los valores por acción se sincronizan desde «Valuation output» cuando están publicados.</p>
+<div class="table-wrap" id="scenarios"></div><div class="detail-links"><a class="btn" id="openDCF" href="visor-colombia.html">Abrir desglose DCF y múltiplos →</a></div></div>
+<div class="card"><h3>Comparadores de valoración · no intrínsecos</h3><div class="table-wrap" id="relative"></div>
+<p class="smallprint">Múltiplos sin denominador homogéneo se indican como N/D. El SOTP se mantiene separado del valor intrínseco por descuento de flujos.</p></div>
+</section>
+<section class="panel" data-panel="fuentes" hidden>
+<div class="card"><h3>Documentos y procedencia</h3><ul id="sources" class="source-list"></ul><p id="sync" class="smallprint"></p>
+<div class="detail-links"><a class="btn" id="openSheet" href="#" target="_blank" rel="noopener noreferrer" hidden>Abrir hoja del modelo →</a>
+<a class="btn" id="openOriginal" href="colombia.html">Abrir expediente original →</a></div></div>
+</section>
+</div></main>
+<script type="module" src="colombia/fundamental.js"></script>
+</body></html>
