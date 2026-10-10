@@ -6,7 +6,7 @@ const fmt = n => typeof n === "number" && Number.isFinite(n)
   ? "COP " + Math.round(n).toLocaleString("es-CO") : "N/D";
 const pct = n => (n * 100).toLocaleString("es-CO", {maximumFractionDigits:1}) + "%";
 const numeric = n => typeof n === "number" && Number.isFinite(n);
-const STORE = "jmr-colombia-metodos-v3-"; // Nueva política holdings SOTP60/PB24/yield16; libro/DCF opcionales.
+const STORE = "jmr-colombia-metodos-v4-"; // Holdings: SOTP mixto60/sector peers40; otros métodos opcionales; preferencias antiguas no migradas silenciosamente.
 
 export function calculateWeights(methods, selected = {}, weights = {}) {
   const rows = methods.map(m => {
@@ -33,9 +33,12 @@ export function buildMethodCandidates(d) {
     {id:"sotp_book", name:"SOTP contable por participadas · mismo libro NIIF", value:holding?c.book:null,
       defaultWeight:0,defaultSelected:false,
       detail:"Reconcilia el valor en libros desglosando las participadas. MISMA base económica que el método contable puro; desactivado por defecto para evitar duplicación estadística."},
-    {id:"market_sotp", name:"SOTP de mercado / NIIF", value:holding?c.marketSotp:null,
+    {id:"market_sotp", name:"SOTP económico mixto · cotizadas y privadas", value:holding?c.marketSotp:null,
       defaultWeight:holding?60:0,defaultSelected:holding,
-      detail:"Participadas cotizadas a mercado y activos privados a libros; correlacionado con el patrimonio."},
+      detail:"Cotizadas al precio vigente y privadas a referencias manager/NIIF; no es un DCF puro."},
+    {id:"sector_sotp", name:"SOTP por múltiplos sectoriales · EV/EBITDA", value:holding? (numeric(v.sectorSotpMultiplesCOP)?v.sectorSotpMultiplesCOP:null):null,
+      defaultWeight:holding?40:0,defaultSelected:holding&&numeric(v.sectorSotpMultiplesCOP),
+      detail:"Cemento y energía a peers 2026, Odinsa/Pactia NAV gerencial; no son rutas totalmente independientes. NCI y caja disponible pendientes."},
     {id:"dcf", name:"DCF FCFF / SOTP por FCFF", value:c.base,
       defaultWeight:holding?0:60,defaultSelected:!holding,
       detail:"Suma de valores patrimoniales de flujos descontados. En holdings puede depender de estimaciones privadas."}
@@ -43,9 +46,9 @@ export function buildMethodCandidates(d) {
   const m = Array.isArray(v.multiplesMethods)?v.multiplesMethods:[];
   const pb=m.find(x=>/P\/B|patrimonio/i.test(x.name)), dividend=m.find(x=>/dividend|dividendo|rendimiento/i.test(x.name));
   options.push({id:"pb",name:pb?.name||"P/B ajustado",value:pb?.today,
-    defaultWeight:holding?24:24,defaultSelected:numeric(pb?.today),detail:pb?.status||"Múltiplo relativo; requiere anclas verificables."});
+    defaultWeight:holding?24:24,defaultSelected:!holding&&numeric(pb?.today),detail:pb?.status||"Múltiplo relativo; requiere anclas verificables."});
   options.push({id:"yield",name:dividend?.name||"Rendimiento por dividendo",value:dividend?.today,
-    defaultWeight:holding?16:16,defaultSelected:numeric(dividend?.today),detail:dividend?.status||"Rendimiento exigido; pagos futuros pueden ser hipotéticos."});
+    defaultWeight:holding?16:16,defaultSelected:!holding&&numeric(dividend?.today),detail:dividend?.status||"Rendimiento exigido; pagos futuros pueden ser hipotéticos."});
   const industrialNames=["EV/EBITDA","EV/FCFF","P/E","P/FCFE","P/OCF"];
   for(const name of industrialNames) {
     // Un método individual solo se activa con su propio denominador comparable.
@@ -78,7 +81,7 @@ export function renderWeightSelector(d,root,onUpdate) {
   const state={selected:{...(saved.selected||{})},weights:{...(saved.weights||{})}};
   root.replaceChildren();
   const caption=document.createElement("p");caption.className="note";
-  caption.textContent="Activa o desactiva cada método y edita los puntos de peso. Los pesos de los métodos elegidos y disponibles se normalizan automáticamente al 100 %. Por defecto, en holdings: SOTP 60%, múltiplos históricos P/B 24% y rendimiento por dividendos 16%; valor contable y DCF desactivados y seleccionables. Una única observación histórica 2025 no certifica promedios 5/10 años. Las preferencias se guardan por acción en este navegador, no en Google Sheets ni en otros dispositivos.";
+  caption.textContent="Activa o desactiva cada método y edita los puntos de peso. Los pesos de los métodos elegidos y disponibles se normalizan automáticamente al 100 %. Por defecto en holdings: 60 puntos SOTP económico mixto + 40 puntos SOTP por múltiplos sectoriales EV/EBITDA de participadas; libro, DCF, P/B y rendimiento histórico son opcionales. La ruta privada de Odinsa/Pactia se comparte, NO hay independencia plena. Las preferencias se guardan por ticker SOLO en el navegador. Las preferencias se guardan por acción en este navegador, no en Google Sheets ni en otros dispositivos.";
   root.append(caption);
   const wrap=document.createElement("div");wrap.className="table-wrap";
   const table=document.createElement("table");table.className="method-weight-table";
