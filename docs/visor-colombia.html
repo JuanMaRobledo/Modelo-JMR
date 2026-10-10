@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Valoración · Modelo JMR Colombia</title>
+<link rel="icon" href="favicon.ico"><link rel="stylesheet" href="jmr-theme.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+<script src="valuation-board.js"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:"Public Sans",sans-serif;line-height:1.5}
+nav.appnav,.wrap{max-width:1600px;width:96%;margin:0 auto}
+nav.appnav{display:flex;gap:3px;overflow-x:auto;white-space:nowrap}
+nav.appnav a{text-decoration:none;color:var(--ink-soft)}
+nav.appnav a.active{color:var(--accent-ink);background:var(--accent-soft)}
+.wrap{padding:20px 0 55px}h1,h2,h3{font-family:"Fraunces",Georgia,serif}h1{font-size:clamp(28px,4vw,42px);margin:8px 0}
+.subtitle{margin:0 0 16px;color:var(--ink-soft);font-size:13px}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:15px 0}
+.controls label{font-weight:650;font-size:12px}
+select,.btn{border:1px solid var(--border);border-radius:9px;background:var(--surface);color:var(--ink);font:inherit;font-size:13px;padding:9px 12px}
+select{max-width:100%;min-width:230px}.btn{cursor:pointer;text-decoration:none;display:inline-block}.btn:hover{background:var(--surface-2)}
+.hero-id{display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px;align-items:center;background:var(--surface);border:1px solid var(--border-soft);box-shadow:var(--shadow);padding:19px 22px;border-radius:14px}
+.hero-id h2{font-family:"Public Sans",sans-serif;font-size:23px;margin:2px 0}.muted{font-size:12px;color:var(--ink-soft)}
+.hero-price{text-align:right}.hero-price strong{display:block;font:750 28px "IBM Plex Mono",monospace}
+.section-title{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);margin:25px 0 10px}
+.price-grid,.metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.metric{border:1px solid var(--border-soft);background:var(--surface);padding:14px 16px;border-radius:12px;min-width:0}
+.metric.main{background:var(--accent-soft);border:2px solid var(--accent)}.metric small{display:block;color:var(--ink-soft);font-size:11px}
+.metric strong{display:block;font:700 clamp(17px,2vw,26px) "IBM Plex Mono",monospace;overflow-wrap:anywhere;margin:4px 0}
+.tabbar{display:flex;gap:4px;overflow:auto;border-bottom:1px solid var(--border);margin-top:25px}
+.tabbar button{background:none;border:0;border-bottom:2px solid transparent;padding:12px 15px;white-space:nowrap;color:var(--ink-soft);font-weight:650;cursor:pointer}
+.tabbar button.active{border-color:var(--accent);color:var(--accent)}
+.panel[hidden]{display:none}.panel{padding:18px 0}.card{padding:18px;background:var(--surface);border:1px solid var(--border-soft);border-radius:13px;margin-bottom:14px}
+.card h3{font-size:18px;margin:0 0 12px}.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.table-wrap{overflow-x:auto;max-width:100%;border:1px solid var(--border-soft);border-radius:12px;margin:14px 0}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th,td{padding:9px 12px;border-bottom:1px solid var(--border-soft);vertical-align:top;text-align:left}
+th{background:var(--surface-2);font-size:11px}td:not(:first-child){font-variant-numeric:tabular-nums}
+table.method-table td:nth-child(n+2){text-align:right}table.method-table th:nth-child(n+2){text-align:right}
+.note{font-size:12px;line-height:1.6;color:var(--ink-soft)}
+a{color:var(--accent-ink)}
+.report{overflow-wrap:anywhere;line-height:1.7}.report h2{padding-top:10px;border-top:1px solid var(--border-soft)}
+.report table{width:100%;display:block;overflow:auto}.report img{max-width:100%}
+.status{min-height:20px;color:var(--ink-soft);font-size:12px}
+@media(max-width:700px){.price-grid,.metrics,.grid2{grid-template-columns:1fr}.hero-price{text-align:left}.wrap{width:94%}}
+@media print{nav,.controls,.tabbar,.btn{display:none!important}.panel{display:none!important}.panel[data-panel="resumen"]{display:block!important}.card{break-inside:avoid}}
+</style>
+</head>
+<body>
+<script src="auth.js"></script>
+<nav class="appnav" aria-label="Navegación principal">
+<a class="jmr-home" href="https://cartera-two-eta.vercel.app/">JMR</a>
+<a href="index.html">Bitácora de Valoración</a><a href="research.html">Análisis Fundamental</a>
+<a href="visor.html">Valoración · Internacionales</a><a href="colombia.html">Colombia · Expedientes</a>
+<a href="visor-colombia.html" class="active" aria-current="page">Valoración · Modelo JMR Colombia</a>
+<a href="colombia.html#research">Análisis Fundamental · Colombia</a>
+</nav>
+<main class="wrap">
+<h1>Valoración · Modelo JMR Colombia</h1>
+<p class="subtitle">Mismo tablero interactivo del visor internacional, con valores en COP, DCF de la especie seleccionada y múltiplos individuales. Fuente: expedientes Colombia.</p>
+<div class="controls"><label for="ticker">Empresa</label><select id="ticker" aria-label="Elegir empresa colombiana"><option value="">Cargando expedientes…</option></select>
+<button class="btn" id="reload" type="button">Actualizar expedientes</button><a class="btn" id="linked" href="colombia.html">Abrir expediente y hoja</a>
+<button class="btn" onclick="window.print()" type="button">Imprimir resumen</button></div>
+<p class="status" id="status" role="status" aria-live="polite"></p>
+<div id="page" hidden>
+<div class="hero-id"><div><small class="muted">BVC · mercado colombiano</small><h2 id="company"></h2><div class="muted" id="meta"></div></div>
+<div class="hero-price"><small class="muted">Precio del análisis</small><strong id="price"></strong><small class="muted" id="priceDate"></small></div></div>
+<p class="section-title">Precio de hoy vs. precio al día del análisis</p>
+<div class="price-grid">
+<div class="metric"><small>Precio al día del análisis</small><strong id="priceAt"></strong><small id="priceAtDate"></small></div>
+<div class="metric"><small>Última cotización de proveedor</small><strong id="priceToday"></strong><small id="priceTodayDate"></small></div>
+<div class="metric"><small>Variación entre ambas fechas</small><strong id="change"></strong><small>Si la fecha de la cotización no es posterior, no indica evolución real.</small></div>
+</div>
+<p class="section-title">Valor intrínseco hoy · descuento de flujos</p>
+<div class="metrics">
+<div class="metric main"><small>DCF FCFF · Base</small><strong id="dcfBase"></strong><small>Valor presente por acción; no sustituido por SOTP</small></div>
+<div class="metric"><small>DCF · Valor esperado de historias</small><strong id="dcfExp"></strong><small>Probabilidades declaradas por el analista</small></div>
+<div class="metric"><small>Precio / DCF Base</small><strong id="pDcf"></strong><small>Comparador P/DCF, no una valoración alternativa</small></div>
+</div>
+<div class="tabbar" role="tablist" aria-label="Secciones del visor de Colombia">
+<button type="button" class="active" data-tab="resumen">Resumen</button>
+<button type="button" data-tab="fundamental">Análisis Fundamental</button>
+<button type="button" data-tab="financieros">Estados Financieros</button>
+<button type="button" data-tab="valoracion">Valoración</button>
+<button type="button" data-tab="analisis">Análisis</button>
+<button type="button" data-tab="fuentes">Fuentes y cálculos</button>
+</div>
+<section class="panel" data-panel="resumen">
+<div id="board"></div>
+<div class="card"><h3>Cuatro escenarios DCF</h3><div class="table-wrap" id="scenarios"></div></div>
+<div class="card"><h3>Múltiplos no disponibles y observaciones</h3><div class="table-wrap" id="unavailable"></div>
+<p class="note">EV/EBITDA, EV/FCFF, P/E, P/FCFE y P/OCF solo deben mostrar valores cuando los flujos y perímetros sean comparables. No se reemplazan por cero ni por cifras de otra empresa.</p></div>
+<div class="card"><h3>Comparación SOTP (separada del DCF)</h3><div class="grid2" id="sotp"></div></div>
+</section>
+<section class="panel" data-panel="fundamental" hidden><div class="card"><h3>Análisis fundamental · Colombia</h3>
+<p class="note">Informe vinculado al mismo expediente y ticker. <a id="editResearch" href="colombia.html#research">Abrir la pestaña del expediente →</a></p>
+<article class="report" id="fundamentalReport"></article></div></section>
+<section class="panel" data-panel="financieros" hidden><div class="card"><h3>Estados Financieros</h3><p class="note">Históricos disponibles del proveedor. Montos en millones de la moneda reportada; sin inventar LTM o ceros.</p><div class="table-wrap" id="financials"></div></div></section>
+<section class="panel" data-panel="valoracion" hidden><div class="card"><h3>Valoración por negocio · DCF y puentes patrimoniales</h3><div class="table-wrap" id="components"></div></div><div class="card"><h3>Múltiplos, uno por uno</h3><div class="table-wrap" id="methods"></div></div></section>
+<section class="panel" data-panel="analisis" hidden><div class="card"><h3>Informe de valoración</h3><article class="report" id="valuationReport"></article></div></section>
+<section class="panel" data-panel="fuentes" hidden><div class="card"><h3>Hoja, fórmulas y controles</h3><div id="links"></div><p class="note">FCFF = EBIT×(1−T) + depreciación − CAPEX − Δcapital de trabajo. EV = VP de FCFF + VP terminal. El paso EV→equity descuenta deuda y minoritarios económicos e incluye solo caja excedente y activos no operativos no capitalizados.</p></div></section>
+</div></main>
+<script type="module" src="colombia/visor.js"></script>
+</body></html>
