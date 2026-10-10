@@ -2,6 +2,7 @@ import { loadColombiaDossiers, valuationNumbers } from "./dossiers.js";
 import { renderWeightSelector } from "./method-weights.js";
 
 const $ = id => document.getElementById(id);
+const isSura = d => d?.ticker === "GRUPOSURA.CL" || d?.ticker === "PFGRUPSURA.CL";
 const num = n => typeof n === "number" && Number.isFinite(n);
 const cop = n => num(n) ? "COP " + new Intl.NumberFormat("es-CO", { maximumFractionDigits:0 }).format(n) : "N/D";
 const pct = n => num(n) ? (100*n).toLocaleString("es-CO", {maximumFractionDigits:1}) + "%" : "N/D";
@@ -65,7 +66,7 @@ function showSources(d, valuation) {
   }
   const sheet=$("openSheet");
   if(valuation.sheet){sheet.href=valuation.sheet;sheet.hidden=false;}else{sheet.hidden=true;sheet.removeAttribute("href");}
-  $("sync").textContent=(valuation.holding?"El Base del holding es SOTP de mercado/NIIF + múltiplos históricos ponderados; contable y DCF FCFF son métodos opcionales. ":"") +"Los modelos proceden de "+valuation.source+(valuation.asOf?" · copia de resultados actualizada "+new Date(valuation.asOf).toLocaleString("es-CO",{timeZone:"America/Bogota"}):"")+". Cambios posteriores en la hoja requieren publicar de nuevo el expediente.";
+  $("sync").textContent=(isSura(d) ? "SURA: Base = SOTP de rendimientos excedentes RE/DDM; el patrimonio consolidado y NAV libro son referencias opcionales, mientras P/E por participadas es proxy no verificado. " : valuation.holding ? "El Base del holding es SOTP de mercado/NIIF + múltiplos históricos ponderados; contable y DCF FCFF son métodos opcionales. " : "") +"Los modelos proceden de "+valuation.source+(valuation.asOf?" · copia de resultados actualizada "+new Date(valuation.asOf).toLocaleString("es-CO",{timeZone:"America/Bogota"}):"")+". Cambios posteriores en la hoja requieren publicar de nuevo el expediente.";
 }
 function showReport(d) {
   const v=d.valuationSummary||{}, n=valuationNumbers(d), q="ticker="+encodeURIComponent(d.ticker);
@@ -75,8 +76,8 @@ function showReport(d) {
   $("scope").textContent=n.note;
   $("primary").textContent=cop(n.primary);
   $("marketSotp").textContent=cop(n.marketSotp);
-  $("primaryLabel").textContent=n.holding?"Valor Base SOTP económico + comparables sectoriales":"Valor intrínseco principal";
-  $("upsideLabel").textContent=n.holding?"Potencial frente a Base SOTP+múltiplos":"Potencial frente a valor intrínseco";
+  $("primaryLabel").textContent=isSura(d)?"SOTP intrínseco Base · RE/DDM (condicionado)":n.holding?"Valor Base SOTP económico + comparables sectoriales":"Valor intrínseco principal";
+  $("upsideLabel").textContent=isSura(d)?"Potencial frente a SOTP Base (no certificado)":n.holding?"Potencial frente a Base SOTP+múltiplos":"Potencial frente a valor intrínseco";
   $("dcf").textContent=cop(n.base);
   $("expected").textContent=cop(n.expected);
   $("price").textContent=cop(n.price);
@@ -89,7 +90,7 @@ function showReport(d) {
   $("openOriginal").href="colombia.html?"+q+"#research";
   drawMarkdown(d.reports?.research?.content);
   const cases=v.dcfFcffIntrinsicScenarios||[];
-  table("scenarios",["Historia","Probabilidad","DCF FCFF por acción","Frente a precio"],cases.length?cases.map(c=>{
+  table("scenarios",["Historia","Probabilidad",isSura(d)?"SOTP patrimonio por acción":"DCF FCFF por acción","Frente a precio"],cases.length?cases.map(c=>{
     const price=num(n.price)&&n.price>0?n.price:null;
     const x=c.intrinsicPerPreferredShareCOP;
     return [c.name,pct(c.weight),cop(x),num(x)&&price?pct(x/price-1):"N/D"];
