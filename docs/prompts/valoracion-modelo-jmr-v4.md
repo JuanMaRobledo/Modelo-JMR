@@ -1,5 +1,15 @@
 # Prompt Maestro: Modelo de Valoración Damodaran para Cualquier Ticker (v4 · revisión historias 30-sep-2026)
 
+<!-- JMR-FY3-EXDIV-ANTI-DOBLE-CONTEO-20261010 -->
+## Control obligatorio de horizonte FY+3 y duplicación de modelos en holdings
+
+**Precio del DCF siempre al presente:** FCFF = EBIT(1−T) − reinversión neta, VP FCFF por WACC compatible, EV→equity→acciones. El valor DCF Base que sale de la pestaña ORIGINAL Valuation output debe aparecer primero y debe llegar por fórmula al Resumen de Valoración, Presentación, expediente y visor. La hoja de cálculo original de una empresa única puede tener entradas en blanco en un holding solo cuando las copias funcionales de DCF por negocio proyectan verdaderos flujos, y Valuation output sí consolida los resultados por fórmula. No etiquetar SOTP de precios cotizados como FCFF.
+
+**Tres años sin doble contabilizar dividendos:** con valor actual V0 por método, Ke del patrimonio, dividendos prospectivos D1,D2,D3 y factor de capitalización (1+Ke)^3, el precio esperado exdividendos al año tres bajo la hipótesis elegida es P3 = (V0 − Σ(Dt/(1+Ke)^t)) × (1+Ke)^3. Comprobar que P3/(1+Ke)^3 + Σ(Dt/(1+Ke)^t) = V0 dentro de tolerancia. Si no se proyectan dividendos, no restar; si VP dividendos > V0, revelar inconsistencia económica y ajustar la historia o la distribución, nunca imponer cero silencioso. No usar V0×(1+Ke)^3 como precio exdividendos y añadir de nuevo VP de dividendos. Mostrar por separado FY+3 SIN descontar, FY+3 descontado exdividendos, VP de dividendos y valor total de hoy. Diferenciar rentabilidad anualizada del precio exdividendos de rentabilidad total con dividendos.
+
+**Submodelos holding independientes y sin contaminación:** cada copia por empresa debe mostrar solo su sector, sus supuestos, su flujograma FCFF, descuento, terminal/fin contractual y bridge económico; no introducir valores de otra emisora ni rótulos de otra participada como inputs. Ocultar o retirar módulos heredados cuando no se utilicen, asegurando que ningún dato estático previo alimente el resultado. Probar que cambiar un input operativo de una participada modifica exactamente su DCF, el puente, el Valuation output, el Resumen y la publicación siguiente, sin modificar otra empresa. No declarar validación si el output se pegó como número literal o si las referencias dejan de recalcular. P/B, dividend yield, EV/EBITDA, EV/FCFF, P/E, P/FCFE y P/OCF se calculan individualmente solo con perímetros y comparables homologables: el múltiplo implícito del propio DCF es un diagnóstico, no una valoración relativa independiente. Ante ausencia de pares, marcar N/D con razón; nunca cero económico.
+
+
 <!-- JMR-FLUJO-UNICO-VALUATION-OUTPUT-20261010 -->
 ## Contrato obligatorio único · 10-oct-2026 · motor sectorial → Valuation output → presentación → visor
 
