@@ -364,6 +364,13 @@
   .col-value-method-card,.col-value-kpi{break-inside:avoid;}
 }
 
+/* Tabla compartida de presentación JMR: mismo orden DCF, múltiplos, ponderado. */
+.colombia-jmr-table{width:100%;border-collapse:collapse;font-size:13px;min-width:700px}
+.colombia-jmr-table th,.colombia-jmr-table td{padding:10px 12px;border-bottom:1px solid var(--border-soft);text-align:right;white-space:normal}
+.colombia-jmr-table th:first-child,.colombia-jmr-table td:first-child{text-align:left;font-weight:600;min-width:205px}
+.colombia-jmr-table th:last-child,.colombia-jmr-table td:last-child{text-align:left;min-width:190px;font-size:11px;color:var(--ink-soft)}
+.colombia-jmr-table thead{background:var(--surface-2)}
+.colombia-jmr-table tr.colombia-jmr-main td{font-weight:750;color:var(--ink)}
 /* Resumen homogéneo de valoraciones en la biblioteca Colombia */
 .col-library-snapshot{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:10px 0;border-top:1px solid var(--border);margin:12px 0 6px;}
 .col-library-snapshot-item{background:var(--surface-2);min-width:0;padding:9px;border-radius:8px;}
@@ -385,7 +392,9 @@
       ><a href="portafolio.html">Portafolio</a
       ><a href="mi-bitacora.html">Mi Bitácora</a
       ><a class="active" href="colombia.html" aria-current="page"
-        >Acciones colombianas</a
+        >Colombia · Biblioteca</a
+      ><a href="colombia.html#valuation">Valoración JMR · Colombia</a
+      ><a href="colombia.html#research">Análisis fundamental · Colombia</a
       >
     </nav>
     <main class="wrap">
@@ -456,8 +465,8 @@
       </details>
       <div class="tabs" role="tablist" aria-label="Etapas">
         <button class="btn active" data-tab="data">Datos</button
-        ><button class="btn" data-tab="research">Research</button
-        ><button class="btn" data-tab="valuation">Valoración</button
+        ><button class="btn" data-tab="research">Análisis fundamental · Colombia</button
+        ><button class="btn" data-tab="valuation">Valoración · Modelo JMR Colombia</button
         ><button class="btn" data-tab="library">Valoraciones publicadas</button
         ><button class="btn" data-tab="prompts">Prompts Colombia</button>
       </div>
@@ -488,7 +497,7 @@
       </section>
       <section class="panel" data-panel="research" hidden>
         <div class="box">
-          <h2>Research fundamental · Colombia</h2>
+          <h2>Análisis fundamental · Colombia</h2>
           <p>
             Primero concilia las cifras y notas con los documentos oficiales del
             emisor. El research desarrolla las cuatro historias y conserva las
@@ -515,7 +524,7 @@
       </section>
       <section class="panel" data-panel="valuation" hidden>
         <div class="box">
-          <h2>Valoración independiente</h2>
+          <h2>Valoración · Modelo JMR Colombia</h2>
           <p id="modelNote">
             Selecciona el negocio y obtén sus datos antes de preparar la
             valoración.
