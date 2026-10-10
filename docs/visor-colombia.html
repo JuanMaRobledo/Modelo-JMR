@@ -94,13 +94,13 @@ a{color:var(--accent-ink)}
 <button type="button" data-tab="fuentes">Fuentes y cálculos</button>
 </div>
 <section class="panel" data-panel="resumen">
-<p class="section-title">Desglose secundario · DCF FCFF por negocio y múltiplos</p><p class="note">El selector que aparece a continuación permite activar o desactivar cada método, cambiar los pesos y recalcular su promedio al 100 %. El valor contable sigue siendo la referencia principal del holding. El tablero JMR tradicional muestra un ponderado fijo DCF 60 % / múltiplos 40 % SOLO como referencia histórica; no debe confundirse con el ponderado personalizado.</p>
+<p class="section-title">Desglose secundario · DCF FCFF por negocio y múltiplos</p><p class="note">El selector que aparece a continuación permite activar o desactivar cada método, cambiar los pesos y recalcular su promedio al 100 %. El Base del holding es SOTP + múltiplos (por defecto 60/40); libro NIIF y DCF son opcionales. El tablero JMR tradicional muestra un ponderado fijo DCF 60 % / múltiplos 40 % SOLO como referencia histórica; no debe confundirse con el ponderado personalizado.</p>
 <div class="card"><h3>Selecciona los métodos y rebalancea sus pesos</h3><div id="methodWeights"></div></div>
 <div id="board"></div>
 <div class="card"><h3>Cuatro escenarios DCF</h3><div class="table-wrap" id="scenarios"></div></div>
 <div class="card"><h3>Múltiplos no disponibles y observaciones</h3><div class="table-wrap" id="unavailable"></div>
 <p class="note">EV/EBITDA, EV/FCFF, P/E, P/FCFE y P/OCF solo deben mostrar valores cuando los flujos y perímetros sean comparables. No se reemplazan por cero ni por cifras de otra empresa.</p></div>
-<div class="card"><h3>Métodos disponibles · valor contable principal, SOTP mercado, DCF y múltiplos</h3><div class="grid2" id="sotp"></div></div>
+<div class="card"><h3>Métodos disponibles · SOTP + múltiplos principales, libro y DCF opcionales</h3><div class="grid2" id="sotp"></div></div>
 </section>
 <section class="panel" data-panel="fundamental" hidden><div class="card"><h3>Análisis fundamental · Colombia</h3>
 <p class="note">Informe vinculado al mismo expediente y ticker. <a id="editResearch" href="fundamental-colombia.html">Abrir análisis fundamental completo →</a></p>
