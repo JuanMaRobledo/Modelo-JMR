@@ -178,7 +178,8 @@ function renderValuationStats() {
   root.classList.add("col-value-board");
   const v = dossier?.valuationSummary;
   if (!v) return;
-  const status = v.baseIsIntrinsic === false ? "SOTP híbrida estimada · NO DCF certificado" : (dossier.audit?.valuationReady ? "Modelo revisado · alcance limitado" : "Valoración incompleta o condicionada");
+  const isPrimaryFCFF = v.dcfPrimaryMethod === "FCFF";
+  const status = isPrimaryFCFF ? "FCFF operativo calculado · equity por PF pendiente" : (v.baseIsIntrinsic === false ? "SOTP híbrida estimada · NO DCF certificado" : (dossier.audit?.valuationReady ? "Modelo revisado · alcance limitado" : "Valoración incompleta o condicionada"));
   const priceDate = v.priceDate || dossier.analysisDate;
   const numeric = x => typeof x === "number" && Number.isFinite(x);
   const cop = x => numeric(x) ? new Intl.NumberFormat("es-CO", {
@@ -203,7 +204,14 @@ function renderValuationStats() {
   root.append(heading);
 
   const hero = el("div", "col-value-hero");
-  if (numeric(v.dcfLookthroughBase)) {
+  if (isPrimaryFCFF) {
+    const primary = v.dcfFcffIntrinsicScenarios?.[0];
+    hero.append(
+      box("Valor intrínseco FCFF por PF", v.dcfPrimaryIntrinsicPerShareCOP, "Sin cifra aún: faltan puentes del EV a patrimonio; NO equivale a cero.", "featured"),
+      box("Cementos · EV FCFF (COP millones)", primary?.enterpriseValueCementosCOPm, "Valor de empresa operativa, NO precio de acción"),
+      box("Celsia · EV FCFF (COP millones)", primary?.enterpriseValueCelsiaCOPm, "EV de perímetro INCOMPLETO Yield/Growth; no equivale a patrimonio")
+    );
+  } else if (numeric(v.dcfLookthroughBase)) {
     hero.append(
       box("DCF por negocios · Base estimativa", v.dcfLookthroughBase,
         "Flujos futuros descontados por negocio, con NIIF Pactia y NAV 2035 Odinsa. NO certificado.", "featured"),
@@ -222,7 +230,7 @@ function renderValuationStats() {
   }
   root.append(hero);
 
-  if (Array.isArray(v.dcfLookthroughScenarios) && v.dcfLookthroughScenarios.length) {
+  if (!isPrimaryFCFF && Array.isArray(v.dcfLookthroughScenarios) && v.dcfLookthroughScenarios.length) {
     const heading = el("div", "col-value-section-title");
     heading.append(el("h3", "", "Cuatro historias · DCF por negocios"),
       el("p", "", "Valores por acción derivados de flujos y valores terminales explícitos; la prima de voto de la PF y varios flujos privados siguen sin certificación."));
@@ -242,7 +250,7 @@ function renderValuationStats() {
       el("p", "col-value-note", "La probabilidad de las historias es subjetiva. Se mantiene el DCF Base como referencia principal."));
     root.append(weighted);
   }
-  if (Array.isArray(v.dcfDividendScenarios) && v.dcfDividendScenarios.length) {
+  if (!isPrimaryFCFF && Array.isArray(v.dcfDividendScenarios) && v.dcfDividendScenarios.length) {
     const heading = el("div", "col-value-section-title");
     heading.append(el("h3", "", "DCF por dividendos de la acción · 10 años"),
       el("p", "", "Dividendos 2027–2036 y terminal, separados del DCF por negocios. El plan corporativo de dividendos futuros no equivale a pagos aprobados."));
@@ -279,7 +287,9 @@ function renderValuationStats() {
     const caution = el("div", "col-value-banner");
     caution.append(el("strong", "", "Alcance y confiabilidad"),
       el("p", "col-value-note",
-        numeric(v.dcfLookthroughBase)
+        isPrimaryFCFF
+          ? "FCFF descontado al WACC es el único DCF principal. No hay precio por PF hasta conciliar deuda, caja excedente, minoritarios y todas las participadas. Los COP 13.708 del antiguo FCFE mixto y el DDM COP 12.518 se archivan como secundarios, NO precio intrínseco FCFF."
+          : numeric(v.dcfLookthroughBase)
           ? "Existen dos DCF numéricos adicionales. El look-through tiene hipótesis fuertes de FCFE Celsia, NAV 2035 Odinsa y capex estadounidense; Pactia sigue por NIIF. Son DCF prospectivos estimativos, no un dictamen certificado de valor intrínseco. No sumar valor de mercado y flujo del mismo activo."
           : "SOTP Base combinando precios de participadas listadas, libros y NIIF privados. No es DCF completo por negocio. Faltan FCFE de concesiones, minoritarios a valor razonable y datos de activos no operativos para certificar valor intrínseco."));
     root.append(caution);
