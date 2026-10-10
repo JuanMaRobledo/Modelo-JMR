@@ -6,7 +6,7 @@ const fmt = n => typeof n === "number" && Number.isFinite(n)
   ? "COP " + Math.round(n).toLocaleString("es-CO") : "N/D";
 const pct = n => (n * 100).toLocaleString("es-CO", {maximumFractionDigits:1}) + "%";
 const numeric = n => typeof n === "number" && Number.isFinite(n);
-const STORE = "jmr-colombia-metodos-v2-";
+const STORE = "jmr-colombia-metodos-v3-"; // Nueva configuración coherente con Google Sheets: 50/25/15/6/4.
 
 export function calculateWeights(methods, selected = {}, weights = {}) {
   const rows = methods.map(m => {
@@ -31,18 +31,18 @@ export function buildMethodCandidates(d) {
       defaultWeight:holding?50:0,defaultSelected:holding,
       detail:"Patrimonio separado pro forma / acciones; referencia principal para holdings. No representa efectivo realizable."},
     {id:"market_sotp", name:"SOTP de mercado / NIIF", value:holding?c.marketSotp:null,
-      defaultWeight:holding?10:0,defaultSelected:holding,
+      defaultWeight:holding?25:0,defaultSelected:holding,
       detail:"Participadas cotizadas a mercado y activos privados a libros; correlacionado con el patrimonio."},
     {id:"dcf", name:"DCF FCFF / SOTP por FCFF", value:c.base,
-      defaultWeight:holding?25:60,defaultSelected:true,
+      defaultWeight:holding?15:60,defaultSelected:true,
       detail:"Suma de valores patrimoniales de flujos descontados. En holdings puede depender de estimaciones privadas."}
   ];
   const m = Array.isArray(v.multiplesMethods)?v.multiplesMethods:[];
   const pb=m.find(x=>/P\/B|patrimonio/i.test(x.name)), dividend=m.find(x=>/dividend|dividendo|rendimiento/i.test(x.name));
   options.push({id:"pb",name:pb?.name||"P/B ajustado",value:pb?.today,
-    defaultWeight:holding?10:24,defaultSelected:numeric(pb?.today),detail:pb?.status||"Múltiplo relativo; requiere anclas verificables."});
+    defaultWeight:holding?6:24,defaultSelected:numeric(pb?.today),detail:pb?.status||"Múltiplo relativo; requiere anclas verificables."});
   options.push({id:"yield",name:dividend?.name||"Rendimiento por dividendo",value:dividend?.today,
-    defaultWeight:holding?5:16,defaultSelected:numeric(dividend?.today),detail:dividend?.status||"Rendimiento exigido; pagos futuros pueden ser hipotéticos."});
+    defaultWeight:holding?4:16,defaultSelected:numeric(dividend?.today),detail:dividend?.status||"Rendimiento exigido; pagos futuros pueden ser hipotéticos."});
   const industrialNames=["EV/EBITDA","EV/FCFF","P/E","P/FCFE","P/OCF"];
   for(const name of industrialNames) {
     // Un método individual solo se activa con su propio denominador comparable.
@@ -75,7 +75,7 @@ export function renderWeightSelector(d,root,onUpdate) {
   const state={selected:{...(saved.selected||{})},weights:{...(saved.weights||{})}};
   root.replaceChildren();
   const caption=document.createElement("p");caption.className="note";
-  caption.textContent="Selecciona cada método y ajusta su peso inicial. Solo los métodos marcados y con valor numérico participan; sus pesos efectivos se reescalan automáticamente al 100 %. En holdings el valor contable sigue siendo la referencia principal, independiente del ponderado configurable. Se guarda solo en este navegador; no sincroniza selección y pesos con Google Sheets u otros dispositivos.";
+  caption.textContent="Activa o desactiva cada método y edita los puntos de peso. Los pesos de los métodos elegidos y disponibles se normalizan automáticamente al 100 %. Por defecto, en holdings: libro 50, SOTP de mercado 25, DCF 15, P/B 6 y dividendos 4, iguales a la hoja JMR. El libro sigue siendo la referencia principal, aunque el ponderado personalizado cambie. Las preferencias se guardan por acción en este navegador, no en Google Sheets ni en otros dispositivos.";
   root.append(caption);
   const wrap=document.createElement("div");wrap.className="table-wrap";
   const table=document.createElement("table");table.className="method-weight-table";
@@ -106,7 +106,7 @@ export function renderWeightSelector(d,root,onUpdate) {
     const input=document.createElement("input");input.type="number";input.min="0";input.max="10000";input.step="1";input.inputMode="decimal";input.value=String(Object.prototype.hasOwnProperty.call(state.weights,m.id)?state.weights[m.id]:m.defaultWeight);input.style.width="82px";input.setAttribute("aria-label","Peso inicial de "+m.name);input.disabled=!numeric(m.value);
     const eff=document.createElement("span");
     cell(tr,check);cell(tr,title);cell(tr,fmt(m.value));cell(tr,input);cell(tr,eff);
-    check.addEventListener("change",()=>{state.selected[m.id]=check.checked;refresh();});
+    check.addEventListener("change",()=>{state.selected[m.id]=check.checked;if(check.checked && !(Number(state.weights[m.id] ?? m.defaultWeight)>0)){state.weights[m.id]=10;input.value="10";}refresh();});
     input.addEventListener("input",()=>{state.weights[m.id]=Math.max(0,Number(input.value)||0);refresh();});
     body.append(tr);fields.push({id:m.id,tr,checkbox:check,weightInput:input,effective:eff});
   }
