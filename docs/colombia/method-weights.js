@@ -31,22 +31,28 @@ export function buildMethodCandidates(d) {
       defaultWeight:holding?50:0,defaultSelected:holding,
       detail:"Patrimonio separado pro forma / acciones; referencia principal para holdings. No representa efectivo realizable."},
     {id:"market_sotp", name:"SOTP de mercado / NIIF", value:holding?c.marketSotp:null,
-      defaultWeight:holding?25:0,defaultSelected:holding,
+      defaultWeight:holding?10:0,defaultSelected:holding,
       detail:"Participadas cotizadas a mercado y activos privados a libros; correlacionado con el patrimonio."},
     {id:"dcf", name:"DCF FCFF / SOTP por FCFF", value:c.base,
-      defaultWeight:holding?15:60,defaultSelected:true,
+      defaultWeight:holding?25:60,defaultSelected:true,
       detail:"Suma de valores patrimoniales de flujos descontados. En holdings puede depender de estimaciones privadas."}
   ];
   const m = Array.isArray(v.multiplesMethods)?v.multiplesMethods:[];
   const pb=m.find(x=>/P\/B|patrimonio/i.test(x.name)), dividend=m.find(x=>/dividend|dividendo|rendimiento/i.test(x.name));
   options.push({id:"pb",name:pb?.name||"P/B ajustado",value:pb?.today,
-    defaultWeight:holding?6:24,defaultSelected:numeric(pb?.today),detail:pb?.status||"Múltiplo relativo; requiere anclas verificables."});
+    defaultWeight:holding?10:24,defaultSelected:numeric(pb?.today),detail:pb?.status||"Múltiplo relativo; requiere anclas verificables."});
   options.push({id:"yield",name:dividend?.name||"Rendimiento por dividendo",value:dividend?.today,
-    defaultWeight:holding?4:16,defaultSelected:numeric(dividend?.today),detail:dividend?.status||"Rendimiento exigido; pagos futuros pueden ser hipotéticos."});
+    defaultWeight:holding?5:16,defaultSelected:numeric(dividend?.today),detail:dividend?.status||"Rendimiento exigido; pagos futuros pueden ser hipotéticos."});
   for(const mth of m) {
     if(mth===pb || mth===dividend) continue;
     options.push({id:"mult:"+String(mth.name),name:mth.name,value:mth.today,
       defaultWeight:0,defaultSelected:false,detail:mth.status||"Múltiplo secundario"});
+  }
+  const industrialNames=["EV/EBITDA","EV/FCFF","P/E","P/FCFE","P/OCF"];
+  for(const name of industrialNames) {
+    if (options.some(x=>x.name===name)) continue;
+    options.push({id:"mult:"+name,name,value:null,defaultWeight:0,defaultSelected:false,
+      detail:"N/D: faltan comparables homogéneos por participada y estados proforma auditados. Al incorporar datos verificables, se habilita este método."});
   }
   if(holding) options.push({id:"issuer",name:"SOTP declarado por el emisor",value:o.sotpCheck?.managementNAVFebCOP ?? v.managementComparator?.perShare,
     defaultWeight:0,defaultSelected:false,detail:"Referencia gerencial externa; distinta fecha, metodología y posible correlación. No es un DCF independiente."});
@@ -62,13 +68,13 @@ function save(d, state) {
 }
 function cell(row,content) {const td=document.createElement("td");if(content instanceof Node)td.append(content);else td.textContent=String(content??"");row.append(td);return td;}
 
-export function renderWeightSelector(d,root) {
+export function renderWeightSelector(d,root,onUpdate) {
   if(!root) return;
   const methods=buildMethodCandidates(d), saved=getSaved(d);
   const state={selected:{...(saved.selected||{})},weights:{...(saved.weights||{})}};
   root.replaceChildren();
   const caption=document.createElement("p");caption.className="note";
-  caption.textContent="Selecciona cada método y ajusta su peso inicial. Solo los métodos marcados y con valor numérico participan; sus pesos efectivos se reescalan automáticamente al 100 %. En holdings el valor contable sigue siendo la referencia principal, independiente del ponderado configurable.";
+  caption.textContent="Selecciona cada método y ajusta su peso inicial. Solo los métodos marcados y con valor numérico participan; sus pesos efectivos se reescalan automáticamente al 100 %. En holdings el valor contable sigue siendo la referencia principal, independiente del ponderado configurable. Se guarda solo en este navegador; no sincroniza selección y pesos con Google Sheets u otros dispositivos.";
   root.append(caption);
   const wrap=document.createElement("div");wrap.className="table-wrap";
   const table=document.createElement("table");table.className="method-weight-table";
@@ -89,6 +95,7 @@ export function renderWeightSelector(d,root) {
     total.textContent=result.valid?"100,0 %": "0 %";
     caveat.textContent=result.valid?"Ponderado personalizado, NO un nuevo DCF ni valor intrínseco certificado. Los métodos contable, NAV y P/B están correlacionados.":"La selección no tiene peso positivo; no se calcula ponderado.";
     save(d,state);
+    if (typeof onUpdate === "function") onUpdate(result);
   };
   for(const m of methods){
     const tr=document.createElement("tr"),check=document.createElement("input");check.type="checkbox";check.setAttribute("aria-label","Incluir "+m.name);check.checked=Object.prototype.hasOwnProperty.call(state.selected,m.id)?state.selected[m.id]:m.defaultSelected;check.disabled=!numeric(m.value);
