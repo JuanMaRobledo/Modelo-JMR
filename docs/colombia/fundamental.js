@@ -64,7 +64,7 @@ function showSources(d, valuation) {
   }
   const sheet=$("openSheet");
   if(valuation.sheet){sheet.href=valuation.sheet;sheet.hidden=false;}else{sheet.hidden=true;sheet.removeAttribute("href");}
-  $("sync").textContent="El DCF procede de "+valuation.source+(valuation.asOf?" · copia de resultados actualizada "+new Date(valuation.asOf).toLocaleString("es-CO",{timeZone:"America/Bogota"}):"")+". Cambios posteriores en la hoja requieren publicar de nuevo el expediente.";
+  $("sync").textContent=(valuation.holding?"El SOTP de mercado es el valor principal; el DCF FCFF y el libro son secundarios. ":"") +"Los modelos proceden de "+valuation.source+(valuation.asOf?" · copia de resultados actualizada "+new Date(valuation.asOf).toLocaleString("es-CO",{timeZone:"America/Bogota"}):"")+". Cambios posteriores en la hoja requieren publicar de nuevo el expediente.";
 }
 function showReport(d) {
   const v=d.valuationSummary||{}, n=valuationNumbers(d), q="ticker="+encodeURIComponent(d.ticker);
@@ -72,11 +72,15 @@ function showReport(d) {
   $("company").textContent=(d.company||d.ticker)+" · "+d.ticker;
   $("meta").textContent="Análisis del "+d.analysisDate+" · BVC · "+(d.instrument?.model||"modelo sin clasificar");
   $("scope").textContent=n.note;
+  $("primary").textContent=cop(n.primary);
+  $("book").textContent=cop(n.book);
+  $("primaryLabel").textContent=n.holding?"SOTP mercado/NIIF · PRINCIPAL":"Valor intrínseco principal";
+  $("upsideLabel").textContent=n.holding?"Potencial frente a SOTP de mercado":"Potencial frente a valor intrínseco";
   $("dcf").textContent=cop(n.base);
   $("expected").textContent=cop(n.expected);
   $("price").textContent=cop(n.price);
   $("priceDate").textContent=v.priceDate||d.analysisDate;
-  $("upside").textContent=num(n.base)&&num(n.price)&&n.price>0?pct(n.base/n.price-1):"N/D";
+  $("upside").textContent=num(n.primary)&&num(n.price)&&n.price>0?pct(n.primary/n.price-1):"N/D";
   $("viewValuation").href="visor-colombia.html?"+q;
   $("openDCF").href="visor-colombia.html?"+q+"#valoracion";
   $("edit").href="colombia.html?"+q+"#research";
