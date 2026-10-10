@@ -193,7 +193,7 @@ function renderValuationStats() {
   const sotpMarket = typeof v.valuationOutput?.marketSotpPrimaryCOP === "number" ? v.valuationOutput.marketSotpPrimaryCOP : v.valuationOutput?.sotpCheck?.hybridNAVBaseCOP;
   const bookPure = v.valuationOutput?.bookValueProformaCOP;
   const isPrimaryFCFF = v.dcfPrimaryMethod === "FCFF";
-  const status = isHolding && typeof sotpMarket === "number" ? "SOTP mercado/NIIF PRINCIPAL · no equivale a FCFF ni libro puro" : isPrimaryFCFF ? (typeof v.dcfPrimaryIntrinsicPerShareCOP === "number" ? "FCFF por negocios · estimación no certificada" : "FCFF operativo calculado · equity por PF pendiente") : (v.baseIsIntrinsic === false ? "SOTP híbrida estimada · NO DCF certificado" : (dossier.audit?.valuationReady ? "Modelo revisado · alcance limitado" : "Valoración incompleta o condicionada"));
+  const status = isHolding && typeof bookPure === "number" ? "VALOR CONTABLE NIIF PRINCIPAL · SOTP y FCFF complementarios" : isPrimaryFCFF ? (typeof v.dcfPrimaryIntrinsicPerShareCOP === "number" ? "FCFF por negocios · estimación no certificada" : "FCFF operativo calculado · equity por PF pendiente") : (v.baseIsIntrinsic === false ? "SOTP híbrida estimada · NO DCF certificado" : (dossier.audit?.valuationReady ? "Modelo revisado · alcance limitado" : "Valoración incompleta o condicionada"));
   const priceDate = v.priceDate || dossier.analysisDate;
   const numeric = x => typeof x === "number" && Number.isFinite(x);
   const cop = x => numeric(x) ? new Intl.NumberFormat("es-CO", {
@@ -217,7 +217,7 @@ function renderValuationStats() {
     el("span", "col-value-badge", status));
   root.append(heading);
 
-  // En holdings el SOTP de mercado/NIIF es principal; el DCF FCFF queda visible como método complementario.
+  // En holdings el valor contable NIIF es la referencia principal; NAV mercado y DCF FCFF se muestran como complementarios.
   // Los múltiplos no calculables se indican N/D.
   const priceVsDcf = numeric(v.marketPrice) && numeric(v.dcfPrimaryIntrinsicPerShareCOP) && v.dcfPrimaryIntrinsicPerShareCOP > 0
     ? v.marketPrice / v.dcfPrimaryIntrinsicPerShareCOP : null;
@@ -229,13 +229,16 @@ function renderValuationStats() {
     root.append(ratio);
   }
   const hero = el("div", "col-value-hero");
-  if (isHolding && numeric(sotpMarket)) {
+  if (isHolding && numeric(bookPure)) {
     hero.append(
-      box("SOTP mercado/NIIF · PRINCIPAL", sotpMarket, "Participadas cotizadas a mercado y privadas a valor NIIF; valoración mixta, no libro puro ni DCF.", "featured"),
-      box("Valor contable NIIF · pro forma", bookPure, "Patrimonio separado pro forma, método secundario"),
+      box("Valor contable NIIF pro forma · PRINCIPAL", bookPure, "Patrimonio separado pro forma y acciones económicas; no es precio de liquidación.", "featured"),
+      box("SOTP mercado / NIIF · comparador", sotpMarket, "Valor de mercado de cotizadas y contable de privadas; distinto de libro puro."),
       box("SOTP DCF FCFF Base · secundario", v.dcfPrimaryIntrinsicPerShareCOP, "FCFF por negocio con WACC y puente patrimonial; supuestos no certificados")
     );
     hero.append(box("Múltiplos ponderados · secundarios", v.multiplesWeightedToday, "P/B, yield y otros métodos disponibles por separado"));
+    const choose = el("a", "col-value-note", "Seleccionar métodos y rebalancear pesos en el visor de Colombia →");
+    choose.href = "visor-colombia.html?ticker=" + encodeURIComponent(dossier.ticker) + "#resumen";
+    choose.style.display = "block";choose.style.marginTop = "10px";root.append(choose);
   } else if (isPrimaryFCFF) {
     const primary = v.dcfFcffIntrinsicScenarios?.[0];
     hero.append(
