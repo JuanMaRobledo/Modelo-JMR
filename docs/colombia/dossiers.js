@@ -45,7 +45,15 @@ export async function loadColombiaDossiers() {
 export function valuationNumbers(d) {
   const s = d?.valuationSummary || {};
   const o = s.valuationOutput || {};
+  const holding = d?.instrument?.model === "holding";
+  const marketSotp = typeof o.marketSotpPrimaryCOP === "number" ? o.marketSotpPrimaryCOP : typeof o.sotpCheck?.hybridNAVBaseCOP === "number" ? o.sotpCheck.hybridNAVBaseCOP : s.base;
+  const book = typeof o.bookValueProformaCOP === "number" ? o.bookValueProformaCOP : null;
   return {
+    holding,
+    primary: holding ? marketSotp : (typeof o.dcfBaseCOP === "number" ? o.dcfBaseCOP : s.dcfPrimaryIntrinsicPerShareCOP),
+    primaryLabel: holding ? "SOTP mercado/NIIF" : "Valor intrínseco DCF",
+    marketSotp: holding ? marketSotp : null,
+    book,
     base: typeof o.dcfBaseCOP === "number" ? o.dcfBaseCOP : s.dcfPrimaryIntrinsicPerShareCOP,
     expected: typeof o.dcfExpectedCOP === "number" ? o.dcfExpectedCOP : s.dcfPrimaryExpectedCOP,
     price: typeof o.priceCOP === "number" ? o.priceCOP : s.marketPrice,
