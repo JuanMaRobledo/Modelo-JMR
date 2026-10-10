@@ -227,10 +227,18 @@ function renderValuationStats() {
   if (v.horizonNote) conclusion.append(el("p", "col-value-note", v.horizonNote));
   root.append(conclusion);
 
+  if (numeric(v.navProportionalEconomic)) {
+    const nav = el("div", "col-value-banner");
+    nav.append(el("strong", "", "NAV económico proporcional (no DCF): " + cop(v.navProportionalEconomic)),
+      el("p", "col-value-note",
+        "Valor patrimonial indicativo de las participaciones al precio de mercado, repartido proporcionalmente entre las acciones económicas. No atribuye una prima al voto, no constituye valor intrínseco y no permite calcular margen de seguridad."));
+    root.append(nav);
+  }
   if (numeric(v.navReference)) {
     const nav = el("div", "col-value-banner");
-    nav.append(el("strong", "", "NAV de mercado (no DCF): " + cop(v.navReference)),
-      el("span", "", " Se muestra únicamente como contraste; no equivale a valor intrínseco ni a margen de seguridad."));
+    nav.append(el("strong", "", "NAV PF usando la brecha bursátil (no DCF): " + cop(v.navReference)),
+      el("p", "col-value-note",
+        "Referencia de reparto condicionada a precios ordinaria/preferencial. Es circular si se usa como valor intrínseco y no representa una penalización fundamental demostrada."));
     root.append(nav);
   }
 
