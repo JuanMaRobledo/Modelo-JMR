@@ -128,7 +128,7 @@ function render(ticker){
  const sotp=$("sotp");sotp.replaceChildren();
  const sc=Array.isArray(v.valuationOutput?.sotpScenarios)?v.valuationOutput.sotpScenarios:[];
  const mainSotp=sc.find(s=>s.name==="Base")||{};
- const nav=numeric(v.valuationOutput?.sotpCheck?.hybridNAVBaseCOP)?v.valuationOutput.sotpCheck.hybridNAVBaseCOP:v.base;
+ const nav=numeric(v.valuationOutput?.marketSotpPrimaryCOP)?v.valuationOutput.marketSotpPrimaryCOP:(numeric(v.valuationOutput?.sotpCheck?.hybridNAVBaseCOP)?v.valuationOutput.sotpCheck.hybridNAVBaseCOP:v.base);
  for(const [label,value] of [
   ["VALOR CONTABLE NIIF PRO FORMA · OPCIONAL",canonical.book],
   ["SOTP MERCADO / NIIF · PRINCIPAL",nav],
