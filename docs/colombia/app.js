@@ -265,6 +265,33 @@ function renderValuationStats() {
     root.append(cards);
   }
 
+  if (isPrimaryFCFF && Array.isArray(v.dcfFcffIntrinsicScenarios)) {
+    const header = el("div", "col-value-section-title");
+    header.append(el("h3", "", "Escenarios DCF FCFF por WACC"),
+      el("p", "", "Cada negocio proyecta NOPAT menos reinversión neta; su FCFF descontado a WACC pasa de EV a equity. Valoración de analista con incertidumbre material, no certificado."));
+    root.append(header);
+    const cases = el("div", "col-value-method-grid");
+    for (const sc of v.dcfFcffIntrinsicScenarios) {
+      const item = el("article", "col-value-method-card");
+      item.append(el("h4", "", sc.name),
+        el("small", "", "Probabilidad subjetiva: " + ((sc.weight || 0) * 100).toFixed(0) + "%"),
+        el("strong", "col-value-method-number", cop(sc.intrinsicPerPreferredShareCOP)),
+        el("p", "col-value-note", "FCFF por negocio, valor económico condicional. Piso de patrimonio cero en escenarios extremos."));
+      cases.append(item);
+    }
+    root.append(cases);
+    const exp = el("div", "col-value-banner");
+    exp.append(el("strong", "", "Valor esperado FCFF: " + cop(v.dcfPrimaryExpectedCOP)),
+      el("p", "col-value-note", "Promedio por historias 50/25/20/5, no reemplaza el Base. Precio PF analizado: COP 16.500 del 9-oct-2026 (Grupo Aval)."));
+    root.append(exp);
+  }
+  if (isPrimaryFCFF && v.fcffPrimaryValuationAudit) {
+    const m = v.fcffPrimaryValuationAudit.majorSensitivity;
+    const item = el("div", "col-value-banner");
+    item.append(el("strong", "", "Prueba crítica: FCFF propio vs valor empresarial divulgado"),
+      el("p", "col-value-note", "Cementos: EV FCFF COP 3,89 billones frente a EV Latam gerencial ~8,37. Celsia: EV FCFF central 6,72 frente a EV Gx+Tx/Dx gerencial 16,11. Son perímetros y métodos distintos; reemplazar ambos EV sin recalcular FCFF daría " + cop(m?.issuerEVSwapCounterfactualCOP) + " por PF, una prueba ilustrativa, NO un DCF ni nuestro precio objetivo."));
+    root.append(item);
+  }
   if (isPrimaryFCFF && v.externalValueAudit) {
     const audit = v.externalValueAudit;
     const heading = el("div", "col-value-section-title");
