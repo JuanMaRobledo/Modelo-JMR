@@ -1,4 +1,5 @@
 import { loadColombiaDossiers, valuationNumbers } from "./dossiers.js";
+import { renderWeightSelector } from "./method-weights.js";
 
 const $ = id => document.getElementById(id);
 const num = n => typeof n === "number" && Number.isFinite(n);
@@ -64,7 +65,7 @@ function showSources(d, valuation) {
   }
   const sheet=$("openSheet");
   if(valuation.sheet){sheet.href=valuation.sheet;sheet.hidden=false;}else{sheet.hidden=true;sheet.removeAttribute("href");}
-  $("sync").textContent=(valuation.holding?"El SOTP de mercado es el valor principal; el DCF FCFF y el libro son secundarios. ":"") +"Los modelos proceden de "+valuation.source+(valuation.asOf?" · copia de resultados actualizada "+new Date(valuation.asOf).toLocaleString("es-CO",{timeZone:"America/Bogota"}):"")+". Cambios posteriores en la hoja requieren publicar de nuevo el expediente.";
+  $("sync").textContent=(valuation.holding?"El valor contable NIIF pro forma es la referencia principal; SOTP mercado/NIIF, DCF FCFF y múltiplos son métodos separados. ":"") +"Los modelos proceden de "+valuation.source+(valuation.asOf?" · copia de resultados actualizada "+new Date(valuation.asOf).toLocaleString("es-CO",{timeZone:"America/Bogota"}):"")+". Cambios posteriores en la hoja requieren publicar de nuevo el expediente.";
 }
 function showReport(d) {
   const v=d.valuationSummary||{}, n=valuationNumbers(d), q="ticker="+encodeURIComponent(d.ticker);
@@ -74,13 +75,15 @@ function showReport(d) {
   $("scope").textContent=n.note;
   $("primary").textContent=cop(n.primary);
   $("book").textContent=cop(n.book);
-  $("primaryLabel").textContent=n.holding?"SOTP mercado/NIIF · PRINCIPAL":"Valor intrínseco principal";
-  $("upsideLabel").textContent=n.holding?"Potencial frente a SOTP de mercado":"Potencial frente a valor intrínseco";
+  $("marketSotp").textContent=cop(n.marketSotp);
+  $("primaryLabel").textContent=n.holding?"Valor contable NIIF pro forma · PRINCIPAL":"Valor intrínseco principal";
+  $("upsideLabel").textContent=n.holding?"Potencial frente a valor contable NIIF":"Potencial frente a valor intrínseco";
   $("dcf").textContent=cop(n.base);
   $("expected").textContent=cop(n.expected);
   $("price").textContent=cop(n.price);
   $("priceDate").textContent=v.priceDate||d.analysisDate;
   $("upside").textContent=num(n.primary)&&num(n.price)&&n.price>0?pct(n.primary/n.price-1):"N/D";
+  renderWeightSelector(d,$("methodWeightsFund"),result=>{const value=result.valid?cop(result.weighted):"N/D";$("selectedWeightedFund").textContent=value;$("weightedFund").textContent=value;});
   $("viewValuation").href="visor-colombia.html?"+q;
   $("openDCF").href="visor-colombia.html?"+q+"#valoracion";
   $("edit").href="colombia.html?"+q+"#research";
