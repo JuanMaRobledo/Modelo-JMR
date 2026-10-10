@@ -43,16 +43,17 @@ export function buildMethodCandidates(d) {
     defaultWeight:holding?10:24,defaultSelected:numeric(pb?.today),detail:pb?.status||"Múltiplo relativo; requiere anclas verificables."});
   options.push({id:"yield",name:dividend?.name||"Rendimiento por dividendo",value:dividend?.today,
     defaultWeight:holding?5:16,defaultSelected:numeric(dividend?.today),detail:dividend?.status||"Rendimiento exigido; pagos futuros pueden ser hipotéticos."});
-  for(const mth of m) {
-    if(mth===pb || mth===dividend) continue;
-    options.push({id:"mult:"+String(mth.name),name:mth.name,value:mth.today,
-      defaultWeight:0,defaultSelected:false,detail:mth.status||"Múltiplo secundario"});
-  }
   const industrialNames=["EV/EBITDA","EV/FCFF","P/E","P/FCFE","P/OCF"];
   for(const name of industrialNames) {
-    if (options.some(x=>x.name===name)) continue;
-    options.push({id:"mult:"+name,name,value:null,defaultWeight:0,defaultSelected:false,
-      detail:"N/D: faltan comparables homogéneos por participada y estados proforma auditados. Al incorporar datos verificables, se habilita este método."});
+    // Un método individual solo se activa con su propio denominador comparable.
+    // Una antigua fila combinada 'P/FCFE y P/OCF' NO habilita ambas metodologías.
+    const match = m.find(x => x !== pb && x !== dividend &&
+      (x.name===name || x.name.startsWith(name+" ") || x.name.startsWith(name+" look-through")));
+    const eligible = match && !/ y P\//i.test(match.name);
+    const value=eligible && numeric(match?.today)?match.today:null;
+    options.push({id:"mult:"+name,name,value,defaultWeight:0,defaultSelected:false,
+      detail:eligible && match?.status?match.status:
+      "N/D: faltan comparables homogéneos por participada. No se sustituye por cero ni por el propio DCF."});
   }
   if(holding) options.push({id:"issuer",name:"SOTP declarado por el emisor",value:o.sotpCheck?.managementNAVFebCOP ?? v.managementComparator?.perShare,
     defaultWeight:0,defaultSelected:false,detail:"Referencia gerencial externa; distinta fecha, metodología y posible correlación. No es un DCF independiente."});
