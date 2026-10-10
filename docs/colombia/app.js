@@ -877,7 +877,7 @@ function renderLibrary() {
     b.textContent = "Abrir expediente";
     b.onclick = () => open(d);
     const value = document.createElement("strong");
-    value.textContent = d.valuationSummary?.base != null ? "Intrínseco Base · " + fmt(d.valuationSummary.base) : d.valuationSummary?.navReference != null ? "NAV provisional · " + fmt(d.valuationSummary.navReference) : "Valoración pendiente";
+    value.textContent = d.valuationSummary?.dcfPrimaryMethod === "FCFF" && typeof d.valuationSummary?.dcfPrimaryIntrinsicPerShareCOP === "number" ? "FCFF Base estimativa · " + fmt(d.valuationSummary.dcfPrimaryIntrinsicPerShareCOP) + " (no certificada)" : d.valuationSummary?.base != null ? "NAV de mercado · " + fmt(d.valuationSummary.base) : d.valuationSummary?.navReference != null ? "NAV provisional · " + fmt(d.valuationSummary.navReference) : "Valoración pendiente";
     const research = document.createElement("button"); research.className = "btn"; research.textContent = "Análisis fundamental";
     research.onclick = () => { open(d); activate("research"); };
     b.textContent = d.reports?.valuation ? "Ver valoración" : "Abrir expediente";
