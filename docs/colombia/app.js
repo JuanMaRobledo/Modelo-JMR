@@ -193,7 +193,7 @@ function renderValuationStats() {
   const sotpMarket = typeof v.valuationOutput?.marketSotpPrimaryCOP === "number" ? v.valuationOutput.marketSotpPrimaryCOP : v.valuationOutput?.sotpCheck?.hybridNAVBaseCOP;
   const bookPure = v.valuationOutput?.bookValueProformaCOP;
   const isPrimaryFCFF = v.dcfPrimaryMethod === "FCFF";
-  const status = isHolding && typeof bookPure === "number" ? "SOTP + MÚLTIPLOS · BASE · NIIF y FCFF opcionales" : isPrimaryFCFF ? (typeof v.dcfPrimaryIntrinsicPerShareCOP === "number" ? "FCFF por negocios · estimación no certificada" : "FCFF operativo calculado · equity por PF pendiente") : (v.baseIsIntrinsic === false ? "SOTP híbrida estimada · NO DCF certificado" : (dossier.audit?.valuationReady ? "Modelo revisado · alcance limitado" : "Valoración incompleta o condicionada"));
+  const status = isHolding && typeof bookPure === "number" ? "SOTP ECONÓMICO + SECTORIALES · BASE CONDICIONAL" : isPrimaryFCFF ? (typeof v.dcfPrimaryIntrinsicPerShareCOP === "number" ? "FCFF por negocios · estimación no certificada" : "FCFF operativo calculado · equity por PF pendiente") : (v.baseIsIntrinsic === false ? "SOTP híbrida estimada · NO DCF certificado" : (dossier.audit?.valuationReady ? "Modelo revisado · alcance limitado" : "Valoración incompleta o condicionada"));
   const priceDate = v.priceDate || dossier.analysisDate;
   const numeric = x => typeof x === "number" && Number.isFinite(x);
   const cop = x => numeric(x) ? new Intl.NumberFormat("es-CO", {
@@ -231,11 +231,11 @@ function renderValuationStats() {
   const hero = el("div", "col-value-hero");
   if (isHolding && numeric(bookPure)) {
     hero.append(
-      box("VALOR BASE · SOTP + MÚLTIPLOS", v.primaryValueCOP ?? v.base, "60% SOTP + 40% múltiplos (P/B e yield históricos); una sola fecha postescisión.", "featured"),
-      box("SOTP mercado / NIIF · 60%", sotpMarket, "Valor de mercado de cotizadas y contable de privadas; distinto de libro puro."),
+      box("VALOR BASE · SOTP + COMPARABLES", v.primaryValueCOP ?? v.base, "60% SOTP económico + 40% EV/EBITDA por participada; estimación condicional.", "featured"),
+      box("SOTP ECONÓMICO MIXTO · 60%", sotpMarket, "Cotizadas a mercado y privadas con NAV gerencia/Colliers; resta caja y HQ."),
       box("SOTP DCF FCFF Base · secundario", v.dcfPrimaryIntrinsicPerShareCOP, "FCFF por negocio con WACC y puente patrimonial; supuestos no certificados")
     );
-    hero.append(box("Múltiplos ponderados · 40%", v.multiplesWeightedToday, "P/B PF 2025 e yield 2025; contable/DCF opcionales"));
+    hero.append(box("SECTOR EV/EBITDA · 40%", v.multiplesWeightedToday, "Cemento/energía FY2026 comparables, privadas NAV; libro y FCFF opcionales"));
     const choose = el("a", "col-value-note", "Seleccionar métodos y rebalancear pesos en el visor de Colombia →");
     choose.href = "visor-colombia.html?ticker=" + encodeURIComponent(dossier.ticker) + "#resumen";
     choose.style.display = "block";choose.style.marginTop = "10px";root.append(choose);
@@ -958,7 +958,7 @@ function renderLibrary() {
     b.textContent = "Abrir expediente";
     b.onclick = () => open(d);
     const value = document.createElement("strong");
-    value.textContent = d.valuationSummary?.dcfPrimaryMethod === "FCFF" && typeof d.valuationSummary?.dcfPrimaryIntrinsicPerShareCOP === "number" ? "FCFF Base estimativa · " + fmt(d.valuationSummary.dcfPrimaryIntrinsicPerShareCOP) + " (no certificada)" : d.valuationSummary?.base != null ? "Base JMR · " + fmt(d.valuationSummary.primaryValueCOP ?? d.valuationSummary.base) : d.valuationSummary?.navReference != null ? "NAV provisional · " + fmt(d.valuationSummary.navReference) : "Valoración pendiente";
+    value.textContent = d.instrument?.model === "holding" && typeof d.valuationSummary?.primaryValueCOP === "number" ? "Base SOTP + comparables · " + fmt(d.valuationSummary.primaryValueCOP) + " (condicional)" : d.valuationSummary?.dcfPrimaryMethod === "FCFF" && typeof d.valuationSummary?.dcfPrimaryIntrinsicPerShareCOP === "number" ? "FCFF Base estimativa · " + fmt(d.valuationSummary.dcfPrimaryIntrinsicPerShareCOP) + " (no certificada)" : d.valuationSummary?.base != null ? "Base JMR · " + fmt(d.valuationSummary.primaryValueCOP ?? d.valuationSummary.base) : d.valuationSummary?.navReference != null ? "NAV provisional · " + fmt(d.valuationSummary.navReference) : "Valoración pendiente";
     const research = document.createElement("button"); research.className = "btn"; research.textContent = "Análisis fundamental";
     research.onclick = () => { location.href = "fundamental-colombia.html?ticker=" + encodeURIComponent(d.ticker); };
     b.textContent = d.reports?.valuation ? "Ver en visor JMR" : "Abrir expediente";
@@ -968,7 +968,7 @@ function renderLibrary() {
     const cur = d.valuationSummary || {};
     const vals = [
       ["Múltiplos ponderados", cur.multiplesWeightedToday],
-      [cur.valuationOutput ? "DCF 60% + relativos 40%" : "Combinado relativo", cur.combinedWeightedToday]
+      [d.instrument?.model === "holding" ? "SOTP 60% + comparables 40%" : cur.valuationOutput ? "DCF 60% + relativos 40%" : "Combinado relativo", cur.combinedWeightedToday]
     ];
     for (const [label, amount] of vals) {
       const item = document.createElement("div"); item.className = "col-library-snapshot-item";
