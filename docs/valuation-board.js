@@ -170,7 +170,7 @@
     var vsDcf = dcf ? '<span>Frente al DCF Base <b>' + (ve.valor >= dcf ? '+' : '−') + Math.abs((ve.valor / dcf - 1) * 100).toFixed(0) + '%</b></span>' : '';
     return '<div class="jvb-ve">' +
       '<div class="jvb-vebar" aria-hidden="true">' + bar + '</div>' +
-      '<details class="jvb-vedet"><summary>Ver historias</summary><table class="jvb-vetab"><thead><tr><th>Historia</th><th>Prob.</th><th>US$/acción</th><th>vs. precio</th></tr></thead><tbody>' +
+      '<details class="jvb-vedet"><summary>Ver historias</summary><table class="jvb-vetab"><thead><tr><th>Historia</th><th>Prob.</th><th>' + (d.currency === 'COP' ? 'COP' : 'US$') + '/acción</th><th>vs. precio</th></tr></thead><tbody>' +
       rows + '</tbody></table></details>' +
       '<div class="jvb-meta">' + vsDcf + mos + '</div>' +
       '<p class="jvb-venote">El DCF base y el valor esperado son lecturas distintas; el valor esperado promedia todas las historias (cada una un DCF completo) según la probabilidad que les asigna el análisis. El margen de seguridad se aplica sobre el valor esperado' +

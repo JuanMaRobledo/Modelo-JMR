@@ -70,21 +70,22 @@ function buildBoard(d){
      fy3:numeric(m.year3)?{base:m.year3,conservador:null,optimista:null}:null};
  });
  const keys=["base","conservador","optimista"];
+ const wd=numeric(v.combinedWeights?.fcfe)?v.combinedWeights.fcfe:0.6; // bancos: peso del expediente (80/20)
  const multi={};const combined={};
  keys.forEach(k=>{
    if(!methodRows.length){multi[k]=null;combined[k]=null;return;}
    const valid=methodRows.filter(m=>numeric(m.hoy[k]));
    const den=valid.reduce((s,m)=>s+m.peso,0);
    multi[k]=den?valid.reduce((s,m)=>s+m.peso*m.hoy[k],0)/den:null;
-   combined[k]=numeric(multi[k])&&numeric(dcf[k])?0.6*dcf[k]+0.4*multi[k]:null;
+   combined[k]=numeric(multi[k])&&numeric(dcf[k])?wd*dcf[k]+(1-wd)*multi[k]:null;
  });
  const ke=v.holdingSotp?.assumptions?.holdingKe;
  const board={
   currency:"COP",precio:numeric(v.marketPrice)?v.marketPrice:d.quote?.price,
   precioLbl:"PF precio de análisis",mos:null,ke:numeric(ke)?ke:null,
-  dcf:{hoy:dcf,peso:0.6,fy3:canonical.dcfYear3ExDividend||null},
-  metodos:methodRows,mult:{hoy:multi,fy3:canonical.relativeYear3ExDividend||null,peso:0.4},
-  pond:{hoy:combined,fy3:canonical.weightedYear3ExDividend||null},ve:null,hist:null,
+  dcf:{hoy:dcf,peso:wd,fy3:canonical.dcfYear3ExDividend||null},
+  metodos:methodRows,mult:{hoy:multi,fy3:canonical.relativeYear3ExDividend||null,peso:1-wd},
+  pond:{hoy:combined,fy3:canonical.weightedYear3ExDividend||null},ve:numeric(canonical.dcfExpectedCOP)&&cases.length?{valor:canonical.dcfExpectedCOP,historiaCentralId:"A",historias:cases.map(c=>{const n=String(c.name).toLowerCase();return {id:/conserv/.test(n)?"B":/disru/.test(n)?"C":/optim/.test(n)?"D":"A",nombre:c.name,probabilidad:c.weight,valor:c.intrinsicPerPreferredShareCOP,roicTerminal:c.terminalRoe};})}:null,hist:null,
   hoja:v.sheetUrl||v.cleanMasterSheetUrl||""
  };
  return {output:board,methods:info,dcf};
@@ -118,8 +119,9 @@ function render(ticker){
  $("board").innerHTML=isSura ? '<p class="note">Grupo SURA: Base JMR = 60% SOTP económico (Cibest a bolsa + SURA AM y Suramericana por rendimientos excedentes) + 40% SOTP por P/E sectorial. El valor intrínseco Damodaran (RE/DDM de las tres participadas) se muestra aparte como DCF Base: es el único valor por flujos. Patrimonio contable y NAV look-through son referencias.</p>' : holding ? '<p class="note">Holding: Base publicado = SOTP económico 60% + SOTP de múltiplos sectoriales 40%. El selector permite rebalancear los métodos; libro y DCF FCFF aparecen por separado como opcionales. Los valores privados comparten referencias y no son DCF certificado.</p>' : output ? JmrValueBoard.html(output) : '<p class="note">El DCF principal todavía no está calculado.</p>';
  const cases=Array.isArray(v.dcfFcffIntrinsicScenarios)?v.dcfFcffIntrinsicScenarios:[];
  const suraRows=Array.isArray(v.holdingScenarioTable)?v.holdingScenarioTable:[];
- replaceTable("scenarios",isSura?["Historia","Probabilidad","Base 60/40 COP/acción","SOTP económico","SOTP múltiplos","Intrínseco RE"]:["Escenario","Probabilidad","DCF por PF (COP)","EV Cementos (millones COP)","EV Celsia (millones COP)"],
-  isSura?suraRows.map(c=>[c.name,pct(c.probability),cop(c.base6040COP),cop(c.sotpEconomicCOP),cop(c.sotpMultiplesCOP),cop(c.intrinsicRECOP)]):cases.map(c=>[c.name,pct(c.weight),cop(c.intrinsicPerPreferredShareCOP),n0(c.enterpriseValueCementosCOPm),n0(c.enterpriseValueCelsiaCOPm)]));
+ const argosCases=cases.some(c=>numeric(c.enterpriseValueCementosCOPm));
+ replaceTable("scenarios",isSura?["Historia","Probabilidad","Base 60/40 COP/acción","SOTP económico","SOTP múltiplos","Intrínseco RE"]:argosCases?["Escenario","Probabilidad","DCF por PF (COP)","EV Cementos (millones COP)","EV Celsia (millones COP)"]:["Escenario","Probabilidad","Valor por acción (COP)"],
+  isSura?suraRows.map(c=>[c.name,pct(c.probability),cop(c.base6040COP),cop(c.sotpEconomicCOP),cop(c.sotpMultiplesCOP),cop(c.intrinsicRECOP)]):argosCases?cases.map(c=>[c.name,pct(c.weight),cop(c.intrinsicPerPreferredShareCOP),n0(c.enterpriseValueCementosCOPm),n0(c.enterpriseValueCelsiaCOPm)]):cases.map(c=>[c.name,pct(c.weight),cop(c.intrinsicPerPreferredShareCOP)]));
  const all=methods.all;
  const missing=all.filter(m=>!numeric(m.today));
  replaceTable("unavailable",["Método","Valor","Explicación"],
