@@ -23,7 +23,7 @@ export function calculateWeights(methods, selected = {}, weights = {}) {
   });
   const denominator = rows.reduce((sum,m) => sum + (m.active ? m.rawWeight : 0), 0);
   const effective = rows.map(m => ({...m, effectiveWeight:denominator > 0 && m.active ? m.rawWeight / denominator : 0}));
-  const weighted = denominator > 0 ? effective.reduce((sum,m) => sum + m.value * m.effectiveWeight, 0) : null;
+  const weighted = denominator > 0 ? effective.reduce((sum,m) => sum + (m.effectiveWeight > 0 ? m.value * m.effectiveWeight : 0), 0) : null;
   return {rows:effective, weighted, weightTotal:denominator > 0 ? effective.reduce((s,m)=>s+m.effectiveWeight,0):0, valid:denominator>0};
 }
 
@@ -44,6 +44,8 @@ export function buildMethodCandidates(d) {
       {id:"EV_EBITDA",name:"EV/EBITDA industrial",value:null,defaultWeight:0,defaultSelected:false,detail:"No aplica al holding financiero consolidado."}
     ];
   }
+  // Bancos: el expediente declara sus pesos (p. ej. FCFE 80% + múltiplos 20%, P/B 65% / P/E 35%).
+  const cw = !holding && v.combinedWeights && v.multiplesWeights ? {fcfe:v.combinedWeights.fcfe, pb:v.combinedWeights.multiples*v.multiplesWeights.pb, pe:v.combinedWeights.multiples*v.multiplesWeights.pe} : null;
   const options = [
     {id:"book", name:"Valor contable NIIF pro forma", value:holding?c.book:null,
       defaultWeight:0,defaultSelected:false,
@@ -57,14 +59,14 @@ export function buildMethodCandidates(d) {
     {id:"sector_sotp", name:"SOTP por múltiplos sectoriales · EV/EBITDA", value:holding? (numeric(v.sectorSotpMultiplesCOP)?v.sectorSotpMultiplesCOP:null):null,
       defaultWeight:holding?40:0,defaultSelected:holding&&numeric(v.sectorSotpMultiplesCOP),
       detail:"Cemento y energía a peers 2026, Odinsa/Pactia NAV gerencial; no son rutas totalmente independientes. NCI y caja disponible pendientes."},
-    {id:"dcf", name:"DCF FCFF / SOTP por FCFF", value:c.base,
-      defaultWeight:holding?0:60,defaultSelected:!holding,
-      detail:"Suma de valores patrimoniales de flujos descontados. En holdings puede depender de estimaciones privadas."}
+    {id:"dcf", name:cw?"RE/FCFE financiero (después de capital regulatorio)":"DCF FCFF / SOTP por FCFF", value:c.base,
+      defaultWeight:cw?Math.round(cw.fcfe*100):holding?0:60,defaultSelected:!holding,
+      detail:cw?"Flujo al accionista después de retener capital regulatorio; Ke con prima país por cartera.":"Suma de valores patrimoniales de flujos descontados. En holdings puede depender de estimaciones privadas."}
   ];
   const m = Array.isArray(v.multiplesMethods)?v.multiplesMethods:[];
   const pb=m.find(x=>/P\/B|patrimonio/i.test(x.name)), dividend=m.find(x=>/dividend|dividendo|rendimiento/i.test(x.name));
   options.push({id:"pb",name:pb?.name||"P/B ajustado",value:pb?.today,
-    defaultWeight:holding?24:24,defaultSelected:!holding&&numeric(pb?.today),detail:pb?.status||"Múltiplo relativo; requiere anclas verificables."});
+    defaultWeight:cw?Math.round(cw.pb*100):24,defaultSelected:!holding&&numeric(pb?.today),detail:pb?.status||"Múltiplo relativo; requiere anclas verificables."});
   options.push({id:"yield",name:dividend?.name||"Rendimiento por dividendo",value:dividend?.today,
     defaultWeight:holding?16:16,defaultSelected:!holding&&numeric(dividend?.today),detail:dividend?.status||"Rendimiento exigido; pagos futuros pueden ser hipotéticos."});
   const industrialNames=["EV/EBITDA","EV/FCFF","P/E","P/FCFE","P/OCF"];
@@ -75,7 +77,8 @@ export function buildMethodCandidates(d) {
       (x.name===name || x.name.startsWith(name+" ") || x.name.startsWith(name+" look-through")));
     const eligible = match && !/ y P\//i.test(match.name);
     const value=eligible && numeric(match?.today)?match.today:null;
-    options.push({id:"mult:"+name,name,value,defaultWeight:0,defaultSelected:false,
+    const bankPe = cw && name==="P/E" && numeric(value);
+    options.push({id:"mult:"+name,name,value,defaultWeight:bankPe?Math.round(cw.pe*100):0,defaultSelected:bankPe,
       detail:eligible && match?.status?match.status:
       "N/D: faltan comparables homogéneos por participada. No se sustituye por cero ni por el propio DCF."});
   }
