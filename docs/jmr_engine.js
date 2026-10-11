@@ -148,8 +148,11 @@ function runFCFEDetalle(inp, growthY2to5, roeTarget, growthY1){
   // Con patrimonio contable (Damodaran, bancos): utilidad = ROE × patrimonio del año anterior y la
   // reinversión es el aumento del patrimonio que exige crecer; sin él, la versión anterior (utilidad × g / ROE).
   var bv0=f.bookEquity0, conPatrimonio=typeof bv0==='number' && bv0>0, bv=[conPatrimonio?bv0:null];
+  // ROE después del año 10 (criterio de ventaja, 11-oct-2026): f.terminalRoe > Ke terminal si la ventaja es durable
+  // ('DCF FCFE financiero'!B11); sin él (o 0), el ROE converge al Ke terminal y no hay rendimientos en exceso.
+  var rt=(conPatrimonio && typeof f.terminalRoe==='number' && f.terminalRoe>0)?f.terminalRoe:kt;
   for(var y=1;y<=10;y++){
-    roe[y]=y<=5?roeTarget:roeTarget+(kt-roeTarget)*(y-5)/5;
+    roe[y]=y<=5?roeTarget:roeTarget+(rt-roeTarget)*(y-5)/5;
     if(conPatrimonio){
       ni[y]=roe[y]*bv[y-1];
       reinv[y]=bv[y-1]*Math.max(0,g[y]);
@@ -161,11 +164,12 @@ function runFCFEDetalle(inp, growthY2to5, roeTarget, growthY1){
     fcfe[y]=ni[y]-reinv[y];
     disc[y]=(y===1?1:disc[y-1])/(1+rate[y]);pv+=fcfe[y]*disc[y];
   }
-  // En perpetuidad el ROE es el Ke terminal: el valor terminal es el patrimonio contable del año 10.
-  var terminalNI=conPatrimonio?kt*bv[10]:ni[10]*(1+gt), terminalFCFE=terminalNI*(1-gt/kt);
+  // En perpetuidad el ROE es el terminal (por defecto el Ke terminal: el valor terminal es el patrimonio contable del
+  // año 10); con un ROE terminal mayor, VT = patrimonio₁₀ × (ROE − g)/(Ke − g).
+  var terminalNI=conPatrimonio?rt*bv[10]:ni[10]*(1+gt), terminalFCFE=terminalNI*(1-gt/(conPatrimonio?rt:kt));
   var terminalValue=terminalFCFE/(kt-gt), equity=pv+terminalValue*disc[10];
   return {valuePerShare:equity/inp.shares0,growth:g,netIncome:ni,roe:roe,bookEquity:bv,terminalNetIncome:terminalNI,
-    reinvestment:reinv,fcfe:fcfe,wacc:rate,terminalValue:terminalValue,
+    reinvestment:reinv,fcfe:fcfe,wacc:rate,terminalValue:terminalValue,terminalRoe:rt,
     sumPV:equity,valueOpAssets:null,equityValue:equity,method:'DCF FCFE financiero'};
 }
 function runDCF(inp, growthY2to5, marginTarget, growthY1, marginY1){
@@ -499,7 +503,7 @@ function insumosDesdeHoja(celda){
       roeBase:n('DCF FCFE financiero','D5'),roeOpt:n('DCF FCFE financiero','E5'),
       terminalKe:n('DCF FCFE financiero','B4'),terminalGrowth:n('DCF FCFE financiero','B5'),
       baseWacc:n('DCF FCFE financiero','B8'),equityWeight:n('DCF FCFE financiero','B9'),
-      bookEquity0:n('DCF FCFE financiero','B12')};
+      bookEquity0:n('DCF FCFE financiero','B12'),terminalRoe:n('DCF FCFE financiero','B11')};
   }
   if(!inp.daRatiosHist.every(function(x){ return typeof x === 'number' && isFinite(x); })) inp.daRatiosHist = null;
   // Cada escenario tiene su bloque en 'Financials Multiples' (filas 4, 43 y 83) con sus propias razones.
