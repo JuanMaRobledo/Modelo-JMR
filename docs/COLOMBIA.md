@@ -6,6 +6,14 @@ CSV y un Excel de datos; prepara los dos prompts Colombia; incorpora informes
 Markdown con identidad; guarda expedientes en el navegador y, mediante
 autorización explícita, en `Modelo-JMR-datos/colombia/expedientes/`.
 
+## Revisión r5 · corte 30-sep-2026 (igual que la cartera de EE.UU.)
+
+- Valor principal = DCF Base intrínseco (Damodaran): RE/DDM o FCFE en bancos, SOTP intrínseco en holdings (Grupo Argos: FCFF de
+  Cementos Argos y Celsia en la pestaña «CO 15 DCF Damodaran»). Esperado por probabilidades y precio de compra con MOS 35%.
+- Múltiplos, SOTP de mercado y el antiguo 60/40 son secundarios; ponderado secundario 40% DCF + 60% múltiplos.
+- Corte común: cierres BVC del 30-sep-2026, ERP implícita oct-2026 3,70% + prima país, Rf COP = TES − spread soberano.
+- Controles y lectura de foso: `Modelo-JMR-datos/colombia/auditorias/corte-20260930-r5/` (`controles_r5.py`, `foso_colombia.json`).
+
 ## Separación
 
 - API propia: `/api/colombia?ticker=ECOPETROL.CL`.

@@ -103,7 +103,8 @@ function render(ticker){
  const holding = canonical.holding;
  const isSura = d.ticker === "GRUPOSURA.CL" || d.ticker === "PFGRUPSURA.CL";
  $("holdingPrimaryMetrics").hidden=!holding;
- $("primaryLabel").textContent=isSura?"Holding financiero · Base 60/40 (SOTP económico + múltiplos)":holding?"Holding · valor Base SOTP + múltiplos":"Modelo JMR Colombia · métodos de valoración";
+ $("holdingPrimaryMetrics").hidden=!(holding||canonical.intrinsic);
+ $("primaryLabel").textContent=canonical.intrinsic?canonical.primaryLabel:isSura?"Holding financiero · Base 60/40 (SOTP económico + múltiplos)":holding?"Holding · valor Base SOTP + múltiplos":"Modelo JMR Colombia · métodos de valoración";
  safeText("primaryValue",cop(canonical.primary));
  safeText("bookValue",cop(canonical.book));
  safeText("primaryUpside",numeric(v.marketPrice)&&v.marketPrice>0&&numeric(canonical.primary)?pct(canonical.primary/v.marketPrice-1):"N/D");
@@ -115,12 +116,13 @@ function render(ticker){
  const {output,methods,dcf}=buildBoard(d);
  safeText("dcfBase",cop(numeric(canonical.base)?canonical.base:dcf.base));
  safeText("dcfExp",cop(canonical.expected));
+ safeText("mosPrice",numeric(canonical.precioMOS)?"Precio de compra con MOS "+pct(canonical.mos??0.35)+" sobre el esperado: "+cop(canonical.precioMOS):"Probabilidades declaradas por el analista");
  safeText("pDcf",numeric(v.marketPrice)&&numeric(dcf.base)&&dcf.base>0?(v.marketPrice/dcf.base).toFixed(2).replace(".",",")+"×":"N/D");
- $("board").innerHTML=isSura ? '<p class="note">Grupo SURA: Base JMR = 60% SOTP económico (Cibest a bolsa + SURA AM y Suramericana por rendimientos excedentes) + 40% SOTP por P/E sectorial. El valor intrínseco Damodaran (RE/DDM de las tres participadas) se muestra aparte como DCF Base: es el único valor por flujos. Patrimonio contable y NAV look-through son referencias.</p>' : holding ? '<p class="note">Holding: Base publicado = SOTP económico 60% + SOTP de múltiplos sectoriales 40%. El selector permite rebalancear los métodos; libro y DCF FCFF aparecen por separado como opcionales. Los valores privados comparten referencias y no son DCF certificado.</p>' : output ? JmrValueBoard.html(output) : '<p class="note">El DCF principal todavía no está calculado.</p>';
+ $("board").innerHTML=canonical.intrinsic&&(isSura||holding) ? (isSura ? '<p class="note">Grupo SURA (r5): el valor principal es el intrínseco Damodaran (RE/DDM de Cibest, SURA AM y Suramericana), igual que en la cartera de EE.UU. El SOTP de mercado (Cibest a bolsa), el 60/40 anterior y los múltiplos por P/E sectorial son lecturas secundarias; el ponderado secundario es 40% intrínseco + 60% múltiplos.</p>' : '<p class="note">Holding (r5): el valor principal es el SOTP intrínseco Damodaran (filiales por FCFF y privadas a valores fechados), igual que en la cartera de EE.UU. El SOTP de mercado y los múltiplos sectoriales son secundarios; el ponderado secundario es 40% DCF + 60% múltiplos.</p>') : isSura ? '<p class="note">Grupo SURA: Base JMR = 60% SOTP económico (Cibest a bolsa + SURA AM y Suramericana por rendimientos excedentes) + 40% SOTP por P/E sectorial. El valor intrínseco Damodaran (RE/DDM de las tres participadas) se muestra aparte como DCF Base: es el único valor por flujos. Patrimonio contable y NAV look-through son referencias.</p>' : holding ? '<p class="note">Holding: Base publicado = SOTP económico 60% + SOTP de múltiplos sectoriales 40%. El selector permite rebalancear los métodos; libro y DCF FCFF aparecen por separado como opcionales. Los valores privados comparten referencias y no son DCF certificado.</p>' : output ? JmrValueBoard.html(output) : '<p class="note">El DCF principal todavía no está calculado.</p>';
  const cases=Array.isArray(v.dcfFcffIntrinsicScenarios)?v.dcfFcffIntrinsicScenarios:[];
  const suraRows=Array.isArray(v.holdingScenarioTable)?v.holdingScenarioTable:[];
  const argosCases=cases.some(c=>numeric(c.enterpriseValueCementosCOPm));
- replaceTable("scenarios",isSura?["Historia","Probabilidad","Base 60/40 COP/acción","SOTP económico","SOTP múltiplos","Intrínseco RE"]:argosCases?["Escenario","Probabilidad","DCF por PF (COP)","EV Cementos (millones COP)","EV Celsia (millones COP)"]:["Escenario","Probabilidad","Valor por acción (COP)"],
+ replaceTable("scenarios",isSura?["Historia","Probabilidad","Ponderado 60/40 (referencia)","SOTP económico","SOTP múltiplos","Intrínseco RE · principal"]:argosCases?["Escenario","Probabilidad","DCF por PF (COP)","EV Cementos (millones COP)","EV Celsia (millones COP)"]:["Escenario","Probabilidad","Valor por acción (COP)"],
   isSura?suraRows.map(c=>[c.name,pct(c.probability),cop(c.base6040COP),cop(c.sotpEconomicCOP),cop(c.sotpMultiplesCOP),cop(c.intrinsicRECOP)]):argosCases?cases.map(c=>[c.name,pct(c.weight),cop(c.intrinsicPerPreferredShareCOP),n0(c.enterpriseValueCementosCOPm),n0(c.enterpriseValueCelsiaCOPm)]):cases.map(c=>[c.name,pct(c.weight),cop(c.intrinsicPerPreferredShareCOP)]));
  const all=methods.all;
  const missing=all.filter(m=>!numeric(m.today));
@@ -134,13 +136,22 @@ function render(ticker){
  const mainSotp=sc.find(s=>s.name==="Base")||{};
  const nav=numeric(v.valuationOutput?.marketSotpPrimaryCOP)?v.valuationOutput.marketSotpPrimaryCOP:(numeric(v.valuationOutput?.sotpCheck?.hybridNAVBaseCOP)?v.valuationOutput.sotpCheck.hybridNAVBaseCOP:v.base);
  for(const [label,value] of [
+  ...(canonical.intrinsic?[
+  [isSura?"VALOR INTRÍNSECO DAMODARAN · RE/DDM · PRINCIPAL":"DCF BASE · SOTP INTRÍNSECO DAMODARAN · PRINCIPAL",canonical.base],
+  ["DCF ESPERADO · COMPLEMENTO",canonical.expected],
+  ["PRECIO DE COMPRA · MOS 35% SOBRE EL ESPERADO",canonical.precioMOS],
+  [isSura?"SOTP ECONÓMICO · CIBEST A BOLSA · REFERENCIA":"SOTP DE MERCADO · REFERENCIA",nav],
+  [isSura?"SOTP P/E SECTORIAL POR PARTICIPADA · SECUNDARIO":"MÚLTIPLOS SECTORIALES · SECUNDARIO",v.multiplesWeightedToday],
+  ["PONDERADO SECUNDARIO · 40% DCF + 60% MÚLTIPLOS",v.combinedWeightedToday],
+  [isSura?"PATRIMONIO CONSOLIDADO CONTROLADOR · REFERENCIA":"VALOR CONTABLE NIIF PRO FORMA · REFERENCIA",canonical.book]
+  ]:[
   [isSura?"PATRIMONIO CONSOLIDADO CONTROLADOR · REFERENCIA":"VALOR CONTABLE NIIF PRO FORMA · OPCIONAL",canonical.book],
   [isSura?"NAV CONTABLE LOOK-THROUGH · CONTRASTE":"SOTP MERCADO / NIIF · PRINCIPAL",isSura?v.valuationOutput?.bookLookThroughCOP:nav],
   ...(isSura?[["SOTP ECONÓMICO · CIBEST A BOLSA + RE PRIVADAS · 60%",nav]]:[]),
   [isSura?"VALOR INTRÍNSECO DAMODARAN · RE/DDM (no ponderado)":"SOTP FCFF (patrimonio atribuible) · método secundario",mainSotp.valuePerPreferredShareCOP ?? v.valuationOutput?.dcfBaseCOP],
   ["NAV de la gerencia febrero 2026 · distinto método y fecha",v.valuationOutput?.sotpCheck?.managementNAVFebCOP],
   [isSura?"SOTP P/E SECTORIAL POR PARTICIPADA · 40%":"Múltiplos ponderados · PRINCIPAL",v.multiplesWeightedToday],
-  [isSura?"VALOR BASE JMR · 60%/40% (CONDICIONADO)":"VALOR BASE SOTP + SECTOR · 60%/40%",v.primaryValueCOP ?? v.combinedWeightedToday]
+  [isSura?"VALOR BASE JMR · 60%/40% (CONDICIONADO)":"VALOR BASE SOTP + SECTOR · 60%/40%",v.primaryValueCOP ?? v.combinedWeightedToday]])
  ]){
   const el=document.createElement("div");el.className="metric";
   const l=document.createElement("small");l.textContent=label;

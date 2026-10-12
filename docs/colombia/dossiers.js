@@ -49,10 +49,15 @@ export function valuationNumbers(d) {
   const isSura = d?.ticker === "GRUPOSURA.CL" || d?.ticker === "PFGRUPSURA.CL";
   const marketSotp = typeof o.marketSotpPrimaryCOP === "number" ? o.marketSotpPrimaryCOP : typeof o.sotpCheck?.hybridNAVBaseCOP === "number" ? o.sotpCheck.hybridNAVBaseCOP : s.base;
   const book = typeof o.bookValueProformaCOP === "number" ? o.bookValueProformaCOP : null;
+  const intrinsic = s.baseIsIntrinsic === true;
+  const dcfBase = typeof o.dcfBaseCOP === "number" ? o.dcfBaseCOP : s.dcfPrimaryIntrinsicPerShareCOP;
   return {
     holding,
-    primary: holding ? (typeof s.primaryValueCOP === 'number' ? s.primaryValueCOP : (book !== null ? book : marketSotp)) : (typeof o.dcfBaseCOP === "number" ? o.dcfBaseCOP : s.dcfPrimaryIntrinsicPerShareCOP),
-    primaryLabel: isSura ? "Base 60/40 · SOTP económico + múltiplos" : holding ? (/SOTP_(MULTIPLES|ECONOMIC_SECTOR_PEER)_BLEND/.test(s.primaryValueMethod || "") ? 'Valor Base SOTP + múltiplos' : 'Valor contable NIIF pro forma') : "Valor intrínseco DCF",
+    intrinsic,
+    mos: typeof s.mos === "number" ? s.mos : null,
+    precioMOS: typeof s.precioMOS === "number" ? s.precioMOS : null,
+    primary: intrinsic ? dcfBase : holding ? (typeof s.primaryValueCOP === 'number' ? s.primaryValueCOP : (book !== null ? book : marketSotp)) : (typeof o.dcfBaseCOP === "number" ? o.dcfBaseCOP : s.dcfPrimaryIntrinsicPerShareCOP),
+    primaryLabel: intrinsic ? "DCF Base · valor intrínseco principal (Damodaran)" : isSura ? "Base 60/40 · SOTP económico + múltiplos" : holding ? (/SOTP_(MULTIPLES|ECONOMIC_SECTOR_PEER)_BLEND/.test(s.primaryValueMethod || "") ? 'Valor Base SOTP + múltiplos' : 'Valor contable NIIF pro forma') : "Valor intrínseco DCF",
     marketSotp: holding ? marketSotp : null,
     book,
     base: typeof o.dcfBaseCOP === "number" ? o.dcfBaseCOP : s.dcfPrimaryIntrinsicPerShareCOP,
