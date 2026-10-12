@@ -46,3 +46,19 @@ test('Colombia workspace is subordinate to Colombia, with the same viewers',()=>
  assert.match(a.nodes['jmr-market-nav'].innerHTML,/Datos y expedientes/);
  assert.match(a.nodes['jmr-market-nav'].innerHTML,/research.html\?mercado=colombia/);
 });
+test('portfolio, journal and calculator preserve the market across navigation',()=>{
+ for(const page of ['portafolio.html','mi-bitacora.html','calculadora.html']) {
+   const a=app('https://jmr.test/'+page+'?mercado=colombia');
+   assert.match(a.heading.textContent,/Colombia/);
+   assert.match(a.nav.innerHTML,new RegExp('href="'+page.replace('.','\\.')+'\\?mercado=colombia"[^>]*aria-current="page"'));
+   for(const destination of ['visor.html','research.html','portafolio.html','mi-bitacora.html']) {
+     assert.ok(a.nodes['jmr-market-nav'].innerHTML.includes(destination+'?mercado=colombia'));
+   }
+ }
+});
+test('joined portfolio and derived journal records retain Colombian metadata',()=>{
+ const w=app('https://jmr.test/portafolio.html?mercado=colombia').window;
+ for(const r of [{ticker:'NEW',visor:{currency:'COP'}},{ticker:'NEW',valoracionActual:{market:'BVC'}},{ticker:'NEW',research:{market:'CO'}}]) assert.equal(w.jmrDelMercado(r),true);
+ assert.equal(w.jmrMercadoHref('research.html?ticker=NEW',{ticker:'NEW',currency:'COP'}),'research.html?ticker=NEW&mercado=colombia');
+ assert.equal(w.jmrMercadoHref('research.html?ticker=EC',{ticker:'EC',currency:'USD'}),'research.html?ticker=EC');
+});

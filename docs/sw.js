@@ -1,10 +1,11 @@
-const CACHE = "modelo-jmr-v146-mercados-ordenados";
+const CACHE = "modelo-jmr-v147-mercados-completos";
 const APP_SHELL = [
   "index.html",
   "colombia.html",
   "colombia/app.js",
   "colombia/core.js",
   "colombia/catalog.js",
+  "prompts/colombia-nucleo-v1.md",
   "prompts/colombia-research-v1.md",
   "prompts/colombia-valuation-v1.md",
   "visor.html",

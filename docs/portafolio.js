@@ -249,7 +249,7 @@
 
   function visorBlockHtml(entry) {
     var r = entry.visor;
-    if (!r) return '<div class="port-empty">Sin valoración guardada en el Visor. <a href="visor.html">Crear una →</a></div>';
+    if (!r) return '<div class="port-empty">Sin valoración guardada en el Visor. <a href="' + jmrMercadoHref('visor.html') + '">Crear una →</a></div>';
     var precio = typeof r.precio === 'number' ? r.precio : null;
     var dm=r.descuentoMultiples||{}, mw=0, multiples={conservador:0,base:0,optimista:0};
     (r.metodos||[]).forEach(function(m){if(/DCF/i.test(m.nombre||''))return;var w=Number(m.peso)||0;mw+=w;Object.keys(multiples).forEach(function(k){multiples[k]+=w*(Number(m[k])||0);});});
@@ -267,12 +267,12 @@
 
   function researchBlockHtml(entry) {
     var r = entry.research;
-    if (!r) return '<div class="port-empty">Sin análisis fundamental guardado. <a href="research.html">Crear uno →</a></div>';
+    if (!r) return '<div class="port-empty">Sin análisis fundamental guardado. <a href="' + jmrMercadoHref('research.html') + '">Crear uno →</a></div>';
     var excerpt = excerptFromHtml(r.html);
     return '' +
       '<div class="port-kv-row"><span class="port-fecha">' + escapeHtml(r.title || 'Tesis fundamental') + '</span></div>' +
       (excerpt ? '<p class="port-text">' + escapeHtml(excerpt) + '</p>' : '') +
-      '<p><a class="port-link" href="research.html?ticker=' + encodeURIComponent(entry.ticker) + '">Ver análisis completo →</a></p>';
+      '<p><a class="port-link" href="' + jmrMercadoHref('research.html?ticker=' + encodeURIComponent(entry.ticker), entry) + '">Ver análisis completo →</a></p>';
   }
 
   function cardHtml(entry) {
@@ -294,14 +294,15 @@
   var ALL = [];
   function render() {
     var q = normalizeText(el('portSearch').value);
-    var list = q ? ALL.filter(function (e) { return entrySearchText(e).indexOf(q) >= 0; }) : ALL;
+    var scoped = ALL.filter(jmrDelMercado);
+    var list = q ? scoped.filter(function (e) { return entrySearchText(e).indexOf(q) >= 0; }) : scoped;
     var holder = el('portList');
     if (!list.length) {
-      holder.innerHTML = '<div class="port-empty-state">' + (ALL.length ? 'Ningún ticker coincide con la búsqueda.' : 'No se pudo cargar ninguna fuente de datos todavía.') + '</div>';
+      holder.innerHTML = '<div class="port-empty-state">' + (scoped.length ? 'Ningún ticker coincide con la búsqueda.' : 'No hay registros en este mercado todavía.') + '</div>';
     } else {
       holder.innerHTML = list.map(cardHtml).join('');
     }
-    el('portStatus').textContent = list.length + ' de ' + ALL.length + ' tickers · combina Mi Bitácora, la Bitácora externa, el Visor y Análisis Fundamental por ticker';
+    el('portStatus').textContent = list.length + ' de ' + scoped.length + ' tickers · ' + (JMR_MERCADO === 'colombia' ? 'Colombia' : 'Internacionales') + ' · Mi Bitácora, valoraciones y análisis';
   }
 
   function boot() {

@@ -1162,7 +1162,7 @@
     btn.disabled=true;remoteDelete(rec).then(function(){setLocalLibrary(list.filter(function(r){return r.id!==rec.id;}));renderLibrary();}).catch(function(err){btn.disabled=false;setStatus('libraryStatus','No se pudo borrar: '+err.message,'bad');});
   });
   el('syncBtn').addEventListener('click',function(){var btn=this;btn.disabled=true;setStatus('libraryStatus','Sincronizando…');syncRemote().then(function(n){setStatus('libraryStatus','Sincronización completa: '+n+' análisis.','ok');return pushLocalOnlyToRemote();}).catch(function(err){setStatus('libraryStatus',err.message,'bad');}).finally(function(){btn.disabled=false;});});
-  el('exportLibraryBtn').addEventListener('click',function(){download('modelo-jmr-research-'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(getLocalLibrary(),null,2),'application/json');});
+  el('exportLibraryBtn').addEventListener('click',function(){download('modelo-jmr-research-'+JMR_MERCADO+'-'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(getLocalLibrary().filter(jmrDelMercado),null,2),'application/json');});
   el('importLibraryInput').addEventListener('change',function(){var file=this.files&&this.files[0];if(!file)return;file.text().then(function(text){var incoming=JSON.parse(text);if(!Array.isArray(incoming))throw new Error('El respaldo no contiene una biblioteca válida.');var map={};getLocalLibrary().concat(incoming).forEach(function(r){if(r&&r.id)map[r.id]=r;});setLocalLibrary(Object.keys(map).map(function(k){return map[k];}));renderLibrary();setStatus('libraryStatus','Respaldo importado.','ok');}).catch(function(err){setStatus('libraryStatus','No se pudo importar: '+err.message,'bad');});this.value='';});
 
   // Comparar dos empresas/competidores lado a lado: reutiliza el mismo
@@ -1222,7 +1222,12 @@
   };
   var promptKind = 'research', defaultPrompts = {};
   try { if (localStorage.getItem('jmr-prompt-kind') === 'valuation') promptKind = 'valuation'; } catch (e) {}
-  function currentPrompt(){ return PROMPTS[promptKind]; }
+  var CO_PROMPTS = {
+    research: { file: 'prompts/colombia-research-v1.md', key: 'jmr-colombia-research-prompt-v1', download: 'JMR-Colombia-Research.md', title: 'Prompt de análisis fundamental · Colombia', btn: 'promptKindResearch', help: 'Análisis de acciones colombianas con fuentes del emisor y contexto local.', note: 'Núcleo Colombia, unidades y moneda del expediente; misma estructura de análisis.' },
+    valuation: { file: 'prompts/colombia-valuation-v1.md', key: 'jmr-colombia-valuation-prompt-v1', download: 'JMR-Colombia-Valoracion.md', title: 'Prompt de valoración · Colombia', btn: 'promptKindValuation', help: 'Valoración por sector: empresas operativas, entidades financieras y holdings.', note: 'Conserva COP, fecha de análisis, fuentes y conciliaciones del expediente Colombia.' }
+  };
+  function currentPrompt(){ return (JMR_MERCADO === 'colombia' ? CO_PROMPTS : PROMPTS)[promptKind]; }
+  document.addEventListener('jmr-market-change', function(){defaultPrompts={};renderLibrary();populateCompareSelects();loadPrompt(false);});
   // Bloques obligatorios (2-oct-2026) que se agregan a un prompt guardado que no los tenga, en el orden del vigente.
   var REQUIRED_BLOCKS = ['JMR-HORIZONTES-OBLIGATORIOS-20261002', 'JMR-FORMULA-UNICA-20261002', 'JMR-DESDE-CERO-20261006'];
   function withRequiredHorizons(saved, current) {
@@ -1253,9 +1258,10 @@
     Object.keys(PROMPTS).forEach(function(k){ var b = el(PROMPTS[k].btn); b.classList.toggle('primary', k === promptKind); b.setAttribute('aria-pressed', String(k === promptKind)); });
   }
   function loadPrompt(force) {
-    var kind = promptKind, p = PROMPTS[kind];
+    var kind = promptKind, market = JMR_MERCADO, p = currentPrompt();
     showPromptMeta();
-    fetch(p.file,{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.text();}).then(function(text){if(kind!==promptKind)return;defaultPrompts[kind]=text;var saved='';try{saved=localStorage.getItem(p.key)||'';var revised=withRequiredHorizons(saved,text);if(revised!==saved){saved=revised;localStorage.setItem(p.key,saved);}}catch(e){}el('promptText').value=force||!saved?text:saved;setStatus('promptStatus','','');}).catch(function(err){setStatus('promptStatus','No se pudo cargar el prompt: '+err.message,'bad');});
+    var files = market === 'colombia' ? ['prompts/colombia-nucleo-v1.md', p.file] : [p.file];
+    Promise.all(files.map(function(file){return fetch(file,{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.text();});})).then(function(parts){var text=parts.join('\n\n');if(kind!==promptKind||market!==JMR_MERCADO)return;defaultPrompts[kind]=text;var saved='';try{saved=localStorage.getItem(p.key)||'';var revised=withRequiredHorizons(saved,text);if(revised!==saved){saved=revised;localStorage.setItem(p.key,saved);}}catch(e){}el('promptText').value=force||!saved?text:saved;setStatus('promptStatus','','');}).catch(function(err){setStatus('promptStatus','No se pudo cargar el prompt: '+err.message,'bad');});
   }
   Object.keys(PROMPTS).forEach(function(k){ el(PROMPTS[k].btn).addEventListener('click', function(){ if (k === promptKind) return; promptKind = k; try { localStorage.setItem('jmr-prompt-kind', k); } catch (e) {} loadPrompt(false); }); });
   el('copyPromptBtn').addEventListener('click',function(){navigator.clipboard.writeText(el('promptText').value).then(function(){setStatus('promptStatus','Prompt copiado.','ok');}).catch(function(){el('promptText').select();document.execCommand('copy');setStatus('promptStatus','Prompt copiado.','ok');});});
