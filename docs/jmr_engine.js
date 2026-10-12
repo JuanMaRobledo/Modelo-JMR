@@ -130,9 +130,38 @@ function runDCFDetalle(inp, growthY2to5, marginTarget, growthY1, marginY1){
 
   // Acciones preferentes separadas ('Input sheet'!B76): se restan como en 'Valuation output'!B33 (1-oct-2026).
   var equityValue = valueOpAssets - inp.debt - (inp.minorityInterests||0) + inp.cash + (inp.nonOperatingAssets||0) - (inp.optionsValue||0) - (inp.preferredStock||0);
-  return {valuePerShare: equityValue/inp.shares0, growth: g, margin: m, revenue: rev, ebit: ebit, ebit1t: ebit1t,
+  var detalle = {valuePerShare: equityValue/inp.shares0, growth: g, margin: m, revenue: rev, ebit: ebit, ebit1t: ebit1t,
           reinvestment: reinvest, fcff: fcff, wacc: wacc, terminalValue: terminalValue, sumPV: sumPV,
           valueOpAssets: valueOpAssets, equityValue: equityValue};
+  detalle.valorCrecimiento = valorDelCrecimiento(inp, detalle, waccTerminal, roicTerminal);
+  return detalle;
+}
+
+// Valor del crecimiento (Damodaran, 'Stories to Numbers' de fcffginzu): cuánto del valor operativo viene de los activos
+// actuales y cuánto de crecer. Activos actuales = NOPAT del año base / costo de capital estable (sin crecimiento);
+// valor del crecimiento = suma del valor presente de los flujos (antes de la probabilidad de fracaso) menos eso.
+// Con capital invertido inicial (inp.investedCapital0) agrega el ROIC de cada año (NOPAT / capital del año anterior,
+// como la fila ROIC de 'Valuation output') y su diferencia con el costo de capital. Solo informa: no cambia el valor.
+function valorDelCrecimiento(inp, d, waccTerminal, roicTerminal){
+  // EBIT(1-t) del año base ('Valuation output'!B9): solo se grava si el EBIT es positivo.
+  var nopat0 = (typeof inp.nopatBase === 'number' && isFinite(inp.nopatBase)) ? inp.nopatBase
+             : (inp.ebit0 > 0 ? inp.ebit0 * (1 - inp.taxEffective) : inp.ebit0);
+  var enSitio = nopat0 > 0 ? nopat0 / waccTerminal : 0;           // sin utilidad actual no hay activos que valorar
+  var total = d.sumPV;
+  var r = {nopat0: nopat0, activosActuales: enSitio, valorCrecimiento: total - enSitio, valorOperativo: total,
+           pctCrecimiento: total ? (total - enSitio) / total : null, waccTerminal: waccTerminal};
+  var nop5 = 0, rei5 = 0;
+  for(var n=1;n<=5;n++){ nop5 += d.ebit1t[n]; rei5 += d.reinvestment[n]; }
+  r.tasaReinversion1a5 = nop5 ? rei5 / nop5 : null;
+  if(inp.investedCapital0 > 0){
+    var ic = inp.investedCapital0, roic = new Array(11), wsum = 0, rsum = 0;
+    for(var n=1;n<=10;n++){ roic[n] = d.ebit1t[n] / ic; ic += d.reinvestment[n]; rsum += roic[n]; wsum += d.wacc[n]; }
+    r.roic = roic;
+    r.roicPromedio = rsum / 10;
+    r.spreadRoicWacc = (rsum - wsum) / 10;                        // ROIC promedio años 1-10 menos WACC promedio años 1-10
+    r.spreadTerminal = roicTerminal - waccTerminal;               // 0 si el ROIC terminal es el costo de capital
+  }
+  return r;
 }
 // Financieras: el flujo distribuible pertenece al accionista. Los depósitos y
 // la liquidez operativa no se restan/suman como deuda y caja de una industrial.
@@ -461,6 +490,10 @@ function insumosDesdeHoja(celda){
   var si = function(h, a){ var v = String(celda(h, a) == null ? '' : celda(h, a)).trim().toLowerCase(); return v === 'yes' || v === 'sí' || v === 'si'; };
   var z = function(v){ return v == null ? 0 : v; };
   var rf = n(IS, 'B35'), tw = n(VO, 'M14');
+  // Interruptor «convergencia gradual del capital nuevo (años 6-10)»: fila 120 de la maestra. Las hojas anteriores al
+  // control de arrendamientos (12-oct-2026) lo tenían en B78, que ahora es el solapamiento de arrendamientos (un
+  // número), así que B78 solo cuenta si todavía contiene el texto Yes/Sí. Ver scripts/migrar_interruptor_s2c.py.
+  var capitalGradual = si(IS, 'B120') || si(IS, 'B78');
   var e4 = n(FM, 'E4'), d4 = n(FM, 'D4'), dRev = (e4 != null && d4 != null) ? e4 - d4 : null;
   var inp = {
     precioActual: n(IS, 'D1') || n(IS, 'B23'),
@@ -477,8 +510,9 @@ function insumosDesdeHoja(celda){
     terminalGrowth: n(VO, 'M4'),
     roicTerminal: si(IS, 'B49') ? z(n(IS, 'B50')) : 0,
     convergenceYear: n(IS, 'B31'),
-    salesToCapital: n(VO, 'C40'), salesToCapital2: si(IS, 'B78') ? n(IS, 'B33') : n(VO, 'H40'),
-    smoothTerminalCapital: si(IS, 'B78'),
+    salesToCapital: n(VO, 'C40'), salesToCapital2: capitalGradual ? n(IS, 'B33') : n(VO, 'H40'),
+    smoothTerminalCapital: capitalGradual,
+    investedCapital0: n(VO, 'B41'), nopatBase: n(VO, 'B9'),
     reinvestLag: si(IS, 'B57') ? n(IS, 'B58') : 1,
     costoPatrimonio: n('Cost of capital worksheet', 'B63'),
     growthY1Cons: n(VO, 'C55'), growthCons: n(VO, 'D55'), marginY1Cons: n(VO, 'C57'), marginCons: n(VO, 'C45'),
@@ -549,4 +583,4 @@ function insumosDesdeHoja(celda){
 if(typeof module !== 'undefined') module.exports = {calcularModeloJMR: calcularModeloJMR, JMR_WEIGHTS: JMR_WEIGHTS,
   valorPresenteMultiplo: valorPresenteMultiplo, consolidarHorizontes: consolidarHorizontes,
   crecimientoImplicitoDCF: crecimientoImplicitoDCF, crecimientoImplicitoMultiplo: crecimientoImplicitoMultiplo, runDCF: runDCF,
-  runDCFDetalle: runDCFDetalle, insumosDesdeHoja: insumosDesdeHoja};
+  runDCFDetalle: runDCFDetalle, insumosDesdeHoja: insumosDesdeHoja, valorDelCrecimiento: valorDelCrecimiento};

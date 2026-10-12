@@ -22,3 +22,4 @@ jobs:
           node-version: '22'
       - run: node --test tests/colombia.test.js
       - run: node tests/terminal-capital.cjs
+      - run: node tests/valor-crecimiento.cjs
