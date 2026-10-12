@@ -14,7 +14,7 @@ Esta regla sustituye la regla de holdings del 10-oct-2026 (Base = 60% SOTP econ�
 4. **Corte común con la cartera de EE.UU.** Mismo día de corte para precios (cierre BVC) y la misma prima madura (implícita de Damodaran del mes) + prima país de Colombia (archivo de países vigente); Rf COP = TES ~10 años al corte − spread soberano.
 5. **Consistencia de inflación.** Flujos en COP nominales con la inflación implícita en el diferencial de tasas libres de riesgo; crecimiento terminal ≤ Rf COP.
 6. **Foso.** Sin ventaja defendible → retorno terminal (ROIC o ROE) = costo de capital, como la regla de `reference/moat_2026-09-30.json`. Si el modelo deja el retorno terminal por debajo del costo, se publica la lectura «sin foso» (retorno = costo) como contraste.
-7. **Controles.** `colombia/auditorias/corte-20260930-r5/controles_r5.py`: valor principal = hoja, esperado = suma, MOS 35%, ponderado 40/60, corte y ERP, nota r5 en los informes y lectura Damodaran.
+7. **Controles.** `consistencia_app.py` (16 controles: valor principal = hoja, esperado = suma, MOS 35%, ponderado 40/60), `integridad_hojas.py` y `estados_completos.py` en JMR-valuation.
 
 <!-- JMR-HOLDING-SOTP-SECTOR-DEFAULT-20261010; PRECEDENCIA ABSOLUTA -->
 ## REGLA ANTERIOR (sustituida por la r5 del 12-oct-2026) · Holdings SOTP + múltiplos por participada (10-oct-2026)
