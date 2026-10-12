@@ -68,6 +68,7 @@
       ve: veFrom(o.ve),
       hist: histFrom(o.hist || o.multiplesHistoricos),
       hoja: o.hoja || '',
+      holding: o.holding || null,
       currency: o.currency === 'COP' ? 'COP' : 'USD'
     };
   }
@@ -110,7 +111,7 @@
     rec = rec || {}; extra = extra || {};
     var result = fromParts({ dm: rec.descuentoMultiples, vp: rec.valorPresentePonderado, metodosFY3: rec.metodos, objetivoFY3: rec.objetivoPonderado,
       precio: extra.precio != null ? extra.precio : rec.precio, precioLbl: extra.precioLbl, mos: extra.mos != null ? extra.mos : rec.mos, hoja: rec.hojaGoogle,
-      ve: rec.valorEsperado, currency: rec.currency });
+      ve: rec.valorEsperado, currency: rec.currency, holding: rec.valoracionHolding });
     var applied = appliedMultiples(rec);
     result.metodos.forEach(function (m) { m.aplicados = applied[String(m.nombre).toUpperCase()] || null; });
     // Precio de compra de la posición (opcional, 6-oct-2026): si se pasa, las tarjetas principales muestran también
@@ -206,7 +207,29 @@
       '<p class="jvb-note">Los importes de las tarjetas aplican cada ancla histórica a la métrica Base proyectada a FY+3 y la traen a valor presente con Ke. Son una referencia de reversión a la media, no un valor intrínseco ni un nuevo precio objetivo principal.</p></section>';
   }
 
-  function hasData(d) { return !!(d && (d.dcf.hoy || d.dcf.fy3)); }
+  function hasData(d) { return !!(d && (d.holding || d.dcf.hoy || d.dcf.fy3)); }
+
+  // A holding NAV is a separate method, never stored or labelled as DCF.
+  function holdingHtml(d) {
+    var h = d.holding, t = h.nav || {}, pending = h.pendientes || [];
+    function card(label, value, detail, main) {
+      return '<div class="jvb-primary-card' + (main ? ' principal' : ' complementary') + '"><span class="jvb-kicker">' + esc(label) + '</span><div class="jvb-big"><span class="v">' + money(value) + '</span>' + vsPrecio(value, d.precio) + '</div><span class="vl">' + esc(detail) + '</span></div>';
+    }
+    var methods = (h.metodos || []).map(function (m) {
+      return '<tr><td>' + esc(m.nombre) + '</td><td class="n">' + pct(m.peso) + '</td><td>' + esc(m.estado) + '</td><td class="n">' + money(m.valor) + '</td></tr>';
+    }).join('');
+    var scenarios = ['conservador', 'base', 'optimista', 'disrupcion'].map(function (key, i) {
+      return '<tr><td>' + ['Conservadora', 'Base', 'Optimista', 'Disrupción'][i] + '</td><td class="n">' + money(t[key]) + '</td><td class="n">' + vsPrecio(t[key], d.precio) + '</td></tr>';
+    }).join('');
+    return '<section class="jvb jvb-holding"><p class="jvb-note"><strong>' + esc(h.estado || 'PRELIMINAR') + ' · SOTP de participaciones</strong> · ' + esc(h.nota || '') + '</p>' +
+      '<div class="jvb-primary">' + card('SOTP Base · NAV referencial', t.base, 'Equity atribuible; no es DCF certificado', true) + card('Valor contable separado proforma', h.valorContable, 'Ancla contable; no valor justo', false) + card('Ponderado elegido', h.ponderado, 'Pendiente si falta un método seleccionado', false) + '</div>' +
+      '<div class="jvb-tw"><table class="jvb-table"><thead><tr><th>Sensibilidad</th><th>NAV por acción</th><th>vs. precio guardado</th></tr></thead><tbody>' + scenarios + '</tbody></table></div>' +
+      '<p class="jvb-note">Sensibilidades sin probabilidades asignadas. ' + esc(h.dcfEstado || 'DCF por negocio pendiente') + '. El DCF consolidado anterior está retirado.</p>' +
+      '<div class="jvb-tw"><table class="jvb-table"><thead><tr><th>Método</th><th>Peso elegido</th><th>Estado</th><th>Valor por acción</th></tr></thead><tbody>' + methods + '</tbody></table></div>' +
+      '<p class="jvb-note">Un método seleccionado pendiente bloquea el ponderado; su peso no se asigna a otro método ni se sustituye por cero.</p>' +
+      (pending.length ? '<details><summary>Pendientes de verificación</summary><ul>' + pending.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></details>' : '') +
+      (d.hoja ? '<p class="jvb-note"><a href="' + esc(d.hoja) + '" target="_blank" rel="noopener noreferrer">Abrir hoja y seleccionar métodos →</a></p>' : '') + '</section>';
+  }
 
   // Filas del tablero para un horizonte.
   function rowsFor(d, h) {
@@ -344,6 +367,7 @@
   function html(d, opts) {
     opts = opts || {};
     DISPLAY_CURRENCY = d?.currency === 'COP' ? 'COP' : 'USD';
+    if (d && d.holding) return holdingHtml(d);
     if (!hasData(d)) return '';
     var p = prefs(), both = !!(d.dcf.hoy && d.dcf.fy3);
     if (!both) p.h = d.dcf.hoy ? 'hoy' : 'fy3';
@@ -511,7 +535,7 @@
   }
 
   global.JmrValueBoard = { fromParts: fromParts, fromRecord: fromRecord, html: html, hasData: hasData, veHtml: veHtml, historicalHtml: historicalHtml,
-    primaryValues: primaryValues, primaryHtml: primaryHtml, veBox: function (d) { DISPLAY_CURRENCY = d && d.currency === 'COP' ? 'COP' : 'USD'; var h = unified(d) ? unifiedHtml(d) : primaryHtml(d) + veHtml(d); return h ? '<div class="jvb-vebox">' + h + '</div>' : ''; },
+    primaryValues: primaryValues, primaryHtml: primaryHtml, veBox: function (d) { if (d && d.holding) return ''; DISPLAY_CURRENCY = d && d.currency === 'COP' ? 'COP' : 'USD'; var h = unified(d) ? unifiedHtml(d) : primaryHtml(d) + veHtml(d); return h ? '<div class="jvb-vebox">' + h + '</div>' : ''; },
     apply: function () { apply(prefs()); } };
 })(window);
 

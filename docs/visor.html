@@ -733,6 +733,7 @@
         <p class="section-title" id="hlTitle" style="margin:0;">Valor intrínseco hoy (DCF)</p>
         <label class="headline-sel">Valor principal
           <select id="headlineSel" aria-label="Qué valor mostrar como principal">
+            <option value="sotp">SOTP · NAV referencial</option>
             <option value="dcfHoy">Valor intrínseco hoy · DCF</option>
             <option value="ponderadoHoy">Ponderado hoy · DCF + múltiplos</option>
             <option value="multHoy">Precio relativo hoy · múltiplos</option>
@@ -1200,6 +1201,8 @@
   // Damodaran: valor intrínseco = DCF; los múltiplos son precio relativo).
   var HEADLINE_KEY = 'jmr-valor-principal-v3-base';
   var HEADLINE_INFO = {
+    sotp: { titulo: 'SOTP Base · NAV referencial · PRELIMINAR', hoy: true,
+      desc: 'Suma del equity atribuible de las participaciones, menos ajustes de la matriz. Sensibilidades sin probabilidades; no es un DCF certificado. Cotizaciones y valores autónomos pendientes se identifican en el análisis.' },
     dcfHoy: { titulo: 'Valor intrínseco hoy (DCF)', hoy: true,
       desc: 'Lo que vale la acción hoy según sus flujos de caja (DCF de Damodaran). Es el valor intrínseco: no depende de cuánto paga hoy el mercado por empresas parecidas. Se compara con el precio de hoy.' },
     ponderadoHoy: { titulo: 'Ponderado hoy (DCF + múltiplos)', hoy: true,
@@ -1246,6 +1249,7 @@
   }
   function headlineValues(key){
     var r = currentResumen || {}, dm = r.descuentoMultiples || {};
+    if (key === 'sotp') return r.valoracionHolding && r.valoracionHolding.nav || null;
     var map = { ponderadoHoy: dm.ponderadoHoy || r.valorPresentePonderado, dcfHoy: dm.dcfHoy, multHoy: dm.multiplesHoy, fy3: r.objetivoPonderado };
     var unified = r.valorEsperado && r.valorEsperado.escenariosUnificados;
     if (key === 'dcfHoy' && unified) { var hs=r.valorEsperado.historias; return {conservador:Math.min.apply(null,hs.map(function(x){return x.valor;})),base:((hs.find(function(x){return x.id===(r.valorEsperado.historiaCentralId||'A');})||{}).valor),optimista:Math.max.apply(null,hs.map(function(x){return x.valor;}))}; }
@@ -1255,6 +1259,7 @@
   // Devuelve la opción elegida, o FY+3 si la valoración no tiene valor de hoy.
   function headlineData(){
     var key = headlineChoice(), vals = headlineValues(key), fallback = false;
+    if (currentResumen && currentResumen.valoracionHolding) { key = 'sotp'; vals = headlineValues(key); }
     if(!vals && key !== 'fy3'){ vals = headlineValues('fy3'); key = 'fy3'; fallback = true; }
     var info = HEADLINE_INFO[key];
     var unified = key === 'dcfHoy' && currentResumen.valorEsperado && currentResumen.valorEsperado.escenariosUnificados;
@@ -1340,6 +1345,7 @@
     var r = currentResumen || {}, d = (r.descuentoMultiples || {}).dcfHoy, mos = Number(r.mos);
     var ve = r.valorEsperado && Number(r.valorEsperado.valor);
     var elM = document.getElementById('rPrecioMOS'), elL = document.getElementById('rPrecioMOSLbl');
+    if (r.valoracionHolding) { elL.textContent = 'Umbral con MOS · referencia preliminar'; elM.textContent = fmtMoney(r.valoracionHolding.umbralMOS); return; }
     if(ve && isFinite(ve) && isFinite(mos)){
       elL.textContent = 'Precio con MOS sobre el valor esperado';
       elM.textContent = fmtMoney(ve*(1-mos));
@@ -1359,7 +1365,7 @@
     var sel = document.getElementById('headlineSel');
     var h = headlineData();
     ['hlC','hlB','hlO'].forEach(function(id,i){document.getElementById(id).parentElement.querySelector('.lbl').textContent=h.unified?['Mínimo de escenarios','DCF Base','Máximo de escenarios'][i]:['Conservador','Base','Optimista'][i];});
-    ['dcfHoy','ponderadoHoy','multHoy'].forEach(function(k){
+    ['sotp','dcfHoy','ponderadoHoy','multHoy'].forEach(function(k){
       var opt = sel.querySelector('option[value="' + k + '"]');
       if(opt) opt.disabled = !headlineValues(k);
     });
@@ -1371,7 +1377,7 @@
       var v = h.valores[x[0]];
       document.getElementById(x[1]).textContent = fmtMoney(v);
       document.getElementById(x[2]).innerHTML = h.hoy
-        ? 'vs. precio de hoy ' + fmtVsPrecio(v, currentResumen.precio)
+        ? (currentResumen.valoracionHolding ? 'vs. precio guardado ' : 'vs. precio de hoy ') + fmtVsPrecio(v, currentResumen.precio)
         : 'vs. precio del análisis ' + fmtVsPrecio(v, currentPrecioAnalisis) + ' · CAGR ' + fmtPct(cagr[x[0]]);
     });
   }
@@ -2569,6 +2575,7 @@
   // guardada antes de que existieran las hojas crudas, no hay nada que mostrar.
   function renderSheetGroup(groupKey, mode){
     var names = SHEET_GROUPS[groupKey];
+    if (mode && currentResumen && currentResumen.valoracionHolding) names = Object.keys(mode);
     var pillsEl = document.getElementById('pills' + groupKey.charAt(0).toUpperCase() + groupKey.slice(1));
     var containerEl = document.getElementById('sheet' + groupKey.charAt(0).toUpperCase() + groupKey.slice(1));
     pillsEl.innerHTML = names.map(function(n, i){
@@ -2966,7 +2973,7 @@
     var box = document.getElementById('valueBoard');
     if(!box || !boardParts || typeof JmrValueBoard === 'undefined') return;
     var r = currentResumen || {};
-    var d = JmrValueBoard.fromParts(Object.assign({}, boardParts, { precio: r.precio, precioLbl: 'Precio de hoy', mos: r.mos, hoja: r.hojaGoogle, ve: r.valorEsperado, hist: r.multiplesHistoricos, currency: r.currency }));
+    var d = JmrValueBoard.fromParts(Object.assign({}, boardParts, { precio: r.precio, precioLbl: 'Precio de hoy', mos: r.mos, hoja: r.hojaGoogle, ve: r.valorEsperado, hist: r.multiplesHistoricos, currency: r.currency, holding: r.valoracionHolding }));
     box.innerHTML = JmrValueBoard.html(d, { hero: false });
   }
   function renderPresentValue(dm, vp, metodosFY3, objetivoFY3){
@@ -2975,8 +2982,9 @@
     boardParts = { dm: dm, vp: vp, metodosFY3: metodosFY3 || [], objetivoFY3: objetivoFY3 };
     var hasHoy = dm.dcfHoy && typeof dm.dcfHoy.base === 'number';
     var hasFy3 = (metodosFY3 || []).some(function(m){ return typeof m.base === 'number'; });
-    sec.hidden = !(hasHoy || hasFy3);
+    sec.hidden = !(hasHoy || hasFy3 || currentResumen && currentResumen.valoracionHolding);
     if(sec.hidden) return;
+    sec.querySelector('.section-title').textContent = currentResumen && currentResumen.valoracionHolding ? 'Holding · SOTP y métodos pendientes' : 'Valoración · el DCF primero, las lecturas secundarias a un clic';
     renderValueBoard();
 
     var hw = document.getElementById('horizonWrap'), hb = document.getElementById('horizonBody');
