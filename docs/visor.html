@@ -648,18 +648,15 @@
 <script src="auth.js"></script>
 <script src="mercado.js"></script>
 
-<nav class="appnav">
-  <a class="jmr-home" href="https://cartera-two-eta.vercel.app/" title="Centro financiero JMR">JMR</a>
-  <a href="index.html">Bitácora de Valoración</a>
+<nav class="appnav" aria-label="Navegación principal">
+  <a href="https://cartera-two-eta.vercel.app/">JMR</a>
+  <a href="index.html">Referencias</a>
+  <a href="visor.html" class="active">Internacionales</a>
+  <a href="visor.html?mercado=colombia">Colombia</a>
   <a href="screener.html">Screener</a>
-  <a href="research.html">Análisis Fundamental</a>
-  <a href="visor.html" class="active">Valoración - Modelo JMR</a>
   <a href="calculadora.html">Calculadora DCF</a>
   <a href="portafolio.html">Portafolio</a>
-  <a href="mi-bitacora.html">Mi Bitácora</a>
-  <a href="colombia.html">Acciones colombianas</a>
-  <a href="visor.html?mercado=colombia">Valoración - Modelo JMR · Colombia</a>
-  <a href="research.html?mercado=colombia">Análisis Fundamental · Colombia</a>
+  <a href="mi-bitacora.html">Mi bitácora</a>
 </nav>
 <script>(function(){var a=document.querySelector('nav.appnav a.active');if(a)a.scrollIntoView({inline:'center',block:'nearest'});})();</script>
 
@@ -2845,6 +2842,8 @@
   var b64DecodeUnicode = GhOAuth.b64DecodeUnicode;
 
   function saveValoracion(record){
+    record.market = jmrEsCOP(record) || JMR_MERCADO === "colombia" ? "BVC" : "international";
+    if (record.market === "BVC") record.currency = "COP";
     var token = getGhToken();
     if(!token) return Promise.reject(new Error('Falta el token de GitHub.'));
     var safeTicker = String(record.ticker || 'valoracion').replace(/[^A-Za-z0-9._-]/g, '_');
@@ -3008,7 +3007,8 @@
   }
 
   function displaySavedRecord(rec){
-    JMR_CUR = rec.currency === 'COP' ? 'COP' : 'USD';
+    jmrAjustarMercado(rec);
+    JMR_CUR = jmrEsCOP(rec) ? 'COP' : 'USD';
     document.getElementById('rTicker').textContent = rec.ticker || '—';
     document.getElementById('tickerOverride').value = rec.ticker || '';
     document.getElementById('rCompanyName').textContent = rec.nombreActivo || '';
@@ -3400,7 +3400,7 @@
         return fetchValoracion(f.path).then(function(res){
           var ticker = res.record && res.record.ticker;
           return Object.assign({}, f, { ticker: ticker, fecha: res.record && res.record.fecha, hasResearch: !!(ticker && researchTickers[ticker]), mercadoOk: jmrDelMercado(res.record) });
-        }).catch(function(){ return Object.assign({}, f, { mercadoOk: JMR_MERCADO !== 'colombia' }); });
+        }).catch(function(){ return Object.assign({}, f, { mercadoOk: jmrDelMercado({ticker:tickerFromFileName(f.name)}) }); });
       }));
     }).then(function(files){ return files.filter(function(f){ return f.mercadoOk !== false; }); }).then(renderSavedList).catch(function(err){
       status.textContent = 'Error: ' + err.message;

@@ -814,6 +814,8 @@
     if(!state.title) throw new Error('Ingresa el título del análisis.');
     if(!state.html) throw new Error('Sube el documento cualitativo.');
     if(!state.id) state.id=makeId();
+    state.market = jmrEsCOP(state) || JMR_MERCADO === 'colombia' ? 'BVC' : 'international';
+    if (state.market === 'BVC') state.currency = 'COP';
     state.updatedAt=new Date().toISOString();
     return Object.assign({},state);
   }
@@ -826,6 +828,7 @@
   });
 
   function fillEditor(rec) {
+    jmrAjustarMercado(rec);
     editing=false;
     state=Object.assign(freshState(),rec);
     el('analysisSettings').open=false;
@@ -1139,7 +1142,7 @@
   function renderLibrary() {
     var q=normalizeText(el('librarySearch').value), list=getLocalLibrary().filter(function(r){return (typeof jmrDelMercado!=='function'||jmrDelMercado(r))&&(!q||recordSearchText(r).indexOf(q)>=0);});
     var holder=el('libraryCards');
-    if(!list.length){holder.innerHTML='<div class="empty">Todavía no hay análisis guardados. Abre “Nuevo análisis” para crear el primero.</div>';setStatus('libraryStatus',getGhToken()?'GitHub conectado.':'Biblioteca local · GitHub no conectado.');return;}
+    if(!list.length){populateCompareSelects();holder.innerHTML='<div class="empty">Todavía no hay análisis guardados. Abre “Nuevo análisis” para crear el primero.</div>';setStatus('libraryStatus',getGhToken()?'GitHub conectado.':'Biblioteca local · GitHub no conectado.');return;}
     holder.innerHTML=list.map(function(r){
       var logoSrc=logoForRecord(r);
       var logo=logoSrc?'<img class="mini-logo" src="'+escapeHtml(logoSrc)+'" data-ticker="'+escapeHtml(r.ticker||'?')+'" alt="Logo de '+escapeHtml(r.company||r.ticker||'empresa')+'">':'<span class="mini-logo mini-fallback">'+escapeHtml((r.ticker||'?').slice(0,2))+'</span>';
@@ -1166,7 +1169,7 @@
   // renderer de documento (safeHtml + valuation-block) para cada columna,
   // a partir de dos análisis ya guardados en la biblioteca local.
   function populateCompareSelects() {
-    var list = getLocalLibrary();
+    var list = getLocalLibrary().filter(jmrDelMercado);
     ['compareA','compareB'].forEach(function (id) {
       var sel = el(id); if (!sel) return;
       var current = sel.value;

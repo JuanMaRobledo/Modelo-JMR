@@ -1,4 +1,4 @@
-const CACHE = "modelo-jmr-v145-colombia-mismo-diseno";
+const CACHE = "modelo-jmr-v146-mercados-ordenados";
 const APP_SHELL = [
   "index.html",
   "colombia.html",
