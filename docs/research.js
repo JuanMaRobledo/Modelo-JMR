@@ -232,7 +232,7 @@
     // va primero; múltiplos juntos, por método y ponderado, hoy o FY+3.
     var board = typeof JmrValueBoard !== 'undefined' ? JmrValueBoard.fromRecord(lv, { precioLbl: 'Precio guardado' }) : null;
     var boardHtml = board && JmrValueBoard.hasData(board) ? JmrValueBoard.html(board, { hero: true }) : '';
-    var visorLink = lv.sourcePath ? '<a class="linked-visor-link" href="visor.html?path=' + encodeURIComponent(lv.sourcePath) + '">Ver en el Visor →</a>' : '';
+    var visorLink = lv.sourcePath ? '<a class="linked-visor-link" href="visor.html?path=' + encodeURIComponent(lv.sourcePath) + (typeof jmrMercadoQS === 'function' ? jmrMercadoQS() : '') + '">Ver en el Visor →</a>' : '';
     var zones = zoneKv(lv.baseMOS === 'valorEsperado' ? 'Zona Value (sobre el DCF esperado)' : 'Zona Value (sobre el objetivo FY+3)', z.value) + zoneKv('Zona Deep Value', z.deepValue) + zoneKv('Zona histórica', z.historica);
     return '<section class="valuation-block linked-valuation"><span class="linked-tag">✓ Vinculado con el Visor · ' + escapeHtml(lv.sourcePath || '') + '</span>' + visorLink + '<h2>Valoración cuantitativa (Visor)</h2>' +
       boardHtml + '<div class="linked-grid">' + kv('Fecha de valoración', escapeHtml(lv.fechaValoracion || lv.fecha || '—')) +
@@ -1137,14 +1137,14 @@
     return text;
   }
   function renderLibrary() {
-    var q=normalizeText(el('librarySearch').value), list=getLocalLibrary().filter(function(r){return !q||recordSearchText(r).indexOf(q)>=0;});
+    var q=normalizeText(el('librarySearch').value), list=getLocalLibrary().filter(function(r){return (typeof jmrDelMercado!=='function'||jmrDelMercado(r))&&(!q||recordSearchText(r).indexOf(q)>=0);});
     var holder=el('libraryCards');
     if(!list.length){holder.innerHTML='<div class="empty">Todavía no hay análisis guardados. Abre “Nuevo análisis” para crear el primero.</div>';setStatus('libraryStatus',getGhToken()?'GitHub conectado.':'Biblioteca local · GitHub no conectado.');return;}
     holder.innerHTML=list.map(function(r){
       var logoSrc=logoForRecord(r);
       var logo=logoSrc?'<img class="mini-logo" src="'+escapeHtml(logoSrc)+'" data-ticker="'+escapeHtml(r.ticker||'?')+'" alt="Logo de '+escapeHtml(r.company||r.ticker||'empresa')+'">':'<span class="mini-logo mini-fallback">'+escapeHtml((r.ticker||'?').slice(0,2))+'</span>';
       var excerpt=recordExcerpt(r);
-      var visorLink=(r.linkedValuation&&r.linkedValuation.sourcePath)?'<a class="btn" href="visor.html?path='+encodeURIComponent(r.linkedValuation.sourcePath)+'">Ver en el Visor</a>':'';
+      var visorLink=(r.linkedValuation&&r.linkedValuation.sourcePath)?'<a class="btn" href="visor.html?path='+encodeURIComponent(r.linkedValuation.sourcePath)+(typeof jmrMercadoQS==='function'?jmrMercadoQS():'')+'">Ver en el Visor</a>':'';
       return '<article class="analysis-card" data-id="'+escapeHtml(r.id)+'"><div class="card-head">'+logo+'<div class="card-title"><strong>'+escapeHtml(r.title||r.company)+(typeof JmrDecision!=='undefined'?JmrDecision.badge(r.decision):'')+'</strong><span class="ticker">'+escapeHtml(r.ticker||'—')+' · '+escapeHtml(r.company||'')+'</span></div></div>'+(excerpt?'<p class="card-excerpt">'+escapeHtml(excerpt)+'</p>':'')+'<div class="card-meta"><span>'+escapeHtml(r.date||'Sin fecha')+'</span><span>'+(r.remotePath?'GitHub + local':'Solo local')+'</span></div><div class="card-actions"><button class="btn" data-action="open" type="button">Abrir</button>'+visorLink+'<button class="btn danger" data-action="delete" type="button">Borrar</button></div></article>';
     }).join('');
     wireLogoFallbacks(holder);

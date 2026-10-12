@@ -646,6 +646,7 @@
 </head>
 <body>
 <script src="auth.js"></script>
+<script src="mercado.js"></script>
 
 <nav class="appnav">
   <a class="jmr-home" href="https://cartera-two-eta.vercel.app/" title="Centro financiero JMR">JMR</a>
@@ -657,8 +658,8 @@
   <a href="portafolio.html">Portafolio</a>
   <a href="mi-bitacora.html">Mi Bitácora</a>
   <a href="colombia.html">Acciones colombianas</a>
-  <a href="visor-colombia.html">Valoración JMR · Colombia</a>
-  <a href="fundamental-colombia.html">Análisis Fundamental · Colombia</a>
+  <a href="visor.html?mercado=colombia">Valoración - Modelo JMR · Colombia</a>
+  <a href="research.html?mercado=colombia">Análisis Fundamental · Colombia</a>
 </nav>
 <script>(function(){var a=document.querySelector('nav.appnav a.active');if(a)a.scrollIntoView({inline:'center',block:'nearest'});})();</script>
 
@@ -1170,8 +1171,10 @@
   // viene de ningún Excel — mismo patrón de persistencia que Cualitativo.
   var fundamentalOverride = null;
 
+  var JMR_CUR = 'USD'; // 'COP' mientras se muestra una valoración guardada en pesos (currency del registro)
   function fmtMoney(v){
     if(v === undefined || v === null || typeof v !== 'number' || isNaN(v)) return '—';
+    if(JMR_CUR === 'COP') return 'COP ' + v.toLocaleString('es-CO', {maximumFractionDigits:0});
     return '$' + v.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
   }
   function fmtPct(v){
@@ -2964,7 +2967,7 @@
     var box = document.getElementById('valueBoard');
     if(!box || !boardParts || typeof JmrValueBoard === 'undefined') return;
     var r = currentResumen || {};
-    var d = JmrValueBoard.fromParts(Object.assign({}, boardParts, { precio: r.precio, precioLbl: 'Precio de hoy', mos: r.mos, hoja: r.hojaGoogle, ve: r.valorEsperado, hist: r.multiplesHistoricos }));
+    var d = JmrValueBoard.fromParts(Object.assign({}, boardParts, { precio: r.precio, precioLbl: 'Precio de hoy', mos: r.mos, hoja: r.hojaGoogle, ve: r.valorEsperado, hist: r.multiplesHistoricos, currency: r.currency }));
     box.innerHTML = JmrValueBoard.html(d, { hero: false });
   }
   function renderPresentValue(dm, vp, metodosFY3, objetivoFY3){
@@ -3005,6 +3008,7 @@
   }
 
   function displaySavedRecord(rec){
+    JMR_CUR = rec.currency === 'COP' ? 'COP' : 'USD';
     document.getElementById('rTicker').textContent = rec.ticker || '—';
     document.getElementById('tickerOverride').value = rec.ticker || '';
     document.getElementById('rCompanyName').textContent = rec.nombreActivo || '';
@@ -3293,7 +3297,7 @@
     listEl.innerHTML = files.map(function(f){
       var label = parseSavedFileLabel(f);
       var moveLabel = viewingArchive ? 'Restaurar' : 'Archivar';
-      var researchLink = f.hasResearch ? '<a class="gh-btn" href="research.html?ticker=' + encodeURIComponent(f.ticker) + '">Ver análisis fundamental →</a>' : '';
+      var researchLink = f.hasResearch ? '<a class="gh-btn" href="research.html?ticker=' + encodeURIComponent(f.ticker) + jmrMercadoQS() + '">Ver análisis fundamental →</a>' : '';
       return '<div class="saved-item">' +
         '<span class="si-name">' + label + '</span>' +
         '<span class="si-actions">' +
@@ -3395,10 +3399,10 @@
       return Promise.all(files.map(function(f){
         return fetchValoracion(f.path).then(function(res){
           var ticker = res.record && res.record.ticker;
-          return Object.assign({}, f, { ticker: ticker, fecha: res.record && res.record.fecha, hasResearch: !!(ticker && researchTickers[ticker]) });
-        }).catch(function(){ return f; });
+          return Object.assign({}, f, { ticker: ticker, fecha: res.record && res.record.fecha, hasResearch: !!(ticker && researchTickers[ticker]), mercadoOk: jmrDelMercado(res.record) });
+        }).catch(function(){ return Object.assign({}, f, { mercadoOk: JMR_MERCADO !== 'colombia' }); });
       }));
-    }).then(renderSavedList).catch(function(err){
+    }).then(function(files){ return files.filter(function(f){ return f.mercadoOk !== false; }); }).then(renderSavedList).catch(function(err){
       status.textContent = 'Error: ' + err.message;
     });
   }

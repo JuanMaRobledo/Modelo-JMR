@@ -67,7 +67,8 @@
       pond: { hoy: trio(dm.ponderadoHoy || o.vp), fy3: trio(o.objetivoFY3) },
       ve: veFrom(o.ve),
       hist: histFrom(o.hist || o.multiplesHistoricos),
-      hoja: o.hoja || ''
+      hoja: o.hoja || '',
+      currency: o.currency === 'COP' ? 'COP' : 'USD'
     };
   }
   // Valor esperado de las historias (sección «Valor con criterio Damodaran»): promedio de 3-4 historias, cada una un
@@ -109,7 +110,7 @@
     rec = rec || {}; extra = extra || {};
     var result = fromParts({ dm: rec.descuentoMultiples, vp: rec.valorPresentePonderado, metodosFY3: rec.metodos, objetivoFY3: rec.objetivoPonderado,
       precio: extra.precio != null ? extra.precio : rec.precio, precioLbl: extra.precioLbl, mos: extra.mos != null ? extra.mos : rec.mos, hoja: rec.hojaGoogle,
-      ve: rec.valorEsperado });
+      ve: rec.valorEsperado, currency: rec.currency });
     var applied = appliedMultiples(rec);
     result.metodos.forEach(function (m) { m.aplicados = applied[String(m.nombre).toUpperCase()] || null; });
     // Precio de compra de la posición (opcional, 6-oct-2026): si se pasa, las tarjetas principales muestran también
@@ -510,7 +511,7 @@
   }
 
   global.JmrValueBoard = { fromParts: fromParts, fromRecord: fromRecord, html: html, hasData: hasData, veHtml: veHtml, historicalHtml: historicalHtml,
-    primaryValues: primaryValues, primaryHtml: primaryHtml, veBox: function (d) { var h = unified(d) ? unifiedHtml(d) : primaryHtml(d) + veHtml(d); return h ? '<div class="jvb-vebox">' + h + '</div>' : ''; },
+    primaryValues: primaryValues, primaryHtml: primaryHtml, veBox: function (d) { DISPLAY_CURRENCY = d && d.currency === 'COP' ? 'COP' : 'USD'; var h = unified(d) ? unifiedHtml(d) : primaryHtml(d) + veHtml(d); return h ? '<div class="jvb-vebox">' + h + '</div>' : ''; },
     apply: function () { apply(prefs()); } };
 })(window);
 
