@@ -1,7 +1,23 @@
 # JMR Colombia · Reglas independientes v1
 
+> **Para flujos asistidos por script usa primero `colombia-nucleo-v1.md` (≈2 KB).** Este archivo completo es para auditoría; ahorra tokens leyendo solo la sección que necesites.
+
+
+<!-- JMR-CO-R5-INTRINSECO-PRINCIPAL-20261012; PRECEDENCIA ABSOLUTA -->
+## REGLA CANÓNICA VIGENTE · r5 · 12-oct-2026 · igual que la cartera de EE.UU.
+
+Esta regla sustituye la regla de holdings del 10-oct-2026 (Base = 60% SOTP económico + 40% SOTP de múltiplos) y cualquier otra que ponga un valor de mercado, contable o de múltiplos como valor principal.
+
+1. **Valor principal = DCF Base intrínseco (Damodaran).** Industriales: FCFF; bancos y aseguradoras: RE/DDM o FCFE después de capital regulatorio; holdings: SOTP **intrínseco** (cada filial por sus flujos; privadas sin flujos propios a valores fechados y verificables) menos deuda de la matriz y VP de gastos centrales. El precio de bolsa de una filial cotizada NO es su valor intrínseco.
+2. **Esperado y margen de seguridad.** Cuatro historias (Base, Conservadora, Optimista, Disrupción) con probabilidades que suman 100%; esperado = Σ probabilidad × valor; **precio de compra = esperado × (1 − 35%)**.
+3. **Secundarios.** Múltiplos sectoriales, SOTP de mercado, libro y el antiguo 60/40 se muestran como lectura secundaria; el ponderado secundario por defecto es **40% DCF + 60% múltiplos**.
+4. **Corte común con la cartera de EE.UU.** Mismo día de corte para precios (cierre BVC) y la misma prima madura (implícita de Damodaran del mes) + prima país de Colombia (archivo de países vigente); Rf COP = TES ~10 años al corte − spread soberano.
+5. **Consistencia de inflación.** Flujos en COP nominales con la inflación implícita en el diferencial de tasas libres de riesgo; crecimiento terminal ≤ Rf COP.
+6. **Foso.** Sin ventaja defendible → retorno terminal (ROIC o ROE) = costo de capital, como la regla de `reference/moat_2026-09-30.json`. Si el modelo deja el retorno terminal por debajo del costo, se publica la lectura «sin foso» (retorno = costo) como contraste.
+7. **Controles.** `consistencia_app.py` (16 controles: valor principal = hoja, esperado = suma, MOS 35%, ponderado 40/60), `integridad_hojas.py` y `estados_completos.py` en JMR-valuation.
+
 <!-- JMR-HOLDING-SOTP-SECTOR-DEFAULT-20261010; PRECEDENCIA ABSOLUTA -->
-## REGLA CANÓNICA VIGENTE · Holdings SOTP + múltiplos por participada (10-oct-2026)
+## REGLA ANTERIOR (sustituida por la r5 del 12-oct-2026) · Holdings SOTP + múltiplos por participada (10-oct-2026)
 
 La regla presente sustituye todas las indicaciones anteriores de estos prompts que declararan libro NIIF como precio principal de holding, mezcla de DCF60%+múltiplos40%, o P/B de la propia acción más dividend-yield como 40% principal. DCF FCFF sigue como método principal para negocios operativos no holding; bancos deben usar patrimonio/capital regulatorio y no FCFF industrial.
 

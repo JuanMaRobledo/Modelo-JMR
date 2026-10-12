@@ -6,6 +6,19 @@ CSV y un Excel de datos; prepara los dos prompts Colombia; incorpora informes
 Markdown con identidad; guarda expedientes en el navegador y, mediante
 autorización explícita, en `Modelo-JMR-datos/colombia/expedientes/`.
 
+## Valoraciones desde cero · 12-oct-2026 (mismo diseño que acciones internacionales)
+
+- Las valoraciones de Colombia (PFDAVVNDA, GRUPOSURA, PFGRUPSURA, GRUPOARGOS, PFGRUPOARG) se rehicieron desde cero con la plantilla maestra
+  internacional y la misma cadena (historias → hoja → múltiplos → app → informes v4/v5), con moneda COP. Sus registros viven en
+  `Modelo-JMR-datos/valoraciones/` y `analisis/` (campo `currency: "COP"`), no en `colombia/expedientes`.
+- La pestaña «Colombia» es el visor y la biblioteca internacionales filtrados por mercado (`visor.html?mercado=colombia`,
+  `fundamental.html?mercado=colombia`; filtro en `mercado.js`). `visor-colombia.html` y `fundamental-colombia.html` solo redirigen.
+- Valor principal = DCF Base intrínseco (FCFE en bancos y holdings financieras; FCFF en industriales/holdings), esperado por probabilidades,
+  precio de compra con MOS 35% sobre el esperado y ponderado secundario 40% DCF + 60% múltiplos.
+- Corte común: cierres BVC del 30-sep-2026, ERP implícita oct-2026 3,70% + prima país por ingresos, Rf COP = TES − spread soberano 1,75%,
+  retorno terminal = costo de capital. Flujo y scripts: habilidad `valoracion-colombia` (JMR-valuation).
+- `colombia/expedientes` conserva solo el expediente de Davivienda Group (no rehecho en esta revisión); `colombia.html` sigue sirviéndolo.
+
 ## Separación
 
 - API propia: `/api/colombia?ticker=ECOPETROL.CL`.

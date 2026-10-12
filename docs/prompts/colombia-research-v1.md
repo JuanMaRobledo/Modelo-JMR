@@ -1,7 +1,15 @@
 # JMR Colombia · Reglas independientes v1
 
+> **Para flujos asistidos por script usa primero `colombia-nucleo-v1.md` (≈2 KB).** Este archivo completo es para auditoría; ahorra tokens leyendo solo la sección que necesites.
+
+
+<!-- JMR-CO-R5-INTRINSECO-PRINCIPAL-20261012; PRECEDENCIA ABSOLUTA -->
+## REGLA CANÓNICA VIGENTE · r5 · 12-oct-2026
+
+Sustituye la regla de holdings del 10-oct-2026 (60% SOTP económico + 40% múltiplos). Igual que la cartera de EE.UU.: el **DCF Base intrínseco (Damodaran)** es el valor principal (RE/DDM o FCFE en bancos; SOTP intrínseco en holdings), con esperado por probabilidades y precio de compra = esperado × 65%. Múltiplos, SOTP de mercado y libro son secundarios (ponderado 40% DCF + 60% múltiplos). Corte común con EE.UU. (cierre BVC del día de corte; ERP implícita del mes + prima país). Detalle en `colombia-valuation-v1.md`.
+
 <!-- JMR-HOLDING-SOTP-SECTOR-DEFAULT-20261010; PRECEDENCIA ABSOLUTA -->
-## REGLA CANÓNICA VIGENTE · Holdings SOTP + múltiplos por participada (10-oct-2026)
+## REGLA ANTERIOR (sustituida por la r5 del 12-oct-2026) · Holdings SOTP + múltiplos por participada (10-oct-2026)
 
 La regla presente sustituye todas las indicaciones anteriores de estos prompts que declararan libro NIIF como precio principal de holding, mezcla de DCF60%+múltiplos40%, o P/B de la propia acción más dividend-yield como 40% principal. DCF FCFF sigue como método principal para negocios operativos no holding; bancos deben usar patrimonio/capital regulatorio y no FCFF industrial.
 

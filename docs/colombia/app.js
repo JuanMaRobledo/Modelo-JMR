@@ -217,7 +217,7 @@ function renderValuationStats() {
     el("span", "col-value-badge", status));
   root.append(heading);
 
-  // En holdings el Base es SOTP+múltiplos; libros y FCFF permanecen como comparadores opcionales.
+  // r5: el DCF Base intrínseco es el valor principal (también en holdings); SOTP de mercado, libro y múltiplos son secundarios.
   // Los múltiplos no calculables se indican N/D.
   const priceVsDcf = numeric(v.marketPrice) && numeric(v.dcfPrimaryIntrinsicPerShareCOP) && v.dcfPrimaryIntrinsicPerShareCOP > 0
     ? v.marketPrice / v.dcfPrimaryIntrinsicPerShareCOP : null;
@@ -231,11 +231,11 @@ function renderValuationStats() {
   const hero = el("div", "col-value-hero");
   if (isHolding && numeric(bookPure)) {
     hero.append(
-      box("VALOR BASE · SOTP + COMPARABLES", v.primaryValueCOP ?? v.base, "60% SOTP económico + 40% EV/EBITDA por participada; estimación condicional.", "featured"),
-      box("SOTP ECONÓMICO MIXTO · 60%", sotpMarket, "Cotizadas a mercado y privadas con NAV gerencia/Colliers; resta caja y HQ."),
-      box("SOTP DCF FCFF Base · secundario", v.dcfPrimaryIntrinsicPerShareCOP, "FCFF por negocio con WACC y puente patrimonial; supuestos no certificados")
+      box("DCF BASE · VALOR INTRÍNSECO PRINCIPAL", v.dcfPrimaryIntrinsicPerShareCOP, "SOTP intrínseco Damodaran (filiales por FCFF, privadas a valores fechados); esperado " + cop(v.expected) + " y compra con MOS 35% " + cop(v.precioMOS) + ".", "featured"),
+      box("SOTP DE MERCADO · REFERENCIA", sotpMarket, "Cotizadas a bolsa y privadas a valores fechados; resta caja y HQ. No es valor intrínseco."),
+      box("PONDERADO SECUNDARIO · 40% DCF + 60% MÚLTIPLOS", v.combinedWeightedToday, "Igual que la cartera de EE.UU.; no sustituye el DCF Base.")
     );
-    hero.append(box("SECTOR EV/EBITDA · 40%", v.multiplesWeightedToday, "Cemento/energía FY2026 comparables, privadas NAV; libro y FCFF opcionales"));
+    hero.append(box("SECTOR EV/EBITDA · SECUNDARIO", v.multiplesWeightedToday, "Cemento/energía FY2026 comparables, privadas a valores fechados"));
     const choose = el("a", "col-value-note", "Seleccionar métodos y rebalancear pesos en el visor de Colombia →");
     choose.href = "visor-colombia.html?ticker=" + encodeURIComponent(dossier.ticker) + "#resumen";
     choose.style.display = "block";choose.style.marginTop = "10px";root.append(choose);
@@ -439,20 +439,20 @@ function renderValuationStats() {
       [name, cop(base), cop(con), cop(opt), toWeight(weight), note].forEach(value => tr.append(el("td", "", value)));
       tbody.append(tr);
     };
-    append("DCF FCFF · valor intrínseco", dcfBase, dcfCon, dcfOpt, 0.6, "Principal · 10 años y puente patrimonial", true);
+    append("DCF FCFF · valor intrínseco", dcfBase, dcfCon, dcfOpt, 0.4, "Principal · 10 años y puente patrimonial", true);
     const anchors = m => Array.isArray(m.anchors) && m.anchors.length === 3 ? m.anchors : [];
     for (const m of methods) {
       const a = anchors(m);
       append(m.name || "Múltiplo", m.today, a[0], a[2],
-        numeric(m.weight) ? 0.4 * m.weight : 0,
+        numeric(m.weight) ? 0.6 * m.weight : 0,
         m.today == null ? "N/D · sin comparables homogéneos" : (m.status || "Valor relativo"));
     }
     const valid = methods.filter(m => numeric(m.today) && numeric(m.weight));
     const relative = valid.reduce((total, m) => total + m.today * m.weight, 0);
     const rw = valid.reduce((total, m) => total + m.weight, 0);
-    append("Ponderado de múltiplos", rw > 0 ? relative / rw : null, null, null, rw > 0 ? 0.4 : null,
+    append("Ponderado de múltiplos", rw > 0 ? relative / rw : null, null, null, rw > 0 ? 0.6 : null,
       rw > 0 ? "Solo métodos con datos y ponderación publicados" : "N/D");
-    append("DCF 60% + múltiplos 40%", rw > 0 && numeric(dcfBase) ? 0.6 * dcfBase + 0.4 * relative / rw : null,
+    append("DCF 40% + múltiplos 60%", rw > 0 && numeric(dcfBase) ? 0.4 * dcfBase + 0.6 * relative / rw : null,
       null, null, 1, "Combinado secundario; NO sustituye el DCF", true);
     append("SOTP / NAV bursátil", v.base, null, null, null, "Comparador externo al DCF y al ponderado JMR");
     table.append(thead, tbody);
@@ -519,7 +519,7 @@ function renderValuationStats() {
   const one = {today:v.multiplesWeightedToday,year3:v.multiplesWeightedYear3,year3PV:v.multiplesWeightedYear3PV};
   const two = {today:v.combinedWeightedToday,year3:v.combinedWeightedYear3,year3PV:v.combinedWeightedYear3PV};
   weighted.append(box("Múltiplos · ponderado independiente",one[horizon],v.multiplesStatus || "Sin ponderado verificable"),
-    box(v.valuationOutput ? (horizon === "year3PV" ? "VP precio FY+3 exdiv · DCF60% y múltiplos40%" : "DCF FCFF 60% + múltiplos 40% (secundario)") : "SOTP + múltiplos histórico (no DCF)",two[horizon],v.combinedStatus || "Ponderación no certificada"));
+    box(v.valuationOutput ? (horizon === "year3PV" ? "VP precio FY+3 exdiv · DCF 40% y múltiplos 60%" : "DCF 40% + múltiplos 60% (secundario)") : "SOTP + múltiplos histórico (no DCF)",two[horizon],v.combinedStatus || "Ponderación no certificada"));
   root.append(weighted);
 
   const details = Array.isArray(v.dcfComponents) ? v.dcfComponents : [];
@@ -958,7 +958,7 @@ function renderLibrary() {
     b.textContent = "Abrir expediente";
     b.onclick = () => open(d);
     const value = document.createElement("strong");
-    value.textContent = d.instrument?.model === "holding" && typeof d.valuationSummary?.primaryValueCOP === "number" ? "Base SOTP + comparables · " + fmt(d.valuationSummary.primaryValueCOP) + " (condicional)" : d.valuationSummary?.dcfPrimaryMethod === "FCFF" && typeof d.valuationSummary?.dcfPrimaryIntrinsicPerShareCOP === "number" ? "FCFF Base estimativa · " + fmt(d.valuationSummary.dcfPrimaryIntrinsicPerShareCOP) + " (no certificada)" : d.valuationSummary?.base != null ? "Base JMR · " + fmt(d.valuationSummary.primaryValueCOP ?? d.valuationSummary.base) : d.valuationSummary?.navReference != null ? "NAV provisional · " + fmt(d.valuationSummary.navReference) : "Valoración pendiente";
+    value.textContent = d.valuationSummary?.baseIsIntrinsic === true && typeof d.valuationSummary?.primaryValueCOP === "number" ? "DCF Base intrínseco · " + fmt(d.valuationSummary.primaryValueCOP) + " · compra con MOS " + fmt(d.valuationSummary.precioMOS) : d.instrument?.model === "holding" && typeof d.valuationSummary?.primaryValueCOP === "number" ? "Base SOTP + comparables · " + fmt(d.valuationSummary.primaryValueCOP) + " (condicional)" : d.valuationSummary?.dcfPrimaryMethod === "FCFF" && typeof d.valuationSummary?.dcfPrimaryIntrinsicPerShareCOP === "number" ? "FCFF Base estimativa · " + fmt(d.valuationSummary.dcfPrimaryIntrinsicPerShareCOP) + " (no certificada)" : d.valuationSummary?.base != null ? "Base JMR · " + fmt(d.valuationSummary.primaryValueCOP ?? d.valuationSummary.base) : d.valuationSummary?.navReference != null ? "NAV provisional · " + fmt(d.valuationSummary.navReference) : "Valoración pendiente";
     const research = document.createElement("button"); research.className = "btn"; research.textContent = "Análisis fundamental";
     research.onclick = () => { location.href = "fundamental-colombia.html?ticker=" + encodeURIComponent(d.ticker); };
     b.textContent = d.reports?.valuation ? "Ver en visor JMR" : "Abrir expediente";
@@ -968,7 +968,7 @@ function renderLibrary() {
     const cur = d.valuationSummary || {};
     const vals = [
       ["Múltiplos ponderados", cur.multiplesWeightedToday],
-      [d.instrument?.model === "holding" ? "SOTP 60% + comparables 40%" : cur.valuationOutput ? "DCF 60% + relativos 40%" : "Combinado relativo", cur.combinedWeightedToday]
+      [cur.baseIsIntrinsic === true ? "Ponderado secundario 40% DCF + 60% múltiplos" : d.instrument?.model === "holding" ? "SOTP 60% + comparables 40%" : cur.valuationOutput ? "DCF 60% + relativos 40%" : "Combinado relativo", cur.combinedWeightedToday]
     ];
     for (const [label, amount] of vals) {
       const item = document.createElement("div"); item.className = "col-library-snapshot-item";

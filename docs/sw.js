@@ -1,4 +1,4 @@
-const CACHE = "modelo-jmr-v144-davivienda-damodaran-precision";
+const CACHE = "modelo-jmr-v145-colombia-mismo-diseno";
 const APP_SHELL = [
   "index.html",
   "colombia.html",
@@ -19,6 +19,7 @@ const APP_SHELL = [
   "gh_oauth.js",
   "decision.js",
   "valuation-board.js",
+  "mercado.js",
   "oauth-callback.html",
   "prompts/research-fundamental-jmr-v5.md",
   "prompts/valoracion-modelo-jmr-v4.md",
