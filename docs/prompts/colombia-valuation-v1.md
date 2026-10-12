@@ -1,5 +1,8 @@
 # JMR Colombia · Reglas independientes v1
 
+> **Para flujos asistidos por script usa primero `colombia-nucleo-v1.md` (≈2 KB).** Este archivo completo es para auditoría; ahorra tokens leyendo solo la sección que necesites.
+
+
 <!-- JMR-CO-R5-INTRINSECO-PRINCIPAL-20261012; PRECEDENCIA ABSOLUTA -->
 ## REGLA CANÓNICA VIGENTE · r5 · 12-oct-2026 · igual que la cartera de EE.UU.
 
