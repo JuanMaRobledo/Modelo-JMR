@@ -1,4 +1,4 @@
-const CACHE = "modelo-jmr-v147-mercados-completos";
+const CACHE = "modelo-jmr-v148-damodaran";
 const APP_SHELL = [
   "index.html",
   "colombia.html",
@@ -10,6 +10,9 @@ const APP_SHELL = [
   "prompts/colombia-valuation-v1.md",
   "visor.html",
   "screener.html",
+  "damodaran.html",
+  "damodaran/multiplos.json",
+  "damodaran/valoraciones.json",
   "calculadora.html",
   "research.html",
   "research.js",
