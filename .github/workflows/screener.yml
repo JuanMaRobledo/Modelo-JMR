@@ -58,6 +58,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: JuanMaRobledo/JMR-valuation
+          token: ${{ secrets.JMR_VALUATION_READ_TOKEN }}
+          persist-credentials: false
           path: jmr-valuation
 
       - uses: actions/setup-python@v5
