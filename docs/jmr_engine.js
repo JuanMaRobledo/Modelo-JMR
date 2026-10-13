@@ -103,6 +103,8 @@ function runDCFDetalle(inp, growthY2to5, marginTarget, growthY1, marginY1){
   var lag0 = inp.reinvestLag === 0;
   var reinvest = new Array(11);
   for(var n=1;n<=10;n++) reinvest[n] = (lag0 ? rev[n]-rev[n-1] : rev[n+1]-rev[n])/s2c(n);
+  // Política «Sin liberación» (Input B98:B101): la reinversión negativa por caída de ingresos se limita a cero.
+  if(inp.sinLiberacion) for(var n=1;n<=10;n++) if(reinvest[n]<0) reinvest[n]=0;
   // Retorno sobre el capital después del año 10: por defecto igual al costo de capital (sin retornos
   // excedentes); inp.roicTerminal lo fija si la empresa tiene ventajas duraderas (criterio Damodaran).
   var reinvestTerminal = ebit1tTerminal*terminalGrowth/roicTerminal;

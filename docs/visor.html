@@ -1170,10 +1170,11 @@
   // viene de ningún Excel — mismo patrón de persistencia que Cualitativo.
   var fundamentalOverride = null;
 
-  var JMR_CUR = 'USD'; // 'COP' mientras se muestra una valoración guardada en pesos (currency del registro)
+  var JMR_CUR = 'USD'; // 'EUR' (Porsche) o 'COP' mientras se muestra una valoración guardada en pesos (currency del registro)
   function fmtMoney(v){
     if(v === undefined || v === null || typeof v !== 'number' || isNaN(v)) return '—';
     if(JMR_CUR === 'COP') return 'COP ' + v.toLocaleString('es-CO', {maximumFractionDigits:0});
+    if(JMR_CUR === 'EUR') return '€' + v.toLocaleString('es-ES', {minimumFractionDigits:2, maximumFractionDigits:2});
     return '$' + v.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
   }
   function fmtPct(v){
@@ -3017,7 +3018,7 @@
 
   function displaySavedRecord(rec){
     jmrAjustarMercado(rec);
-    JMR_CUR = jmrEsCOP(rec) ? 'COP' : 'USD';
+    JMR_CUR = jmrEsCOP(rec) ? 'COP' : (String(rec.currency || '').toUpperCase() === 'EUR' ? 'EUR' : 'USD');
     document.getElementById('rTicker').textContent = rec.ticker || '—';
     document.getElementById('tickerOverride').value = rec.ticker || '';
     document.getElementById('rCompanyName').textContent = rec.nombreActivo || '';

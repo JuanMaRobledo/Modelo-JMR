@@ -16,7 +16,7 @@
 
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function num(v) { return (typeof v === 'number' && isFinite(v)) ? v : null; }
-  function money(v) { v = num(v); return v == null ? '—' : (DISPLAY_CURRENCY === 'COP' ? 'COP ' : 'US$') + v.toLocaleString('es-CO', { minimumFractionDigits: DISPLAY_CURRENCY === 'COP' ? 0 : 2, maximumFractionDigits: DISPLAY_CURRENCY === 'COP' ? 0 : 2 }); }
+  function money(v) { v = num(v); return v == null ? '—' : (DISPLAY_CURRENCY === 'COP' ? 'COP ' : DISPLAY_CURRENCY === 'EUR' ? '€' : 'US$') + v.toLocaleString('es-CO', { minimumFractionDigits: DISPLAY_CURRENCY === 'COP' ? 0 : 2, maximumFractionDigits: DISPLAY_CURRENCY === 'COP' ? 0 : 2 }); }
   function n2(v) { v = num(v); return v == null ? '—' : v.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
   function pct(v, d) { v = num(v); return v == null ? '—' : (v * 100).toFixed(d == null ? 0 : d) + '%'; }
   function trio(t) { if (!t) return null; var o = { conservador: num(t.conservador), base: num(t.base), optimista: num(t.optimista) }; return o.base == null ? null : o; }
@@ -69,7 +69,7 @@
       hist: histFrom(o.hist || o.multiplesHistoricos),
       hoja: o.hoja || '',
       holding: o.holding || null,
-      currency: o.currency === 'COP' ? 'COP' : 'USD'
+      currency: o.currency === 'COP' ? 'COP' : o.currency === 'EUR' ? 'EUR' : 'USD'
     };
   }
   // Valor esperado de las historias (sección «Valor con criterio Damodaran»): promedio de 3-4 historias, cada una un
@@ -257,7 +257,7 @@
         K.map(function (k) { return '<td class="n' + (k === 'base' ? ' b' : '') + '">' + n2(x.t[k]) + (x.g === 'met' ? '<span class="jvb-applied">' + (x.aplicados && x.aplicados[k] ? 'Múltiplo FY+1–3: ' + (x.aplicados[k].every(function(v) { return v === x.aplicados[k][0]; }) ? n2(x.aplicados[k][0]) + '×' : x.aplicados[k].map(function(v,i) { return 'FY+' + (i+1) + ': ' + n2(v) + '×'; }).join(' · ')) : 'Múltiplo aplicado: no disponible') + '</span>' : '') + (k === 'base' ? '<span class="vsm">' + vsPrecio(x.t.base, d.precio) + '</span>' : '') + '</td>'; }).join('') +
         '<td class="n vs">' + vsPrecio(x.t.base, d.precio) + '</td></tr>';
     });
-    return '<div class="jvb-tw"><table class="jvb-table"><thead><tr><th>Método <small>' + (DISPLAY_CURRENCY === 'COP' ? 'COP por acción' : 'US$ por acción') + '</small></th><th class="n w">Peso</th><th class="n b">Base</th><th class="n">Conservadora</th><th class="n">Optimista</th><th class="n vs">Base vs. precio</th></tr></thead><tbody>' + out + '</tbody></table></div>';
+    return '<div class="jvb-tw"><table class="jvb-table"><thead><tr><th>Método <small>' + (DISPLAY_CURRENCY === 'COP' ? 'COP por acción' : DISPLAY_CURRENCY === 'EUR' ? '€ por acción' : 'US$ por acción') + '</small></th><th class="n w">Peso</th><th class="n b">Base</th><th class="n">Conservadora</th><th class="n">Optimista</th><th class="n vs">Base vs. precio</th></tr></thead><tbody>' + out + '</tbody></table></div>';
   }
 
   // Rango Conservador–Optimista de cada fila frente al precio («football field»).
@@ -366,7 +366,7 @@
   }
   function html(d, opts) {
     opts = opts || {};
-    DISPLAY_CURRENCY = d?.currency === 'COP' ? 'COP' : 'USD';
+    DISPLAY_CURRENCY = d?.currency === 'COP' ? 'COP' : d?.currency === 'EUR' ? 'EUR' : 'USD';
     if (d && d.holding) return holdingHtml(d);
     if (!hasData(d)) return '';
     var p = prefs(), both = !!(d.dcf.hoy && d.dcf.fy3);
@@ -535,7 +535,7 @@
   }
 
   global.JmrValueBoard = { fromParts: fromParts, fromRecord: fromRecord, html: html, hasData: hasData, veHtml: veHtml, historicalHtml: historicalHtml,
-    primaryValues: primaryValues, primaryHtml: primaryHtml, veBox: function (d) { if (d && d.holding) return ''; DISPLAY_CURRENCY = d && d.currency === 'COP' ? 'COP' : 'USD'; var h = unified(d) ? unifiedHtml(d) : primaryHtml(d) + veHtml(d); return h ? '<div class="jvb-vebox">' + h + '</div>' : ''; },
+    primaryValues: primaryValues, primaryHtml: primaryHtml, veBox: function (d) { if (d && d.holding) return ''; DISPLAY_CURRENCY = d && d.currency === 'COP' ? 'COP' : d && d.currency === 'EUR' ? 'EUR' : 'USD'; var h = unified(d) ? unifiedHtml(d) : primaryHtml(d) + veHtml(d); return h ? '<div class="jvb-vebox">' + h + '</div>' : ''; },
     apply: function () { apply(prefs()); } };
 })(window);
 
