@@ -1129,9 +1129,9 @@
           ?'Cada múltiplo Base frente al múltiplo que implica el DCF en FY+3. ↑/↓ = el múltiplo vale más/menos que el DCF (alerta con más de '+Math.round(u*100)+' pp de diferencia en crecimiento implícito o más de 25% en valor).'
           :'Crecimiento perpetuo después de FY+3 que supone cada múltiplo Base, frente a '+pc(((ci.gDcf||{}).puntoMedio))+' del DCF. ↑/↓ = más/menos crecimiento que el DCF (más de '+Math.round(u*100)+' pp).')+'</p></div>';
     }
-    var links=(v.__path?'<a href="visor.html?path='+encodeURIComponent(v.__path)+'">Abrir en el Visor →</a>':'')+
+    var links=(v.__path?'<a href="'+jmrMercadoHref('visor.html?path='+encodeURIComponent(v.__path),d)+'">Abrir en el Visor →</a>':'')+
       (v.hojaGoogle?'<a href="'+escapeHtml(v.hojaGoogle)+'" target="_blank" rel="noopener noreferrer">Hoja con fórmulas →</a>':'')+
-      (d.fromResearch?'<a href="research.html?ticker='+encodeURIComponent(d.ticker)+'">Análisis fundamental →</a>':'');
+      (d.fromResearch?'<a href="'+jmrMercadoHref('research.html?ticker='+encodeURIComponent(d.ticker),d)+'">Análisis fundamental →</a>':'');
     return '<header class="cp-head"><div><span class="c-ticker">'+escapeHtml(d.ticker)+'</span><h3>'+escapeHtml(d.empresa||d.ticker)+'</h3><span class="cp-date">'+escapeHtml(d.fecha||'')+' · <span class="chip '+catClass(d.cat)+'">'+escapeHtml(d.cat)+'</span></span></div><nav class="cp-links">'+links+'</nav></header>'+
       decisionWidget(d)+tiles+growth+'<div class="cp-body">'+detailFieldsHtml(d,true)+'</div>';
   }
@@ -1145,6 +1145,7 @@
   function render(){
     var q = state.q.trim().toLowerCase();
     var list = DATA.filter(function(d){
+      if (!jmrDelMercado(d)) return false;
       if(state.cat !== "all" && d.cat !== state.cat) return false;
       if(!q) return true;
       return d.ticker.toLowerCase().indexOf(q) !== -1 || d.empresa.toLowerCase().indexOf(q) !== -1;
@@ -1340,7 +1341,7 @@
     }
     // Los tickers compuestos (varios instrumentos separados por "/") no
     // tienen un único precio que mostrar — se dejan como "—".
-    var candidates = DATA.filter(function(d){ return !/[\/\s]/.test(d.ticker); });
+    var candidates = DATA.filter(function(d){ return jmrDelMercado(d) && !/[\/\s]/.test(d.ticker); });
     updatePricesBtn.disabled = true;
     candidates.forEach(function(d){d.precioActual=null;d.precioActualConsultado=null;});
     priceStatus.textContent = "Actualizando precios… (0/" + candidates.length + ")";
@@ -1363,12 +1364,13 @@
 
   function buildPrintSheet(){
     var seen={}, list=DATA.filter(function(d){
+      if (!jmrDelMercado(d)) return false;
       var ticker=String(d.ticker||'').toUpperCase();
       if(!ticker||seen[ticker])return false;
       seen[ticker]=true;return true;
     }).sort(function(a,b){return a.ticker.localeCompare(b.ticker);});
     var now=new Date().toLocaleString('es-CO',{timeZone:'America/Bogota',dateStyle:'medium',timeStyle:'short'});
-    document.getElementById('printSheet').innerHTML='<h1>Mi Bitácora · activos estudiados</h1><p>Impresión: '+escapeHtml(now)+' (Colombia) · USD por acción · precios consultados a Financial Modeling Prep con posible retraso. “—” indica cotización o valoración no disponible. Lectura: '+escapeHtml(BASIS_INFO[valueBasis].label)+'. DCF base y esperado se muestran por separado a valor presente; el esperado requiere historias valoradas. Diferencia = (valor / precio − 1) × 100.</p>'+
+    document.getElementById('printSheet').innerHTML='<h1>Mi Bitácora · activos estudiados</h1><p>Impresión: '+escapeHtml(now)+' (Colombia) · '+(JMR_MERCADO === 'colombia' ? 'Colombia · COP' : 'Internacionales · USD')+' por acción · precios consultados a Financial Modeling Prep con posible retraso. “—” indica cotización o valoración no disponible. Lectura: '+escapeHtml(BASIS_INFO[valueBasis].label)+'. DCF base y esperado se muestran por separado a valor presente; el esperado requiere historias valoradas. Diferencia = (valor / precio − 1) × 100.</p>'+
       '<table><thead><tr><th>Ticker</th><th>Activo</th><th>Precio consultado</th><th>'+(BASIS_INFO[valueBasis].fam==='dcf'?'DCF base hoy':'Valor hoy')+'</th><th>'+(BASIS_INFO[valueBasis].fam==='dcf'?'Dif. base':'Dif. hoy')+'</th><th>'+(BASIS_INFO[valueBasis].fam==='dcf'?'DCF esperado hoy':'Valor FY+3')+'</th><th>'+(BASIS_INFO[valueBasis].fam==='dcf'?'Dif. esperado':'Dif. FY+3')+'</th><th>Hora de consulta</th></tr></thead><tbody>'+
       list.map(function(d){var f=familyValues(d,BASIS_INFO[valueBasis].fam);if(BASIS_INFO[valueBasis].fam==='dcf'){var p=primaryDCFs(d);f={hoy:p.base,fy3:p.esperado};}var a=pctVs(f.hoy,d),b=pctVs(f.fy3,d),pc=function(x){return x===null?'—':(x>=0?'+':'')+x.toFixed(1)+'%';};return '<tr><td>'+escapeHtml(d.ticker)+'</td><td>'+escapeHtml(d.empresa||'')+'</td><td>'+(d.precioActual?fmtVal(d.precioActual):'—')+'</td><td>'+fmtVal(f.hoy)+'</td><td>'+pc(a)+'</td><td>'+fmtVal(f.fy3)+'</td><td>'+pc(b)+'</td><td>'+(d.precioActualConsultado?escapeHtml(new Date(d.precioActualConsultado).toLocaleTimeString('es-CO',{timeZone:'America/Bogota'})):'—')+'</td></tr>';}).join('')+'</tbody></table>';
   }
@@ -1501,6 +1503,8 @@
     var precioNum = v ? (typeof v.precioAnalisis === 'number' ? v.precioAnalisis : v.precio) : null;
     return {
       ticker: rec.ticker,
+      market: rec.market,
+      currency: rec.currency,
       empresa: rec.company || '',
       fecha: rec.date || '',
       cat: 'Estándar',

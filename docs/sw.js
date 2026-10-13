@@ -1,10 +1,11 @@
-const CACHE = "modelo-jmr-v147-damodaran";
+const CACHE = "modelo-jmr-v148-damodaran";
 const APP_SHELL = [
   "index.html",
   "colombia.html",
   "colombia/app.js",
   "colombia/core.js",
   "colombia/catalog.js",
+  "prompts/colombia-nucleo-v1.md",
   "prompts/colombia-research-v1.md",
   "prompts/colombia-valuation-v1.md",
   "visor.html",
