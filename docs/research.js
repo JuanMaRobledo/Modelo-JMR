@@ -304,8 +304,19 @@
       ? '<details class="jmr-research-details" id="jmrTechnicalLevel"><summary>Ver nivel 2 · Análisis fundamental y valoración: supuestos, escenarios y fuentes</summary><div class="jmr-technical-content">'
       : '';
     var technicalEnd = articulo ? '</div></details>' : '';
-    body.innerHTML = '<div class="research-document">' + articulo + technicalStart + title + analysis.toc +
-      '<div id="editableContent">' + analysis.body + '</div>' + linked + val + renderNews() +
+    // La tarjeta de valoración debe acompañar siempre la tesis de inversión,
+    // también en el PDF. Antes quedaba dentro del nivel 2 (<details>), que
+    // el modo de impresión oculta cuando está cerrado.
+    // Con artículo: mover el tablero vinculado fuera del desplegable. Si no
+    // existe vínculo, usar la valoración adjunta, sin duplicarla.
+    // Sin artículo: conservar la ubicación original de ambos bloques.
+    var tarjetaValoracion = articulo && (linked || val)
+      ? '<section class="jmr-valuation-summary" aria-label="Tarjeta de valoración">' +
+        '<h2>Tarjeta de valoración</h2>' + (linked || val) + '</section>'
+      : '';
+    var valoracionDetalle = articulo ? (linked ? val : '') : linked + val;
+    body.innerHTML = '<div class="research-document">' + articulo + tarjetaValoracion + technicalStart + title + analysis.toc +
+      '<div id="editableContent">' + analysis.body + '</div>' + valoracionDetalle + renderNews() +
       technicalEnd + '</div>';
     markNumericCells(body);
     renderEditorToolbar();
