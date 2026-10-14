@@ -1,4 +1,4 @@
-const CACHE = "modelo-jmr-v151-tesis-valoracion";
+const CACHE = "modelo-jmr-v151-pdf-tarjeta";
 const APP_SHELL = [
   "index.html",
   "colombia.html",
