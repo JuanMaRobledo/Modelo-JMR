@@ -87,6 +87,18 @@ body.research-page .wrap{max-width:none;padding-inline:clamp(16px,2.5vw,48px)}bo
 .jmr-editorial-article p.jmr-editorial-meta{font-size:12px;color:var(--ink-faint);margin:-5px 0 25px}
 .jmr-editorial-article a{text-underline-offset:3px}
 .jmr-editorial-source{padding:12px 14px;border-top:1px solid var(--border-soft);margin-top:18px}
+/* La tarjeta de valoración forma parte del artículo, no del nivel 2.
+   Así permanece visible en pantalla, en Imprimir/PDF y en el PDF del servidor. */
+.jmr-valuation-summary{max-width:940px;margin:30px auto 32px;padding:15px 20px 17px;border:1px solid var(--border);border-radius:14px;background:var(--surface)}
+.jmr-valuation-summary>h2{font-family:"Fraunces",Georgia,serif;font-size:24px;margin:0 0 16px!important;border:0!important;padding:0!important}
+.jmr-valuation-summary>.linked-valuation,.jmr-valuation-summary>.valuation-block{margin:0;background:var(--surface-2)}
+@media print{
+  .jmr-valuation-summary{max-width:none;margin:0 0 20px;padding:0;border:0;border-radius:0;break-before:page;page-break-before:always;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+  .jmr-valuation-summary>h2{break-after:avoid;page-break-after:avoid;margin:0 0 14px!important}
+  .jmr-valuation-summary .jvb-primary-card,.jmr-valuation-summary .linked-kv,.jmr-valuation-summary .jvb-ve,.jmr-valuation-summary .jvb-holding{break-inside:avoid;page-break-inside:avoid}
+  .jmr-valuation-summary .linked-visor-link,.jmr-valuation-summary .jvb-bar{display:none!important}
+  .jmr-valuation-summary .jvb-tw{overflow:visible!important}
+}
 .jmr-research-details{border:1px solid var(--border);border-radius:12px;background:var(--surface);margin:26px 0 10px}
 .jmr-research-details>summary{cursor:pointer;list-style:disclosure-closed;padding:17px 20px;font-size:14px;font-weight:700;color:var(--accent-ink);background:var(--accent-soft);border-radius:12px}
 .jmr-research-details[open]>summary{border-radius:12px 12px 0 0;border-bottom:1px solid var(--border)}
@@ -180,7 +192,7 @@ body.research-page .wrap{max-width:none;padding-inline:clamp(16px,2.5vw,48px)}bo
 <script src="gh_oauth.js"></script>
 <script src="decision.js"></script>
 <script src="valuation-board.js"></script>
-<script src="research.js?v=20261014-tesis-valoracion"></script>
+<script src="research.js?v=20261014-pdf-tarjeta"></script>
 <script>
 if("serviceWorker" in navigator){
   window.addEventListener("load", function(){
