@@ -162,7 +162,7 @@ function renderReport(id, content, levels) {
   const body = content.replace(/^---\s*\n[\s\S]*?\n---\s*\n/, "");
   if (!window.marked || !window.DOMPurify) { root.textContent = body; return; }
   root.innerHTML = DOMPurify.sanitize(levels?.articleHtml && levels?.calculationHtml ? `<section id="jmrArticleLevel"><h2>Nivel 1 · Artículo de análisis e inversión</h2>${levels.articleHtml}</section><details><summary>Nivel 2 · Cálculos de valoración</summary>${levels.calculationHtml}</details>` : marked.parse(body, { gfm: true }), { FORBID_TAGS: ["style", "form", "input"] });
-  root.onclick = event => { const a = event.target.closest('a[href^="#"]'); if (!a) return; const target = document.getElementById(a.getAttribute("href").slice(1)); const details = target?.closest("details"); if (details) details.open = true; };
+  root.onclick = event => { window.JmrReportAnchors.navigate(event, root); };
   const anchors = new Map();
   root.querySelectorAll("[id]").forEach(node => { const old = node.id; node.id = `${id}-${old}`; anchors.set(old, node.id); });
   root.querySelectorAll('a[href^="#"]').forEach(a => { const target = anchors.get(a.getAttribute("href").slice(1)); if (target) a.setAttribute("href", "#" + target); });
