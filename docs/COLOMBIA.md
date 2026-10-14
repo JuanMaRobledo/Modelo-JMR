@@ -11,6 +11,7 @@ autorización explícita, en `Modelo-JMR-datos/colombia/expedientes/`.
 - Las valoraciones de Colombia (PFDAVVNDA, GRUPOSURA, PFGRUPSURA, GRUPOARGOS, PFGRUPOARG) se rehicieron desde cero con la plantilla maestra
   internacional y la misma cadena (historias → hoja → múltiplos → app → informes v4/v5), con moneda COP. Sus registros viven en
   `Modelo-JMR-datos/valoraciones/` y `analisis/` (campo `currency: "COP"`), no en `colombia/expedientes`.
+- **Excepción · Grupo Argos (GRUPOARGOS, PFGRUPOARG):** el 12-oct-2026 la auditoría retiró su DCF consolidado (asociadas contadas dos veces, minoritarios estimados por ingresos, capitalización con una sola clase de acción) y se publicó un SOTP **preliminar** (NAV Base COP 18.674 por acción, valor contable separado 14.733). Por eso no tienen DCF, valor esperado, MOS ni ponderado; «Múltiplos por negocio» y «DCF por negocio» están PENDIENTES. El tablero muestra el bloque de holding (`valoracionHolding`). Lo de abajo sobre DCF Base, esperado, MOS 35% y ponderado 40/60 aplica a las otras tres.
 - La pestaña «Colombia» es el visor y la biblioteca internacionales filtrados por mercado (`visor.html?mercado=colombia`,
   `fundamental.html?mercado=colombia`; filtro en `mercado.js`). `visor-colombia.html` y `fundamental-colombia.html` solo redirigen.
 - Valor principal = DCF Base intrínseco (FCFE en bancos y holdings financieras; FCFF en industriales/holdings), esperado por probabilidades,
