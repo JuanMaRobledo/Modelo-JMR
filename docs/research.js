@@ -313,12 +313,7 @@
       markNumericCells(body);
       renderEditorToolbar();
       body.onclick = function (event) {
-        var anchor = event.target.closest('a[href^="#"]');
-        if (!anchor) return;
-        var target = document.getElementById(anchor.getAttribute('href').slice(1));
-        if (!target) return;
-        var details = target.closest('details');
-        if (details) details.open = true;
+        window.JmrReportAnchors.navigate(event, body);
       };
       return;
     }
@@ -1283,11 +1278,7 @@
     setStatus('compareStatus','Comparando "' + (a.ticker || a.title) + '" vs. "' + (b.ticker || b.title) + '".','ok');
   });
   el('compareOutput').addEventListener('click', function (event) {
-    var anchor = event.target.closest('a[href^="#"]');
-    if (!anchor) return;
-    var target = document.getElementById(anchor.getAttribute('href').slice(1));
-    var details = target && target.closest('details');
-    if (details) details.open = true;
+    window.JmrReportAnchors.navigate(event, el('compareOutput'));
   });
   el('comparePrintBtn').addEventListener('click', function () { window.print(); });
   el('compareDownloadBtn').addEventListener('click', function () {
