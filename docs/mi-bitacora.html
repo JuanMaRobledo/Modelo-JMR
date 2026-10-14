@@ -273,6 +273,30 @@
   .summary-item .num{font:600 13px "IBM Plex Mono",monospace;}.summary-item .positive{color:var(--positive);}.summary-item .negative{color:var(--negative);}
   .summary-item button{font:600 12px inherit;border:0;background:var(--accent-soft);color:var(--accent-ink);padding:8px;border-radius:7px;cursor:pointer;}
   @media(max-width:620px){.summary-item{grid-template-columns:1fr 1fr;}.summary-item .identity{grid-column:1/-1;}.summary-item button{grid-column:1/-1;}.summary-item .num small{margin-bottom:3px;}}
+
+  /* Resumen reorganizado: identidad | entrada | precio | valor, cada celda con su etiqueta */
+  .summary-list{gap:10px;}
+  .summary-item{gap:10px 18px;padding:14px 18px;}
+  .summary-item.cols-3{grid-template-columns:minmax(170px,2.2fr) repeat(3,minmax(120px,1fr)) auto;}
+  .summary-item.cols-4{grid-template-columns:minmax(170px,2fr) repeat(4,minmax(110px,1fr)) auto;}
+  .summary-item .identity strong{font-family:"IBM Plex Mono",monospace;font-size:15px;letter-spacing:.02em;}
+  .summary-item .identity .idn{display:block;font-size:12.5px;color:var(--ink-soft);margin-top:1px;}
+  .summary-item .identity small{margin-top:4px;}
+  .summary-item .num{display:flex;flex-direction:column;gap:3px;padding-left:14px;border-left:1px solid var(--border-soft);min-height:44px;}
+  .summary-item .num .nl{font:600 10px "Public Sans",sans-serif;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-faint);}
+  .summary-item .num strong{display:block;font:600 14px "IBM Plex Mono",monospace;min-height:1.3em;}
+  .summary-item .num.val strong{font-size:15px;color:var(--accent-ink,var(--accent));}
+  .summary-item .num .pair{display:block;font-size:11.5px;color:var(--ink-soft);}
+  .summary-item button{align-self:center;}
+  .summary-item .num.noval{text-align:left;padding:0 0 0 14px;color:inherit;}
+  @media(max-width:900px){.summary-item.cols-3,.summary-item.cols-4{grid-template-columns:repeat(2,minmax(0,1fr));}.summary-item .identity,.summary-item button{grid-column:1/-1;}.summary-item .num{padding-left:10px;}}
+  /* Tarjetas visuales */
+  .visual-numbers{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .visual-numbers.three{grid-template-columns:repeat(3,minmax(0,1fr));}
+  .visual-number.entry{background:transparent;border:1px dashed var(--border-soft);}
+  .visual-number.entry.empty{border-style:none;background:transparent;}
+  .visual-number.entry.empty span{visibility:hidden;}
+  @media(max-width:620px){.visual-numbers.three{grid-template-columns:1fr 1fr;}}
   .print-btn{font:600 12px inherit;border:1px solid var(--border);background:var(--surface);color:var(--ink);padding:8px 12px;border-radius:9px;cursor:pointer;}
   @media print{
     @page{size:A4 landscape;margin:12mm;}
@@ -824,7 +848,7 @@
     if(base !== null) targets.push({ value: base, label: 'Base', cls: 'chart-ref-base' });
     if(opt !== null) targets.push({ value: opt, label: 'Optimista', cls: 'chart-ref-opt' });
 
-    var precioActual = d.precioActual != null ? d.precioActual : parseNum(d.precio);
+    var precioActual = d.precioActual != null ? d.precioActual : costoCompra(d);
     var esActual = d.precioActual != null;
 
     if(!rows.length && !targets.length){
@@ -880,7 +904,7 @@
     var pr = d ? priceRef(d) : {};
     var data = JmrValueBoard.fromRecord(v, { precio: pr.price || v.precio, precioLbl: pr.live ? 'Precio consultado' : 'Precio guardado' });
     if(!JmrValueBoard.hasData(data)) return '';
-    return '<div class="dfield full valuation-panel"><h3>Valoración</h3>' + JmrValueBoard.html(data, { hero: true }) + '</div>';
+    return '<div class="dfield full valuation-panel"><h3>Valoración</h3>' + JmrValueBoard.html(data, { hero: true, hideAverage: true }) + '</div>';
   }
   function detailFieldsHtml(d, enPanel){
     if(enPanel) return panelFieldsHtml(d);
@@ -896,7 +920,7 @@
     html += '<span class="c-ticker">' + escapeHtml(d.ticker) + (pairHtml(d) ? '<span class="valuation-chip">' + pairHtml(d) + '</span>' : '') + '</span>';
     html += '<span class="c-empresa" title="' + escapeHtml(d.empresa) + '">' + escapeHtml(d.empresa) + '</span>';
     html += '<span class="c-cat"><span class="chip ' + catClass(d.cat) + '">' + escapeHtml(d.cat) + '</span>' + (d.fromResearch ? '<span class="chip custom">Análisis Fundamental</span>' : '') + '</span>';
-    html += '<span class="c-precio">' + escapeHtml(d.precio) + '</span>';
+    html += '<span class="c-precio">' + (costoCompra(d) !== null ? fmtVal(costoCompra(d)) : '') + '</span>';
     html += '<span class="c-precio-actual' + (d.precioActual != null ? '' : ' stale') + '">' + (d.precioActual != null ? formatPrecioActual(d.precioActual) : '—') + '</span>';
     html += '<span class="zones"><span><b>V</b>' + escapeHtml(d.zV) + '</span><span><b>DV</b>' + escapeHtml(d.zD) + '</span><span><b>VH</b>' + escapeHtml(d.zH) + '</span></span>';
     html += '<span class="c-anio">' + escapeHtml(d.anio) + '</span>';
@@ -926,7 +950,7 @@
     html += '  <div class="sc-empresa">' + escapeHtml(d.empresa) + '</div>';
     if(pairHtml(d)) html += '<div class="valuation-chip">' + pairHtml(d) + '</div>';
     html += '  <div class="sc-row">';
-    html += '    <div class="sc-kv"><span class="k">Entrada</span><span class="v">' + escapeHtml(d.precio) + '</span></div>';
+    html += '    <div class="sc-kv"><span class="k">Entrada</span><span class="v">' + (costoCompra(d) !== null ? fmtVal(costoCompra(d)) : '&nbsp;') + '</span></div>';
     html += '    <div class="sc-kv"><span class="k">Actual</span><span class="v' + (d.precioActual != null ? '' : ' stale') + '">' + (d.precioActual != null ? formatPrecioActual(d.precioActual) : '—') + '</span></div>';
     html += '    <div class="sc-kv"><span class="k">Año</span><span class="v">' + escapeHtml(d.anio) + '</span></div>';
     html += '  </div>';
@@ -943,9 +967,10 @@
   function visualCardHtml(d){
     var fam=BASIS_INFO[valueBasis].fam, fv=familyValues(d,fam), present=fv.hoy, future=fv.fy3;
     var famLbl=fam==='dcf'?(d.valoracionActual && d.valoracionActual.valorEsperado && d.valoracionActual.valorEsperado.escenariosUnificados?'DCF Base':'DCF'):fam==='multiplos'?'Múltiplos':'Ponderado';
-    var pr=priceRef(d), price=pr.price;
+    var pr=priceRef(d), price=pr.price, cc=costoCompra(d);
     var validPrice=!!price;
-    var pv=primaryDCFs(d); if(fam==='dcf'){present=pv.base;future=pv.esperado;} var scale=Math.max(present||0,future||0,validPrice?price:0,1)*1.1;
+    if(fam==='dcf'){present=primaryDCFs(d).base;future=null;}
+    var scale=Math.max(present||0,future||0,validPrice?price:0,cc||0,1)*1.1;
     var marker=validPrice?Math.min(100,Math.max(0,price/scale*100)):null;
     function bar(label,value,kind){
       if(!(typeof value==='number'&&isFinite(value)))return '';
@@ -954,9 +979,13 @@
     }
     var upHoy=pctVs(present,d), upFy3=pctVs(future,d);
     var expanded=state.expanded===d.n;
+    var entry='<div class="visual-number entry'+(cc===null?' empty':'')+'"><span>Precio de entrada</span><strong>'+(cc!==null?fmtVal(cc):'&nbsp;')+'</strong>'+(cc!==null&&validPrice?'<small class="vs">hoy '+fmtPctSpan(pctVsCompra(price,d))+'</small>':'')+'</div>';
+    var numbers=fam==='dcf'
+      ? primaryNumbersHtml(d,true)+entry
+      : '<div class="visual-number'+(BASIS_INFO[valueBasis].hz==='hoy'?' today':'')+'"><span>'+famLbl+' hoy</span><strong>'+fmtVal(present)+'</strong><small class="vs">vs. precio '+fmtPctSpan(upHoy)+'</small>'+vsCompraHtml(present,d,true)+'</div><div class="visual-number'+(BASIS_INFO[valueBasis].hz==='fy3'?' today':'')+'"><span>'+(famLbl==='DCF Base'?'Tesis Base':famLbl+' FY+3')+'</span><strong>'+fmtVal(famLbl==='DCF Base'?d.valoracionActual.valorEsperado.valorCentral:future)+'</strong><small class="vs">vs. precio '+fmtPctSpan(famLbl==='DCF Base'?pctVs(d.valoracionActual.valorEsperado.valorCentral,d):upFy3)+'</small>'+vsCompraHtml(famLbl==='DCF Base'?d.valoracionActual.valorEsperado.valorCentral:future,d,true)+'</div>'+entry;
     return '<article class="visual-card'+(expanded?' expanded':'')+'"><div class="visual-head"><div><span class="c-ticker">'+escapeHtml(d.ticker)+'</span><h3>'+escapeHtml(d.empresa||d.ticker)+'</h3><div class="visual-sub">'+escapeHtml(d.fecha||'')+(d.fromResearch?' · Análisis fundamental':'')+'</div></div><span class="chip '+catClass(d.cat)+'">'+escapeHtml(d.cat)+'</span></div>'+
-      (fam==='dcf'?'<div class="visual-numbers">'+primaryNumbersHtml(d,true)+'</div>':'<div class="visual-numbers"><div class="visual-number'+(BASIS_INFO[valueBasis].hz==='hoy'?' today':'')+'"><span>'+famLbl+' hoy</span><strong>'+fmtVal(present)+'</strong><small class="vs">vs. precio '+fmtPctSpan(upHoy)+'</small>'+vsCompraHtml(present,d,true)+'</div><div class="visual-number'+(BASIS_INFO[valueBasis].hz==='fy3'?' today':'')+'"><span>'+(famLbl==='DCF Base'?'Tesis Base':famLbl+' FY+3')+'</span><strong>'+fmtVal(famLbl==='DCF Base'?d.valoracionActual.valorEsperado.valorCentral:future)+'</strong><small class="vs">vs. precio '+fmtPctSpan(famLbl==='DCF Base'?pctVs(d.valoracionActual.valorEsperado.valorCentral,d):upFy3)+'</small>'+vsCompraHtml(famLbl==='DCF Base'?d.valoracionActual.valorEsperado.valorCentral:future,d,true)+'</div></div>') +
-      '<div class="visual-chart"><div class="visual-price">'+(validPrice?'│ '+(pr.live?'Precio actual ':'Precio guardado ')+fmtVal(price):'Entrada histórica '+escapeHtml(d.precio||'—')+' · precio actual pendiente')+(costoCompra(d)!==null?' · Tu compra '+fmtVal(costoCompra(d))+(validPrice?' ('+fmtPctSpan(pctVsCompra(price,d))+')':''):'')+'</div>'+bar(fam==='dcf'?'DCF base hoy':'Hoy',present,'')+bar(fam==='dcf'?'DCF esperado hoy':'FY+3',future,'future')+'</div>'+
+      '<div class="visual-numbers'+(fam==='dcf'?'':' three')+'">'+numbers+'</div>'+
+      '<div class="visual-chart"><div class="visual-price">'+(validPrice?(pr.live?'Precio actual ':'Precio guardado ')+fmtVal(price):'Precio actual pendiente')+'</div>'+bar(fam==='dcf'?'DCF base hoy':'Hoy',present,'')+(fam==='dcf'?'':bar('FY+3',future,'future'))+'</div>'+
       '<div class="visual-footer"><span class="visual-upside neutral">'+(famLbl==='DCF Base'?'Cuatro escenarios DCF':('CAGR base '+escapeHtml(d.cagr||'—')))+'</span><button type="button" class="visual-more" data-visual-n="'+d.n+'" aria-expanded="'+expanded+'">'+(expanded?'Ocultar detalle':'Ver análisis')+' →</button></div>'+
       (expanded?'<div class="visual-detail">'+detailFieldsHtml(d)+'</div>':'')+'</article>';
   }
@@ -980,11 +1009,11 @@
     if(typeof JmrValueBoard!=='undefined') return JmrValueBoard.primaryValues(JmrValueBoard.fromRecord(v));
     return {base:num(((v.descuentoMultiples||{}).dcfHoy||{}).base),esperado:num((v.valorEsperado||{}).valor)};
   }
+  // Solo el DCF base: el promedio de escenarios («DCF esperado») ya no se muestra en la bitácora.
   function primaryNumbersHtml(d, visual){
-    var v=primaryDCFs(d);
-    return [['DCF base hoy',v.base],['DCF esperado hoy',v.esperado]].map(function(x){
-      return visual ? '<div class="visual-number today'+(x[0]==='DCF base hoy'?' principal':' complementary')+'"><span>'+x[0]+'</span><strong>'+fmtVal(x[1])+'</strong><small class="vs">'+(x[1]===null?(x[0]==='DCF base hoy'?'Sin DCF base disponible':'Sin historias valoradas disponibles'):'vs. precio '+fmtPctSpan(pctVs(x[1],d)))+'</small>'+vsCompraHtml(x[1],d,true)+'</div>' : '<div class="num"><small>'+x[0]+'</small>'+fmtVal(x[1])+'<span class="pair">'+(x[1]===null?(x[0]==='DCF base hoy'?'Sin DCF base disponible':'Sin historias valoradas disponibles'):'<b>vs. precio</b>'+fmtPctSpan(pctVs(x[1],d)))+'</span>'+vsCompraHtml(x[1],d,false)+'</div>';
-    }).join('');
+    var v=primaryDCFs(d), x=v.base;
+    if(visual) return '<div class="visual-number today principal"><span>DCF base hoy</span><strong>'+fmtVal(x)+'</strong><small class="vs">'+(x===null?'Sin DCF base disponible':'vs. precio '+fmtPctSpan(pctVs(x,d)))+'</small>'+vsCompraHtml(x,d,true)+'</div>';
+    return '<div class="num" data-lbl="DCF base hoy"><small>DCF base hoy</small>'+fmtVal(x)+'<span class="pair">'+(x===null?'Sin DCF base disponible':'<b>vs. precio</b>'+fmtPctSpan(pctVs(x,d)))+'</span>'+vsCompraHtml(x,d,false)+'</div>';
   }
   function familyValues(d, fam){
     var v=d.valoracionActual||{}, dm=v.descuentoMultiples||{}, methods=v.metodos||[];
@@ -1032,7 +1061,7 @@
   // Línea "vs. compra" bajo una cifra: visual (tarjeta) o par (resumen).
   function vsCompraHtml(value, d, visual){
     if(costoCompra(d)===null||value===null||value===undefined) return '';
-    return visual?'<small class="vs">vs. compra '+fmtPctSpan(pctVsCompra(value,d))+'</small>':'<span class="pair"><b>vs. compra</b>'+fmtPctSpan(pctVsCompra(value,d))+'</span>';
+    return visual?'<small class="vs">vs. entrada '+fmtPctSpan(pctVsCompra(value,d))+'</small>':'<span class="pair"><b>vs. entrada</b>'+fmtPctSpan(pctVsCompra(value,d))+'</span>';
   }
   function intrinsicBase(d){
     var b=BASIS_INFO[valueBasis], f=familyValues(d,b.fam);
@@ -1042,18 +1071,26 @@
   function pairHtml(d){
     var f=familyValues(d,BASIS_INFO[valueBasis].fam);
     if(f.hoy===null&&f.fy3===null) return '';
-    if(BASIS_INFO[valueBasis].fam==='dcf'){var v=primaryDCFs(d);return 'DCF base hoy '+fmtVal(v.base)+' · DCF esperado hoy '+fmtVal(v.esperado);}
+    if(BASIS_INFO[valueBasis].fam==='dcf'){var v=primaryDCFs(d);return 'DCF base hoy '+fmtVal(v.base);}
     return 'Hoy '+fmtVal(f.hoy)+' ('+fmtPctSpan(pctVs(f.hoy,d))+') · FY+3 '+fmtVal(f.fy3)+' ('+fmtPctSpan(pctVs(f.fy3,d))+')';
+  }
+  function sumCell(label, value, sub, cls){
+    return '<div class="num'+(cls?' '+cls:'')+'"><span class="nl">'+label+'</span><strong>'+(value||'&nbsp;')+'</strong>'+(sub||'')+'</div>';
   }
   function summaryHtml(d){
     var pr=priceRef(d), f=familyValues(d,BASIS_INFO[valueBasis].fam), fam=BASIS_INFO[valueBasis].fam;
     var famLbl=fam==='dcf'?(d.valoracionActual && d.valoracionActual.valorEsperado && d.valoracionActual.valorEsperado.escenariosUnificados?'DCF Base':'DCF'):fam==='multiplos'?'Múltiplos':'Ponderado';
-    var open=state.expanded===d.n;
-    return '<div class="summary-block'+(open?' open':'')+'"><div class="summary-item" data-summary-row="'+d.n+'" tabindex="0" role="button" aria-expanded="'+open+'"><div class="identity"><strong>'+escapeHtml(d.ticker)+' · '+escapeHtml(d.empresa||d.ticker)+decisionBadge(d)+'</strong><small>'+escapeHtml(d.fecha||'')+'</small></div>'+
-      '<div class="num"><small>'+(pr.live?'Precio consultado':'Precio guardado')+'</small>'+(pr.price?fmtVal(pr.price):'Pendiente')+
-        (costoCompra(d)!==null?'<span class="pair"><b>Compra</b>'+fmtVal(costoCompra(d))+(pr.price?' '+fmtPctSpan(pctVsCompra(pr.price,d)):'')+'</span>':'')+'</div>'+
-      (fam==='dcf'?primaryNumbersHtml(d,false):'<div class="num"><small>'+famLbl+(famLbl==='DCF Base'?' hoy':' hoy (base)')+'</small>'+fmtVal(f.hoy)+'<span class="pair"><b>vs. precio</b>'+fmtPctSpan(pctVs(f.hoy,d))+'</span>'+vsCompraHtml(f.hoy,d,false)+'</div>'+
-      (f.fy3===null && famLbl==='DCF Base' ? '<div class="num"><small>Tesis Base</small>'+fmtVal(d.valoracionActual.valorEsperado.valorCentral)+'</div>' : '<div class="num"><small>'+famLbl+' FY+3 (base)</small>'+fmtVal(f.fy3)+'<span class="pair"><b>vs. precio</b>'+fmtPctSpan(pctVs(f.fy3,d))+'</span>'+vsCompraHtml(f.fy3,d,false)+'</div>')) +
+    var open=state.expanded===d.n, cc=costoCompra(d);
+    var cells=sumCell('Precio de entrada', cc!==null?fmtVal(cc):'', '', cc===null?'noval':'')+
+      sumCell(pr.live?'Precio actual':'Precio guardado', pr.price?fmtVal(pr.price):'Pendiente', cc!==null&&pr.price?'<span class="pair"><b>vs. entrada</b>'+fmtPctSpan(pctVsCompra(pr.price,d))+'</span>':'');
+    if(fam==='dcf'){
+      var x=primaryDCFs(d).base;
+      cells+=sumCell('DCF base hoy', x===null?'':fmtVal(x), (x===null?'<span class="pair">Sin DCF base disponible</span>':'<span class="pair"><b>vs. precio</b>'+fmtPctSpan(pctVs(x,d))+'</span>')+vsCompraHtml(x,d,false), 'val');
+    } else {
+      cells+=sumCell(famLbl+(famLbl==='DCF Base'?' hoy':' hoy (base)'), fmtVal(f.hoy), '<span class="pair"><b>vs. precio</b>'+fmtPctSpan(pctVs(f.hoy,d))+'</span>'+vsCompraHtml(f.hoy,d,false), 'val');
+      cells+=(f.fy3===null && famLbl==='DCF Base') ? sumCell('Tesis Base', fmtVal(d.valoracionActual.valorEsperado.valorCentral), '', 'val') : sumCell(famLbl+' FY+3 (base)', fmtVal(f.fy3), '<span class="pair"><b>vs. precio</b>'+fmtPctSpan(pctVs(f.fy3,d))+'</span>'+vsCompraHtml(f.fy3,d,false), 'val');
+    }
+    return '<div class="summary-block'+(open?' open':'')+'"><div class="summary-item cols-'+(fam==='dcf'?3:4)+'" data-summary-row="'+d.n+'" tabindex="0" role="button" aria-expanded="'+open+'"><div class="identity"><strong>'+escapeHtml(d.ticker)+'</strong><span class="idn">'+escapeHtml(d.empresa||d.ticker)+'</span><small>'+escapeHtml(d.fecha||'')+decisionBadge(d)+'</small></div>'+cells+
       '<button type="button" data-summary-n="'+d.n+'">'+(open?'Cerrar':'Ver detalle')+'</button></div>'+
       (open?'<section class="company-panel" id="panel-'+d.n+'">'+companyPanelHtml(d)+'</section>':'')+'</div>';
   }
@@ -1109,7 +1146,7 @@
   function companyPanelHtml(d){
     var v=d.valoracionActual||{}, pr=priceRef(d);
     var board=(typeof JmrValueBoard!=='undefined')?JmrValueBoard.fromRecord(v,{precio:pr.price||v.precio,precioLbl:pr.live?'Precio consultado':'Precio guardado',costo:costoCompra(d)}):null;
-    var tiles=board&&JmrValueBoard.hasData(board)?'<div class="cp-board">'+JmrValueBoard.html(board,{hero:true})+'</div>':'<p class="cp-note">Esta empresa todavía no tiene una valoración guardada en el Visor.</p>';
+    var tiles=board&&JmrValueBoard.hasData(board)?'<div class="cp-board">'+JmrValueBoard.html(board,{hero:true,hideAverage:true})+'</div>':'<p class="cp-note">Esta empresa todavía no tiene una valoración guardada en el Visor.</p>';
     var ci=v.crecimientoImplicito, growth='';
     if(ci&&ci.dcfInverso){
       var pc=function(x){return typeof x==='number'&&isFinite(x)?(x*100).toFixed(1)+'%':'—';};
@@ -1155,7 +1192,7 @@
     list.sort(function(a,b){
       var av, bv;
       if(key === "cagr"){ av = parseNum(a.cagr); bv = parseNum(b.cagr); }
-      else if(key === "precio"){ av = parseNum(a.precio); bv = parseNum(b.precio); }
+      else if(key === "precio"){ av = costoCompra(a); bv = costoCompra(b); }
       else if(key === "anio"){ av = parseNum(a.anio); bv = parseNum(b.anio); }
       else if(key === "precioActual"){ av = a.precioActual; bv = b.precioActual; }
       else if(key === "valorHoy"){ av = intrinsicBase(a); bv = intrinsicBase(b); }
@@ -1370,9 +1407,12 @@
       seen[ticker]=true;return true;
     }).sort(function(a,b){return a.ticker.localeCompare(b.ticker);});
     var now=new Date().toLocaleString('es-CO',{timeZone:'America/Bogota',dateStyle:'medium',timeStyle:'short'});
-    document.getElementById('printSheet').innerHTML='<h1>Mi Bitácora · activos estudiados</h1><p>Impresión: '+escapeHtml(now)+' (Colombia) · '+(JMR_MERCADO === 'colombia' ? 'Colombia · COP' : 'Internacionales · USD')+' por acción · precios consultados a Financial Modeling Prep con posible retraso. “—” indica cotización o valoración no disponible. Lectura: '+escapeHtml(BASIS_INFO[valueBasis].label)+'. DCF base y esperado se muestran por separado a valor presente; el esperado requiere historias valoradas. Diferencia = (valor / precio − 1) × 100.</p>'+
-      '<table><thead><tr><th>Ticker</th><th>Activo</th><th>Precio consultado</th><th>'+(BASIS_INFO[valueBasis].fam==='dcf'?'DCF base hoy':'Valor hoy')+'</th><th>'+(BASIS_INFO[valueBasis].fam==='dcf'?'Dif. base':'Dif. hoy')+'</th><th>'+(BASIS_INFO[valueBasis].fam==='dcf'?'DCF esperado hoy':'Valor FY+3')+'</th><th>'+(BASIS_INFO[valueBasis].fam==='dcf'?'Dif. esperado':'Dif. FY+3')+'</th><th>Hora de consulta</th></tr></thead><tbody>'+
-      list.map(function(d){var f=familyValues(d,BASIS_INFO[valueBasis].fam);if(BASIS_INFO[valueBasis].fam==='dcf'){var p=primaryDCFs(d);f={hoy:p.base,fy3:p.esperado};}var a=pctVs(f.hoy,d),b=pctVs(f.fy3,d),pc=function(x){return x===null?'—':(x>=0?'+':'')+x.toFixed(1)+'%';};return '<tr><td>'+escapeHtml(d.ticker)+'</td><td>'+escapeHtml(d.empresa||'')+'</td><td>'+(d.precioActual?fmtVal(d.precioActual):'—')+'</td><td>'+fmtVal(f.hoy)+'</td><td>'+pc(a)+'</td><td>'+fmtVal(f.fy3)+'</td><td>'+pc(b)+'</td><td>'+(d.precioActualConsultado?escapeHtml(new Date(d.precioActualConsultado).toLocaleTimeString('es-CO',{timeZone:'America/Bogota'})):'—')+'</td></tr>';}).join('')+'</tbody></table>';
+    document.getElementById('printSheet').innerHTML='<h1>Mi Bitácora · activos estudiados</h1><p>Impresión: '+escapeHtml(now)+' (Colombia) · '+(JMR_MERCADO === 'colombia' ? 'Colombia · COP' : 'Internacionales · USD')+' por acción · precios consultados a Financial Modeling Prep con posible retraso. “—” indica cotización o valoración no disponible. Lectura: '+escapeHtml(BASIS_INFO[valueBasis].label)+'. El DCF base se muestra a valor presente. Diferencia = (valor / precio − 1) × 100.</p>'+
+      (function(){
+        var dcf=BASIS_INFO[valueBasis].fam==='dcf';
+        return '<table><thead><tr><th>Ticker</th><th>Activo</th><th>Precio de entrada</th><th>Precio consultado</th><th>'+(dcf?'DCF base hoy':'Valor hoy')+'</th><th>'+(dcf?'Dif. base':'Dif. hoy')+'</th>'+(dcf?'':'<th>Valor FY+3</th><th>Dif. FY+3</th>')+'<th>Hora de consulta</th></tr></thead><tbody>'+
+        list.map(function(d){var f=familyValues(d,BASIS_INFO[valueBasis].fam);if(dcf){f={hoy:primaryDCFs(d).base,fy3:null};}var a=pctVs(f.hoy,d),b=pctVs(f.fy3,d),pc=function(x){return x===null?'—':(x>=0?'+':'')+x.toFixed(1)+'%';};var cc=costoCompra(d);return '<tr><td>'+escapeHtml(d.ticker)+'</td><td>'+escapeHtml(d.empresa||'')+'</td><td>'+(cc!==null?fmtVal(cc):'')+'</td><td>'+(d.precioActual?fmtVal(d.precioActual):'—')+'</td><td>'+fmtVal(f.hoy)+'</td><td>'+pc(a)+'</td>'+(dcf?'':'<td>'+fmtVal(f.fy3)+'</td><td>'+pc(b)+'</td>')+'<td>'+(d.precioActualConsultado?escapeHtml(new Date(d.precioActualConsultado).toLocaleTimeString('es-CO',{timeZone:'America/Bogota'})):'—')+'</td></tr>';}).join('')+'</tbody></table>';
+      })();
   }
   document.getElementById('printListBtn').addEventListener('click',function(){
     var button=this;button.disabled=true;button.textContent='Consultando precios…';

@@ -143,9 +143,10 @@
     return '<div class="jvb-primary" style="grid-template-columns:1fr">' + tile('DCF base hoy', v.base, unified(d) ? 'Valor intrínseco principal · tesis base' : 'Valor intrínseco principal · caso base', true) + '</div>';
   }
   // El promedio de escenarios DCF (antes «valor esperado») va siempre al final, después del DCF base y de las historias.
+  var HIDE_AVG = false;
   function averageHtml(d) {
     var v = primaryValues(d).esperado;
-    if (v == null) return '';
+    if (v == null || HIDE_AVG) return '';
     return '<div class="jvb-primary" style="grid-template-columns:1fr;margin-top:12px"><div class="jvb-primary-card complementary"><span class="jvb-kicker">Promedio de escenarios DCF</span><div class="jvb-big"><span class="v">' + money(v) + '</span>' + vsPrecio(v, d.precio) + '</div><span class="vl">Promedio de los DCF de las historias, ponderado por su probabilidad</span>' +
       (d.costo ? '<span class="vl jvb-vscompra">vs. tu compra (' + money(d.costo) + ') ' + vsPrecio(v, d.costo) + '</span>' : '') + '</div></div>';
   }
@@ -156,7 +157,7 @@
   }
   function unifiedHtml(d) {
     var h = centralStory(d), values = d.ve.historias.map(function(x) { return x.valor; });
-    return '<div class="jvb-ve">' + primaryHtml(d) + storiesTable(d) + '<div class="jvb-scen"><span>Rango <b>' + money(Math.min.apply(null, values)) + ' – ' + money(Math.max.apply(null, values)) + '</b></span>' + (d.mos != null ? '<span>MOS ' + pct(d.mos) + ' <b>' + money(d.ve.valor * (1-d.mos)) + '</b></span>' : '') + '</div>' + averageHtml(d) + '<p class="jvb-venote">Cada historia se valora con un DCF completo. El promedio de escenarios DCF suma DCF × probabilidad; las probabilidades son juicio del analista. El MOS se aplica a ese promedio. El rango muestra desenlaces, no un intervalo de confianza.</p><details class="jvb-vedet"><summary>Referencia técnica de la hoja anterior</summary><p class="jvb-venote">Antiguo caso técnico Base de la hoja ' + money(d.ve.dcfBaseTecnicoAnterior != null ? d.ve.dcfBaseTecnicoAnterior : (d.dcf.hoy && d.dcf.hoy.base)) + '. Se conserva para calibrar el motor y los supuestos auxiliares de múltiplos; no representa la tesis Base.</p></details></div>';
+    return '<div class="jvb-ve">' + primaryHtml(d) + storiesTable(d) + '<div class="jvb-scen"><span>Rango <b>' + money(Math.min.apply(null, values)) + ' – ' + money(Math.max.apply(null, values)) + '</b></span>' + (d.mos != null && !HIDE_AVG ? '<span>MOS ' + pct(d.mos) + ' <b>' + money(d.ve.valor * (1-d.mos)) + '</b></span>' : '') + '</div>' + averageHtml(d) + '<p class="jvb-venote">Cada historia se valora con un DCF completo. ' + (HIDE_AVG ? 'Las probabilidades son juicio del analista. ' : 'El promedio de escenarios DCF suma DCF × probabilidad; las probabilidades son juicio del analista. El MOS se aplica a ese promedio. ') + 'El rango muestra desenlaces, no un intervalo de confianza.</p><details class="jvb-vedet"><summary>Referencia técnica de la hoja anterior</summary><p class="jvb-venote">Antiguo caso técnico Base de la hoja ' + money(d.ve.dcfBaseTecnicoAnterior != null ? d.ve.dcfBaseTecnicoAnterior : (d.dcf.hoy && d.dcf.hoy.base)) + '. Se conserva para calibrar el motor y los supuestos auxiliares de múltiplos; no representa la tesis Base.</p></details></div>';
   }
   function veHtml(d) {
     var ve = d && d.ve;
@@ -181,9 +182,9 @@
       '<div class="jvb-vebar" aria-hidden="true">' + bar + '</div>' +
       '<details class="jvb-vedet"><summary>Ver historias</summary><table class="jvb-vetab"><thead><tr><th>Historia</th><th>Prob.</th><th>' + (d.currency === 'COP' ? 'COP' : 'US$') + '/acción</th><th>vs. precio</th></tr></thead><tbody>' +
       rows + '</tbody></table></details>' +
-      '<div class="jvb-meta">' + vsDcf + mos + '</div>' + averageHtml(d) +
-      '<p class="jvb-venote">El DCF base y el promedio de escenarios DCF son lecturas distintas; el promedio todas las historias (cada una un DCF completo) según la probabilidad que les asigna el análisis. El margen de seguridad se aplica sobre el promedio de escenarios DCF' +
-      (ve.fecha ? ' (análisis del ' + esc(ve.fecha) + ')' : '') + '. Las probabilidades son juicio del analista.</p></div>';
+      (HIDE_AVG ? '' : '<div class="jvb-meta">' + vsDcf + mos + '</div>') + averageHtml(d) +
+      (HIDE_AVG ? '<p class="jvb-venote">Las probabilidades son juicio del analista.</p></div>' : '<p class="jvb-venote">El DCF base y el promedio de escenarios DCF son lecturas distintas; el promedio todas las historias (cada una un DCF completo) según la probabilidad que les asigna el análisis. El margen de seguridad se aplica sobre el promedio de escenarios DCF' +
+      (ve.fecha ? ' (análisis del ' + esc(ve.fecha) + ')' : '') + '. Las probabilidades son juicio del analista.</p></div>');
   }
   function historicalHtml(d) {
     var h = d && d.hist;
@@ -373,6 +374,7 @@
   }
   function html(d, opts) {
     opts = opts || {};
+    HIDE_AVG = opts.hideAverage === true;
     DISPLAY_CURRENCY = d?.currency === 'COP' ? 'COP' : 'USD';
     if (d && d.holding) return holdingHtml(d);
     if (!hasData(d)) return '';
