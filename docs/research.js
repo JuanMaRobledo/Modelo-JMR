@@ -295,13 +295,13 @@
     var editorial = editorialArticles[tickerKey];
     var articulo = editorial && editorial.html
       ? '<section class="jmr-editorial-article" aria-label="Artículo principal de ' + escapeHtml(tickerKey) + '">' +
-        '<div class="jmr-editorial-label">NIVEL 1 · ARTÍCULO DE INVERSIÓN</div>' +
+        '<div class="jmr-editorial-label">NIVEL 1 · TESIS DE INVERSIÓN</div>' +
         safeHtml(editorial.html) +
         '<p class="jmr-editorial-source"><a href="' + escapeHtml(editorial.documento) + '" target="_blank" rel="noopener noreferrer">Abrir y compartir versión de Google Docs ↗</a></p>' +
         '</section>'
       : '';
     var technicalStart = articulo
-      ? '<details class="jmr-research-details" id="jmrTechnicalLevel"><summary>Ver nivel 2 · Análisis fundamental completo: supuestos, fuentes y valoración</summary><div class="jmr-technical-content">'
+      ? '<details class="jmr-research-details" id="jmrTechnicalLevel"><summary>Ver nivel 2 · Análisis fundamental y valoración: supuestos, escenarios y fuentes</summary><div class="jmr-technical-content">'
       : '';
     var technicalEnd = articulo ? '</div></details>' : '';
     body.innerHTML = '<div class="research-document">' + articulo + technicalStart + title + analysis.toc +
