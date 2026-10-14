@@ -51,7 +51,7 @@
   function safeHtml(html) {
     if (typeof DOMPurify === 'undefined') return escapeHtml(html);
     return DOMPurify.sanitize(html, {
-      ALLOWED_TAGS: ['h1','h2','h3','h4','p','br','strong','b','em','i','ul','ol','li','blockquote','table','thead','tbody','tr','th','td','a','img','hr','code','pre'],
+      ALLOWED_TAGS: ['h1','h2','h3','h4','p','br','strong','b','em','i','ul','ol','li','blockquote','table','thead','tbody','tr','th','td','a','img','hr','code','pre','details','summary'],
       ALLOWED_ATTR: ['href','src','alt','title','colspan','rowspan','target','rel','id','class']
     });
   }
@@ -220,6 +220,7 @@
   var NUM_CELL = /^[\s(]*[~≈≥≤<>]?\s*[-−+]?\s*(US\$|R\$|DKK|CHF|€|\$)?\s*[-−+]?\d[\d.,]*\s*(%|x|pp|pb|M|MM|mill\.?|millones)?\s*\)?(\s*\([^)]{0,24}\))?\s*$/i;
   function markNumericCells(root) {
     if (!root) return;
+    if (typeof JmrMethodDetails !== 'undefined') JmrMethodDetails.fold(root);
     root.querySelectorAll('table:not(.jvb-table)').forEach(function (t) {
       var cols = {};
       t.querySelectorAll('tbody tr').forEach(function (tr) {
@@ -242,7 +243,7 @@
     // Tablero compartido (valuation-board.js): el DCF es el valor intrínseco y
     // va primero; múltiplos juntos, por método y ponderado, hoy o FY+3.
     var board = typeof JmrValueBoard !== 'undefined' ? JmrValueBoard.fromRecord(lv, { precioLbl: 'Precio guardado' }) : null;
-    var boardHtml = board && JmrValueBoard.hasData(board) ? JmrValueBoard.html(board, { hero: true }) : '';
+    var boardHtml = board && JmrValueBoard.hasData(board) ? JmrValueBoard.html(board, { hero: true, compactMethods: true }) : '';
     var visorLink = lv.sourcePath ? '<a class="linked-visor-link" href="visor.html?path=' + encodeURIComponent(lv.sourcePath) + (typeof jmrMercadoQS === 'function' ? jmrMercadoQS() : '') + '">Ver en el Visor →</a>' : '';
     var zones = zoneKv(lv.baseMOS === 'valorEsperado' ? 'Zona Value (sobre el DCF esperado)' : 'Zona Value (sobre el objetivo FY+3)', z.value) + zoneKv('Zona Deep Value', z.deepValue) + zoneKv('Zona histórica', z.historica);
     return '<section class="valuation-block linked-valuation"><span class="linked-tag">✓ Vinculado con el Visor · ' + escapeHtml(lv.sourcePath || '') + '</span>' + visorLink + '<h2>Valoración cuantitativa (Visor)</h2>' +
