@@ -698,7 +698,7 @@
     return fetch(GH_API+record.remotePath,{method:'DELETE',headers:Object.assign({'Content-Type':'application/json'},ghHeaders()),body:JSON.stringify({message:'Borrar research '+(record.ticker||record.id),sha:record.remoteSha})}).then(function(res){if(!res.ok && res.status!==404)throw new Error('HTTP '+res.status);});
   }
   function syncRemote() {
-    return fetch(GH_API+'analisis',{headers:ghHeaders()}).then(function(res){if(res.status===404)return[];if(!res.ok)throw new Error('HTTP '+res.status);return res.json();}).then(function(files){
+    return fetch(GH_API+'analisis',{headers:ghHeaders(),cache:'no-store'}).then(function(res){if(res.status===404)return[];if(!res.ok)throw new Error('HTTP '+res.status);return res.json();}).then(function(files){
       var jsons=(Array.isArray(files)?files:[]).filter(function(f){return /\.json$/i.test(f.name);});
       // Sin token, la API de GitHub permite 60 llamadas por hora: bajar cada
       // análisis por la API (una llamada por archivo) agotaba ese cupo tras
@@ -708,7 +708,7 @@
       var raw=!getGhToken();
       return Promise.all(jsons.map(function(f){
         var get=(raw&&f.download_url)
-          ? fetch(f.download_url).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+          ? fetch(f.download_url + (f.download_url.indexOf('?') === -1 ? '?' : '&') + 'jmr_version=' + encodeURIComponent(f.sha || ''), {cache:'no-store'}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
           : fetch(f.url,{headers:ghHeaders()}).then(function(r){return r.json();}).then(function(data){return JSON.parse(b64Decode(data.content.replace(/\n/g,'')));});
         return get.then(function(rec){rec.remotePath=f.path;rec.remoteSha=f.sha;return rec;});
       }));
