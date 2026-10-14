@@ -103,6 +103,9 @@ function runDCFDetalle(inp, growthY2to5, marginTarget, growthY1, marginY1){
   var lag0 = inp.reinvestLag === 0;
   var reinvest = new Array(11);
   for(var n=1;n<=10;n++) reinvest[n] = (lag0 ? rev[n]-rev[n-1] : rev[n+1]-rev[n])/s2c(n);
+  // Plantilla del 12-oct-2026 (Input sheet B98:B101): «Sin liberación» fija en 0 la reinversión negativa de la historia,
+  // porque perder ingresos (patentes, cierres) no devuelve capital. Las hojas anteriores no traen la celda.
+  if(inp.sinLiberacion) for(var n=1;n<=10;n++) if(reinvest[n] < 0) reinvest[n] = 0;
   // Retorno sobre el capital después del año 10: por defecto igual al costo de capital (sin retornos
   // excedentes); inp.roicTerminal lo fija si la empresa tiene ventajas duraderas (criterio Damodaran).
   var reinvestTerminal = ebit1tTerminal*terminalGrowth/roicTerminal;
@@ -514,6 +517,7 @@ function insumosDesdeHoja(celda){
     smoothTerminalCapital: capitalGradual,
     investedCapital0: n(VO, 'B41'), nopatBase: n(VO, 'B9'),
     reinvestLag: si(IS, 'B57') ? n(IS, 'B58') : 1,
+    sinLiberacion: String(celda(IS, 'B98') == null ? '' : celda(IS, 'B98')).trim().toLowerCase() === 'sin liberación',
     costoPatrimonio: n('Cost of capital worksheet', 'B63'),
     growthY1Cons: n(VO, 'C55'), growthCons: n(VO, 'D55'), marginY1Cons: n(VO, 'C57'), marginCons: n(VO, 'C45'),
     growthY1Base: n(VO, 'C4'),  growthBase: n(VO, 'D4'),  marginY1Base: n(VO, 'C6'),  marginBase: n(VO, 'C46'),

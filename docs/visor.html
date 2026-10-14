@@ -1264,7 +1264,7 @@
     if(!vals && key !== 'fy3'){ vals = headlineValues('fy3'); key = 'fy3'; fallback = true; }
     var info = HEADLINE_INFO[key];
     var unified = key === 'dcfHoy' && currentResumen.valorEsperado && currentResumen.valorEsperado.escenariosUnificados;
-    return { key: key, titulo: unified ? 'Valor intrínseco principal · DCF Base hoy' : info.titulo, hoy: info.hoy, desc: unified ? 'DCF de la tesis Base como valor principal. El esperado por probabilidades se muestra como complemento; el rango contiene los cuatro escenarios.' : info.desc, valores: vals || {}, fallback: fallback, unified: unified };
+    return { key: key, titulo: unified ? 'Valor intrínseco principal · DCF Base hoy' : info.titulo, hoy: info.hoy, desc: unified ? 'DCF de la tesis Base como valor principal. El promedio de escenarios DCF se muestra al final; el rango contiene los cuatro escenarios.' : info.desc, valores: vals || {}, fallback: fallback, unified: unified };
   }
   function fmtVsPrecio(target, basePrice){
     if(typeof target !== 'number' || !isFinite(target) || typeof basePrice !== 'number' || !isFinite(basePrice) || !basePrice) return '—';
@@ -1348,7 +1348,7 @@
     var elM = document.getElementById('rPrecioMOS'), elL = document.getElementById('rPrecioMOSLbl');
     if (r.valoracionHolding) { elL.textContent = 'Umbral con MOS · referencia preliminar'; elM.textContent = fmtMoney(r.valoracionHolding.umbralMOS); return; }
     if(ve && isFinite(ve) && isFinite(mos)){
-      elL.textContent = 'Precio con MOS sobre el valor esperado';
+      elL.textContent = 'Precio con MOS sobre el promedio de escenarios DCF';
       elM.textContent = fmtMoney(ve*(1-mos));
       return;
     }
@@ -1506,13 +1506,13 @@
         conMOS: isFinite(mos) ? {min: expected * (1-mos), max: expected * (1-mos)} : null
       };
       currentResumen.zonas = zonas;
-      document.getElementById('zonasTitle').textContent = 'Zonas de valor (sobre el valor esperado de las historias)';
+      document.getElementById('zonasTitle').textContent = 'Zonas de valor (sobre el promedio de escenarios DCF)';
       [['zValue','value'],['zDeep','deepValue'],['zHist','historica'],['zMOS','conMOS']].forEach(function(pair){
         var zone = zonas[pair[1]], el = document.getElementById(pair[0]);
         if(el && zone) el.textContent = zone.min === zone.max ? fmtMoney(zone.min) : fmtMoney(zone.min) + ' – ' + fmtMoney(zone.max);
       });
       var mosCard = document.getElementById('zMOS');
-      if(mosCard) mosCard.parentElement.querySelector('.lbl').textContent = 'Precio con MOS sobre el esperado';
+      if(mosCard) mosCard.parentElement.querySelector('.lbl').textContent = 'Precio con MOS sobre el promedio de escenarios DCF';
     }
     zEl.innerHTML = buildZonesChart(currentResumen.precio, zonas, sel.valores, sel.unified);
   }
@@ -1554,8 +1554,8 @@
     var gan = (typeof hoy === 'number') ? hoy / c - 1 : null;
     document.getElementById('posGan').innerHTML = badgePct(gan) +
       ((typeof hoy === 'number') ? ' · ' + ((hoy - c) * pos.acciones >= 0 ? '+' : '') + fmtMoney((hoy - c) * pos.acciones) : '');
-    var filas = [['DCF Base hoy (valor intrínseco)', pos.dcfBase], ['DCF esperado de las historias', pos.dcfEsperado],
-                 ['Ponderado DCF + múltiplos (secundario)', pos.ponderadoBase]];
+    var filas = [['DCF Base hoy (valor intrínseco)', pos.dcfBase], ['Ponderado DCF + múltiplos (secundario)', pos.ponderadoBase],
+                 ['Promedio de escenarios DCF', pos.dcfEsperado]];
     document.getElementById('posPot').innerHTML = filas.filter(function(f){ return typeof f[1] === 'number'; }).map(function(f){
       return '<tr><td>' + f[0] + '</td><td>' + fmtMoney(f[1]) + '</td><td>' +
         badgePct(typeof hoy === 'number' ? f[1] / hoy - 1 : null) + '</td><td>' + badgePct(f[1] / c - 1) + '</td></tr>';
@@ -3080,7 +3080,7 @@
       z = { value: zz(0.70, 0.65), deepValue: zz(0.60, 0.55), historica: zz(0.50, 0.45), conMOS: isFinite(mosZ) ? { min: ve*(1-mosZ), max: ve*(1-mosZ) } : null };
     }
     document.getElementById('zonasTitle').textContent = ve > 0
-      ? 'Zonas de valor (escalonar entradas; sobre el valor esperado de las historias: 70-65%, 60-55%, 50-45% y precio con MOS)'
+      ? 'Zonas de valor (escalonar entradas; sobre el promedio de escenarios DCF: 70-65%, 60-55%, 50-45% y precio con MOS)'
       : 'Zonas de valor (escalonar entradas; sobre el objetivo FY+3 ponderado, lectura secundaria)';
     document.getElementById('zValue').textContent = zoneText(z.value);
     document.getElementById('zDeep').textContent = zoneText(z.deepValue);
