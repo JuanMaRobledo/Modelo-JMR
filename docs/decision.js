@@ -62,10 +62,17 @@
       if (!res.ok) throw new Error('HTTP ' + res.status);
       return res.json();
     }).then(function (data) {
-      var rec = JSON.parse(G.b64DecodeUnicode(data.content.replace(/\n/g, '')));
-      rec.decision = decision;
-      var body = { message: 'Decisión ' + (rec.ticker || '') + ': ' + label(decision.valor), content: G.b64EncodeUnicode(JSON.stringify(rec, null, 2)), sha: data.sha };
-      return fetch(ghApi + path, { method: 'PUT', headers: Object.assign({ 'Content-Type': 'application/json' }, headers), body: JSON.stringify(body) });
+      var record = data.encoding === 'base64'
+        ? Promise.resolve(JSON.parse(G.b64DecodeUnicode(data.content.replace(/\n/g, ''))))
+        : fetch(ghApi + path + '?jmr_version=' + encodeURIComponent(data.sha), { headers: Object.assign({}, headers, { Accept: 'application/vnd.github.raw+json' }), cache: 'no-store' }).then(function(res){
+            if(!res.ok)throw new Error('HTTP '+res.status);
+            return res.json();
+          });
+      return record.then(function(rec){
+        rec.decision = decision;
+        var body = { message: 'Decisión ' + (rec.ticker || '') + ': ' + label(decision.valor), content: G.b64EncodeUnicode(JSON.stringify(rec, null, 2)), sha: data.sha };
+        return fetch(ghApi + path, { method: 'PUT', headers: Object.assign({ 'Content-Type': 'application/json' }, headers), body: JSON.stringify(body) });
+      });
     }).then(function (res) {
       if (!res.ok) return res.json().then(function (e) { throw new Error((e && e.message) || ('HTTP ' + res.status)); });
       return res.json();

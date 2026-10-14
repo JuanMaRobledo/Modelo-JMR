@@ -73,9 +73,7 @@
     }).then(function (list) {
       var files = (Array.isArray(list) ? list : []).filter(function (f) { return /\.json$/i.test(f.name); });
       return Promise.all(files.map(function (f) {
-        return fetch(f.url || (GH_API + f.path), { headers: ghHeaders() }).then(function (r) { return r.json(); }).then(function (data) {
-          return JSON.parse(b64Decode(data.content.replace(/\n/g, '')));
-        }).catch(function (err) { console.error('Archivo ' + f.path + ':', err); return null; });
+        return fetch(f.url || (GH_API + f.path), { headers: Object.assign({}, ghHeaders(), { Accept: 'application/vnd.github.raw+json' }), cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }).catch(function (err) { console.error('Archivo ' + f.path + ':', err); return null; });
       }));
     }).then(function (records) { return records.filter(Boolean); }).catch(function (err) { console.error('Carpeta ' + folder + ':', err); return []; });
   }

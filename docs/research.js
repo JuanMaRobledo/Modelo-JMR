@@ -698,26 +698,40 @@
     return fetch(GH_API+record.remotePath,{method:'DELETE',headers:Object.assign({'Content-Type':'application/json'},ghHeaders()),body:JSON.stringify({message:'Borrar research '+(record.ticker||record.id),sha:record.remoteSha})}).then(function(res){if(!res.ok && res.status!==404)throw new Error('HTTP '+res.status);});
   }
   function syncRemote() {
-    return fetch(GH_API+'analisis',{headers:ghHeaders(),cache:'no-store'}).then(function(res){if(res.status===404)return[];if(!res.ok)throw new Error('HTTP '+res.status);return res.json();}).then(function(files){
-      var jsons=(Array.isArray(files)?files:[]).filter(function(f){return /\.json$/i.test(f.name);});
-      // Sin token, la API de GitHub permite 60 llamadas por hora: bajar cada
-      // análisis por la API (una llamada por archivo) agotaba ese cupo tras
-      // dos o tres aperturas y la biblioteca quedaba vacía. Sin token se usa
-      // la descarga directa (download_url, sin cupo de API); con token, la
-      // API, que siempre trae la última versión.
+    var failedPaths = {}, failures = [];
+    return fetch(GH_API+'analisis',{headers:ghHeaders(),cache:'no-store'}).then(function(res){
+      if(!res.ok)throw new Error('No se pudo cargar la biblioteca de GitHub (HTTP '+res.status+').');
+      return res.json();
+    }).then(function(files){
+      if(!Array.isArray(files))throw new Error('GitHub devolvió una lista de análisis inválida.');
+      var jsons=files.filter(function(f){return f.type==='file' && /\.json$/i.test(f.name);});
+      // Sin token usamos download_url para no consumir una llamada de API
+      // por informe. Con token pedimos el JSON original mediante el media
+      // type raw: Contents no incluye content base64 en archivos >1 MB.
       var raw=!getGhToken();
       return Promise.all(jsons.map(function(f){
-        var get=(raw&&f.download_url)
-          ? fetch(f.download_url + (f.download_url.indexOf('?') === -1 ? '?' : '&') + 'jmr_version=' + encodeURIComponent(f.sha || ''), {cache:'no-store'}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
-          : fetch(f.url,{headers:ghHeaders()}).then(function(r){return r.json();}).then(function(data){return JSON.parse(b64Decode(data.content.replace(/\n/g,'')));});
-        return get.then(function(rec){rec.remotePath=f.path;rec.remoteSha=f.sha;return rec;});
+        var url=(raw&&f.download_url) ? f.download_url : f.url;
+        url += (url.indexOf('?')===-1 ? '?' : '&')+'jmr_version='+encodeURIComponent(f.sha||'');
+        var options={cache:'no-store'};
+        if(!(raw&&f.download_url))options.headers=Object.assign({},ghHeaders(),{Accept:'application/vnd.github.raw+json'});
+        return fetch(url,options).then(function(r){
+          if(!r.ok)throw new Error('HTTP '+r.status);
+          return r.json();
+        }).then(function(rec){
+          if(!rec || !rec.id || !rec.ticker)throw new Error('Informe inválido');
+          rec.remotePath=f.path;rec.remoteSha=f.sha;return rec;
+        }).catch(function(err){
+          failedPaths[f.path]=true;failures.push(f.name+': '+err.message);return null;
+        });
       }));
     }).then(function(remote){
-      // La lista remota es autoritativa para los registros que alguna vez
-      // estuvieron en GitHub. De otro modo, los borrados reviven desde
-      // localStorage en cada sincronización.
-      var map={}; getLocalLibrary().filter(function(r){return !r.remotePath;}).concat(remote).forEach(function(r){var old=map[r.id];if(!old||String(r.updatedAt||'')>String(old.updatedAt||''))map[r.id]=r;});
-      var list=Object.keys(map).map(function(k){return map[k];}).sort(function(a,b){return String(b.updatedAt||b.date).localeCompare(String(a.updatedAt||a.date));});setLocalLibrary(list);renderLibrary();return list.length;
+      // Los borrados remotos no reviven. Solo conservamos la copia local
+      // de un archivo aún presente que no se pudo descargar esta vez.
+      var map={}; getLocalLibrary().filter(function(r){return !r.remotePath||failedPaths[r.remotePath];}).concat(remote.filter(Boolean)).forEach(function(r){var old=map[r.id];if(!old||String(r.updatedAt||'')>String(old.updatedAt||''))map[r.id]=r;});
+      var list=Object.keys(map).map(function(k){return map[k];}).sort(function(a,b){return String(b.updatedAt||b.date).localeCompare(String(a.updatedAt||a.date));});
+      setLocalLibrary(list);renderLibrary();
+      if(failures.length)throw new Error(list.length+' análisis disponibles. No se pudieron actualizar '+failures.length+': '+failures.join('; ')+'. Pulsa Sincronizar para reintentar.');
+      return list.length;
     });
   }
 
@@ -792,7 +806,7 @@
     el('ghBannerConnect').addEventListener('click', function () {
       setGhToken(input.value);
       renderGhBanner();
-      syncRemote().then(pushLocalOnlyToRemote).catch(function () {});
+      syncRemote().then(pushLocalOnlyToRemote).catch(function (err) { setStatus('libraryStatus',err.message,'bad'); });
     });
     input.addEventListener('keydown', function (e) { if (e.key === 'Enter') el('ghBannerConnect').click(); });
   }
@@ -808,10 +822,10 @@
     });
   }
   function fetchFileAtCommit(path, sha) {
-    return fetch(GH_API + path + '?ref=' + sha, { headers: ghHeaders() }).then(function (res) {
+    return fetch(GH_API + path + '?ref=' + sha, { headers: Object.assign({}, ghHeaders(), { Accept: 'application/vnd.github.raw+json' }), cache: 'no-store' }).then(function (res) {
       if (!res.ok) throw new Error('HTTP ' + res.status);
       return res.json();
-    }).then(function (data) { return JSON.parse(b64Decode(data.content.replace(/\n/g, ''))); });
+    });
   }
   function htmlToPlainText(html) {
     var doc = new DOMParser().parseFromString(html || '', 'text/html');
@@ -1405,7 +1419,11 @@
     applyDeepLinkFilter();
     if (deepLinkId) applyDeepLinkId();
     return pushLocalOnlyToRemote();
-  }).catch(function () {}).finally(function () {
+  }).catch(function (err) {
+    applyDeepLinkFilter();
+    if (deepLinkId) applyDeepLinkId();
+    setStatus('libraryStatus',err.message,'bad');
+  }).finally(function () {
     // Señal para api/pdf.js: se espera este flag en vez de un timeout fijo,
     // porque syncRemote() es asíncrono y termina después de que la red
     // queda "quieta". Si pdfmode pidió un id que no existe, igual hay que
