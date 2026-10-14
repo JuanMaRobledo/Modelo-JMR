@@ -155,13 +155,14 @@ const fmt = (v, unit = "COP") =>
     ? "Pendiente"
     : new Intl.NumberFormat("es-CO", { maximumFractionDigits: 2 }).format(v) +
       (unit ? " " + unit : "");
-function renderReport(id, content) {
+function renderReport(id, content, levels) {
   const root = $(id);
   root.replaceChildren();
   if (!content) return;
   const body = content.replace(/^---\s*\n[\s\S]*?\n---\s*\n/, "");
   if (!window.marked || !window.DOMPurify) { root.textContent = body; return; }
-  root.innerHTML = DOMPurify.sanitize(marked.parse(body, { gfm: true }), { FORBID_TAGS: ["style", "form", "input"] });
+  root.innerHTML = DOMPurify.sanitize(levels?.articleHtml && levels?.calculationHtml ? `<section id="jmrArticleLevel"><h2>Nivel 1 · Artículo de análisis e inversión</h2>${levels.articleHtml}</section><details><summary>Nivel 2 · Cálculos de valoración</summary>${levels.calculationHtml}</details>` : marked.parse(body, { gfm: true }), { FORBID_TAGS: ["style", "form", "input"] });
+  root.onclick = event => { const a = event.target.closest('a[href^="#"]'); if (!a) return; const target = document.getElementById(a.getAttribute("href").slice(1)); const details = target?.closest("details"); if (details) details.open = true; };
   const anchors = new Map();
   root.querySelectorAll("[id]").forEach(node => { const old = node.id; node.id = `${id}-${old}`; anchors.set(old, node.id); });
   root.querySelectorAll('a[href^="#"]').forEach(a => { const target = anchors.get(a.getAttribute("href").slice(1)); if (target) a.setAttribute("href", "#" + target); });
@@ -753,7 +754,7 @@ function render() {
   }
   $("modelNote").textContent =
     `Modelo: ${MODELS[dossier.instrument.model] || MODELS.unknown}. ${dossier.instrument.model === "financial" ? "Revisar ROE, capital regulatorio y costo de patrimonio. El FCFF industrial no aplica." : dossier.instrument.model === "holding" ? "Valorar participaciones y matriz; evitar doble conteo de deuda, dividendos y flujos consolidados." : "Revisar reinversión, moneda y ROIC terminal antes de calcular."}`;
-  renderReport("researchPreview", dossier.reports?.research?.content);
+  renderReport("researchPreview", dossier.reports?.research?.content, dossier.reports?.research);
   renderReport("valuationPreview", dossier.reports?.valuation?.content);
 }
 $("jsonBtn").onclick = () => {

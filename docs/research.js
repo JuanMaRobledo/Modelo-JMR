@@ -23,7 +23,8 @@
     'Fuentes', 'Control de calidad final'
   ];
   var state = freshState();
-  // Artículos editoriales (nivel 1); los informes técnicos existentes siguen íntegros.
+  // Los registros v2 contienen artículo completo y cálculos separados.
+  // Las piezas editoriales v1 se usan solo para registros todavía no migrados.
   var editorialArticles = Object.create(null);
 
   function freshState() {
@@ -51,7 +52,7 @@
     if (typeof DOMPurify === 'undefined') return escapeHtml(html);
     return DOMPurify.sanitize(html, {
       ALLOWED_TAGS: ['h1','h2','h3','h4','p','br','strong','b','em','i','ul','ol','li','blockquote','table','thead','tbody','tr','th','td','a','img','hr','code','pre'],
-      ALLOWED_ATTR: ['href','src','alt','title','colspan','rowspan','target','rel']
+      ALLOWED_ATTR: ['href','src','alt','title','colspan','rowspan','target','rel','id','class']
     });
   }
   // El índice se construye al mostrar el documento: cubre los informes ya
@@ -67,7 +68,8 @@
       var base = 'indice-' + scope + '-' + slug;
       used[base] = (used[base] || 0) + 1;
       var id = base + (used[base] > 1 ? '-' + used[base] : '');
-      heading.id = id;
+      heading.id = heading.id || id;
+      id = heading.id;
       return '<li class="toc-' + heading.tagName.toLowerCase() + '"><a href="#' + escapeHtml(id) + '">' + escapeHtml(label) + '</a></li>';
     });
     return {
@@ -173,6 +175,13 @@
 
   function checkQuality() {
     var holder = el('qualityChips'); holder.innerHTML = '';
+    if (state.articleHtml && state.calculationHtml) {
+      ['Nivel 1 · Artículo completo', 'Nivel 2 · Cálculos de valoración'].forEach(function (name) {
+        var chip = document.createElement('span'); chip.textContent = '✓ ' + name; chip.className = 'ok'; holder.appendChild(chip);
+      });
+      setStatus('analysisStatus', 'Documento en dos niveles. La edición de lectura no certifica las hipótesis financieras.', 'ok');
+      return;
+    }
     if (!state.html) return;
     var doc = new DOMParser().parseFromString(state.html, 'text/html');
     var headings = Array.from(doc.querySelectorAll('h1,h2,h3,h4')).map(function (h) { return normalizeText(h.textContent); });
@@ -290,6 +299,28 @@
     var title = state.title ? '<h1>' + escapeHtml(state.title) + '</h1>' : '';
     var linked = state.linkedValuation ? buildLinkedValuationHtml(state.linkedValuation) : '';
     var val = state.valuationHtml ? '<section class="valuation-block"><h2>Valoración cuantitativa (tabla subida)</h2>' + state.valuationHtml + '</section>' : '';
+    if (state.articleHtml && state.calculationHtml) {
+      var articleView = navigableAnalysis(state.articleHtml, 'articulo');
+      var calculationView = navigableAnalysis(state.calculationHtml, 'calculos');
+      body.innerHTML = '<div class="research-document">' +
+        '<section class="jmr-editorial-article" id="jmrArticleLevel" aria-label="Artículo completo">' +
+        '<div class="jmr-editorial-label">NIVEL 1 · ARTÍCULO DE ANÁLISIS E INVERSIÓN</div>' +
+        articleView.toc + '<div id="editableContent">' + articleView.body + '</div>' + renderNews() +
+        '<section class="jmr-valuation-summary" aria-label="Tarjeta de valoración"><h2>Tarjeta de valoración</h2>' + (linked || val) + '</section></section>' +
+        '<details class="jmr-research-details" id="jmrTechnicalLevel"><summary>Ver nivel 2 · Cálculos de valoración</summary>' +
+        '<div class="jmr-technical-content">' + calculationView.toc + calculationView.body + '</div></details></div>';
+      markNumericCells(body);
+      renderEditorToolbar();
+      body.onclick = function (event) {
+        var anchor = event.target.closest('a[href^="#"]');
+        if (!anchor) return;
+        var target = document.getElementById(anchor.getAttribute('href').slice(1));
+        if (!target) return;
+        var details = target.closest('details');
+        if (details) details.open = true;
+      };
+      return;
+    }
     var analysis = navigableAnalysis(state.html, 'principal');
     var tickerKey = String(state.ticker || '').trim().toUpperCase();
     var editorial = editorialArticles[tickerKey];
@@ -301,7 +332,7 @@
         '</section>'
       : '';
     var technicalStart = articulo
-      ? '<details class="jmr-research-details" id="jmrTechnicalLevel"><summary>Ver nivel 2 · Análisis fundamental y valoración: supuestos, escenarios y fuentes</summary><div class="jmr-technical-content">'
+      ? '<details class="jmr-research-details" id="jmrTechnicalLevel"><summary>Ver nivel 2 · Cálculos de valoración</summary><div class="jmr-technical-content">'
       : '';
     var technicalEnd = articulo ? '</div></details>' : '';
     // La tarjeta de valoración debe acompañar siempre la tesis de inversión,
@@ -352,7 +383,8 @@
     if (!content) { setEditing(false); return; }
     setStatus('analysisStatus', 'Aplicando cambios…');
     compressEmbeddedImages(content.innerHTML).then(function (compressed) {
-      state.html = safeHtml(compressed);
+      if (state.articleHtml && state.calculationHtml) state.articleHtml = safeHtml(compressed);
+      else state.html = safeHtml(compressed);
       setEditing(false);
       renderPreview();
       checkQuality();
@@ -471,7 +503,7 @@
     extractAnalysis(file).then(function (html) {
       return compressEmbeddedImages(html);
     }).then(function (html) {
-      editing = false; state.html = safeHtml(html); state.sourceName = file.name; checkQuality(); syncFields();
+      editing = false; state.articleHtml = ''; state.calculationHtml = ''; state.analysisSchema = ''; state.html = safeHtml(html); state.sourceName = file.name; checkQuality(); syncFields();
       if (/\.pdf$/i.test(file.name)) setStatus('analysisStatus','PDF convertido a texto. Revisa títulos, tablas y orden: PDF es el formato menos fiable para reutilizar.','bad');
     }).catch(function (err) { setStatus('analysisStatus','No pude leer el archivo: ' + err.message,'bad'); });
   }
@@ -1100,7 +1132,9 @@
   function buildSubstackHtml() {
     var doc = el('previewBody').querySelector('.research-document');
     if (!doc) return null;
-    var html = doc.innerHTML;
+    var share = doc.cloneNode(true);
+    if (state.articleHtml) share.querySelectorAll('details').forEach(function (node) { node.remove(); });
+    var html = share.innerHTML;
     var meta = [state.company, state.ticker, state.date].filter(Boolean).join(' · ');
     if (meta) {
       var metaHtml = '<p><em>' + escapeHtml(meta) + '</em></p>';
@@ -1214,9 +1248,15 @@
     var linked = rec.linkedValuation ? buildLinkedValuationHtml(rec.linkedValuation) : '';
     var val = rec.valuationHtml ? '<section class="valuation-block"><h2>Valoración cuantitativa</h2>' + rec.valuationHtml + '</section>' : '';
     var title = rec.title ? '<h1>' + escapeHtml(rec.title) + '</h1>' : '';
-    var analysis = navigableAnalysis(rec.html || '', 'comparar-' + String(rec.id).replace(/[^a-zA-Z0-9_-]/g, '-'));
-    return '<div class="compare-col"><div class="company-banner"><div class="identity">' + logo + '<div class="company-name"><h2>' + escapeHtml(rec.company || rec.title || rec.ticker || '—') + '</h2><div class="ticker">' + escapeHtml(rec.ticker || '—') + '</div></div></div></div>' +
-      '<div class="preview-body"><div class="research-document">' + title + analysis.toc + analysis.body + linked + val + '</div></div></div>';
+    var analysis = navigableAnalysis(rec.articleHtml || rec.html || '', 'comparar-' + String(rec.id).replace(/[^a-zA-Z0-9_-]/g, '-'));
+    if (rec.calculationHtml) { var calculations = navigableAnalysis(rec.calculationHtml, 'comparar-calculos-' + rec.ticker); analysis.body += '<details class="jmr-research-details"><summary>Nivel 2 · Cálculos de valoración</summary>' + calculations.toc + calculations.body + '</details>'; }
+    var output = '<div class="compare-col"><div class="company-banner"><div class="identity">' + logo + '<div class="company-name"><h2>' + escapeHtml(rec.company || rec.title || rec.ticker || '—') + '</h2><div class="ticker">' + escapeHtml(rec.ticker || '—') + '</div></div></div></div>' +
+      '<div class="preview-body"><div class="research-document" id="jmrArticleLevel">' + title + analysis.toc + analysis.body + linked + val + '</div></div></div>';
+    var holder = document.createElement('div'); holder.innerHTML = output;
+    var anchors = {}, prefix = 'comparar-' + String(rec.id).replace(/[^a-zA-Z0-9_-]/g, '-') + '-';
+    holder.querySelectorAll('[id]').forEach(function (node) { var old = node.id; node.id = prefix + old; anchors[old] = node.id; });
+    holder.querySelectorAll('a[href^="#"]').forEach(function (a) { var target = anchors[a.getAttribute('href').slice(1)]; if (target) a.setAttribute('href', '#' + target); });
+    return holder.innerHTML;
   }
   el('compareBtn').addEventListener('click', function () {
     var list = getLocalLibrary();
@@ -1226,6 +1266,13 @@
     el('compareOutput').innerHTML = buildCompareColumnHtml(a) + buildCompareColumnHtml(b);
     markNumericCells(el('compareOutput'));
     setStatus('compareStatus','Comparando "' + (a.ticker || a.title) + '" vs. "' + (b.ticker || b.title) + '".','ok');
+  });
+  el('compareOutput').addEventListener('click', function (event) {
+    var anchor = event.target.closest('a[href^="#"]');
+    if (!anchor) return;
+    var target = document.getElementById(anchor.getAttribute('href').slice(1));
+    var details = target && target.closest('details');
+    if (details) details.open = true;
   });
   el('comparePrintBtn').addEventListener('click', function () { window.print(); });
   el('compareDownloadBtn').addEventListener('click', function () {
@@ -1258,7 +1305,7 @@
   function currentPrompt(){ return (JMR_MERCADO === 'colombia' ? CO_PROMPTS : PROMPTS)[promptKind]; }
   document.addEventListener('jmr-market-change', function(){defaultPrompts={};renderLibrary();populateCompareSelects();loadPrompt(false);});
   // Bloques obligatorios (2-oct-2026) que se agregan a un prompt guardado que no los tenga, en el orden del vigente.
-  var REQUIRED_BLOCKS = ['JMR-HORIZONTES-OBLIGATORIOS-20261002', 'JMR-FORMULA-UNICA-20261002', 'JMR-DESDE-CERO-20261006'];
+  var REQUIRED_BLOCKS = ['JMR-DOS-NIVELES-ARTICULO-CALCULOS-20261014', 'JMR-HORIZONTES-OBLIGATORIOS-20261002', 'JMR-FORMULA-UNICA-20261002', 'JMR-DESDE-CERO-20261006'];
   function withRequiredHorizons(saved, current) {
     if (!saved) return saved;
     var prevEnd = null;

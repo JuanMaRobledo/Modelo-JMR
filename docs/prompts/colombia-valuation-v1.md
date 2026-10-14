@@ -28,6 +28,8 @@ No incluir en el nivel 2 narrativa fundamental, tesis, noticias, discusión de c
 > **Para flujos asistidos por script usa primero `colombia-nucleo-v1.md` (≈2 KB).** Este archivo completo es para auditoría; ahorra tokens leyendo solo la sección que necesites.
 
 
+<!-- /JMR-DOS-NIVELES-ARTICULO-CALCULOS-20261014 -->
+
 <!-- JMR-CO-R5-INTRINSECO-PRINCIPAL-20261012; PRECEDENCIA ABSOLUTA -->
 ## REGLA CANÓNICA VIGENTE · r5 · 12-oct-2026 · igual que la cartera de EE.UU.
 

@@ -1,4 +1,4 @@
-const CACHE = "modelo-jmr-v151-pdf-tarjeta";
+const CACHE = "modelo-jmr-v152-articulo-calculos";
 const APP_SHELL = [
   "index.html",
   "colombia.html",

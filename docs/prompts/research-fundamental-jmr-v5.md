@@ -25,6 +25,8 @@ No incluir en el nivel 2 narrativa fundamental, tesis, noticias, discusión de c
 **Control editorial obligatorio.** Comprobar: (1) el artículo se entiende íntegramente sin abrir anexos; (2) ningún tema fundamental requerido queda solo en el nivel 2; (3) nivel 2 contiene exclusivamente operaciones reproducibles y sus datos/notas mínimas; (4) cifras, fechas, supuestos y resultados concilian entre hoja, artículo, cálculos y tarjeta/PDF; (5) enlaces «Ver cálculo» y retorno funcionan; (6) no se alteran cifras ni métodos para lograr el cambio de formato. No afirmar que los análisis existentes se reconstruyeron por el mero hecho de actualizar este prompt.
 
 
+<!-- /JMR-DOS-NIVELES-ARTICULO-CALCULOS-20261014 -->
+
 <!-- JMR-HOLDING-BOOK-REBALANCE-CANONICAL-20261010 -->
 ## Regla operativa vigente — prioridad contable, selección de métodos y paridad internacional
 
