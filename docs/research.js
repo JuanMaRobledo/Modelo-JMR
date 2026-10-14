@@ -295,13 +295,13 @@
     var editorial = editorialArticles[tickerKey];
     var articulo = editorial && editorial.html
       ? '<section class="jmr-editorial-article" aria-label="Artículo principal de ' + escapeHtml(tickerKey) + '">' +
-        '<div class="jmr-editorial-label">NIVEL 1 · ARTÍCULO PARA LEER Y COMPARTIR</div>' +
+        '<div class="jmr-editorial-label">NIVEL 1 · ARTÍCULO DE INVERSIÓN</div>' +
         safeHtml(editorial.html) +
         '<p class="jmr-editorial-source"><a href="' + escapeHtml(editorial.documento) + '" target="_blank" rel="noopener noreferrer">Abrir y compartir versión de Google Docs ↗</a></p>' +
         '</section>'
       : '';
     var technicalStart = articulo
-      ? '<details class="jmr-research-details" id="jmrTechnicalLevel"><summary>Ver nivel 2 · análisis fundamental completo, supuestos, fuentes y valoración</summary><div class="jmr-technical-content">'
+      ? '<details class="jmr-research-details" id="jmrTechnicalLevel"><summary>Ver nivel 2 · Análisis fundamental completo: supuestos, fuentes y valoración</summary><div class="jmr-technical-content">'
       : '';
     var technicalEnd = articulo ? '</div></details>' : '';
     body.innerHTML = '<div class="research-document">' + articulo + technicalStart + title + analysis.toc +
@@ -1318,9 +1318,9 @@
   }
 
   // Carga editorial independiente: nunca sustituye ni modifica registros de analisis/*.json.
-  // Error de un lote no debe ocultar los demás ni impedir usar el informe técnico.
+  // Error de un lote no debe ocultar los demás ni impedir usar el análisis fundamental completo.
   var editorialPromise = Promise.all([1,2,3,4,5,6].map(function (n) {
-    return fetch('editorial/articulos-' + n + '.json?v=20261013', { cache: 'no-store' })
+    return fetch('editorial/articulos-' + n + '.json?v=20261014', { cache: 'no-store' })
       .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
       .catch(function () { return null; });
   })).then(function (batches) {

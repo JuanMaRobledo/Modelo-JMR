@@ -1,4 +1,4 @@
-const CACHE = "modelo-jmr-v149-articulos-editoriales";
+const CACHE = "modelo-jmr-v150-fundamental-completo";
 const APP_SHELL = [
   "index.html",
   "colombia.html",
