@@ -1,5 +1,30 @@
 # Prompt Maestro: Modelo de Valoración Damodaran para Cualquier Ticker (v4 · revisión historias 30-sep-2026)
 
+<!-- JMR-DOS-NIVELES-ARTICULO-CALCULOS-20261014 -->
+## Regla editorial vigente: nivel 1 completo y nivel 2 solo cálculos (14-oct-2026)
+
+Esta instrucción prevalece sobre cualquier regla editorial anterior incompatible. Se aplica a valoración y research, internacionales y Colombia. Reorganiza la presentación, sin reducir los requisitos de investigación, las 18 secciones de research, los 14 apartados de valoración ni los controles financieros. Estos requisitos se distribuyen entre ambos niveles; no deben conservarse íntegros como un segundo informe narrativo oculto.
+
+**Nivel 1 — Artículo de análisis e inversión.** Es un artículo de blog completo, autónomo, claro y listo para compartir; no un resumen ejecutivo ni una tesis abreviada. Su extensión depende de la complejidad del negocio: concisión significa evitar repeticiones, no omitir información material ni limitarlo a unas pocas líneas por apartado. Desarrollar con párrafos conectados y subtítulos descriptivos:
+- Qué hace la empresa, cómo gana dinero, segmentos, geografías y motores de crecimiento.
+- Industria, tamaño y oportunidades del mercado, competencia, ventajas competitivas y su durabilidad.
+- Evolución financiera y calidad de resultados: ingresos, márgenes, generación de caja, ROIC, reinversión/CAPEX, deuda, liquidez, dilución y retorno al accionista; interpretar las cifras relevantes con fechas y unidades.
+- Gestión y asignación de capital, adquisiciones, recompras y dividendos; noticias y cambios materiales.
+- Tesis alcista y bajista, riesgos, catalizadores y qué tendría que ocurrir para que la tesis falle.
+- Justificación económica COMPLETA de los supuestos de crecimiento, márgenes, reinversión, retornos y tasas iniciales/terminales. Explicar con lenguaje accesible por qué son plausibles, qué evidencia los respalda y qué evidencia los contradice. Las explicaciones profundas también pertenecen aquí.
+- Las cuatro historias, Base primero, con sus supuestos clave, probabilidades y consecuencias económicas; explicar la dispersión de valor y la incertidumbre.
+- Valoración interpretada: tarjeta de valoración integrada en el artículo y su PDF, valor Base destacado según método/sector vigente, métodos separados, múltiplos FY+3 y descontados al presente, ponderaciones, precio fechado, margen de seguridad y diferencias entre métodos. Respetar la política vigente de precio al final y la jerarquía particular de holdings/bancos. No confundir Base con promedio de escenarios.
+- Conclusión razonada, señales concretas que vigilar, qué cambiaría la tesis, limitaciones materiales y fuentes fechadas enlazadas. La decisión de inversión sigue siendo del usuario.
+
+Mantener cobertura de todos los temas obligatorios de los prompts, índice clicable y fuentes junto a las afirmaciones. Las tablas breves y cifras relevantes pueden estar en el artículo cuando ayuden a comprenderlo. No enviar al lector al nivel 2 para entender el negocio, una hipótesis, un riesgo, la conclusión o el motivo de un supuesto. Al final de cada bloque numérico material puede haber un enlace directo «Ver cálculo» al apartado correspondiente del nivel 2.
+
+**Nivel 2 — Cálculos de valoración.** Contiene únicamente el soporte cuantitativo reproducible: datos de entrada, fechas, moneda/unidades, fuente directa o celda de origen, ajustes numéricos, fórmulas, sustitución con valores, pasos intermedios y resultado. Permitir solo rótulos y notas breves necesarios para entender/reproducir cada operación. Incluir los cálculos aplicables: conciliaciones/LTM y acciones; normalizaciones; crecimiento y márgenes; reinversión y ROIC; Rf/beta/ERP/CRP/Ke/Kd/WACC y convergencia; proyecciones anuales de FCFF o FCFE; terminal y descuento; puente EV a equity y por acción; SOTP/valor contable en holdings o capital regulatorio en financieras; múltiplos y descuento FY+3; pesos/rebalanceo; probabilidades y valor esperado; sensibilidades, DCF inverso, margen de seguridad y controles aritméticos. Cada tabla debe conciliar con la misma hoja y conjunto de datos que alimentan el nivel 1.
+
+No incluir en el nivel 2 narrativa fundamental, tesis, noticias, discusión de competencia, justificaciones económicas extensas ni conclusiones. Toda explicación del porqué pertenece al nivel 1. No llamarlo «análisis técnico» ni «Análisis fundamental y valoración». Mantener anclas estables y enlace de regreso al artículo.
+
+**Control editorial obligatorio.** Comprobar: (1) el artículo se entiende íntegramente sin abrir anexos; (2) ningún tema fundamental requerido queda solo en el nivel 2; (3) nivel 2 contiene exclusivamente operaciones reproducibles y sus datos/notas mínimas; (4) cifras, fechas, supuestos y resultados concilian entre hoja, artículo, cálculos y tarjeta/PDF; (5) enlaces «Ver cálculo» y retorno funcionan; (6) no se alteran cifras ni métodos para lograr el cambio de formato. No afirmar que los análisis existentes se reconstruyeron por el mero hecho de actualizar este prompt.
+
+
 <!-- JMR-HOLDING-BOOK-REBALANCE-CANONICAL-20261010 -->
 ## Regla operativa vigente — prioridad contable, selección de métodos y paridad internacional
 
