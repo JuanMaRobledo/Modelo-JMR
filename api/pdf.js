@@ -1,18 +1,28 @@
-import chromium from "@sparticuz/chromium";
 import puppeteer from "puppeteer-core";
 import { createSession, SESSION_NAME } from "../sso-session.js";
 
-// @sparticuz/chromium solo extrae las librerías del sistema que le faltan a
-// su Chromium empaquetado (libnss3.so y demás) cuando detecta que corre
-// dentro de AWS Lambda de verdad, mirando variables como AWS_EXECUTION_ENV.
-// Las funciones de Vercel corren sobre esa misma infraestructura pero no
-// definen esa variable, así que sin este parche la detección falla,
-// Chromium arranca sin esas librerías y puppeteer explota con "Failed to
-// launch the browser process: ... libnss3.so: cannot open shared object
-// file". Fingir el valor (antes de pedirle el executablePath) hace que
-// extraiga el paquete correcto para Node 20+ (Amazon Linux 2023).
-if (!process.env.AWS_EXECUTION_ENV) {
-  process.env.AWS_EXECUTION_ENV = "AWS_Lambda_nodejs20.x";
+// @sparticuz/chromium v131 configura LD_LIBRARY_PATH en el momento
+// en que se importa el módulo, no cuando se llama executablePath().
+// Vercel puede no definir AWS_EXECUTION_ENV y entonces se omiten las
+// bibliotecas NSS necesarias para iniciar /tmp/chromium.
+// IMPORTANTE: preparar el entorno ANTES del import dinámico.
+function configureChromiumRuntime() {
+  const env = process.env.AWS_EXECUTION_ENV || "";
+  const other = process.env.AWS_LAMBDA_JS_RUNTIME || "";
+  const usesAl2023 = /(?:20|22)\.x/.test(env) || /(?:20|22)\.x/.test(other);
+  if (!usesAl2023) {
+    // Vercel ejecuta funciones Node modernas sobre un entorno Linux compatible
+    // con el bundle AL2023 de Sparticuz. Este valor activa la extracción
+    // de al2023.tar.br, sin alterar la versión real de Node.js.
+    process.env.AWS_EXECUTION_ENV = "AWS_Lambda_nodejs22.x";
+  }
+  // Refuerzo: la carga de bibliotecas también debe usar el directorio que
+  // Sparticuz extrae a /tmp; no basta con disponer del binario de Chromium.
+  const libPath = "/tmp/al2023/lib";
+  const paths = (process.env.LD_LIBRARY_PATH || "").split(":").filter(Boolean);
+  if (!paths.includes(libPath)) {
+    process.env.LD_LIBRARY_PATH = [libPath, ...paths].join(":");
+  }
 }
 
 // Genera un PDF real (texto y vectores, no una captura de pantalla) de una
@@ -59,6 +69,10 @@ export default async function handler(req, res) {
 
   let browser;
   try {
+    configureChromiumRuntime();
+    // La importación tardía es imprescindible: el módulo consulta las
+    // variables del entorno al evaluarse por primera vez.
+    const { default: chromium } = await import("@sparticuz/chromium");
     browser = await puppeteer.launch({
       args: chromium.args,
       defaultViewport: { width: 1240, height: 1600 },
