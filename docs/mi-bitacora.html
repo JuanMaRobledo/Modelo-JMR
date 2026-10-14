@@ -1008,7 +1008,7 @@
     if(typeof JmrValueBoard!=='undefined') return JmrValueBoard.primaryValues(JmrValueBoard.fromRecord(v));
     return {base:num(((v.descuentoMultiples||{}).dcfHoy||{}).base),esperado:num((v.valorEsperado||{}).valor)};
   }
-  // Solo el DCF base: el promedio de escenarios («DCF esperado») ya no se muestra en la bitácora.
+  // Solo el DCF base: el promedio de escenarios («Promedio de los 4 escenarios») ya no se muestra en la bitácora.
   function primaryNumbersHtml(d, visual){
     var v=primaryDCFs(d), x=v.base;
     if(visual) return '<div class="visual-number today principal"><span>DCF base hoy</span><strong>'+fmtVal(x)+'</strong><small class="vs">'+(x===null?'Sin DCF base disponible':'vs. precio '+fmtPctSpan(pctVs(x,d)))+'</small>'+vsCompraHtml(x,d,true)+'</div>';

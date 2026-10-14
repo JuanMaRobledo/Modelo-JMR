@@ -235,7 +235,7 @@
     var board = typeof JmrValueBoard !== 'undefined' ? JmrValueBoard.fromRecord(lv, { precioLbl: 'Precio guardado' }) : null;
     var boardHtml = board && JmrValueBoard.hasData(board) ? JmrValueBoard.html(board, { hero: true }) : '';
     var visorLink = lv.sourcePath ? '<a class="linked-visor-link" href="visor.html?path=' + encodeURIComponent(lv.sourcePath) + (typeof jmrMercadoQS === 'function' ? jmrMercadoQS() : '') + '">Ver en el Visor →</a>' : '';
-    var zones = zoneKv(lv.baseMOS === 'valorEsperado' ? 'Zona Value (sobre el DCF esperado)' : 'Zona Value (sobre el objetivo FY+3)', z.value) + zoneKv('Zona Deep Value', z.deepValue) + zoneKv('Zona histórica', z.historica);
+    var zones = zoneKv(lv.baseMOS === 'valorEsperado' ? 'Zona Value (sobre el promedio de los 4 escenarios)' : 'Zona Value (sobre el objetivo FY+3)', z.value) + zoneKv('Zona Deep Value', z.deepValue) + zoneKv('Zona histórica', z.historica);
     return '<section class="valuation-block linked-valuation"><span class="linked-tag">✓ Vinculado con el Visor · ' + escapeHtml(lv.sourcePath || '') + '</span>' + visorLink + '<h2>Valoración cuantitativa (Visor)</h2>' +
       boardHtml + '<div class="linked-grid">' + kv('Fecha de valoración', escapeHtml(lv.fechaValoracion || lv.fecha || '—')) +
       kv('Precio al día del análisis', money(lv.precioAnalisis)) +
@@ -1232,7 +1232,7 @@
     research: { file: 'prompts/research-fundamental-jmr-v5.md', key: PROMPT_KEY, download: 'JMR - PROMPT Research VIGENTE v5.md',
       title: 'Prompt maestro v5 · 18 secciones · historias y escenarios', btn: 'promptKindResearch',
       help: 'Úsalo en ChatGPT o Claude junto con la tabla del Modelo JMR. El esquema fijo hace que ambos produzcan documentos comparables.',
-      note: 'Adjunta la tabla JMR y los informes disponibles. Revisión 30-sep-2026: cuatro historias como escenarios activos, supuestos y resultados trazables, DCF Base principal y esperado complementario; sección 12 con cálculo explicado y control de congruencia.' },
+      note: 'Adjunta la tabla JMR y los informes disponibles. Revisión 30-sep-2026: cuatro historias como escenarios activos, supuestos y resultados trazables, DCF Base principal y promedio de los 4 escenarios complementario; sección 12 con cálculo explicado y control de congruencia.' },
     valuation: { file: 'prompts/valoracion-modelo-jmr-v4.md', key: 'jmr-valuation-prompt-v4-integridad-20261001', download: 'JMR - PROMPT Valoracion VIGENTE v4.md',
       title: 'Prompt de valoración v4 · historias y escenarios', btn: 'promptKindValuation',
       help: 'Arma el Modelo JMR de punta a punta (SEC EDGAR, costo de capital, supuestos anclados, bugs conocidos, guardado en Drive) y elige los múltiplos con tres anclas documentadas: historia depurada, peers ajustados y múltiplo justificado.',

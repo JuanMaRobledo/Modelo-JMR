@@ -9,12 +9,12 @@
 Esta regla sustituye la regla de holdings del 10-oct-2026 (Base = 60% SOTP económico + 40% SOTP de múltiplos) y cualquier otra que ponga un valor de mercado, contable o de múltiplos como valor principal.
 
 1. **Valor principal = DCF Base intrínseco (Damodaran).** Industriales: FCFF; bancos y aseguradoras: RE/DDM o FCFE después de capital regulatorio; holdings: SOTP **intrínseco** (cada filial por sus flujos; privadas sin flujos propios a valores fechados y verificables) menos deuda de la matriz y VP de gastos centrales. El precio de bolsa de una filial cotizada NO es su valor intrínseco.
-2. **Esperado y margen de seguridad.** Cuatro historias (Base, Conservadora, Optimista, Disrupción) con probabilidades que suman 100%; esperado = Σ probabilidad × valor; **precio de compra = esperado × (1 − 35%)**.
+2. **Promedio de los 4 escenarios y margen de seguridad.** Cuatro historias (Base, Conservadora, Optimista, Disrupción) con probabilidades que suman 100%; promedio de los 4 escenarios = Σ probabilidad × valor; **precio de compra = promedio de los 4 escenarios × (1 − 35%)**.
 3. **Secundarios.** Múltiplos sectoriales, SOTP de mercado, libro y el antiguo 60/40 se muestran como lectura secundaria; el ponderado secundario por defecto es **40% DCF + 60% múltiplos**.
 4. **Corte común con la cartera de EE.UU.** Mismo día de corte para precios (cierre BVC) y la misma prima madura (implícita de Damodaran del mes) + prima país de Colombia (archivo de países vigente); Rf COP = TES ~10 años al corte − spread soberano.
 5. **Consistencia de inflación.** Flujos en COP nominales con la inflación implícita en el diferencial de tasas libres de riesgo; crecimiento terminal ≤ Rf COP.
 6. **Foso.** Sin ventaja defendible → retorno terminal (ROIC o ROE) = costo de capital, como la regla de `reference/moat_2026-09-30.json`. Si el modelo deja el retorno terminal por debajo del costo, se publica la lectura «sin foso» (retorno = costo) como contraste.
-7. **Controles.** `consistencia_app.py` (16 controles: valor principal = hoja, esperado = suma, MOS 35%, ponderado 40/60), `integridad_hojas.py` y `estados_completos.py` en JMR-valuation.
+7. **Controles.** `consistencia_app.py` (16 controles: valor principal = hoja, promedio de los 4 escenarios = suma, MOS 35%, ponderado 40/60), `integridad_hojas.py` y `estados_completos.py` en JMR-valuation.
 
 <!-- JMR-HOLDING-SOTP-SECTOR-DEFAULT-20261010; PRECEDENCIA ABSOLUTA -->
 ## REGLA ANTERIOR (sustituida por la r5 del 12-oct-2026) · Holdings SOTP + múltiplos por participada (10-oct-2026)
@@ -207,7 +207,7 @@ Documenta tasa libre de riesgo, beta bottom-up, prima de mercado maduro, exposic
 Para operativas, crecimiento estable = reinversión × ROIC; NOPAT del año siguiente y reinversión terminal deben ser coherentes, con WACC terminal > g. Justifica convergencia de márgenes, capital y ROIC. Usa ROIC cercano al costo de capital cuando no haya evidencia de ventaja duradera, sin convertirlo en una regla rígida para todo negocio. Para financieras relaciona g, ROE y retención compatible con capital regulatorio, con Ke > g.
 
 ## Historias, precio relativo y publicación
-Mantén Base, Conservadora, Optimista y Disrupción — deterioro fundamental. Las probabilidades son juicio sustentado, no frecuencias conocidas, y deben sumar 100%. El valor Base aparece primero y con mayor destaque; el esperado es complementario. En financieras/holdings usa la denominación correcta de valor intrínseco, sin llamar DCF industrial a otro método.
+Mantén Base, Conservadora, Optimista y Disrupción — deterioro fundamental. Las probabilidades son juicio sustentado, no frecuencias conocidas, y deben sumar 100%. El valor Base aparece primero y con mayor destaque; el promedio de los 4 escenarios es complementario. En financieras/holdings usa la denominación correcta de valor intrínseco, sin llamar DCF industrial a otro método.
 
 Los múltiplos son una opinión independiente: tres anclas (historia depurada, peers ajustados y múltiplo justificado). No inferirlos del DCF ni moverlos para que coincidan con él. Si no aplica una métrica, documenta la exclusión y sus pesos efectivos. Históricos necesitan fechas, denominadores y corporativos comparables.
 

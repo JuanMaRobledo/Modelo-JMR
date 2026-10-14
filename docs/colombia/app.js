@@ -260,7 +260,7 @@ function renderValuationStats() {
       box(v.baseIsIntrinsic === false ? "SOTP Base · estimación condicionada" : "Valor intrínseco Base · principal", v.base,
         v.base == null ? "No hay DCF/SOTP certificado" : (v.scopeLabel || "Modelo fundamental condicionado"), "featured"),
       box("Cotización del análisis", v.marketPrice, "Sesión " + priceDate),
-      box("Valor esperado · escenarios", v.expected, "Secundario; no reemplaza el Base")
+      box("Promedio de los 4 escenarios", v.expected, "Secundario; no reemplaza el Base")
     );
   }
   root.append(hero);
@@ -281,7 +281,7 @@ function renderValuationStats() {
     }
     root.append(cards);
     const weighted = el("div", "col-value-banner");
-    weighted.append(el("strong", "", "Valor esperado de escenarios DCF: " + cop(v.dcfLookthroughExpected)),
+    weighted.append(el("strong", "", "Promedio de los 4 escenarios: " + cop(v.dcfLookthroughExpected)),
       el("p", "col-value-note", "La probabilidad de las historias es subjetiva. Se mantiene el DCF Base como referencia principal."));
     root.append(weighted);
   }
@@ -316,7 +316,7 @@ function renderValuationStats() {
     }
     root.append(cases);
     const exp = el("div", "col-value-banner");
-    exp.append(el("strong", "", "Valor esperado FCFF: " + cop(v.dcfPrimaryExpectedCOP)),
+    exp.append(el("strong", "", "Promedio de los 4 escenarios (FCFF): " + cop(v.dcfPrimaryExpectedCOP)),
       el("p", "col-value-note", "Promedio por historias 50/25/20/5, no reemplaza el Base. Precio PF analizado: COP 16.500 del 9-oct-2026 (Grupo Aval)."));
     root.append(exp);
   }

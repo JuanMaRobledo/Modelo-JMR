@@ -157,7 +157,7 @@ Esta regla tiene prioridad sobre cualquier ejemplo, caso histórico o instrucci�
 <!-- JMR-HORIZONTES-OBLIGATORIOS-20261002 -->
 ## Presentación obligatoria de ambos horizontes · 2-oct-2026
 
-Esta instrucción se aplica **siempre**, a cualquier empresa y en ambos prompts, y prevalece sobre indicaciones anteriores que permitan omitir los ponderados o presentar solo uno de los horizontes. El **DCF Base al presente** aparece primero como valor intrínseco principal; el esperado por probabilidades sigue como complemento. Los múltiplos y los ponderados son lecturas secundarias.
+Esta instrucción se aplica **siempre**, a cualquier empresa y en ambos prompts, y prevalece sobre indicaciones anteriores que permitan omitir los ponderados o presentar solo uno de los horizontes. El **DCF Base al presente** aparece primero como valor intrínseco principal; el promedio de los 4 escenarios por probabilidades sigue como complemento. Los múltiplos y los ponderados son lecturas secundarias.
 
 Presenta **dos tablas completas**, con moneda, fecha de valoración, horizonte y escenarios claramente identificados (Base primero):
 
@@ -184,7 +184,7 @@ Esta instrucción se aplica **siempre**, a cualquier empresa y en ambos prompts,
 
 **Contrato de escenarios en la hoja.** Cada escenario de múltiplos se proyecta con su historia: 'Financials Multiples' toma del bloque Damodaran de su escenario en 'Valuation output' las ventas, el crecimiento, el margen, la tasa de impuestos (1 − NOPAT/EBIT) y la reinversión (Conservador ← bloque Conservador, Base ← Base, Optimista ← Optimista). Las acciones de los múltiplos se mantienen constantes desde el año fiscal, sin recompras automáticas y sin referencias circulares. La deuda de los múltiplos EV sale de 'Valuation output' y se restan las preferentes ('Input sheet'!B76). Las zonas de compra del Resumen se miden contra el valor de hoy. El DCF a FY+3 del Resumen es el DCF de las historias × (1 + Ke)³ y la fila 38 de 'Descuento de múltiplos' es el DCF de las historias.
 
-**Cuatro DCF con la estructura de Damodaran.** Las cuatro historias se calculan en 'Valuation output' con los mismos bloques de Damodaran (crecimiento, ventas, margen, EBIT, impuestos, pérdidas fiscales, reinversión, FCFF, costo de capital, valor terminal, probabilidad de quiebra, deuda, caja, opciones y valor por acción): Base (filas 2-42), Conservador (53-93), Optimista (104-144) y Disrupción (157-197). Cada bloque toma de su historia en 'Escenarios e historias' el crecimiento de los años 1-10 (suma de los segmentos), el crecimiento terminal (la Base usa el de la 'Input sheet'), el margen objetivo (C45:C48), ventas/capital y el ROIC terminal; lo común (ventas LTM, margen inicial, convergencia, impuestos, costo de capital, deuda, caja, opciones y acciones) sale de la 'Input sheet'. La pestaña de historias no calcula DCF: guarda los supuestos de cada historia, la suma de los segmentos y el resumen (valor de cada bloque, probabilidades y esperado). No se crea una 'Input sheet' por escenario. La Base de 'Valuation output' es el DCF Base; no existe un caso técnico distinto.
+**Cuatro DCF con la estructura de Damodaran.** Las cuatro historias se calculan en 'Valuation output' con los mismos bloques de Damodaran (crecimiento, ventas, margen, EBIT, impuestos, pérdidas fiscales, reinversión, FCFF, costo de capital, valor terminal, probabilidad de quiebra, deuda, caja, opciones y valor por acción): Base (filas 2-42), Conservador (53-93), Optimista (104-144) y Disrupción (157-197). Cada bloque toma de su historia en 'Escenarios e historias' el crecimiento de los años 1-10 (suma de los segmentos), el crecimiento terminal (la Base usa el de la 'Input sheet'), el margen objetivo (C45:C48), ventas/capital y el ROIC terminal; lo común (ventas LTM, margen inicial, convergencia, impuestos, costo de capital, deuda, caja, opciones y acciones) sale de la 'Input sheet'. La pestaña de historias no calcula DCF: guarda los supuestos de cada historia, la suma de los segmentos y el resumen (valor de cada bloque, probabilidades y promedio de los 4 escenarios). No se crea una 'Input sheet' por escenario. La Base de 'Valuation output' es el DCF Base; no existe un caso técnico distinto.
 
 **Datos: enlace + ajuste visible.** Cada dato de la 'Input sheet' (ventas, EBIT, intereses, patrimonio, deuda, caja, activos no operativos, acciones) se enlaza al estado financiero de la hoja. Si hace falta un ajuste (cargos de una vez, saldo de un 10-Q posterior, RSU, valor nominal de la deuda, preferentes), se escribe en la fórmula como enlace + ajuste (por ejemplo `='Balance Sheet'!L5+449,7`) y se explica en una nota de la celda con su fuente. No se escriben números fijos donde la plantilla enlaza. La deuda (B16) incluye los arrendamientos del balance solo si no se usa el conversor (B18 = "No"); con el conversor, se excluyen para no contarlos dos veces.
 
@@ -194,7 +194,7 @@ Esta instrucción se aplica **siempre**, a cualquier empresa y en ambos prompts,
 
 **Ventas/capital (Damodaran, Investment Valuation cap. 11, p. 44-46).** Se elige dentro del rango de tres referencias: el de la empresa hoy, el marginal de uno y tres años y el promedio del sector, y se comprueba que el rendimiento sobre el capital nuevo (margen × (1 − t) × ventas/capital) sea creíble frente al ROIC actual y al del sector. El capital invertido es operativo: patrimonio + deuda − caja − inversiones financieras, SIN impuestos diferidos activos creados de una vez al liberar una reserva de valuación (los ajustes excepcionales se documentan fuera del prompt maestro y se aplican solo al ticker al que pertenecen) y CON el capital de trabajo (los prepagos y los ingresos diferidos financian crecimiento). No se topa el rendimiento contra un ROIC actual cargado de crédito mercantil.
 
-**Fecha, precio y posición (6-oct-2026).** 'Input sheet'!B4 = fecha real del análisis (el corte); 'Input sheet'!D1 = cierre de ese día, fijo; B23 (precio de mercado del modelo: peso del patrimonio, opciones, precio/valor) = D1, nunca un GOOGLEFINANCE a la fecha de B4; 'Resumen de Valoración'!C25 = D1 y B3 = C25. La posición del usuario va aparte, en 'Resumen de Valoración'!A50:E60 («Mi posición en cartera»): acciones, costo promedio y primera compra de la hoja «Seguimiento de cartera» de Drive, precio de hoy en vivo y la ganancia potencial hasta el DCF Base, el esperado y el ponderado, desde el precio de hoy y desde el precio de compra (scripts/posicion_cartera.py). La app la muestra en «Tu posición».
+**Fecha, precio y posición (6-oct-2026).** 'Input sheet'!B4 = fecha real del análisis (el corte); 'Input sheet'!D1 = cierre de ese día, fijo; B23 (precio de mercado del modelo: peso del patrimonio, opciones, precio/valor) = D1, nunca un GOOGLEFINANCE a la fecha de B4; 'Resumen de Valoración'!C25 = D1 y B3 = C25. La posición del usuario va aparte, en 'Resumen de Valoración'!A50:E60 («Mi posición en cartera»): acciones, costo promedio y primera compra de la hoja «Seguimiento de cartera» de Drive, precio de hoy en vivo y la ganancia potencial hasta el DCF Base, el promedio de los 4 escenarios y el ponderado, desde el precio de hoy y desde el precio de compra (scripts/posicion_cartera.py). La app la muestra en «Tu posición».
 
 **Los análisis salen de la hoja.** Toda cifra de los textos (tasa, beta, ventas/capital, valores de las historias) se lee de la hoja vigente (scripts/valores_hoja.py); un texto con una cifra escrita a mano que la hoja no usa es un error.
 
@@ -251,14 +251,14 @@ Esta sección prevalece sobre cualquier instrucción que permita cerrar una revi
 - **Lista de cierre obligatoria.** Una revisión está completa solo si se verificó y se informa cada punto:
   1. Cuadre con la SEC (último 10-Q o 10-K): ventas y EBIT LTM, caja e inversiones, deuda, arrendamientos, acciones básicas y diluidas, preferentes, convertibles y minoritarios.
   2. Ninguna celda con error (#REF!, #VALUE!, #DIV/0!, #N/A, #NUM!) en las pestañas que usa la valoración.
-  3. El motor del Modelo JMR reproduce el DCF de la hoja ('Valuation output'!B35) y la pestaña «Escenarios e historias» reproduce las cuatro historias y el esperado.
+  3. El motor del Modelo JMR reproduce el DCF de la hoja ('Valuation output'!B35) y la pestaña «Escenarios e historias» reproduce las cuatro historias y el promedio de los 4 escenarios.
   4. Cada cifra de los textos sale del cálculo vigente o de una fuente citada con fecha. No escribas a mano un número que el modelo calcula.
   5. Estado declarado: verificado, corregido con salvedades o pendiente.
 - **Escaneo de integridad.** Después de cualquier cambio masivo corre `python scripts/integridad_hojas.py` (JMR-valuation). Detecta errores, números fijos donde la plantilla tiene fórmulas, celdas desenlazadas, preferentes sin restar, diferencias entre la hoja y el último cálculo y ediciones humanas recientes.
 
 ### Presentación vigente · 1 de octubre de 2026
 
-El **DCF Base** es el valor intrínseco principal y debe aparecer primero, con mayor destaque. Después presenta el **DCF esperado por probabilidades** como complemento y, por último, los múltiplos individuales, consolidados y ponderados como lecturas secundarias. Conserva el MOS sobre el esperado según la política vigente; la jerarquía visual no cambia esa fórmula.
+El **DCF Base** es el valor intrínseco principal y debe aparecer primero, con mayor destaque. Después presenta el **Promedio de los 4 escenarios por probabilidades** como complemento y, por último, los múltiplos individuales, consolidados y ponderados como lecturas secundarias. Conserva el MOS sobre el promedio de los 4 escenarios según la política vigente; la jerarquía visual no cambia esa fórmula.
 
 Los nombres visibles son **Base, Conservadora, Disrupción y Optimista**, acompañados del título propio de cada historia. Usa **Disrupción · Deterioro de los fundamentales**. Las letras A/B/C/D solo son claves internas.
 
@@ -270,7 +270,7 @@ Presenta los múltiplos en tablas: una fila por método y una columna por escena
 >
 > 1. **El valor intrínseco es el DCF.** El DCF de hoy es la cifra principal de la valoración.
 > 2. **Los múltiplos son precio relativo y se tratan por aparte.** Se eligen con el protocolo de tres anclas (historia depurada, peers ajustados y múltiplo justificado), nunca derivados del DCF. Se pueden ponderar con el DCF en la app con los pesos de la categoría de empresa, pero esa mezcla es opcional y nunca reemplaza al DCF.
-> 3. **Primero la historia, después los números y el precio al final.** Cada supuesto sale de una historia explícita (posible, plausible, probable), contrastada con tasas base; se cuantifican cuatro historias como únicos escenarios activos, con probabilidades y un valor esperado; el precio aparece recién al final (DCF inverso y crecimiento implícito) para no anclar el análisis.
+> 3. **Primero la historia, después los números y el precio al final.** Cada supuesto sale de una historia explícita (posible, plausible, probable), contrastada con tasas base; se cuantifican cuatro historias como únicos escenarios activos, con probabilidades y un promedio de los 4 escenarios; el precio aparece recién al final (DCF inverso y crecimiento implícito) para no anclar el análisis.
 > 4. **Decisión separada del análisis.** El documento termina con un registro de decisión; la decisión (comprar, mantener o vender) la toma el usuario en la app.
 >
 > Pensado para pegarse tal cual (reemplazando `{TICKER}`).
@@ -319,11 +319,11 @@ justificado. No cuentes el mismo riesgo en flujos, probabilidades y tasa.
 Asigná probabilidades no negativas que sumen 100%, con fundamento y límites:
 son juicio del analista, no frecuencias publicadas. Los desenlaces deben ser
 suficientemente distintos para no solaparse y cubrir los futuros materiales.
-DCF esperado hoy = suma(probabilidad de cada historia × su DCF por acción hoy).
-Mostrá juntos y con igual destaque DCF base hoy (historia A) y DCF esperado hoy.
-El margen de seguridad se aplica al esperado: precio MOS = esperado × (1 − MOS).
+Promedio de los 4 escenarios hoy = suma(probabilidad de cada historia × su DCF por acción hoy).
+Mostrá DCF base hoy (historia A) como valor principal y, aparte y con mínima relevancia, el promedio de los 4 escenarios hoy.
+El margen de seguridad se aplica al promedio de los 4 escenarios: precio MOS = promedio de los 4 escenarios × (1 − MOS).
 Si falta cuantificar una historia o justificar las probabilidades, indicá
-«DCF esperado pendiente»; no sustituyas el esperado por el base ni por múltiplos.
+«Promedio de los 4 escenarios pendiente»; no sustituyas el promedio de los 4 escenarios por el base ni por múltiplos.
 Los múltiplos individuales, su consolidado y el ponderado con DCF son secundarios
 y separados; la mezcla de métodos nunca se etiqueta como valor intrínseco.
 
@@ -332,7 +332,7 @@ fórmulas, probabilidades y resumen. Verificá igualdad con el motor y sincroniz
 hoja, valoración guardada, análisis, visor, bitácora y portafolio cuando formen
 parte del encargo. Los antiguos Conservador/Base/Optimista quedan identificados
 como referencia técnica auxiliar; no son escenarios activos ni gobiernan el
-base destacado o el esperado. No confundas el antiguo Base con la historia A.
+base destacado o el promedio de los 4 escenarios. No confundas el antiguo Base con la historia A.
 
 Incluí «De dónde sale el cálculo»: registro de cada input (valor, unidad, período,
 fuente y fecha, hoja/celda o campo, tipo de origen y justificación), trayectoria
@@ -574,13 +574,13 @@ Seguí este proceso, en este orden:
      económica y explicación de cualquier orden contraintuitivo, sin forzar
      crecimiento y margen a moverse siempre en la misma dirección.
 
-5B. HISTORIAS, PROBABILIDADES Y VALOR ESPERADO (criterio Damodaran)
+5B. HISTORIAS, PROBABILIDADES Y PROMEDIO DE LOS 4 ESCENARIOS (criterio Damodaran)
    - Aplicá el contrato vigente: cuatro historias A/B/C/D que son los escenarios
      activos, con DCF anual completo, hoja «Escenarios e historias» y motor
      reconciliados. Calibrar contra la plantilla técnica no convierte su antiguo
      Base en la historia A. No mantengas dos familias de escenarios principales.
    - Asigná probabilidades justificadas (evidencia de hoy + tasas base) y calculá
-     el valor esperado por acción. Mostrá también una tabla de sensibilidad
+     el promedio de los 4 escenarios por acción. Mostrá también una tabla de sensibilidad
      crecimiento × margen del DCF Base.
    - Pre-mortem: si en 3 años la tesis falló, ¿por qué? (al menos cuatro causas),
      y la evidencia en contra de tu propia historia central.
@@ -809,21 +809,21 @@ Seguí este proceso, en este orden:
      e) Tabla de resultado por escenario, separando HOY de FY+3:
         DCF Base hoy primero · métodos individuales y ponderado de múltiplos solos
         hoy y FY+3 · ponderado DCF + múltiplos hoy y FY+3 ·
-        precio con MOS hoy (sobre el valor esperado de las historias si el
+        precio con MOS hoy (sobre el promedio de los 4 escenarios si el
         análisis fundamental ya las tiene; si no, sobre el DCF) · precio objetivo FY+3 ponderado · precio actual y
         diferencia (valor hoy / precio − 1).
      f) Log breve de cualquier corrección estructural que hayas tenido que hacer
         (para que quede trazable qué se tocó y por qué).
      g) Conclusión de 3-4 líneas con la variable clave a monitorear y cuál de los
         dos enfoques (DCF o múltiplos) es más confiable para esta empresa.
-     h) Historias con probabilidades y valor esperado (paso 5B).
+     h) Historias con probabilidades y promedio de los 4 escenarios (paso 5B).
 
 11. GUARDADO EN LA CARPETA DE ANÁLISIS DE LA EMPRESA (obligatorio, sin pedir permiso)
    - La hoja del modelo queda donde está; no la muevas ni la dupliques.
    - Generá un resumen en Markdown llamado
      {TICKER}_Valoracion_Modelo_JMR_[AAAA-MM-DD].md con estas secciones, en este
      orden (el precio aparece recién en la sección 11):
-       1. Resumen: valor intrínseco (DCF hoy) por escenario y valor esperado de
+       1. Resumen: valor intrínseco (DCF hoy) por escenario y promedio de los 4 escenarios de
           las historias; en una línea aparte, los múltiplos como precio relativo.
           Sin precio de mercado.
        2. Historia y visión externa (paso 3B): historia, filtro posible /
@@ -833,7 +833,7 @@ Seguí este proceso, en este orden:
        4. Supuestos del DCF por escenario (valor, celda, procedencia, evidencia a
           favor y en contra) y costo de capital (Rf, beta de regresión y beta
           bottom-up, ERP, Ke, Kd, pesos, WACC inicial y terminal).
-       5. Historias, probabilidades y valor esperado (paso 5B): tabla de
+       5. Historias, probabilidades y promedio de los 4 escenarios (paso 5B): tabla de
           historias, sensibilidad crecimiento × margen, pre-mortem e indicadores.
        6. Múltiplos (precio relativo): la tabla de origen del paso 10.d y un
           párrafo por método; chequeo de independencia (6.4).
@@ -859,7 +859,7 @@ Seguí este proceso, en este orden:
           de la v3 más: historia escrita antes de los números; tasas base del
           tamaño reportadas; orgánico vs. comprado separado; margen normalizado
           anclado en un maduro; beta bottom-up documentada; cuatro historias activas con
-          probabilidades y valor esperado; pre-mortem e indicadores; el precio
+          probabilidades y promedio de los 4 escenarios; pre-mortem e indicadores; el precio
           no aparece antes de la sección 11.
    - Guardalo en Google Drive en AAA Finanzas › Análisis › <empresa>. Buscá la
      subcarpeta por ticker y por nombre (por ticker o nombre de la empresa objetivo); usá la que ya
@@ -874,7 +874,7 @@ Seguí este proceso, en este orden:
    - Si además se pidió el research fundamental, ese .md va en la misma carpeta
      (ver "JMR - PROMPT Research (VIGENTE v5).md" en la carpeta Prompts).
 
-Reportame al final: el valor intrínseco (DCF hoy) por escenario y el valor esperado
+Reportame al final: el valor intrínseco (DCF hoy) por escenario y el promedio de los 4 escenarios
 de las historias; los múltiplos consolidados hoy como precio relativo y el ponderado
 opcional; recién después, el precio actual y el DCF inverso; el precio objetivo FY+3
 Base y el rango Conservador-Optimista; los cinco múltiplos Base con su ancla
@@ -895,7 +895,7 @@ análisis.
 | Tasas base | No | Obligatorias por tramo de tamaño (Mauboussin) |
 | Crecimiento | Un número agregado | Por segmento o marca; orgánico vs. comprado; sell-through vs. facturado |
 | Beta | Regresión o la del libro | Bottom-up del sector (Damodaran), la de regresión como referencia |
-| Escenarios | Conservador / Base / Optimista | Además cuatro historias activas con probabilidades y valor esperado, pre-mortem e indicadores |
+| Escenarios | Conservador / Base / Optimista | Además cuatro historias activas con probabilidades y promedio de los 4 escenarios, pre-mortem e indicadores |
 | Decisión | No | Registro de decisión; comprar / mantener / vender lo elige el usuario en la app |
 
 ## Qué cambió respecto de la v2

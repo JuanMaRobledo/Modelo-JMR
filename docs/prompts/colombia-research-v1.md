@@ -6,7 +6,7 @@
 <!-- JMR-CO-R5-INTRINSECO-PRINCIPAL-20261012; PRECEDENCIA ABSOLUTA -->
 ## REGLA CANÓNICA VIGENTE · r5 · 12-oct-2026
 
-Sustituye la regla de holdings del 10-oct-2026 (60% SOTP económico + 40% múltiplos). Igual que la cartera de EE.UU.: el **DCF Base intrínseco (Damodaran)** es el valor principal (RE/DDM o FCFE en bancos; SOTP intrínseco en holdings), con esperado por probabilidades y precio de compra = esperado × 65%. Múltiplos, SOTP de mercado y libro son secundarios (ponderado 40% DCF + 60% múltiplos). Corte común con EE.UU. (cierre BVC del día de corte; ERP implícita del mes + prima país). Detalle en `colombia-valuation-v1.md`.
+Sustituye la regla de holdings del 10-oct-2026 (60% SOTP económico + 40% múltiplos). Igual que la cartera de EE.UU.: el **DCF Base intrínseco (Damodaran)** es el valor principal (RE/DDM o FCFE en bancos; SOTP intrínseco en holdings), con promedio de los 4 escenarios por probabilidades y precio de compra = promedio de los 4 escenarios × 65%. Múltiplos, SOTP de mercado y libro son secundarios (ponderado 40% DCF + 60% múltiplos). Corte común con EE.UU. (cierre BVC del día de corte; ERP implícita del mes + prima país). Detalle en `colombia-valuation-v1.md`.
 
 <!-- JMR-HOLDING-SOTP-SECTOR-DEFAULT-20261010; PRECEDENCIA ABSOLUTA -->
 ## REGLA ANTERIOR (sustituida por la r5 del 12-oct-2026) · Holdings SOTP + múltiplos por participada (10-oct-2026)
@@ -199,7 +199,7 @@ Documenta tasa libre de riesgo, beta bottom-up, prima de mercado maduro, exposic
 Para operativas, crecimiento estable = reinversión × ROIC; NOPAT del año siguiente y reinversión terminal deben ser coherentes, con WACC terminal > g. Justifica convergencia de márgenes, capital y ROIC. Usa ROIC cercano al costo de capital cuando no haya evidencia de ventaja duradera, sin convertirlo en una regla rígida para todo negocio. Para financieras relaciona g, ROE y retención compatible con capital regulatorio, con Ke > g.
 
 ## Historias, precio relativo y publicación
-Mantén Base, Conservadora, Optimista y Disrupción — deterioro fundamental. Las probabilidades son juicio sustentado, no frecuencias conocidas, y deben sumar 100%. El valor Base aparece primero y con mayor destaque; el esperado es complementario. En financieras/holdings usa la denominación correcta de valor intrínseco, sin llamar DCF industrial a otro método.
+Mantén Base, Conservadora, Optimista y Disrupción — deterioro fundamental. Las probabilidades son juicio sustentado, no frecuencias conocidas, y deben sumar 100%. El valor Base aparece primero y con mayor destaque; el promedio de los 4 escenarios es complementario. En financieras/holdings usa la denominación correcta de valor intrínseco, sin llamar DCF industrial a otro método.
 
 Los múltiplos son una opinión independiente: tres anclas (historia depurada, peers ajustados y múltiplo justificado). No inferirlos del DCF ni moverlos para que coincidan con él. Si no aplica una métrica, documenta la exclusión y sus pesos efectivos. Históricos necesitan fechas, denominadores y corporativos comparables.
 
@@ -289,14 +289,14 @@ Qué se compra y cómo genera valor.
 Comparaciones económicas con muestra pertinente, tamaño y madurez; no trasladar tasas base de otro sector/mercado sin justificar.
 ### Piezas del valor
 Explicar crecimiento, margen/ROE, reinversión/capital requerido, tasas y terminal, o valor de participadas y matriz.
-### Historias cuantificadas y valor esperado
+### Historias cuantificadas y promedio de los 4 escenarios
 Base primero, cuatro historias, supuestos, probabilidades y resultados provenientes de la valoración separada. Si faltan resultados, marcar pendientes. Mostrar sensibilidad y explicar coherencia, no solo cifras.
 ### Pre-mortem
 Cómo puede fallar la tesis y qué señalaría deterioro fundamental.
 ### Indicadores y actualización de probabilidades
 Señales, umbrales sustentados y frecuencia de revisión.
 ### El precio al final
-Fecha, clase, cotización, comparación con valor Base y esperado; ambos horizontes de múltiplos en tablas, sin confundir margen de seguridad con potencial. DCF inverso solo si fue calculado correctamente.
+Fecha, clase, cotización, comparación con valor Base y promedio de los 4 escenarios; ambos horizontes de múltiplos en tablas, sin confundir margen de seguridad con potencial. DCF inverso solo si fue calculado correctamente.
 ### Registro de decisión
 Historia, incertidumbre, señales que cambiarían juicio y revisión. La decisión de cartera pertenece al usuario.
 
