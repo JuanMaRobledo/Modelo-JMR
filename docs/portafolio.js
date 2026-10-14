@@ -156,11 +156,16 @@
 
   // Franjas de zonas de valor + líneas de objetivo — copia exacta de
   // buildZonesChart() en visor.html (mismo diseño visual en toda la app).
-  // Zonas de compra sobre el promedio de los 4 escenarios (sección Damodaran): mismos porcentajes del modelo
-  // (Value 70-65%, Deep Value 60-55%, Valoración histórica 50-45%) y precio con MOS = promedio de los 4 escenarios × (1 − MOS).
-  // Sin promedio de los 4 escenarios se usan las zonas guardadas de la hoja (sobre el objetivo FY+3 ponderado).
+  // Zonas de compra sobre el DCF Base de hoy: mismos porcentajes del modelo
+  // (Value 70-65%, Deep Value 60-55%, Valoración histórica 50-45%) y precio con MOS = DCF Base × (1 − MOS).
+  // Sin DCF Base se usan las zonas guardadas de la hoja (sobre el objetivo FY+3 ponderado).
+  function dcfBaseHoy(r) {
+    var v = r && r.valorEsperado, d = r && r.descuentoMultiples && r.descuentoMultiples.dcfHoy;
+    if (v && v.escenariosUnificados && typeof v.valorCentral === 'number' && isFinite(v.valorCentral)) return v.valorCentral;
+    return d && typeof d.base === 'number' && isFinite(d.base) ? d.base : null;
+  }
   function zonasValorEsperado(r) {
-    var ve = r && r.valorEsperado && Number(r.valorEsperado.valor), mos = Number(r && r.mos);
+    var ve = dcfBaseHoy(r), mos = Number(r && r.mos);
     if (!(ve > 0)) return null;
     var z = function (a, b) { return { max: ve * a, min: ve * b }; };
     var out = { value: z(0.70, 0.65), deepValue: z(0.60, 0.55), historica: z(0.50, 0.45) };
@@ -260,8 +265,8 @@
       '<div class="port-kv-row"><span class="port-fecha">Analizado el ' + escapeHtml(r.fecha || '—') + '</span></div>' +
       '<div class="port-kv"><span class="k">Precio al día del análisis</span><span class="v mono">' + fmtMoney(precio) + '</span></div>' +
       (typeof JmrValueBoard !== 'undefined' ? JmrValueBoard.html(JmrValueBoard.fromRecord(r), {hero:true}) : scenarios('DCF Base hoy',dm.dcfHoy)) +
-      '<div class="chart-card">' + (zve ? '<p class="port-zonas-nota">Zonas de compra sobre el promedio de los 4 escenarios</p>' : '') +
-      (zve ? buildZonesChart(precio, zve, null, [{ value: r.valorEsperado.valor, label: 'Promedio de los 4 escenarios', cls: 'chart-ref-base' }, { value: r.valorEsperado && r.valorEsperado.escenariosUnificados ? r.valorEsperado.valorCentral : dm.dcfHoy && dm.dcfHoy.base, label: r.valorEsperado && r.valorEsperado.escenariosUnificados ? 'Tesis Base' : 'DCF Base', cls: 'chart-ref-opt' }])
+      '<div class="chart-card">' + (zve ? '<p class="port-zonas-nota">Zonas de compra sobre el DCF Base</p>' : '') +
+      (zve ? buildZonesChart(precio, zve, null, [{ value: dcfBaseHoy(r), label: 'DCF Base', cls: 'chart-ref-base' }])
            : buildZonesChart(precio, r.zonas, r.objetivoPonderado)) + '</div>';
   }
 

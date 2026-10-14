@@ -9,7 +9,7 @@
 Esta regla sustituye la regla de holdings del 10-oct-2026 (Base = 60% SOTP económico + 40% SOTP de múltiplos) y cualquier otra que ponga un valor de mercado, contable o de múltiplos como valor principal.
 
 1. **Valor principal = DCF Base intrínseco (Damodaran).** Industriales: FCFF; bancos y aseguradoras: RE/DDM o FCFE después de capital regulatorio; holdings: SOTP **intrínseco** (cada filial por sus flujos; privadas sin flujos propios a valores fechados y verificables) menos deuda de la matriz y VP de gastos centrales. El precio de bolsa de una filial cotizada NO es su valor intrínseco.
-2. **Promedio de los 4 escenarios y margen de seguridad.** Cuatro historias (Base, Conservadora, Optimista, Disrupción) con probabilidades que suman 100%; promedio de los 4 escenarios = Σ probabilidad × valor; **precio de compra = promedio de los 4 escenarios × (1 − 35%)**.
+2. **Promedio de los 4 escenarios y margen de seguridad.** Cuatro historias (Base, Conservadora, Optimista, Disrupción) con probabilidades que suman 100%; promedio de los 4 escenarios = Σ probabilidad × valor; **precio de compra = DCF Base × (1 − 35%)**.
 3. **Secundarios.** Múltiplos sectoriales, SOTP de mercado, libro y el antiguo 60/40 se muestran como lectura secundaria; el ponderado secundario por defecto es **40% DCF + 60% múltiplos**.
 4. **Corte común con la cartera de EE.UU.** Mismo día de corte para precios (cierre BVC) y la misma prima madura (implícita de Damodaran del mes) + prima país de Colombia (archivo de países vigente); Rf COP = TES ~10 años al corte − spread soberano.
 5. **Consistencia de inflación.** Flujos en COP nominales con la inflación implícita en el diferencial de tasas libres de riesgo; crecimiento terminal ≤ Rf COP.

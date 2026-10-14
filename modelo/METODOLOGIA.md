@@ -344,7 +344,7 @@ Desde el prompt de valoración v4 y el de análisis fundamental v5:
 - **El valor intrínseco es el DCF de hoy; su cifra principal es el DCF Base (jerarquía del 1-oct-2026).**
   El DCF Base (la historia central) va primero y con mayor destaque en el Visor, en Mi Bitácora, en los
   análisis y en los informes. El Promedio de los 4 escenarios de las cuatro historias (Σ probabilidad × DCF) es un
-  complemento; el margen de seguridad se sigue aplicando sobre el promedio de los 4 escenarios.
+  complemento; el margen de seguridad se sigue aplicando sobre el DCF Base.
 - **Los múltiplos son precio relativo y van por aparte.** Siguen eligiéndose con las tres anclas y
   pasan el chequeo de crecimiento implícito (pestaña «Crecimiento implícito»). El ponderado DCF +
   múltiplos, con los pesos de la categoría de empresa, es una lectura opcional en la app.
@@ -356,7 +356,7 @@ Desde el prompt de valoración v4 y el de análisis fundamental v5:
   historias —Base, Conservadora, Disrupción · Deterioro de los fundamentales y Optimista, cada una con su título
   propio; las letras A-D son solo claves internas— son los únicos escenarios DCF activos. Cada una es un DCF completo con los
   insumos de la hoja, la misma tasa de descuento y su propio crecimiento, margen, reinversión, crecimiento
-  terminal y ROIC terminal. Promedio de los 4 escenarios = Σ probabilidad × DCF; el margen de seguridad se aplica al promedio de los 4 escenarios.
+  terminal y ROIC terminal. Promedio de los 4 escenarios = Σ probabilidad × DCF; el margen de seguridad se aplica sobre el DCF Base.
   Los antiguos casos Conservador/Base/Optimista de la hoja quedan como calibración técnica y supuestos de los
   múltiplos auxiliares; la mezcla DCF + múltiplos es «mezcla auxiliar». La hoja tiene la pestaña «Escenarios e
   historias» con los cuatro DCF por fórmulas, verificada contra el motor; el análisis explica «De dónde sale el

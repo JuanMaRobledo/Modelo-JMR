@@ -1340,15 +1340,22 @@
         Math.round(u*100) + ' pp de diferencia = el múltiplo o el precio cuentan otra historia de crecimiento que el DCF.') + (ci.fecha ? ' Calculado el ' + ci.fecha + '.' : '');
   }
 
-  // Precio con margen de seguridad: sobre el promedio de los 4 escenarios cuando existe (ya incorpora lo que
-  // puede salir mal, criterio Damodaran); si no, sobre el DCF de hoy (Conservador – Base).
+  // DCF Base de hoy: la historia central cuando hay cuatro escenarios; si no, el Base del DCF de hoy.
+  // Las diferencias, el margen de seguridad y las zonas de valor se calculan sobre este valor (no sobre el promedio de los 4 escenarios).
+  function dcfBaseValue(r){
+    var v = r && r.valorEsperado;
+    if(v && v.escenariosUnificados && typeof v.valorCentral === 'number' && isFinite(v.valorCentral)) return v.valorCentral;
+    var d = r && (r.descuentoMultiples || {}).dcfHoy;
+    return d && typeof d.base === 'number' && isFinite(d.base) ? d.base : null;
+  }
+  // Precio con margen de seguridad: sobre el DCF Base de hoy.
   function renderMosDcf(){
     var r = currentResumen || {}, d = (r.descuentoMultiples || {}).dcfHoy, mos = Number(r.mos);
-    var ve = r.valorEsperado && Number(r.valorEsperado.valor);
+    var ve = dcfBaseValue(r);
     var elM = document.getElementById('rPrecioMOS'), elL = document.getElementById('rPrecioMOSLbl');
     if (r.valoracionHolding) { elL.textContent = 'Umbral con MOS · referencia preliminar'; elM.textContent = fmtMoney(r.valoracionHolding.umbralMOS); return; }
     if(ve && isFinite(ve) && isFinite(mos)){
-      elL.textContent = 'Precio con MOS sobre el promedio de los 4 escenarios';
+      elL.textContent = 'Precio con MOS sobre el DCF Base';
       elM.textContent = fmtMoney(ve*(1-mos));
       return;
     }
@@ -1496,7 +1503,7 @@
     if(t) t.textContent = sel.titulo + ' por escenario';
     scEl.innerHTML = buildScenarioChart(currentResumen.precio, sel.valores, sel.unified);
     var zonas = currentResumen.zonas;
-    var expected = currentResumen.valorEsperado && Number(currentResumen.valorEsperado.valor);
+    var expected = dcfBaseValue(currentResumen);
     var mos = Number(currentResumen.mos);
     if(expected > 0){
       zonas = {
@@ -1506,13 +1513,13 @@
         conMOS: isFinite(mos) ? {min: expected * (1-mos), max: expected * (1-mos)} : null
       };
       currentResumen.zonas = zonas;
-      document.getElementById('zonasTitle').textContent = 'Zonas de valor (sobre el promedio de los 4 escenarios)';
+      document.getElementById('zonasTitle').textContent = 'Zonas de valor (sobre el DCF Base)';
       [['zValue','value'],['zDeep','deepValue'],['zHist','historica'],['zMOS','conMOS']].forEach(function(pair){
         var zone = zonas[pair[1]], el = document.getElementById(pair[0]);
         if(el && zone) el.textContent = zone.min === zone.max ? fmtMoney(zone.min) : fmtMoney(zone.min) + ' – ' + fmtMoney(zone.max);
       });
       var mosCard = document.getElementById('zMOS');
-      if(mosCard) mosCard.parentElement.querySelector('.lbl').textContent = 'Precio con MOS sobre el promedio de los 4 escenarios';
+      if(mosCard) mosCard.parentElement.querySelector('.lbl').textContent = 'Precio con MOS sobre el DCF Base';
     }
     zEl.innerHTML = buildZonesChart(currentResumen.precio, zonas, sel.valores, sel.unified);
   }
@@ -1554,8 +1561,7 @@
     var gan = (typeof hoy === 'number') ? hoy / c - 1 : null;
     document.getElementById('posGan').innerHTML = badgePct(gan) +
       ((typeof hoy === 'number') ? ' · ' + ((hoy - c) * pos.acciones >= 0 ? '+' : '') + fmtMoney((hoy - c) * pos.acciones) : '');
-    var filas = [['DCF Base hoy (valor intrínseco)', pos.dcfBase], ['Ponderado DCF + múltiplos (secundario)', pos.ponderadoBase],
-                 ['Promedio de los 4 escenarios', pos.dcfEsperado]];
+    var filas = [['DCF Base hoy (valor intrínseco)', pos.dcfBase], ['Ponderado DCF + múltiplos (secundario)', pos.ponderadoBase]];
     document.getElementById('posPot').innerHTML = filas.filter(function(f){ return typeof f[1] === 'number'; }).map(function(f){
       return '<tr><td>' + f[0] + '</td><td>' + fmtMoney(f[1]) + '</td><td>' +
         badgePct(typeof hoy === 'number' ? f[1] / hoy - 1 : null) + '</td><td>' + badgePct(f[1] / c - 1) + '</td></tr>';
@@ -1769,7 +1775,7 @@
         conMOS: { min: cellVal(res,'C19'), max: cellVal(res,'B19') }
       }
     };
-    if(currentResumen.valorEsperado && currentResumen.valorEsperado.escenariosUnificados){ currentResumen.precioMOS=currentResumen.valorEsperado.valor*(1-mos); currentResumen.precioMOSMax=currentResumen.precioMOS; currentResumen.precioMOSHoy={conservador:currentResumen.precioMOS,base:currentResumen.precioMOS,optimista:currentResumen.precioMOS}; currentResumen.baseMOS='valorEsperado'; }
+    if(currentResumen.valorEsperado && currentResumen.valorEsperado.escenariosUnificados){ currentResumen.precioMOS=dcfBaseValue(currentResumen)*(1-mos); currentResumen.precioMOSMax=currentResumen.precioMOS; currentResumen.precioMOSHoy={conservador:currentResumen.precioMOS,base:currentResumen.precioMOS,optimista:currentResumen.precioMOS}; currentResumen.baseMOS='dcfBase'; }
     sheetHtmlCache = {};
     cualitativoOverride = null;
     fundamentalOverride = null;
@@ -3043,7 +3049,7 @@
     document.getElementById('rTipo').textContent = rec.tipo || '—';
     document.getElementById('rMOS').textContent = fmtPct(rec.mos);
     var mosHoy = rec.precioMOSHoy;
-    if(rec.valorEsperado && rec.valorEsperado.escenariosUnificados && typeof rec.valorEsperado.valor === 'number'){ var pmEsperado=rec.valorEsperado.valor*(1-(Number(rec.mos)||0)); mosHoy={conservador:pmEsperado,base:pmEsperado,optimista:pmEsperado}; }
+    if(rec.valorEsperado && rec.valorEsperado.escenariosUnificados && dcfBaseValue(rec) != null){ var pmBase=dcfBaseValue(rec)*(1-(Number(rec.mos)||0)); mosHoy={conservador:pmBase,base:pmBase,optimista:pmBase}; }
     document.getElementById('rPrecioMOS').textContent = mosHoy ? fmtMoney(mosHoy.conservador) + ' – ' + fmtMoney(mosHoy.base) : fmtMoney(rec.precioMOS) + (rec.precioMOSMax != null ? ' – ' + fmtMoney(rec.precioMOSMax) : '');
     var tbody = document.getElementById('methodsBody');
     tbody.innerHTML = '';
@@ -3071,16 +3077,16 @@
     document.getElementById('cagrB').textContent = fmtPct(cagr.base);
     document.getElementById('cagrO').textContent = fmtPct(cagr.optimista);
     function zoneText(z){ if(!z) return '—'; return fmtMoney(z.min) + ' – ' + fmtMoney(z.max); }
-    // Con promedio de los 4 escenarios, las zonas se calculan sobre él (mismos porcentajes del modelo);
-    // si no, se muestran las de la hoja (sobre el objetivo FY+3 ponderado).
-    var ve = rec.valorEsperado && Number(rec.valorEsperado.valor), mosZ = Number(rec.mos);
+    // Las zonas se calculan sobre el DCF Base de hoy (mismos porcentajes del modelo);
+    // si no hay, se muestran las de la hoja (sobre el objetivo FY+3 ponderado).
+    var ve = dcfBaseValue(rec), mosZ = Number(rec.mos);
     var z = rec.zonas || {};
     if(ve > 0){
       var zz = function(a, b){ return { max: ve*a, min: ve*b }; };
       z = { value: zz(0.70, 0.65), deepValue: zz(0.60, 0.55), historica: zz(0.50, 0.45), conMOS: isFinite(mosZ) ? { min: ve*(1-mosZ), max: ve*(1-mosZ) } : null };
     }
     document.getElementById('zonasTitle').textContent = ve > 0
-      ? 'Zonas de valor (escalonar entradas; sobre el promedio de los 4 escenarios: 70-65%, 60-55%, 50-45% y precio con MOS)'
+      ? 'Zonas de valor (escalonar entradas; sobre el DCF Base: 70-65%, 60-55%, 50-45% y precio con MOS)'
       : 'Zonas de valor (escalonar entradas; sobre el objetivo FY+3 ponderado, lectura secundaria)';
     document.getElementById('zValue').textContent = zoneText(z.value);
     document.getElementById('zDeep').textContent = zoneText(z.deepValue);

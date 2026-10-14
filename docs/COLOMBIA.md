@@ -15,7 +15,7 @@ autorización explícita, en `Modelo-JMR-datos/colombia/expedientes/`.
 - La pestaña «Colombia» es el visor y la biblioteca internacionales filtrados por mercado (`visor.html?mercado=colombia`,
   `fundamental.html?mercado=colombia`; filtro en `mercado.js`). `visor-colombia.html` y `fundamental-colombia.html` solo redirigen.
 - Valor principal = DCF Base intrínseco (FCFE en bancos y holdings financieras; FCFF en industriales/holdings), esperado por probabilidades,
-  precio de compra con MOS 35% sobre el promedio de los 4 escenarios y ponderado secundario 40% DCF + 60% múltiplos.
+  precio de compra con MOS 35% sobre el DCF Base y ponderado secundario 40% DCF + 60% múltiplos.
 - Corte común: cierres BVC del 30-sep-2026, ERP implícita oct-2026 3,70% + prima país por ingresos, Rf COP = TES − spread soberano 1,75%,
   retorno terminal = costo de capital. Flujo y scripts: habilidad `valoracion-colombia` (JMR-valuation).
 - `colombia/expedientes` conserva solo el expediente de Davivienda Group (no rehecho en esta revisión); `colombia.html` sigue sirviéndolo.

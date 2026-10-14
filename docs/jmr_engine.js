@@ -416,12 +416,11 @@ function calcularModeloJMR(inp){
     deepValue: zona(0.60,0.55),
     historica: zona(0.50,0.45)
   };
-  // El MOS se aplica a una cifra presente. Si no hay historias cuantificadas,
-  // se explicita el DCF Base como referencia; nunca se usa el ponderado FY+3.
-  var baseMOS = typeof inp.valorEsperado === 'number' && isFinite(inp.valorEsperado) ? inp.valorEsperado : dcf.base;
+  // El MOS se aplica al DCF Base de hoy; nunca al promedio de los 4 escenarios ni al ponderado FY+3.
+  var baseMOS = dcf.base;
   var precioConMOS = {base:baseMOS*(1-inp.mos),cons:baseMOS*(1-inp.mos),
     valor:baseMOS*(1-inp.mos),baseValor:baseMOS,
-    criterio:typeof inp.valorEsperado === 'number' ? 'valorEsperado' : 'dcfBase'};
+    criterio:'dcfBase'};
 
   return {precios: precios, pesos: pesos, precioObjetivo: precioObjetivo, cagr: cagr, zonas: zonas, precioConMOS: precioConMOS,
           valorPresente: valorPresente, financials:fin};

@@ -258,7 +258,7 @@ Esta sección prevalece sobre cualquier instrucción que permita cerrar una revi
 
 ### Presentación vigente · 1 de octubre de 2026
 
-El **DCF Base** es el valor intrínseco principal y debe aparecer primero, con mayor destaque. Después presenta el **Promedio de los 4 escenarios por probabilidades** como complemento y, por último, los múltiplos individuales, consolidados y ponderados como lecturas secundarias. Conserva el MOS sobre el promedio de los 4 escenarios según la política vigente; la jerarquía visual no cambia esa fórmula.
+El **DCF Base** es el valor intrínseco principal y debe aparecer primero, con mayor destaque. Después presenta el **Promedio de los 4 escenarios por probabilidades** como complemento y, por último, los múltiplos individuales, consolidados y ponderados como lecturas secundarias. Conserva el MOS sobre el DCF Base según la política vigente; la jerarquía visual no cambia esa fórmula.
 
 Los nombres visibles son **Base, Conservadora, Disrupción y Optimista**, acompañados del título propio de cada historia. Usa **Disrupción · Deterioro de los fundamentales**. Las letras A/B/C/D solo son claves internas.
 
@@ -321,7 +321,7 @@ son juicio del analista, no frecuencias publicadas. Los desenlaces deben ser
 suficientemente distintos para no solaparse y cubrir los futuros materiales.
 Promedio de los 4 escenarios hoy = suma(probabilidad de cada historia × su DCF por acción hoy).
 Mostrá DCF base hoy (historia A) como valor principal y, aparte y con mínima relevancia, el promedio de los 4 escenarios hoy.
-El margen de seguridad se aplica al promedio de los 4 escenarios: precio MOS = promedio de los 4 escenarios × (1 − MOS).
+El margen de seguridad se aplica sobre el DCF Base: precio MOS = DCF Base × (1 − MOS).
 Si falta cuantificar una historia o justificar las probabilidades, indicá
 «Promedio de los 4 escenarios pendiente»; no sustituyas el promedio de los 4 escenarios por el base ni por múltiplos.
 Los múltiplos individuales, su consolidado y el ponderado con DCF son secundarios
@@ -809,7 +809,7 @@ Seguí este proceso, en este orden:
      e) Tabla de resultado por escenario, separando HOY de FY+3:
         DCF Base hoy primero · métodos individuales y ponderado de múltiplos solos
         hoy y FY+3 · ponderado DCF + múltiplos hoy y FY+3 ·
-        precio con MOS hoy (sobre el promedio de los 4 escenarios si el
+        precio con MOS hoy (sobre el DCF Base si el
         análisis fundamental ya las tiene; si no, sobre el DCF) · precio objetivo FY+3 ponderado · precio actual y
         diferencia (valor hoy / precio − 1).
      f) Log breve de cualquier corrección estructural que hayas tenido que hacer

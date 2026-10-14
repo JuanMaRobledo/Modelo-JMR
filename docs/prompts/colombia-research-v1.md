@@ -6,7 +6,7 @@
 <!-- JMR-CO-R5-INTRINSECO-PRINCIPAL-20261012; PRECEDENCIA ABSOLUTA -->
 ## REGLA CANÓNICA VIGENTE · r5 · 12-oct-2026
 
-Sustituye la regla de holdings del 10-oct-2026 (60% SOTP económico + 40% múltiplos). Igual que la cartera de EE.UU.: el **DCF Base intrínseco (Damodaran)** es el valor principal (RE/DDM o FCFE en bancos; SOTP intrínseco en holdings), con promedio de los 4 escenarios por probabilidades y precio de compra = promedio de los 4 escenarios × 65%. Múltiplos, SOTP de mercado y libro son secundarios (ponderado 40% DCF + 60% múltiplos). Corte común con EE.UU. (cierre BVC del día de corte; ERP implícita del mes + prima país). Detalle en `colombia-valuation-v1.md`.
+Sustituye la regla de holdings del 10-oct-2026 (60% SOTP económico + 40% múltiplos). Igual que la cartera de EE.UU.: el **DCF Base intrínseco (Damodaran)** es el valor principal (RE/DDM o FCFE en bancos; SOTP intrínseco en holdings), con promedio de los 4 escenarios por probabilidades y precio de compra = DCF Base × 65%. Múltiplos, SOTP de mercado y libro son secundarios (ponderado 40% DCF + 60% múltiplos). Corte común con EE.UU. (cierre BVC del día de corte; ERP implícita del mes + prima país). Detalle en `colombia-valuation-v1.md`.
 
 <!-- JMR-HOLDING-SOTP-SECTOR-DEFAULT-20261010; PRECEDENCIA ABSOLUTA -->
 ## REGLA ANTERIOR (sustituida por la r5 del 12-oct-2026) · Holdings SOTP + múltiplos por participada (10-oct-2026)
