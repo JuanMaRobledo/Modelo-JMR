@@ -667,7 +667,6 @@
           <select id="hypCat"><option value="Estándar">Estándar</option><option value="Especulativa">Especulativa</option></select>
         </div>
         <div class="hrow"><label for="hypFecha">Fecha de análisis</label><input id="hypFecha" type="text" placeholder="2026-09-03" autocomplete="off"></div>
-        <div class="hrow"><label for="hypPrecio">Precio de entrada</label><input id="hypPrecio" type="text" placeholder="120 USD" autocomplete="off"></div>
         <div class="hrow"><label for="hypAnio">Año objetivo</label><input id="hypAnio" type="text" placeholder="2029" autocomplete="off"></div>
         <div class="hrow"><label for="hypMultP">Múltiplo usado</label><input id="hypMultP" type="text" placeholder="P/E" autocomplete="off"></div>
         <div class="hrow"><label for="hypMultA">Múltiplo actual</label><input id="hypMultA" type="text" placeholder="15x" autocomplete="off"></div>
@@ -1721,7 +1720,6 @@
     empresa: ['empresa', 'compañ[ií]a', 'nombre(?: de la empresa)?'],
     categoria: ['categor[ií]a'],
     fecha: ['fecha(?: de an[aá]lisis)?'],
-    precio: ['precio de entrada', 'precio actual', 'precio'],
     anio: ['a[ñn]o objetivo', 'a[ñn]o'],
     multP: ['m[uú]ltiplo usado', 'm[uú]ltiplo'],
     multA: ['m[uú]ltiplo actual'],
@@ -1781,7 +1779,6 @@
     document.getElementById('hypEmpresa').value = parsed.empresa || '';
     document.getElementById('hypCat').value = parsed.cat || 'Estándar';
     document.getElementById('hypFecha').value = parsed.fecha || new Date().toISOString().slice(0, 10);
-    document.getElementById('hypPrecio').value = parsed.precio || '';
     document.getElementById('hypAnio').value = parsed.anio || '';
     document.getElementById('hypMultP').value = parsed.multP || '';
     document.getElementById('hypMultA').value = parsed.multA || '';
@@ -1850,7 +1847,6 @@
       empresa: empresa,
       fecha: document.getElementById('hypFecha').value.trim(),
       cat: document.getElementById('hypCat').value,
-      precio: document.getElementById('hypPrecio').value.trim(),
       multP: document.getElementById('hypMultP').value.trim(),
       multA: document.getElementById('hypMultA').value.trim(),
       multH: document.getElementById('hypMultH').value.trim(),
