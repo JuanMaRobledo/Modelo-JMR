@@ -77,6 +77,23 @@ body.research-page .wrap{max-width:none;padding-inline:clamp(16px,2.5vw,48px)}bo
 .pdf-header .pdf-header-text span{font-size:12px;color:var(--ink-faint)}
 </style>
 <link rel="stylesheet" href="jmr-theme.css">
+<style>
+/* Lectura JMR en dos niveles, independiente del contenido técnico original. */
+.jmr-editorial-article{max-width:910px;margin:0 auto 22px;padding:0 3px 14px}
+.jmr-editorial-label{font-family:"IBM Plex Mono",monospace;font-weight:700;font-size:11px;letter-spacing:.11em;color:var(--accent);margin:0 0 18px}
+.jmr-editorial-article h1{font-size:clamp(28px,4.5vw,38px);line-height:1.2;letter-spacing:-.015em;margin:0 0 15px}
+.jmr-editorial-article h2{font-size:clamp(18px,2.4vw,23px);line-height:1.34;border:0;padding:0;margin:26px 0 11px}
+.jmr-editorial-article p{font-size:15px;line-height:1.85;text-align:left;hyphens:none;margin-bottom:16px;max-width:85ch}
+.jmr-editorial-article p.jmr-editorial-meta{font-size:12px;color:var(--ink-faint);margin:-5px 0 25px}
+.jmr-editorial-article a{text-underline-offset:3px}
+.jmr-editorial-source{padding:12px 14px;border-top:1px solid var(--border-soft);margin-top:18px}
+.jmr-research-details{border:1px solid var(--border);border-radius:12px;background:var(--surface);margin:26px 0 10px}
+.jmr-research-details>summary{cursor:pointer;list-style:disclosure-closed;padding:17px 20px;font-size:14px;font-weight:700;color:var(--accent-ink);background:var(--accent-soft);border-radius:12px}
+.jmr-research-details[open]>summary{border-radius:12px 12px 0 0;border-bottom:1px solid var(--border)}
+.jmr-technical-content{padding:20px 18px;overflow-wrap:anywhere}
+@media(max-width:620px){.jmr-editorial-article{padding:0}.jmr-editorial-article p{font-size:14px;line-height:1.72}.jmr-research-details>summary{padding:15px 12px}.jmr-technical-content{padding:13px 8px}}
+@media print{.jmr-editorial-article{max-width:none}.jmr-research-details:not([open]){display:none!important}.jmr-editorial-label{color:#555}}
+</style>
 </head>
 <body class="research-page">
 <script src="auth.js"></script>
@@ -163,7 +180,7 @@ body.research-page .wrap{max-width:none;padding-inline:clamp(16px,2.5vw,48px)}bo
 <script src="gh_oauth.js"></script>
 <script src="decision.js"></script>
 <script src="valuation-board.js"></script>
-<script src="research.js"></script>
+<script src="research.js?v=20261013-editorial"></script>
 <script>
 if("serviceWorker" in navigator){
   window.addEventListener("load", function(){

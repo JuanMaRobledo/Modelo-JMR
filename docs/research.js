@@ -23,6 +23,8 @@
     'Fuentes', 'Control de calidad final'
   ];
   var state = freshState();
+  // Artículos editoriales (nivel 1); los informes técnicos existentes siguen íntegros.
+  var editorialArticles = Object.create(null);
 
   function freshState() {
     return { id: '', title: '', ticker: '', company: '', date: new Date().toISOString().slice(0, 10), logo: '', price: null, priceFetchedAt: '', html: '', sourceName: '', valuationHtml: '', linkedValuation: null, news: '', remotePath: '', remoteSha: '', decision: null };
@@ -289,7 +291,22 @@
     var linked = state.linkedValuation ? buildLinkedValuationHtml(state.linkedValuation) : '';
     var val = state.valuationHtml ? '<section class="valuation-block"><h2>Valoración cuantitativa (tabla subida)</h2>' + state.valuationHtml + '</section>' : '';
     var analysis = navigableAnalysis(state.html, 'principal');
-    body.innerHTML = '<div class="research-document">' + title + analysis.toc + '<div id="editableContent">' + analysis.body + '</div>' + linked + val + renderNews() + '</div>';
+    var tickerKey = String(state.ticker || '').trim().toUpperCase();
+    var editorial = editorialArticles[tickerKey];
+    var articulo = editorial && editorial.html
+      ? '<section class="jmr-editorial-article" aria-label="Artículo principal de ' + escapeHtml(tickerKey) + '">' +
+        '<div class="jmr-editorial-label">NIVEL 1 · ARTÍCULO PARA LEER Y COMPARTIR</div>' +
+        safeHtml(editorial.html) +
+        '<p class="jmr-editorial-source"><a href="' + escapeHtml(editorial.documento) + '" target="_blank" rel="noopener noreferrer">Abrir y compartir versión de Google Docs ↗</a></p>' +
+        '</section>'
+      : '';
+    var technicalStart = articulo
+      ? '<details class="jmr-research-details" id="jmrTechnicalLevel"><summary>Ver nivel 2 · análisis fundamental completo, supuestos, fuentes y valoración</summary><div class="jmr-technical-content">'
+      : '';
+    var technicalEnd = articulo ? '</div></details>' : '';
+    body.innerHTML = '<div class="research-document">' + articulo + technicalStart + title + analysis.toc +
+      '<div id="editableContent">' + analysis.body + '</div>' + linked + val + renderNews() +
+      technicalEnd + '</div>';
     markNumericCells(body);
     renderEditorToolbar();
   }
@@ -306,6 +323,7 @@
   // guardar/limpiar/etc. para no dejar aplicar un guardado a mitad de
   // una edición sin aplicar.
   function setEditing(on) {
+    if (on) { var technical = el('jmrTechnicalLevel'); if (technical) technical.open = true; }
     editing = on;
     el('editorActions').hidden = on;
     var content = el('editableContent');
@@ -1299,6 +1317,24 @@
     if (pdfDate) pdfDate.textContent = 'Generado el ' + new Date().toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' });
   }
 
+  // Carga editorial independiente: nunca sustituye ni modifica registros de analisis/*.json.
+  // Error de un lote no debe ocultar los demás ni impedir usar el informe técnico.
+  var editorialPromise = Promise.all([1,2,3,4,5,6].map(function (n) {
+    return fetch('editorial/articulos-' + n + '.json?v=20261013', { cache: 'no-store' })
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .catch(function () { return null; });
+  })).then(function (batches) {
+    batches.forEach(function (batch) {
+      if (!batch || batch.schema !== 'jmr-editorial-v1' || !batch.articulos) return;
+      Object.keys(batch.articulos).forEach(function (ticker) {
+        editorialArticles[ticker.toUpperCase()] = batch.articulos[ticker];
+      });
+    });
+    renderLibrary();
+    renderPreview();
+    return Object.keys(editorialArticles).length;
+  });
+
   renderGhBanner();
   el('compareOutput').innerHTML='<div class="compare-empty">Elegí dos empresas arriba para verlas lado a lado.</div>';
   renderLibrary();renderPreview();loadPrompt(false);
@@ -1316,7 +1352,7 @@
     // porque syncRemote() es asíncrono y termina después de que la red
     // queda "quieta". Si pdfmode pidió un id que no existe, igual hay que
     // liberar a Chromium en vez de dejarlo colgado.
-    if (pdfMode) window.__pdfReady = true;
+    if (pdfMode) editorialPromise.finally(function () { window.__pdfReady = true; });
   });
   if ('serviceWorker' in navigator) window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});
 })();
