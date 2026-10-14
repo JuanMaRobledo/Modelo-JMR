@@ -291,7 +291,7 @@
     return '<div class="jvb-range"><p class="jvb-h4">Rango de cada lectura frente al precio <small>barra = conservador a optimista · punto = base</small></p>' + axis + body + '</div>';
   }
 
-  function heroHtml(d) {
+  function heroHtml(d, compactMethods) {
     if (unified(d)) return '<div class="jvb-main">' + unifiedHtml(d) + '</div>';
     var t = d.dcf.hoy || d.dcf.fy3, hoy = !!d.dcf.hoy;
     if (!t) return '';
@@ -304,7 +304,7 @@
     return '<div class="jvb-hero"><div class="jvb-main">' + (hoy ? primaryHtml(d) : '<span class="jvb-kicker">DCF llevado a FY+3</span><div class="jvb-big"><span class="v">' + money(t.base) + '</span></div>') +
       '<div class="jvb-scen"><span>Conservador <b>' + money(t.conservador) + '</b></span><span>Base <b>' + money(t.base) + '</b></span><span>Optimista <b>' + money(t.optimista) + '</b></span></div>' +
       ((mos || fy3) ? '<div class="jvb-meta">' + mos + fy3 + '</div>' : '') + (d.ve && hoy ? veHtml(d) : '') + '</div>' +
-      (side ? '<div class="jvb-side"><span class="jvb-sidet">Lecturas secundarias</span>' + side + '</div>' : '') + '</div>';
+      (side && !compactMethods ? '<div class="jvb-side"><span class="jvb-sidet">Lecturas secundarias</span>' + side + '</div>' : '') + '</div>';
   }
 
 
@@ -374,7 +374,10 @@
   function html(d, opts) {
     opts = opts || {};
     DISPLAY_CURRENCY = d?.currency === 'COP' ? 'COP' : 'USD';
-    if (d && d.holding) return holdingHtml(d);
+    if (d && d.holding) {
+      if (!opts.compactMethods) return holdingHtml(d);
+      return '<section class="jvb jvb-compact"><div class="jvb-main"><span class="jvb-kicker">DCF por negocio</span><p class="jvb-note">' + esc(d.holding.dcfEstado || 'Pendiente de validación; no hay un DCF certificado disponible') + '</p></div><details class="jvb-secondary"><summary>Ver SOTP y otros métodos del holding</summary>' + holdingHtml(d) + '</details></section>';
+    }
     if (!hasData(d)) return '';
     var p = prefs(), both = !!(d.dcf.hoy && d.dcf.fy3);
     if (!both) p.h = d.dcf.hoy ? 'hoy' : 'fy3';
@@ -386,11 +389,14 @@
     var note = (unified(d) ? 'Los casos Conservador/Base/Optimista de los múltiplos son supuestos auxiliares de precio relativo; los cuatro escenarios DCF activos son Base, Conservadora, Disrupción y Optimista. ' : '') + (DISPLAY_CURRENCY === 'COP' ? 'COP por acción. ' : 'US$ por acción. ') + (d.ke != null ? 'Costo del patrimonio (Ke) ' + pct(d.ke, 1) + '. ' : '') +
       'Hoy: el DCF ya está a valor presente; cada múltiplo es el precio a FY+1, FY+2 y FY+3 más dividendos, traído a hoy con Ke y promediado. ' +
       'FY+3: el DCF de hoy × (1 + Ke)³ y los múltiplos al cierre FY+3 con dividendos. El ponderado es opcional: sirve de contraste, no reemplaza al DCF.';
-    return '<section class="jvb" data-h="' + p.h + '" data-mult="' + p.mult + '" data-met="' + p.met + '" data-pond="' + p.pond + '">' +
-      (opts.hero === false ? (unified(d) ? unifiedHtml(d) : '') : heroHtml(d)) + bar + (DISPLAY_CURRENCY === 'COP' ? '' : weightedSelectorHtml(d)) +
+    var secondary = bar + (DISPLAY_CURRENCY === 'COP' ? '' : weightedSelectorHtml(d)) +
       '<div class="jvb-hz" data-hz="hoy">' + (d.dcf.hoy ? tableHtml(d, 'hoy') + rangeHtml(d, 'hoy') : '') + '</div>' +
-      '<div class="jvb-hz" data-hz="fy3">' + (d.dcf.fy3 ? tableHtml(d, 'fy3') + rangeHtml(d, 'fy3') : '') + '</div>' +
-      historicalHtml(d) +
+      '<div class="jvb-hz" data-hz="fy3">' + (d.dcf.fy3 ? tableHtml(d, 'fy3') + rangeHtml(d, 'fy3') : '') + '</div>';
+    if (opts.compactMethods) secondary = '<details class="jvb-secondary"><summary>Ver otros métodos · múltiplos y ponderado</summary>' + secondary + '</details>';
+    var historical = historicalHtml(d);
+    if (opts.compactMethods && historical) historical = '<details class="jvb-secondary"><summary>Ver múltiplos históricos</summary>' + historical + '</details>';
+    return '<section class="jvb' + (opts.compactMethods ? ' jvb-compact' : '') + '" data-h="' + p.h + '" data-mult="' + p.mult + '" data-met="' + p.met + '" data-pond="' + p.pond + '">' +
+      (opts.hero === false ? (unified(d) ? unifiedHtml(d) : '') : heroHtml(d, opts.compactMethods)) + secondary + historical +
       '<p class="jvb-note">' + esc(note) + (d.hoja && opts.hoja !== false ? ' <a href="' + esc(d.hoja) + '" target="_blank" rel="noopener noreferrer">Abrir hoja con fórmulas →</a>' : '') + '</p></section>';
   }
 
@@ -439,6 +445,7 @@
     st.textContent = [
       '.jvb{--jvb-dcf:var(--accent);--jvb-mult:color-mix(in oklab,var(--ink-soft,#5b6474) 70%,var(--surface,#fff));--jvb-met:color-mix(in oklab,var(--ink-soft,#5b6474) 38%,var(--surface,#fff));--jvb-pond:color-mix(in oklab,#b7791f 75%,var(--surface,#fff));margin:0 0 18px;font-variant-numeric:tabular-nums}',
       '.jvb *{box-sizing:border-box}',
+      '.jvb-compact>.jvb-hero{grid-template-columns:1fr}.jvb-secondary{margin:12px 0;border:1px solid var(--border-soft,#ddd);border-radius:12px;padding:12px;background:var(--surface,#fff)}.jvb-secondary>summary{cursor:pointer;font-weight:650;color:var(--accent-ink,var(--accent))}.jvb-secondary[open]>summary{margin-bottom:12px}@media print{.jvb-secondary:not([open]){display:none!important}}',
       '.jvb-weights{padding:10px 12px;border:1px solid var(--border-soft,#ccc);background:var(--surface,#fff);border-radius:10px;margin:9px 0 13px}.jvb-weights summary{cursor:pointer;font-weight:650;font-size:13px}.jvb-weights input[type=checkbox]{width:16px;height:16px;cursor:pointer}.jvb-weights input[type=number]{width:76px;padding:6px;border:1px solid var(--border-soft,#ccc);border-radius:7px;background:var(--surface);color:var(--ink)}.jvb-weights-table td{white-space:normal!important}.jvb-weights-result{padding:8px 10px;background:var(--accent-soft,#faf3e6);border-radius:8px;font-size:12px}.jvb-weights-reset{padding:7px 9px;border:1px solid var(--border-soft);border-radius:8px;background:var(--surface);color:var(--ink);cursor:pointer}',
       '.jvb p{text-align:left}',
       '.jvb .jvb-table{display:table;table-layout:auto;max-width:none;margin:0;overflow:visible}',

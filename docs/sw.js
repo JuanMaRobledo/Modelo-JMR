@@ -1,4 +1,4 @@
-const CACHE = "modelo-jmr-v153-carga-informes";
+const CACHE = "modelo-jmr-v154-dcf-desplegables";
 const APP_SHELL = [
   "index.html",
   "colombia.html",
@@ -16,6 +16,7 @@ const APP_SHELL = [
   "calculadora.html",
   "research.html",
   "research.js",
+  "method-details.js",
   "portafolio.html",
   "portafolio.js",
   "mi-bitacora.html",

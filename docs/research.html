@@ -102,6 +102,7 @@ body.research-page .wrap{max-width:none;padding-inline:clamp(16px,2.5vw,48px)}bo
 .jmr-research-details{border:1px solid var(--border);border-radius:12px;background:var(--surface);margin:26px 0 10px}
 .jmr-research-details>summary{cursor:pointer;list-style:disclosure-closed;padding:17px 20px;font-size:14px;font-weight:700;color:var(--accent-ink);background:var(--accent-soft);border-radius:12px}
 .jmr-research-details[open]>summary{border-radius:12px 12px 0 0;border-bottom:1px solid var(--border)}
+.jmr-method-details{border:1px solid var(--border);border-radius:12px;margin:16px 0;padding:14px}.jmr-method-details>summary{cursor:pointer;font-weight:700;color:var(--accent-ink)}@media print{.jmr-method-details:not([open]){display:none!important}}
 .jmr-technical-content{padding:20px 18px;overflow-wrap:anywhere}
 @media(max-width:620px){.jmr-editorial-article{padding:0}.jmr-editorial-article p{font-size:14px;line-height:1.72}.jmr-research-details>summary{padding:15px 12px}.jmr-technical-content{padding:13px 8px}}
 @media print{.jmr-editorial-article{max-width:none}.jmr-research-details:not([open]){display:none!important}.jmr-editorial-label{color:#555}}
@@ -192,7 +193,8 @@ body.research-page .wrap{max-width:none;padding-inline:clamp(16px,2.5vw,48px)}bo
 <script src="gh_oauth.js"></script>
 <script src="decision.js?v=20261014-carga-informes"></script>
 <script src="valuation-board.js"></script>
-<script src="research.js?v=20261014-carga-informes-v3"></script>
+<script src="method-details.js?v=20261014"></script>
+<script src="research.js?v=20261014-dcf-desplegables"></script>
 <script>
 if("serviceWorker" in navigator){
   window.addEventListener("load", function(){
