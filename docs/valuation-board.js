@@ -304,9 +304,23 @@ function fromRecord(rec, extra) {
     result.hist = histFrom(rec.multiplesHistoricos);
     result.impliedMultiples = impliedMultiplesFromRecord(rec);
     var savedMarket = rec.cotizacionMultiples || null;
-    var effectivePrice = extra.precio != null ? extra.precio : rec.precio;
-    var isChanged = num(effectivePrice) != null && savedMarket && num(savedMarket.precioMercado)!=null && Math.abs(effectivePrice-savedMarket.precioMercado)>0.000001;
-    result.marketComparison = isChanged ? deriveMarketComparison(rec, result.impliedMultiples, effectivePrice) : (savedMarket || deriveMarketComparison(rec, result.impliedMultiples, effectivePrice));
+    // A verified, dated snapshot takes precedence over a stale "precio" on the
+    // saved valuation. Only supersede it with an explicit different price from
+    // the caller or a strictly newer, timestamped model quote.
+    var quoteFromCaller = num(extra.precio) != null && num(extra.precio) > 0 &&
+      (num(rec.precio)==null || Math.abs(extra.precio-rec.precio)>0.000001);
+    var snapshotDate = savedMarket && /^\\d{4}-\\d{2}-\\d{2}/.test(savedMarket.fechaCorte||'')
+      ? savedMarket.fechaCorte.slice(0,10) : '';
+    var recDate = String(rec.precioReferenciaConsultadoAt||'');
+    var newerSavedQuote = savedMarket && num(rec.precio)>0 && num(savedMarket.precioMercado)>0 &&
+      recDate.slice(0,10)>snapshotDate && /^\\d{4}-\\d{2}-\\d{2}/.test(recDate);
+    var effectivePrice = quoteFromCaller ? extra.precio :
+      newerSavedQuote ? rec.precio :
+      savedMarket && num(savedMarket.precioMercado)>0 ? savedMarket.precioMercado : rec.precio;
+    var isChanged = num(effectivePrice) != null && savedMarket && num(savedMarket.precioMercado)!=null &&
+      Math.abs(effectivePrice-savedMarket.precioMercado)>0.000001;
+    result.marketComparison = isChanged ? deriveMarketComparison(rec, result.impliedMultiples, effectivePrice) :
+      (savedMarket || deriveMarketComparison(rec, result.impliedMultiples, effectivePrice));
     return result;
   }
   // Bloque del valor esperado, junto al DCF. d = resultado de fromParts/fromRecord.
