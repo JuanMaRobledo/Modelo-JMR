@@ -108,7 +108,7 @@
     return out;
   }
 
-  // Múltiplos de salida que reproducen el DCF de CADA historia al cierre FY+3.
+  // Múltiplos necesarios para que las tres hipótesis de resultados FY+3 produzcan el MISMO DCF BASE capitalizado FY+3.
   // Nunca alimentan el DCF; son una comprobación posterior. Omitir si no hay DCF FY+3 verificable.
   function impliedMultiplesFromRecord(rec) {
     if (!rec || rec.valoracionHolding) return null;
@@ -122,7 +122,7 @@
     var sheets = rec.hojas && rec.hojas.valoracion || {}, fm = sheets['Financials Multiples'];
     if (!fm) return null;
     var fy = rec.metodos || [], dcf = fy.find(function (m) { return /^DCF(?:\b|\s)/i.test(m.nombre || ''); });
-    if (!dcf || !['conservador','base','optimista'].every(function(k){ return num(dcf[k]) != null && dcf[k] > 0; })) return null;
+    if (!dcf || num(dcf.base) == null || dcf.base <= 0) return null;
     function cells(html) {
       return (String(html || '').match(/<tr\b[^>]*>[\s\S]*?<\/tr>/gi) || []).map(function (row) {
         return (row.match(/<t[dh]\b[^>]*>[\s\S]*?<\/t[dh]>/gi) || []).map(function (cell) {
@@ -164,7 +164,7 @@
         var source=anchors.length>=3?anchors[i]:anchors[0], m=nhtml(source && source[5]),
           metric=data[key][method], shares=data[key].shares;
         if(key==='base')entry.seleccionado=m;
-        var intrinsic=dcf[key], relative=target[key];
+        var intrinsic=dcf.base, relative=target[key];
         if([m,metric,shares,intrinsic,relative].every(function (x) { return num(x)!=null; }) && metric>0 && shares>0) {
           var implied=m+(intrinsic-relative)*shares/metric;
           entry[key]=isFinite(implied)&&implied>0?implied:null;
@@ -173,7 +173,7 @@
       if(entry.conservador!=null || entry.base!=null || entry.optimista!=null)result.push(entry);
     });
     if(!result.length)return null;
-    return {metodos:result,nota:'Cifras reproducidas desde el registro guardado; verificar acciones, período FY+3 y métricas con la hoja vigente.'};
+    return {metodos:result,nota:'Único objetivo: valor intrínseco DCF BASE al cierre FY+3, aplicado a las métricas financieras de cada historia. Verificar acciones y la correspondencia exacta de FY+3.'};
   }
   function impliedMultiplesHtml(d) {
     var imp=d && d.impliedMultiples;
@@ -182,11 +182,11 @@
       function v(n){return num(n)==null?'N/D':n2(n)+'×';}
       return '<tr><td>'+esc(m.nombre)+'</td><td class="n">'+v(m.seleccionado)+'</td><td class="n">'+v(m.conservador)+'</td><td class="n">'+v(m.base)+'</td><td class="n">'+v(m.optimista)+'</td></tr>';
     }).join('');
-    return '<details class="jvb-secondary jvb-implied"><summary>Múltiplos que reproduce el DCF de cada escenario (FY+3)</summary>'+
-      '<p class="jvb-note">Cada múltiplo implícito iguala el DCF de su historia al cierre del año 3, con la métrica y las acciones FY+3 de ese mismo escenario. Se calcula DESPUÉS del DCF; no sustituye las anclas históricas, los comparables ni los múltiplos justificados por fundamentales.</p>'+
-      '<div class="jvb-tw"><table class="jvb-table"><thead><tr><th>Múltiplo</th><th>Elegido Base</th><th>Cons.</th><th>Base</th><th>Opt.</th></tr></thead><tbody>'+lines+'</tbody></table></div>'+
+    return '<details class="jvb-secondary jvb-implied"><summary>Múltiplos necesarios para justificar el DCF Base (FY+3)</summary>'+
+      '<p class="jvb-note">El objetivo único de todas las columnas es el DCF BASE capitalizado al cierre FY+3. Conservador/Base/Optimista son SOLO tres hipótesis de métricas financieras para alcanzar ese mismo valor. Se calcula DESPUÉS del DCF; no sustituye las anclas históricas, los comparables ni los múltiplos justificados por fundamentales.</p>'+
+      '<div class="jvb-tw"><table class="jvb-table"><thead><tr><th>Múltiplo</th><th>Elegido Base</th><th>Cons. → DCF Base</th><th>Base → DCF Base</th><th>Opt. → DCF Base</th></tr></thead><tbody>'+lines+'</tbody></table></div>'+
       (imp.nota?'<p class="jvb-note">'+esc(imp.nota)+'</p>':'')+
-      '<p class="jvb-note">La tabla no agrega un quinto escenario de Disrupción y no se usa para ajustar el valor intrínseco. Si alguna métrica no es positiva, se muestra N/D.</p></details>';
+      '<p class="jvb-note">No usa DCF Conservador ni DCF Optimista. No agrega otro escenario de Disrupción ni ajusta el valor intrínseco. Métrica no positiva: N/D.</p></details>';
   }
 
   function fromRecord(rec, extra) {
