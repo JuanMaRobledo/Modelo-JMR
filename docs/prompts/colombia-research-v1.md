@@ -1,3 +1,15 @@
+<!-- JMR-WORK-BASE-INVERSE-SENSITIVITY-20261015 -->
+## Contrato cuantitativo vigente del prompt Work (15-oct-2026)
+
+Este contrato precisa el DCF inverso y la sensibilidad; prevalece sobre instrucciones numéricas anteriores incompatibles y conserva las 18 secciones del artículo, los 14 apartados de valoración y la jerarquía sectorial.
+
+- **DCF inverso del Base:** resolver un único delta común aditivo a las cinco tasas anuales originales de ingresos: `g_t_inverso = g_t_Base + delta`, años 1–5. Conservar la forma de la trayectoria; informar delta en puntos porcentuales y CAGR geométrico Base e implícito por separado. Recalcular los diez años, la convergencia de los años 6–10 hacia el g terminal fijo, la reinversión, los descuentos y la perpetuidad en cada iteración. Mantener los demás supuestos Base; no sustituir la trayectoria por crecimiento constante ni calibrar el valor multiplicándolo por motor/hoja. Reproducir primero el Base de la hoja dentro de 0,001 por acción (o una tolerancia relativa documentada más estricta), después reconstruir el precio fijo del análisis con la misma tolerancia. Registrar precio y fecha de mercado separados de la fecha del cálculo, variable, intervalo, raíces, selección y error. Ausencia de raíz se registra como «No calculable» con rango y motivo; nunca inventar ni conservar un resultado de otro conjunto de supuestos.
+- **Tres sensibilidades, exclusivamente del DCF Base:** (A) WACC terminal × crecimiento perpetuo, recalculando la transición de tasas y todos los descuentos afectados; (B) ROIC marginal terminal × crecimiento perpetuo, recalculando reinversión y eficiencia de capital; (C) delta de crecimiento de ingresos años 1–5 × margen EBIT objetivo, recalculando los flujos completos. El centro de cada matriz debe igualar el mismo DCF Base dentro de 0,001 por acción; validar WACC > g y mostrar estados inválidos explícitos. No añadir sensibilidad a múltiplos. Explicar resultados en Nivel 1 y publicar matrices, operaciones y controles en Nivel 2 y en la hoja.
+- **Ramas sectoriales:** en financieras usar FCFE/Ke y una incógnita económica identificada (por ejemplo crecimiento patrimonial/ROE), con retención y capital regulatorio coherentes; no llamarla crecimiento de ingresos ni ejecutar el FCFF genérico. En holdings adaptar el inverso y las sensibilidades al método primario y perímetro material vigentes; un SOTP incompleto no se resuelve calibrando un DCF consolidado.
+- **Publicación verificable:** el mismo precio fechado, escenario, datos, supuestos, resultado completo y controles deben llegar a la hoja, registro de valoración, artículo enlazado, visor y bitácora. Un error de cálculo o discrepancia bloquea publicación. Una importación compacta de Excel no puede sustituir la procedencia completa. Verificar también la tarjeta del PDF. Distinguir guardado, integrado, desplegado y visible; actualizar prompts no demuestra que las valoraciones previas hayan sido recalculadas o republicadas.
+
+<!-- /JMR-WORK-BASE-INVERSE-SENSITIVITY-20261015 -->
+
 # JMR Colombia · Reglas independientes v1
 
 <!-- JMR-DOS-NIVELES-ARTICULO-CALCULOS-20261014 -->
