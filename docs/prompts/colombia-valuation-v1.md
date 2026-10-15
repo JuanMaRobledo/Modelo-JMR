@@ -1,3 +1,16 @@
+<!-- JMR-FOUR-SCENARIOS-MOAT-20261015 -->
+## Contrato JMR: exactamente cuatro escenarios y sensibilidad de duración de ventaja (15-oct-2026)
+
+Este bloque operativo prevalece sobre instrucciones históricas incompatibles y **no sustituye** la sensibilidad WACC×g, el DCF inverso, el análisis en dos niveles ni los controles Damodaran existentes.
+
+1. **Cuatro escenarios oficiales, no cinco:** Base (DCF valor presente **principal**), Conservador, Optimista y Disrupción. Cada historia exige un DCF completo y su propio calendario anual de ventas, margen EBIT, reinversión/Sales-to-Capital, impuesto, costo de capital, ROIC/ROE, g terminal y puente de patrimonio. Para compañías operativas: diez años proyectados más perpetuidad por defecto. No atribuir probabilidades sin sustento; un promedio esperado, de existir, es complementario y NO reemplaza el DCF Base. El escenario Disrupción debe cuantificar eventos de pérdida de ventas, margen o ventajas, y limitar liberación automática de reinversión ante ventas decrecientes salvo evidencia. No mezclar parámetros ni balances de expedientes.
+2. **Sensibilidad ADICIONAL de duración de ventaja competitiva:** mantener en hoja y análisis, separada y rotulada **«sensibilidad; no quinto escenario»**. Medir: (a) extinción inmediata del spread ROIC−WACC tras año10; (b) convergencia marginal ROIC→WACC durante 5 años adicionales; (c) convergencia durante 10 años adicionales; (d) ventaja terminal persistente (= DCF Base). Conservar entradas del DCF Base durante el horizonte explícito. Extender FCFF año por año con NOPAT, tasa g, reinversión = NOPAT×g/ROIC marginal y descuentos adecuados; después, un único terminal con ROIC=WACC. Documentar curva anual, NOPAT, reinversión, valor adicional y valor por acción, evitando doble conteo. Si ROIC terminal ≤ WACC, la sensibilidad no debe inventar renta extraordinaria.
+3. **Adaptación por método:** bancos/financieras con FCFE: analizar persistencia de ROE−Ke, capital regulatorio, crecimiento, retención y valor terminal; nunca reutilizar ecuaciones FCFF del negocio no financiero. Holdings SOTP: computar en cada filial operativa y recomponer participaciones/deuda/caja de matriz una vez; no extrapolar porcentajes del NAV. Si no hay flujos aptos, registrar **PENDIENTE DE ADAPTACIÓN** y la información económica faltante, sin fabricar DCF.
+4. **Proyección y contenido:** Los cuatro casos y la sensibilidad moat han de estar en copia IA/Manual y toda valoración vigente sin cambiar estados ni hipótesis de empresa de forma colateral. Artículo Nivel1 explica tesis, cuatro historias y una sección de sensibilidad moat con interpretación; Nivel2 contiene tabla de flujos, fórmulas y trazabilidad a celdas. Conserva sensibilidades WACC×g y DCF inverso, no permite que simulación 15/20 años de extensión se anuncie como quinta historia.
+5. **Controles obligatorios:** comparar variación del DCF antes/después de cambios; revisar unidad/moneda/acciones/opciones, controles de FCFE o SOTP, g<WACC o Ke, fórmulas sin error y documentación de inputs no certificados. La actualización de prompts o Drive **NO constituye publicación en la app**; sincronizar y desplegar exige autorización separada y comprobación de publicación y bitácora.
+
+---
+
 <!-- JMR-WORK-BASE-INVERSE-SENSITIVITY-20261015 -->
 ## Contrato cuantitativo vigente del prompt Work (15-oct-2026)
 
