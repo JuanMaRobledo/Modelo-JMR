@@ -31,12 +31,14 @@ async function fetchChunk(symbols) {
         const closes = (row && row.close) || [];
         // El último cierre y el último timestamp pertenecen a la misma barra.
         // fulldayPrice puede ser intradía con fecha del cierre anterior.
-        const price = closes[closes.length - 1];
         const timestamps = row && row.timestamp;
+        if (!Array.isArray(timestamps) || closes.length !== timestamps.length) continue;
+        const price = closes[closes.length - 1];
         const lastTimestamp = Array.isArray(timestamps) && timestamps.length
           ? timestamps[timestamps.length - 1] : null;
         if (typeof price === "number" && isFinite(price) && price > 0 &&
-            typeof lastTimestamp === "number" && isFinite(lastTimestamp)) {
+            typeof lastTimestamp === "number" && isFinite(lastTimestamp) &&
+            lastTimestamp > 0 && lastTimestamp * 1000 <= 8640000000000000) {
           out[symbol] = { price, date: new Date(lastTimestamp * 1000).toISOString().slice(0, 10) };
         }
       }

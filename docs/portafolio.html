@@ -32,6 +32,7 @@ nav.appnav{display:flex;gap:4px;padding:14px 20px 0;max-width:1180px;margin:0 au
 .port-divider{border:0;border-top:1px solid var(--border-soft);margin:12px 0}
 .port-kv-row{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
 .port-fecha{font-size:11.5px;color:var(--ink-faint)}
+.port-zonas-nota{font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-faint);margin:0 0 6px}
 .port-kv{display:flex;flex-direction:column;gap:1px;margin-bottom:8px;font-size:12.5px}
 .port-kv .k{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-faint)}
 .port-kv .v{font-weight:600}
@@ -69,15 +70,17 @@ nav.appnav{display:flex;gap:4px;padding:14px 20px 0;max-width:1180px;margin:0 au
 </head>
 <body>
 <script src="auth.js"></script>
-<nav class="appnav">
-  <a class="jmr-home" href="https://cartera-two-eta.vercel.app/" title="Centro financiero JMR">JMR</a>
-  <a href="index.html">Bitácora de Valoración</a>
+<script src="mercado.js"></script>
+<nav class="appnav" aria-label="Navegación principal">
+  <a href="https://cartera-two-eta.vercel.app/">JMR</a>
+  <a href="index.html">Referencias</a>
+  <a href="visor.html">Internacionales</a>
+  <a href="visor.html?mercado=colombia">Colombia</a>
   <a href="screener.html">Screener</a>
-  <a href="research.html">Análisis Fundamental</a>
-  <a href="visor.html">Valoración - Modelo JMR</a>
   <a href="calculadora.html">Calculadora DCF</a>
   <a href="portafolio.html" class="active">Portafolio</a>
-  <a href="mi-bitacora.html">Mi Bitácora</a>
+  <a href="damodaran.html">Damodaran</a>
+  <a href="mi-bitacora.html">Mi bitácora</a>
 </nav>
 <script>(function(){var a=document.querySelector('nav.appnav a.active');if(a)a.scrollIntoView({inline:'center',block:'nearest'});})();</script>
 <main class="wrap">
@@ -114,7 +117,8 @@ nav.appnav{display:flex;gap:4px;padding:14px 20px 0;max-width:1180px;margin:0 au
 })();
 </script>
 <script src="gh_oauth.js"></script>
-<script src="portafolio.js"></script>
+<script src="valuation-board.js"></script>
+<script src="portafolio.js?v=20261014-carga-informes"></script>
 <script>
 if("serviceWorker" in navigator){
   window.addEventListener("load", function(){
@@ -124,3 +128,4 @@ if("serviceWorker" in navigator){
 </script>
 </body>
 </html>
+

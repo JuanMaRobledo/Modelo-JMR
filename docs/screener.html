@@ -114,15 +114,17 @@
 <body>
 <script src="auth.js"></script>
 
-<nav class="appnav">
-  <a class="jmr-home" href="https://cartera-two-eta.vercel.app/" title="Centro financiero JMR">JMR</a>
-  <a href="index.html">Bitácora de Valoración</a>
+<script src="mercado.js"></script>
+<nav class="appnav" aria-label="Navegación principal">
+  <a href="https://cartera-two-eta.vercel.app/">JMR</a>
+  <a href="index.html">Referencias</a>
+  <a href="visor.html">Internacionales</a>
+  <a href="visor.html?mercado=colombia">Colombia</a>
   <a href="screener.html" class="active">Screener</a>
-  <a href="research.html">Análisis Fundamental</a>
-  <a href="visor.html">Valoración - Modelo JMR</a>
   <a href="calculadora.html">Calculadora DCF</a>
   <a href="portafolio.html">Portafolio</a>
-  <a href="mi-bitacora.html">Mi Bitácora</a>
+  <a href="damodaran.html">Damodaran</a>
+  <a href="mi-bitacora.html">Mi bitácora</a>
 </nav>
 <script>(function(){var a=document.querySelector('nav.appnav a.active');if(a)a.scrollIntoView({inline:'center',block:'nearest'});})();</script>
 
@@ -479,7 +481,7 @@
       '<div class="table-wrap" style="box-shadow:none"><table><thead><tr><th class="l">Grupo</th><th class="l">Métrica</th><th>Peso</th><th>Malo</th><th>Excelente</th><th class="l">Sentido</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
       '<p><strong>3. Precio vs su historia</strong> (Paso 4): P/FCF de hoy contra la mediana del P/FCF de cada cierre fiscal de los últimos ~10 años (P/E si no hay FCF). "Barata" = 20% o más por debajo de su mediana. Una empresa maravillosa rara vez está barata en términos absolutos: lo que se busca es el descuento relativo.</p>'+
       '<p><strong>Múltiplos</strong>: los cinco del Modelo JMR (EV/EBITDA, EV/FCFF, P/E, P/FCFE, P/OCF) más P/FCF y EV/EBIT, con el dato LTM de hoy. Cada uno se pinta verde si está 5% o más por debajo de su mediana histórica y rojo si está más de 10% por encima (pasá el cursor para ver la mediana). FCFF = OCF − CapEx + intereses × (1 − t); FCFE = OCF − CapEx + endeudamiento neto del año. <strong>PEG</strong> = P/E ÷ crecimiento anual del EPS de 5 años (en %): ≤ 1 en verde, > 2 en rojo; no se calcula si el EPS no creció.</p>'+
-      '<p><strong>Universo y actualización</strong>: por defecto se ejecuta el S&P 500 (puede tener más de 500 símbolos por clases de acciones). En GitHub Actions → “Screener diario” también podés elegir S&P 400, S&P 600 o sp1500 combinado; la corrida manual reemplaza temporalmente el universo publicado hasta la siguiente corrida programada. Las cotizaciones se consultan al abrir la página y muestran la fecha real de mercado, que puede ser anterior en fines de semana. Los fundamentales se recalculan de lunes a viernes después del cierre. El Modelo JMR se usa después para valorar las candidatas. Para una lista propia: <code>python scripts/run_screener.py --tickers …</code> en JMR-valuation.</p>'+
+      '<p><strong>Universo y actualización</strong>: por defecto se ejecuta el S&P 1500 combinado (S&P 500 + 400 + 600; el número de símbolos puede variar por clases de acciones). En GitHub Actions → “Screener diario” también podés elegir S&P 400, S&P 600 o sp1500 combinado; la corrida manual reemplaza temporalmente el universo publicado hasta la siguiente corrida programada. Las cotizaciones se consultan al abrir la página y muestran la fecha real de mercado, que puede ser anterior en fines de semana. Los fundamentales se recalculan de lunes a viernes después del cierre. El Modelo JMR se usa después para valorar las candidatas. Para una lista propia: <code>python scripts/run_screener.py --tickers …</code> en JMR-valuation.</p>'+
       '<p><strong>Exportar</strong>: “Exportar Excel” y “Exportar CSV” bajan la lista tal como está filtrada y ordenada, con todas las métricas y múltiplos (no solo las columnas visibles). El CSV usa <code>;</code> y coma decimal para abrir directo en Excel en español.</p>';
   }
 

@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Damodaran · Modelo JMR</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon.ico">
+<meta name="theme-color" content="#020617">
+<style>
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  .wrap{max-width:1100px;margin:0 auto;padding:20px 16px 56px}
+  h1{font-size:1.7rem;margin:.2em 0 .1em;line-height:1.2}
+  h2{font-size:1.15rem;margin:2.2em 0 .5em;padding-top:.4em;border-top:1px solid var(--border-soft)}
+  h3{font-size:.95rem;margin:1.2em 0 .4em;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.04em}
+  p{margin:.4em 0}
+  .lead{color:var(--ink-soft);max-width:70ch}
+  a{color:var(--accent-ink)}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;margin-top:12px}
+  .card{background:var(--surface);border:1px solid var(--border-soft);border-radius:12px;padding:14px 16px;box-shadow:var(--shadow)}
+  .card h3{margin:0 0 .3em;text-transform:none;letter-spacing:0;font-size:1rem;color:var(--ink)}
+  .card p{color:var(--ink-soft);font-size:.9rem}
+  .links{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}
+  .links a{display:block;background:var(--surface);border:1px solid var(--border-soft);border-radius:10px;padding:9px 12px;text-decoration:none;color:var(--ink)}
+  .links a:hover,.links a:focus-visible{border-color:var(--accent);outline:none}
+  .links small{display:block;color:var(--ink-faint);font-size:.78rem;margin-top:1px}
+  .controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0}
+  input,select,button{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 10px}
+  input[type=number]{width:7.5em}
+  button{cursor:pointer}
+  button:hover,button:focus-visible{border-color:var(--accent);outline:none}
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{font-size:.78rem;background:var(--chip-std-bg);color:var(--chip-std-fg);border-radius:999px;padding:2px 9px;text-decoration:none;white-space:nowrap}
+  a.chip:hover{text-decoration:underline}
+  .chip.cartera{background:var(--accent-soft);color:var(--accent-ink);font-weight:600}
+  .chip.tipo{background:var(--chip-spec-bg);color:var(--chip-spec-fg)}
+  table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--border-soft);border-radius:10px;overflow:hidden}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border-soft);vertical-align:top;font-size:.9rem}
+  th{background:var(--surface-2);font-weight:600;white-space:nowrap}
+  td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+  .table-wrap{overflow-x:auto}
+  .pos{color:var(--positive)} .neg{color:var(--negative)}
+  .note{color:var(--ink-faint);font-size:.84rem}
+  .quote{border-left:3px solid var(--accent);padding:2px 12px;margin:10px 0;color:var(--ink-soft)}
+  .empty{padding:14px;color:var(--ink-faint)}
+</style>
+<link rel="stylesheet" href="jmr-theme.css">
+</head>
+<body>
+<script src="auth.js"></script>
+<script src="mercado.js"></script>
+<nav class="appnav" aria-label="Navegación principal">
+  <a href="https://cartera-two-eta.vercel.app/">JMR</a>
+  <a href="index.html">Referencias</a>
+  <a href="visor.html">Internacionales</a>
+  <a href="visor.html?mercado=colombia">Colombia</a>
+  <a href="screener.html">Screener</a>
+  <a href="calculadora.html">Calculadora DCF</a>
+  <a href="portafolio.html">Portafolio</a>
+  <a href="damodaran.html" class="active">Damodaran</a>
+  <a href="mi-bitacora.html">Mi bitácora</a>
+</nav>
+<script>(function(){var a=document.querySelector('nav.appnav a.active');if(a)a.scrollIntoView({inline:'center',block:'nearest'});})();</script>
+
+<main class="wrap">
+  <h1>Damodaran: valor y precio</h1>
+  <p class="lead">Enlaces a su sitio, a sus datos y a las valoraciones de empresas que publica con su hoja de Excel, más una forma de contrastar el precio de mercado de una empresa con los múltiplos de su industria. Todo se abre en el sitio de Damodaran o en su blog.</p>
+
+  <div class="cards" aria-label="Cómo usar cada herramienta">
+    <div class="card"><h3>Valor intrínseco (DCF)</h3><p>Una historia sobre el negocio convertida en crecimiento, margen, reinversión y riesgo. Es la base del Modelo JMR (hoja Ginzu de Damodaran). Responde: ¿cuánto vale?</p></div>
+    <div class="card"><h3>Precio relativo (múltiplos)</h3><p>Cómo cotiza el mercado a empresas parecidas. No dice cuánto vale: dice si el mercado paga más o menos que por el resto de la industria. Responde: ¿cuánto cuesta?</p></div>
+    <div class="card"><h3>Cómo se juntan</h3><p>Damodaran no los promedia: los reconcilia. Si el precio es muy distinto del valor, hay que explicar por qué (otra historia, otro riesgo o un mercado de ánimo). Más abajo puedes ver el contraste.</p></div>
+  </div>
+  <div class="quote">«Los mercados son mecanismos de precios, no de valor»: el precio lo fijan oferta, demanda y ánimo; el valor, los flujos de caja esperados, el crecimiento y el riesgo. <span class="note">— Damodaran, <a href="https://aswathdamodaran.blogspot.com/2020/03/a-viral-market-meltdown-iii-pricing-or.html" target="_blank" rel="noopener noreferrer">«Pricing or Value? Trading or Investing?»</a></span></div>
+
+  <h2 id="contraste">Contrasta una empresa con los múltiplos de su industria</h2>
+  <p class="note">Tablas de Damodaran de <span id="mfecha">enero de 2026</span> (promedios por industria, agregados). Escribe los múltiplos actuales de tu empresa y compáralos. Un múltiplo mayor solo se justifica con más crecimiento, menos riesgo o un ROIC más alto: mira esas filas antes de concluir que algo está caro o barato.</p>
+  <div class="controls">
+    <label>Región <select id="region"><option value="us">EE.UU.</option><option value="global">Global</option></select></label>
+    <label>Mi cartera <select id="cartera"><option value="">— elegir —</option></select></label>
+    <label>Industria <select id="industria"></select></label>
+  </div>
+  <div class="controls" id="entradas">
+    <label>P/E <input type="number" step="any" id="in_pe" placeholder="p. ej. 28"></label>
+    <label>EV/EBITDA <input type="number" step="any" id="in_ev_ebitda" placeholder="p. ej. 18"></label>
+    <label>EV/Ventas <input type="number" step="any" id="in_ev_ventas" placeholder="p. ej. 5"></label>
+    <label>P/B <input type="number" step="any" id="in_pbv" placeholder="p. ej. 6"></label>
+    <button type="button" id="limpiar">Limpiar</button>
+  </div>
+  <div class="table-wrap"><table id="tabla_mult" aria-live="polite"><thead><tr><th>Múltiplo</th><th class="n">Tu empresa</th><th class="n">Industria</th><th class="n">Diferencia</th></tr></thead><tbody></tbody></table></div>
+  <h3>Fundamentos de la industria (lo que justifica un múltiplo)</h3>
+  <div class="table-wrap"><table id="tabla_fund"><tbody></tbody></table></div>
+  <p class="note" id="mult_nota"></p>
+
+  <h2 id="valoraciones">Sus valoraciones de empresas</h2>
+  <p class="note">Entradas de su blog <em>Musings on Markets</em> donde valora una empresa, una oferta pública o el mercado, con las hojas de Excel que adjunta (casi todas usan la misma hoja Ginzu que el Modelo JMR). «Cartera» marca las empresas tuyas que menciona de forma central.</p>
+  <div class="controls">
+    <input type="search" id="buscar" placeholder="Buscar empresa o tema…" aria-label="Buscar" autocomplete="off">
+    <select id="tipo" aria-label="Tipo"><option value="">Todos los tipos</option><option value="empresa">Empresas</option><option value="ipo">Ofertas públicas (IPO)</option><option value="sector">Sector</option><option value="mercado">Mercado</option></select>
+    <label><input type="checkbox" id="solo_cartera"> Solo las de mi cartera</label>
+    <span class="note" id="cuenta"></span>
+  </div>
+  <div class="table-wrap"><table id="tabla_val"><thead><tr><th>Fecha</th><th>Entrada del blog</th><th>Tipo</th><th>Cartera</th><th>Hojas de Excel</th></tr></thead><tbody></tbody></table></div>
+  <div class="empty" id="vacio" hidden>Sin resultados.</div>
+
+  <h2 id="datos">Datos para valorar</h2>
+  <p class="note">Damodaran actualiza las tablas por industria una vez al año (primeras semanas de enero); la prima de riesgo implícita, cada mes.</p>
+  <div class="links" id="datos_links"></div>
+
+  <h2 id="modelos">Modelos de valoración (hojas Ginzu)</h2>
+  <div class="links" id="modelos_links"></div>
+
+  <h2 id="sitio">El sitio de Damodaran</h2>
+  <div class="links" id="sitio_links"></div>
+
+  <p class="note" style="margin-top:2.4em">Los enlaces son de uso libre en su sitio (pages.stern.nyu.edu/~adamodar y aswathdamodaran.blogspot.com). Este contenido es educativo y no es una recomendación de compra o venta.</p>
+</main>
+
+<script>
+(function(){
+  "use strict";
+  var S = "https://pages.stern.nyu.edu/~adamodar/";
+  var D = S + "pc/datasets/";
+  var ENLACES = {
+    datos: [
+      ["Prima de riesgo implícita del mercado (por mes)", S+"pc/implprem/ERPbymonth.xlsx", "Desde septiembre de 2008"],
+      ["Prima de riesgo por país", S+"New_Home_Page/datafile/ctryprem.html", "Actualización de enero, abril y julio"],
+      ["Betas por industria", S+"New_Home_Page/datafile/Betas.html", "Beta, desapalancada y corregida por caja"],
+      ["Costo de capital por industria", S+"New_Home_Page/datafile/wacc.html", "EE.UU., Europa, Japón, emergentes, global…"],
+      ["Márgenes operativo y neto por industria", S+"New_Home_Page/datafile/margin.html", ""],
+      ["Ventas/capital, capex y capital de trabajo", S+"New_Home_Page/datafile/cfbasics.html", "Insumos de reinversión del DCF"],
+      ["Crecimiento histórico por industria", S+"New_Home_Page/datafile/histgr.html", ""],
+      ["Calificaciones, spreads y cobertura de intereses", S+"New_Home_Page/datafile/ratings.html", "Costo de deuda sintético"],
+      ["Tasas de impuestos por país", D+"countrytaxrates.xls", "Marginales"],
+      ["Retornos históricos de acciones, bonos y oro", D+"histretSP.xls", "Desde 1928"],
+      ["P/E, PEG y crecimiento esperado", S+"New_Home_Page/datafile/pedata.html", "Múltiplo de precio a utilidades"],
+      ["P/B y ROE", S+"New_Home_Page/datafile/pbvdata.html", "Más EV/capital invertido y ROIC"],
+      ["P/S y EV/ventas", S+"New_Home_Page/datafile/psdata.html", "Más márgenes"],
+      ["EV/EBITDA y EV/EBIT", S+"New_Home_Page/datafile/vebitda.html", ""],
+      ["Múltiplos por tamaño de empresa", S+"New_Home_Page/datafile/mktcapmult.html", ""],
+      ["Todas las tablas actualizadas", S+"New_Home_Page/data.html", "Índice general de datos"]
+    ],
+    modelos: [
+      ["fcffsimpleginzu.xlsx", S+"pc/fcffsimpleginzu.xlsx", "Modelo simple: pocas entradas y supuestos por defecto. Base del Modelo JMR"],
+      ["fcffginzu.xlsx", S+"pc/fcffginzu.xlsx", "Modelo completo: normalizador de utilidades, estimador de rating y 3 etapas"],
+      ["fcfeginzu.xls", S+"pc/fcfeginzu.xls", "Flujo al accionista (financieras)"],
+      ["divginzu.xls", S+"pc/divginzu.xls", "Modelo de dividendos (bancos y aseguradoras)"],
+      ["higrowth.xls", S+"pc/higrowth.xls", "Empresas jóvenes con pérdidas"],
+      ["Valoración del S&P 500", S+"pc/blog/S&P500ValueJan2025.xlsx", "Enero de 2025"],
+      ["Calculadora de múltiplos", S+"pc/multiplecalculator.xls", "Valoración relativa con regresiones"],
+      ["Todas las hojas de cálculo", S+"New_Home_Page/spreadsh.htm", "Índice oficial"]
+    ],
+    sitio: [
+      ["Página principal", S, ""],
+      ["Guía del sitio", S+"New_Home_Page/guide.html", "Cómo está organizado"],
+      ["Mapa del sitio", S+"New_Home_Page/sitemap.htm", ""],
+      ["Datos actuales", S+"New_Home_Page/datacurrent.html", ""],
+      ["Hojas de cálculo", S+"New_Home_Page/spreadsh.htm", ""],
+      ["Herramientas y webcasts", S+"New_Home_Page/tools.html", "Incluye ejemplos de empresas reales"],
+      ["Escritos", S+"New_Home_Page/writing.html", "Libros, artículos y blog"],
+      ["Artículos de investigación", S+"New_Home_Page/papers.html", ""],
+      ["Blog: Musings on Markets", "https://aswathdamodaran.blogspot.com", "Sus valoraciones recientes"],
+      ["Clases", S+"New_Home_Page/teaching.html", "Valoración y finanzas corporativas, en video"],
+      ["Libros", S+"New_Home_Page/public.htm", "Narrative and Numbers, The Dark Side of Valuation…"],
+      ["Glosario", S+"New_Home_Page/glossary.htm", ""]
+    ]
+  };
+  var TIPOS = {empresa:"Empresa", ipo:"IPO", sector:"Sector", mercado:"Mercado"};
+  var MULT = [ // [clave en las tablas, etiqueta, entrada del usuario o null]
+    ["pe_agregado_rentables","P/E (agregado, solo rentables)","pe"],
+    ["pe_forward","P/E adelantado",null],
+    ["ev_ebitda","EV/EBITDA (EBIT positivo)","ev_ebitda"],
+    ["ev_ventas","EV/Ventas","ev_ventas"],
+    ["pbv","P/B","pbv"]
+  ];
+  var FUND = [["crec_esperado_5a","Crecimiento esperado de utilidades, 5 años","pct"],["peg","PEG","x"],["margen_operativo","Margen operativo antes de impuestos","pct"],
+              ["margen_neto","Margen neto","pct"],["roe","ROE","pct"],["roic","ROIC","pct"],["pct_perdidas","Empresas con pérdidas","pct"],["n","Número de empresas","int"]];
+  var multDatos = null;
+
+  function el(tag, attrs, text){
+    var e = document.createElement(tag);
+    if(attrs) Object.keys(attrs).forEach(function(k){ e.setAttribute(k, attrs[k]); });
+    if(text != null) e.textContent = text;
+    return e;
+  }
+  function enlace(href, text, cls){
+    var a = el("a", {href: href, target: "_blank", rel: "noopener noreferrer"}, text);
+    if(cls) a.className = cls;
+    return a;
+  }
+  function fmt(v, tipo){
+    if(v == null || !isFinite(v)) return "—";
+    if(tipo === "pct") return (v*100).toFixed(1).replace(".", ",") + " %";
+    if(tipo === "int") return String(Math.round(v));
+    return v.toFixed(1).replace(".", ",") + (tipo === "x" ? "" : "x");
+  }
+
+  Object.keys(ENLACES).forEach(function(k){
+    var cont = document.getElementById(k + "_links");
+    ENLACES[k].forEach(function(r){
+      var a = enlace(r[1], r[0]);
+      if(r[2]) a.appendChild(el("small", null, r[2]));
+      cont.appendChild(a);
+    });
+  });
+
+  // ---- contraste con múltiplos
+  var selReg = document.getElementById("region"), selInd = document.getElementById("industria"), selCar = document.getElementById("cartera");
+  function industrias(){ return multDatos.regiones[selReg.value]; }
+  function llenarIndustrias(actual){
+    var nombres = Object.keys(industrias()).sort();
+    selInd.textContent = "";
+    nombres.forEach(function(n){ selInd.appendChild(el("option", {value: n}, n)); });
+    if(actual && nombres.indexOf(actual) >= 0) selInd.value = actual;
+  }
+  function pintarMultiplos(){
+    if(!multDatos) return;
+    var ind = industrias()[selInd.value] || {};
+    var tb = document.querySelector("#tabla_mult tbody");
+    tb.textContent = "";
+    MULT.forEach(function(m){
+      var tr = el("tr");
+      var industria = ind[m[0]];
+      var entrada = m[2] ? parseFloat(document.getElementById("in_" + m[2]).value) : NaN;
+      tr.appendChild(el("td", null, m[1]));
+      tr.appendChild(el("td", {"class": "n"}, isFinite(entrada) ? fmt(entrada) : "—"));
+      tr.appendChild(el("td", {"class": "n"}, fmt(industria)));
+      var dif = el("td", {"class": "n"}, "—");
+      if(isFinite(entrada) && industria){
+        var d = entrada / industria - 1;
+        dif.textContent = (d >= 0 ? "+" : "") + (d*100).toFixed(0) + " %";
+        dif.className = "n " + (d > 0.15 ? "neg" : d < -0.15 ? "pos" : "");
+      }
+      tr.appendChild(dif);
+      tb.appendChild(tr);
+    });
+    var tf = document.querySelector("#tabla_fund tbody");
+    tf.textContent = "";
+    FUND.forEach(function(f){
+      var tr = el("tr");
+      tr.appendChild(el("td", null, f[1]));
+      tr.appendChild(el("td", {"class": "n"}, fmt(ind[f[0]], f[2])));
+      tf.appendChild(tr);
+    });
+    document.getElementById("mult_nota").textContent = "Rojo: tu múltiplo supera al de la industria en más de 15 %; verde: queda más de 15 % por debajo. " +
+      "Son promedios de todas las empresas de la industria, incluidas las que pierden dinero (" + fmt(ind.pct_perdidas, "pct") + " aquí): úsalos como referencia, no como valor.";
+  }
+  function iniciarMultiplos(){
+    fetch("damodaran/multiplos.json").then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); }).then(function(d){
+      multDatos = d;
+      var f = new Date(d.fecha + "T12:00:00");
+      document.getElementById("mfecha").textContent = f.toLocaleDateString("es", {day: "numeric", month: "long", year: "numeric"});
+      Object.keys(d.cartera).sort().forEach(function(tk){ selCar.appendChild(el("option", {value: tk}, tk + " · " + d.cartera[tk])); });
+      llenarIndustrias("Software (System & Application)");
+      pintarMultiplos();
+    }).catch(function(){
+      document.getElementById("mult_nota").textContent = "No se pudieron cargar las tablas de múltiplos (damodaran/multiplos.json).";
+    });
+  }
+  selReg.addEventListener("change", function(){ var a = selInd.value; llenarIndustrias(a); pintarMultiplos(); });
+  selInd.addEventListener("change", pintarMultiplos);
+  selCar.addEventListener("change", function(){
+    if(selCar.value && multDatos){ llenarIndustrias(multDatos.cartera[selCar.value]); pintarMultiplos(); }
+  });
+  ["pe","ev_ebitda","ev_ventas","pbv"].forEach(function(k){ document.getElementById("in_" + k).addEventListener("input", pintarMultiplos); });
+  document.getElementById("limpiar").addEventListener("click", function(){
+    ["pe","ev_ebitda","ev_ventas","pbv"].forEach(function(k){ document.getElementById("in_" + k).value = ""; });
+    pintarMultiplos();
+  });
+  iniciarMultiplos();
+
+  // ---- valoraciones
+  var vals = [];
+  function pintarValoraciones(){
+    var q = document.getElementById("buscar").value.trim().toLowerCase();
+    var tipo = document.getElementById("tipo").value;
+    var soloC = document.getElementById("solo_cartera").checked;
+    var tb = document.querySelector("#tabla_val tbody");
+    tb.textContent = "";
+    var n = 0;
+    vals.forEach(function(v){
+      if(tipo && v.tipo !== tipo) return;
+      if(soloC && !v.cartera.length) return;
+      if(q && (v.titulo + " " + v.cartera.join(" ") + " " + v.fecha).toLowerCase().indexOf(q) < 0) return;
+      n++;
+      var tr = el("tr");
+      tr.appendChild(el("td", {"style": "white-space:nowrap"}, v.fecha));
+      var td = el("td"); td.appendChild(enlace(v.url, v.titulo)); tr.appendChild(td);
+      var tt = el("td"); tt.appendChild(el("span", {"class": "chip tipo"}, TIPOS[v.tipo] || v.tipo)); tr.appendChild(tt);
+      var tc = el("td"); var cc = el("div", {"class": "chips"});
+      v.cartera.forEach(function(t){ cc.appendChild(el("span", {"class": "chip cartera"}, t)); });
+      tc.appendChild(cc); tr.appendChild(tc);
+      var th = el("td"); var ch = el("div", {"class": "chips"});
+      v.hojas.forEach(function(h){ ch.appendChild(enlace(h.url, h.nombre.replace(/\.xlsx?$/i, ""), "chip")); });
+      th.appendChild(ch); tr.appendChild(th);
+      tb.appendChild(tr);
+    });
+    document.getElementById("cuenta").textContent = n + " de " + vals.length;
+    document.getElementById("vacio").hidden = n > 0;
+  }
+  ["buscar","tipo","solo_cartera"].forEach(function(id){ document.getElementById(id).addEventListener("input", pintarValoraciones); });
+  fetch("damodaran/valoraciones.json").then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); }).then(function(d){
+    vals = d.valoraciones || [];
+    pintarValoraciones();
+  }).catch(function(){
+    document.getElementById("cuenta").textContent = "No se pudo cargar la lista (damodaran/valoraciones.json).";
+  });
+})();
+</script>
+</body>
+</html>

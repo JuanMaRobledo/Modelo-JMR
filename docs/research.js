@@ -2,7 +2,9 @@
   'use strict';
 
   var LOCAL_KEY = 'jmr-research-library-v1';
-  var PROMPT_KEY = 'jmr-research-prompt-v1';
+  // Clave nueva: los cambios locales del antiguo prompt de 21 secciones
+  // no deben ocultar la versión maestra v4 al actualizar la aplicación.
+  var PROMPT_KEY = 'jmr-research-prompt-v5-integridad-20261001';
   var GH_REPO_API = 'https://api.github.com/repos/JuanMaRobledo/Modelo-JMR-datos/';
   var GH_API = GH_REPO_API + 'contents/';
   // Algunos logos del CDN de FMP desaparecen aunque la empresa siga
@@ -13,19 +15,20 @@
     NKE: 'assets/logos/nike.svg'
   };
   var REQUIRED = [
-    'Resumen ejecutivo', 'Modelo de negocio', 'Industria y crecimiento',
-    'Calidad del negocio', 'Ventaja competitiva', 'Competencia',
-    'Gestión y asignación de capital', 'Catalizadores', 'Riesgos',
-    'FODA', 'Las 5 fuerzas de Porter',
-    'Bulls say / Bears say', 'Escenarios cualitativos',
-    'Warren Buffett', 'Charlie Munger',
-    'Peter Lynch', 'Howard Marks', 'Joel Greenblatt',
-    'Noticias y eventos recientes', 'Síntesis final', 'Fuentes'
+    'Resumen ejecutivo', 'Modelo de negocio', 'Segmentos y geografía',
+    'Industria y crecimiento', 'Calidad del negocio', 'Ventaja competitiva',
+    'Competencia', 'Gestión y asignación de capital', 'Catalizadores',
+    'Riesgos', 'Bulls say / Bears say', 'Valor con criterio Damodaran', 'Filosofías de inversión',
+    'Noticias y eventos recientes', 'Qué vigilar', 'Preguntas abiertas',
+    'Fuentes', 'Control de calidad final'
   ];
   var state = freshState();
+  // Los registros v2 contienen artículo completo y cálculos separados.
+  // Las piezas editoriales v1 se usan solo para registros todavía no migrados.
+  var editorialArticles = Object.create(null);
 
   function freshState() {
-    return { id: '', title: '', ticker: '', company: '', date: new Date().toISOString().slice(0, 10), logo: '', price: null, priceFetchedAt: '', html: '', sourceName: '', valuationHtml: '', linkedValuation: null, news: '', remotePath: '', remoteSha: '' };
+    return { id: '', title: '', ticker: '', company: '', date: new Date().toISOString().slice(0, 10), logo: '', price: null, priceFetchedAt: '', html: '', sourceName: '', valuationHtml: '', linkedValuation: null, news: '', remotePath: '', remoteSha: '', decision: null };
   }
   function el(id) { return document.getElementById(id); }
   function escapeHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
@@ -48,9 +51,31 @@
   function safeHtml(html) {
     if (typeof DOMPurify === 'undefined') return escapeHtml(html);
     return DOMPurify.sanitize(html, {
-      ALLOWED_TAGS: ['h1','h2','h3','h4','p','br','strong','b','em','i','ul','ol','li','blockquote','table','thead','tbody','tr','th','td','a','img','hr','code','pre'],
-      ALLOWED_ATTR: ['href','src','alt','title','colspan','rowspan','target','rel']
+      ALLOWED_TAGS: ['h1','h2','h3','h4','p','br','strong','b','em','i','ul','ol','li','blockquote','table','thead','tbody','tr','th','td','a','img','hr','code','pre','details','summary'],
+      ALLOWED_ATTR: ['href','src','alt','title','colspan','rowspan','target','rel','id','class']
     });
+  }
+  // El índice se construye al mostrar el documento: cubre los informes ya
+  // guardados y los nuevos, sin alterar el texto original del análisis.
+  function navigableAnalysis(html, scope) {
+    var doc = new DOMParser().parseFromString(safeHtml(html), 'text/html');
+    var headings = Array.from(doc.body.querySelectorAll('h2,h3'));
+    if (!headings.length) return { toc: '', body: doc.body.innerHTML };
+    var used = {};
+    var items = headings.map(function (heading, index) {
+      var label = heading.textContent.trim();
+      var slug = normalizeText(label).replace(/\s+/g, '-').slice(0, 70) || 'seccion-' + (index + 1);
+      var base = 'indice-' + scope + '-' + slug;
+      used[base] = (used[base] || 0) + 1;
+      var id = base + (used[base] > 1 ? '-' + used[base] : '');
+      heading.id = heading.id || id;
+      id = heading.id;
+      return '<li class="toc-' + heading.tagName.toLowerCase() + '"><a href="#' + escapeHtml(id) + '">' + escapeHtml(label) + '</a></li>';
+    });
+    return {
+      toc: '<nav class="research-toc" aria-label="Tabla de contenidos"><h2>Tabla de contenidos</h2><ol>' + items.join('') + '</ol></nav>',
+      body: doc.body.innerHTML
+    };
   }
   function normalizeText(s) {
     return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
@@ -101,14 +126,16 @@
     syncFields();
   }
   function textToHtml(text) {
-    var known = REQUIRED.concat(['Segmentos y geografía','Filosofías de inversión','Qué vigilar','Preguntas abiertas','Control de calidad final']);
+    var known = REQUIRED.concat(['Las 5 fuerzas de Porter', 'Análisis financiero histórico',
+      'Auditoría de cifras y supuestos del Modelo JMR', 'Escenarios cualitativos de largo plazo',
+      'FODA de síntesis', 'Síntesis final']);
     var lines = String(text || '').replace(/\r/g, '').split('\n');
     var out = [], para = [];
     function flush() { if (para.length) { out.push('<p>' + escapeHtml(para.join(' ')) + '</p>'); para = []; } }
     lines.forEach(function (raw) {
       var line = raw.trim();
       if (!line) { flush(); return; }
-      var normalized = normalizeText(line.replace(/[:.]$/, ''));
+      var normalized = normalizeText(line.replace(/^\d+\.\s*/, '').replace(/[:.]$/, ''));
       var heading = known.find(function (x) { return normalizeText(x) === normalized; });
       if (heading) { flush(); out.push('<h2>' + escapeHtml(heading) + '</h2>'); }
       else if (/^[•\-*]\s+/.test(line)) { flush(); out.push('<p>• ' + escapeHtml(line.replace(/^[•\-*]\s+/, '')) + '</p>'); }
@@ -148,12 +175,19 @@
 
   function checkQuality() {
     var holder = el('qualityChips'); holder.innerHTML = '';
+    if (state.articleHtml && state.calculationHtml) {
+      ['Nivel 1 · Artículo completo', 'Nivel 2 · Cálculos de valoración'].forEach(function (name) {
+        var chip = document.createElement('span'); chip.textContent = '✓ ' + name; chip.className = 'ok'; holder.appendChild(chip);
+      });
+      setStatus('analysisStatus', 'Documento en dos niveles. La edición de lectura no certifica las hipótesis financieras.', 'ok');
+      return;
+    }
     if (!state.html) return;
     var doc = new DOMParser().parseFromString(state.html, 'text/html');
     var headings = Array.from(doc.querySelectorAll('h1,h2,h3,h4')).map(function (h) { return normalizeText(h.textContent); });
     var missing = 0;
     REQUIRED.forEach(function (name) {
-      var ok = headings.some(function (h) { var n = normalizeText(name); return h === n || h.indexOf(n) >= 0; });
+      var ok = headings.some(function (h) { return h.replace(/^\d+\s+/, '') === normalizeText(name); });
       var chip = document.createElement('span'); chip.textContent = (ok ? '✓ ' : 'Falta: ') + name; chip.className = ok ? 'ok' : ''; holder.appendChild(chip);
       if (!ok) missing++;
     });
@@ -180,22 +214,70 @@
   // ticker (ver linkVisorValuation) — reutiliza los mismos campos que
   // guarda saveValoracion() en visor.html, así que no depende de re-tipear
   // nada ni de mantener sincronizada una tabla subida a mano aparte.
+  // Marca como .num las celdas numéricas de las tablas del análisis (montos,
+  // porcentajes, múltiplos) para alinearlas a la derecha; si la mayoría de una
+  // columna es numérica, también su encabezado.
+  var NUM_CELL = /^[\s(]*[~≈≥≤<>]?\s*[-−+]?\s*(US\$|R\$|DKK|CHF|€|\$)?\s*[-−+]?\d[\d.,]*\s*(%|x|pp|pb|M|MM|mill\.?|millones)?\s*\)?(\s*\([^)]{0,24}\))?\s*$/i;
+  function markNumericCells(root) {
+    if (!root) return;
+    if (typeof JmrMethodDetails !== 'undefined') JmrMethodDetails.fold(root);
+    root.querySelectorAll('table:not(.jvb-table)').forEach(function (t) {
+      var cols = {};
+      t.querySelectorAll('tbody tr').forEach(function (tr) {
+        Array.prototype.forEach.call(tr.children, function (c, i) {
+          var txt = c.textContent.trim(), isNum = txt.length > 0 && txt.length < 32 && NUM_CELL.test(txt);
+          if (isNum) c.classList.add('num');
+          cols[i] = cols[i] || { n: 0, t: 0 };
+          if (txt && txt !== '—') { cols[i].t++; if (isNum) cols[i].n++; }
+        });
+      });
+      var head = t.querySelector('thead tr');
+      if (head) Array.prototype.forEach.call(head.children, function (th, i) { if (i > 0 && cols[i] && cols[i].t && cols[i].n / cols[i].t >= 0.6) th.classList.add('num'); });
+    });
+  }
   function buildLinkedValuationHtml(lv) {
     function money(v) { return v == null || !isFinite(v) ? '—' : '$' + Number(v).toLocaleString('es-CO', {minimumFractionDigits:2, maximumFractionDigits:2}); }
     function kv(label, value) { return '<div class="linked-kv"><span>' + escapeHtml(label) + '</span><strong>' + value + '</strong></div>'; }
     function zoneKv(label, z) { return z ? kv(label, money(z.min) + ' – ' + money(z.max)) : ''; }
-    var op = lv.objetivoPonderado || {}, z = lv.zonas || {};
-    var visorLink = lv.sourcePath ? '<a class="linked-visor-link" href="visor.html?path=' + encodeURIComponent(lv.sourcePath) + '">Ver en el Visor →</a>' : '';
-    return '<section class="valuation-block linked-valuation"><span class="linked-tag">✓ Vinculado con el Visor · ' + escapeHtml(lv.sourcePath || '') + '</span>' + visorLink + '<h2>Valoración cuantitativa (Visor)</h2><div class="linked-grid">' +
-      kv('Precio', money(lv.precio)) +
-      kv('Fecha del análisis', escapeHtml(lv.fecha || '—')) +
-      kv('Objetivo conservador', money(op.conservador)) +
-      kv('Objetivo base', money(op.base)) +
-      kv('Objetivo optimista', money(op.optimista)) +
-      zoneKv('Zona Value', z.value) + zoneKv('Zona Deep Value', z.deepValue) + zoneKv('Zona histórica', z.historica) +
-      '</div></section>';
+    var z = lv.zonas || {};
+    // Tablero compartido (valuation-board.js): el DCF es el valor intrínseco y
+    // va primero; múltiplos juntos, por método y ponderado, hoy o FY+3.
+    var board = typeof JmrValueBoard !== 'undefined' ? JmrValueBoard.fromRecord(lv, { precioLbl: 'Precio guardado' }) : null;
+    var boardHtml = board && JmrValueBoard.hasData(board) ? JmrValueBoard.html(board, { hero: true, compactMethods: true }) : '';
+    var visorLink = lv.sourcePath ? '<a class="linked-visor-link" href="visor.html?path=' + encodeURIComponent(lv.sourcePath) + (typeof jmrMercadoQS === 'function' ? jmrMercadoQS() : '') + '">Ver en el Visor →</a>' : '';
+    var zones = zoneKv(lv.baseMOS === 'valorEsperado' ? 'Zona Value (sobre el DCF esperado)' : 'Zona Value (sobre el objetivo FY+3)', z.value) + zoneKv('Zona Deep Value', z.deepValue) + zoneKv('Zona histórica', z.historica);
+    return '<section class="valuation-block linked-valuation"><span class="linked-tag">✓ Vinculado con el Visor · ' + escapeHtml(lv.sourcePath || '') + '</span>' + visorLink + '<h2>Valoración cuantitativa (Visor)</h2>' +
+      boardHtml + '<div class="linked-grid">' + kv('Fecha de valoración', escapeHtml(lv.fechaValoracion || lv.fecha || '—')) +
+      kv('Precio al día del análisis', money(lv.precioAnalisis)) +
+      kv('Fecha de consulta del precio guardado', escapeHtml(lv.precioReferenciaConsultadoAt || 'No registrada; no equivale a la fecha de valoración')) +
+      zones + '</div></section>';
   }
   var editing = false;
+  // Decisión del usuario (Comprar / Mantener / Vender) — decision.js. Se
+  // guarda dentro del mismo registro del análisis (local y en GitHub).
+  function renderDecision() {
+    var box = el('decisionBox');
+    if (!box || typeof JmrDecision === 'undefined') return;
+    if (!state.ticker || !state.html) { box.innerHTML = ''; return; }
+    box.innerHTML = JmrDecision.widget(state.decision, state.id || state.ticker);
+    var root = box.querySelector('.jmr-dec');
+    root.querySelector('.jmr-dec-save').addEventListener('click', function () {
+      var btn = this, v = JmrDecision.read(root);
+      state.decision = JmrDecision.build(state.decision, v.valor, v.nota, state.price);
+      if (!state.id) state.id = makeId();
+      state.updatedAt = new Date().toISOString();
+      var record = Object.assign({}, state);
+      btn.disabled = true; JmrDecision.setStatus(root, 'Guardando…');
+      try { upsertLocal(record); } catch (err) { btn.disabled = false; JmrDecision.setStatus(root, 'No cabe en el almacenamiento local.', false); return; }
+      remoteSave(record).then(function (saved) {
+        if (saved) { upsertLocal(saved); state.remotePath = saved.remotePath; state.remoteSha = saved.remoteSha; }
+        renderDecision(); renderLibrary();
+        var r2 = el('decisionBox').querySelector('.jmr-dec');
+        JmrDecision.setStatus(r2, saved ? 'Decisión guardada en tu repositorio de GitHub.' : 'Guardada solo en este navegador: conecta GitHub para que quede a salvo.', !!saved);
+      }).catch(function (err) { JmrDecision.setStatus(root, 'Guardada localmente, pero GitHub falló: ' + err.message, false); btn.disabled = false; });
+    });
+  }
+
   function renderPreview() {
     el('previewCompany').textContent = state.company || state.title || 'Nuevo análisis';
     el('previewTicker').textContent = state.ticker || '—';
@@ -210,6 +292,7 @@
     // otro campo (ticker, empresa, etc., que también llaman a
     // renderPreview vía syncFields) borraría cualquier edición todavía
     // no aplicada.
+    renderDecision();
     if (editing) return;
     var body = el('previewBody');
     el('editorToolbar').hidden = !(state.html || state.valuationHtml || state.linkedValuation || state.news);
@@ -217,7 +300,52 @@
     var title = state.title ? '<h1>' + escapeHtml(state.title) + '</h1>' : '';
     var linked = state.linkedValuation ? buildLinkedValuationHtml(state.linkedValuation) : '';
     var val = state.valuationHtml ? '<section class="valuation-block"><h2>Valoración cuantitativa (tabla subida)</h2>' + state.valuationHtml + '</section>' : '';
-    body.innerHTML = '<div class="research-document">' + title + '<div id="editableContent">' + safeHtml(state.html) + '</div>' + linked + val + renderNews() + '</div>';
+    if (state.articleHtml && state.calculationHtml) {
+      var articleView = navigableAnalysis(state.articleHtml, 'articulo');
+      var calculationView = navigableAnalysis(state.calculationHtml, 'calculos');
+      body.innerHTML = '<div class="research-document">' +
+        '<section class="jmr-editorial-article" id="jmrArticleLevel" aria-label="Artículo completo">' +
+        '<div class="jmr-editorial-label">NIVEL 1 · ARTÍCULO DE ANÁLISIS E INVERSIÓN</div>' +
+        articleView.toc + '<div id="editableContent">' + articleView.body + '</div>' + renderNews() +
+        '<section class="jmr-valuation-summary" aria-label="Tarjeta de valoración"><h2>Tarjeta de valoración</h2>' + (linked || val) + '</section></section>' +
+        '<details class="jmr-research-details" id="jmrTechnicalLevel"><summary>Ver nivel 2 · Cálculos de valoración</summary>' +
+        '<div class="jmr-technical-content">' + calculationView.toc + calculationView.body + '</div></details></div>';
+      markNumericCells(body);
+      renderEditorToolbar();
+      body.onclick = function (event) {
+        window.JmrReportAnchors.navigate(event, body);
+      };
+      return;
+    }
+    var analysis = navigableAnalysis(state.html, 'principal');
+    var tickerKey = String(state.ticker || '').trim().toUpperCase();
+    var editorial = editorialArticles[tickerKey];
+    var articulo = editorial && editorial.html
+      ? '<section class="jmr-editorial-article" aria-label="Artículo principal de ' + escapeHtml(tickerKey) + '">' +
+        '<div class="jmr-editorial-label">NIVEL 1 · TESIS DE INVERSIÓN</div>' +
+        safeHtml(editorial.html) +
+        '<p class="jmr-editorial-source"><a href="' + escapeHtml(editorial.documento) + '" target="_blank" rel="noopener noreferrer">Abrir y compartir versión de Google Docs ↗</a></p>' +
+        '</section>'
+      : '';
+    var technicalStart = articulo
+      ? '<details class="jmr-research-details" id="jmrTechnicalLevel"><summary>Ver nivel 2 · Cálculos de valoración</summary><div class="jmr-technical-content">'
+      : '';
+    var technicalEnd = articulo ? '</div></details>' : '';
+    // La tarjeta de valoración debe acompañar siempre la tesis de inversión,
+    // también en el PDF. Antes quedaba dentro del nivel 2 (<details>), que
+    // el modo de impresión oculta cuando está cerrado.
+    // Con artículo: mover el tablero vinculado fuera del desplegable. Si no
+    // existe vínculo, usar la valoración adjunta, sin duplicarla.
+    // Sin artículo: conservar la ubicación original de ambos bloques.
+    var tarjetaValoracion = articulo && (linked || val)
+      ? '<section class="jmr-valuation-summary" aria-label="Tarjeta de valoración">' +
+        '<h2>Tarjeta de valoración</h2>' + (linked || val) + '</section>'
+      : '';
+    var valoracionDetalle = articulo ? (linked ? val : '') : linked + val;
+    body.innerHTML = '<div class="research-document">' + articulo + tarjetaValoracion + technicalStart + title + analysis.toc +
+      '<div id="editableContent">' + analysis.body + '</div>' + valoracionDetalle + renderNews() +
+      technicalEnd + '</div>';
+    markNumericCells(body);
     renderEditorToolbar();
   }
 
@@ -233,6 +361,7 @@
   // guardar/limpiar/etc. para no dejar aplicar un guardado a mitad de
   // una edición sin aplicar.
   function setEditing(on) {
+    if (on) { var technical = el('jmrTechnicalLevel'); if (technical) technical.open = true; }
     editing = on;
     el('editorActions').hidden = on;
     var content = el('editableContent');
@@ -250,7 +379,8 @@
     if (!content) { setEditing(false); return; }
     setStatus('analysisStatus', 'Aplicando cambios…');
     compressEmbeddedImages(content.innerHTML).then(function (compressed) {
-      state.html = safeHtml(compressed);
+      if (state.articleHtml && state.calculationHtml) state.articleHtml = safeHtml(compressed);
+      else state.html = safeHtml(compressed);
       setEditing(false);
       renderPreview();
       checkQuality();
@@ -369,7 +499,7 @@
     extractAnalysis(file).then(function (html) {
       return compressEmbeddedImages(html);
     }).then(function (html) {
-      editing = false; state.html = safeHtml(html); state.sourceName = file.name; checkQuality(); syncFields();
+      editing = false; state.articleHtml = ''; state.calculationHtml = ''; state.analysisSchema = ''; state.html = safeHtml(html); state.sourceName = file.name; checkQuality(); syncFields();
       if (/\.pdf$/i.test(file.name)) setStatus('analysisStatus','PDF convertido a texto. Revisa títulos, tablas y orden: PDF es el formato menos fiable para reutilizar.','bad');
     }).catch(function (err) { setStatus('analysisStatus','No pude leer el archivo: ' + err.message,'bad'); });
   }
@@ -430,7 +560,7 @@
       return fetchJsonFile(matches[0].path).then(function (rec) { return { rec: rec, path: matches[0].path, count: matches.length }; });
     }).then(function (found) {
       var rec = found.rec;
-      state.linkedValuation = { precio: rec.precio, fecha: rec.fecha, zonas: rec.zonas, objetivoPonderado: rec.objetivoPonderado, cagr: rec.cagr, sourcePath: found.path };
+      state.linkedValuation = { precio: rec.precio, fecha: rec.fecha, zonas: rec.zonas, objetivoPonderado: rec.objetivoPonderado, valorPresentePonderado: rec.valorPresentePonderado, descuentoMultiples: rec.descuentoMultiples, metodos: rec.metodos, hojas: rec.hojas, cagr: rec.cagr, mos: rec.mos, hojaGoogle: rec.hojaGoogle, valorEsperado: rec.valorEsperado, valoracionHolding: rec.valoracionHolding, currency: rec.currency, sourcePath: found.path };
       renderPreview();
       setStatus('linkVisorStatus','Vinculado con "' + found.path + '"' + (found.count > 1 ? ' (la más reciente de ' + found.count + ' guardadas para este ticker)' : '') + '.','ok');
     }).catch(function (err) { setStatus('linkVisorStatus', err.message, 'bad'); }).finally(function () { btn.disabled = false; });
@@ -444,6 +574,12 @@
   // para refrescarlo si el usuario quiere.
   function checkLinkedValuationFreshness() {
     if (!state.linkedValuation || !state.ticker) return;
+    var openedId=state.id, linkedPath=state.linkedValuation.sourcePath;
+    if(linkedPath) fetchJsonFile(linkedPath).then(function(rec){
+      if(state.id!==openedId||!state.linkedValuation||state.linkedValuation.sourcePath!==linkedPath)return;
+      state.linkedValuation=Object.assign({},state.linkedValuation,{valorPresentePonderado:rec.valorPresentePonderado,descuentoMultiples:rec.descuentoMultiples,metodos:rec.metodos,hojas:rec.hojas,objetivoPonderado:rec.objetivoPonderado,mos:rec.mos,hojaGoogle:rec.hojaGoogle,valorEsperado:rec.valorEsperado,valoracionHolding:rec.valoracionHolding,currency:rec.currency});
+      renderPreview();
+    }).catch(function(){});
     listValoraciones().then(function (files) {
       var matches = files.filter(function (f) { return tickerFromValoracionName(f.name) === state.ticker; });
       if (!matches.length) return;
@@ -496,8 +632,26 @@
     zone.addEventListener('drop',function(e){ pair[1](e.dataTransfer.files && e.dataTransfer.files[0]); });
   });
 
-  function getLocalLibrary() { try { var x=JSON.parse(localStorage.getItem(LOCAL_KEY)||'[]'); return Array.isArray(x)?x:[]; } catch(e){return [];} }
-  function setLocalLibrary(list) { localStorage.setItem(LOCAL_KEY, JSON.stringify(list)); }
+  // La biblioteca vive en memoria; localStorage es solo una copia. Los 22
+  // análisis con sus informes superan los ~5 MB que permite Safari (iPhone)
+  // por sitio: antes setItem lanzaba QuotaExceededError dentro de
+  // syncRemote(), el error se tragaba y la página mostraba «Todavía no hay
+  // análisis guardados» aunque GitHub los tuviera todos. Si no hay espacio,
+  // en el navegador quedan solo los análisis que todavía no están en GitHub
+  // (los demás se vuelven a bajar al abrir la página).
+  var memLibrary = null;
+  function getLocalLibrary() {
+    if (memLibrary) return memLibrary.slice();
+    try { var x=JSON.parse(localStorage.getItem(LOCAL_KEY)||'[]'); return Array.isArray(x)?x:[]; } catch(e){return [];}
+  }
+  function setLocalLibrary(list) {
+    memLibrary = list.slice();
+    try { localStorage.setItem(LOCAL_KEY, JSON.stringify(list)); }
+    catch (e) {
+      try { localStorage.setItem(LOCAL_KEY, JSON.stringify(list.filter(function (r) { return !r.remotePath; }))); }
+      catch (e2) { console.warn('No hay espacio en el navegador para la copia local de la biblioteca:', e2); }
+    }
+  }
   function makeId() { return 'research-' + Date.now() + '-' + Math.random().toString(36).slice(2,7); }
   function cleanRecord(r) { var copy=Object.assign({},r); delete copy.remoteSha; return copy; }
   function upsertLocal(record) {
@@ -540,12 +694,40 @@
     return fetch(GH_API+record.remotePath,{method:'DELETE',headers:Object.assign({'Content-Type':'application/json'},ghHeaders()),body:JSON.stringify({message:'Borrar research '+(record.ticker||record.id),sha:record.remoteSha})}).then(function(res){if(!res.ok && res.status!==404)throw new Error('HTTP '+res.status);});
   }
   function syncRemote() {
-    return fetch(GH_API+'analisis',{headers:ghHeaders()}).then(function(res){if(res.status===404)return[];if(!res.ok)throw new Error('HTTP '+res.status);return res.json();}).then(function(files){
-      var jsons=(Array.isArray(files)?files:[]).filter(function(f){return /\.json$/i.test(f.name);});
-      return Promise.all(jsons.map(function(f){return fetch(f.url,{headers:ghHeaders()}).then(function(r){return r.json();}).then(function(data){var rec=JSON.parse(b64Decode(data.content.replace(/\n/g,'')));rec.remotePath=f.path;rec.remoteSha=f.sha;return rec;});}));
+    var failedPaths = {}, failures = [];
+    return fetch(GH_API+'analisis',{headers:ghHeaders(),cache:'no-store'}).then(function(res){
+      if(!res.ok)throw new Error('No se pudo cargar la biblioteca de GitHub (HTTP '+res.status+').');
+      return res.json();
+    }).then(function(files){
+      if(!Array.isArray(files))throw new Error('GitHub devolvió una lista de análisis inválida.');
+      var jsons=files.filter(function(f){return f.type==='file' && /\.json$/i.test(f.name);});
+      // Sin token usamos download_url para no consumir una llamada de API
+      // por informe. Con token pedimos el JSON original mediante el media
+      // type raw: Contents no incluye content base64 en archivos >1 MB.
+      var raw=!getGhToken();
+      return Promise.all(jsons.map(function(f){
+        var url=(raw&&f.download_url) ? f.download_url : f.url;
+        url += (url.indexOf('?')===-1 ? '?' : '&')+'jmr_version='+encodeURIComponent(f.sha||'');
+        var options={cache:'no-store'};
+        if(!(raw&&f.download_url))options.headers=Object.assign({},ghHeaders(),{Accept:'application/vnd.github.raw+json'});
+        return fetch(url,options).then(function(r){
+          if(!r.ok)throw new Error('HTTP '+r.status);
+          return r.json();
+        }).then(function(rec){
+          if(!rec || !rec.id || !rec.ticker)throw new Error('Informe inválido');
+          rec.remotePath=f.path;rec.remoteSha=f.sha;return rec;
+        }).catch(function(err){
+          failedPaths[f.path]=true;failures.push(f.name+': '+err.message);return null;
+        });
+      }));
     }).then(function(remote){
-      var map={}; getLocalLibrary().concat(remote).forEach(function(r){var old=map[r.id];if(!old||String(r.updatedAt||'')>String(old.updatedAt||''))map[r.id]=r;});
-      var list=Object.keys(map).map(function(k){return map[k];}).sort(function(a,b){return String(b.updatedAt||b.date).localeCompare(String(a.updatedAt||a.date));});setLocalLibrary(list);renderLibrary();return list.length;
+      // Los borrados remotos no reviven. Solo conservamos la copia local
+      // de un archivo aún presente que no se pudo descargar esta vez.
+      var map={}; getLocalLibrary().filter(function(r){return !r.remotePath||failedPaths[r.remotePath];}).concat(remote.filter(Boolean)).forEach(function(r){var old=map[r.id];if(!old||String(r.updatedAt||'')>String(old.updatedAt||''))map[r.id]=r;});
+      var list=Object.keys(map).map(function(k){return map[k];}).sort(function(a,b){return String(b.updatedAt||b.date).localeCompare(String(a.updatedAt||a.date));});
+      setLocalLibrary(list);renderLibrary();
+      if(failures.length)throw new Error(list.length+' análisis disponibles. No se pudieron actualizar '+failures.length+': '+failures.join('; ')+'. Pulsa Sincronizar para reintentar.');
+      return list.length;
     });
   }
 
@@ -620,7 +802,7 @@
     el('ghBannerConnect').addEventListener('click', function () {
       setGhToken(input.value);
       renderGhBanner();
-      syncRemote().then(pushLocalOnlyToRemote).catch(function () {});
+      syncRemote().then(pushLocalOnlyToRemote).catch(function (err) { setStatus('libraryStatus',err.message,'bad'); });
     });
     input.addEventListener('keydown', function (e) { if (e.key === 'Enter') el('ghBannerConnect').click(); });
   }
@@ -636,10 +818,10 @@
     });
   }
   function fetchFileAtCommit(path, sha) {
-    return fetch(GH_API + path + '?ref=' + sha, { headers: ghHeaders() }).then(function (res) {
+    return fetch(GH_API + path + '?ref=' + sha, { headers: Object.assign({}, ghHeaders(), { Accept: 'application/vnd.github.raw+json' }), cache: 'no-store' }).then(function (res) {
       if (!res.ok) throw new Error('HTTP ' + res.status);
       return res.json();
-    }).then(function (data) { return JSON.parse(b64Decode(data.content.replace(/\n/g, ''))); });
+    });
   }
   function htmlToPlainText(html) {
     var doc = new DOMParser().parseFromString(html || '', 'text/html');
@@ -703,6 +885,8 @@
     if(!state.title) throw new Error('Ingresa el título del análisis.');
     if(!state.html) throw new Error('Sube el documento cualitativo.');
     if(!state.id) state.id=makeId();
+    state.market = jmrEsCOP(state) || JMR_MERCADO === 'colombia' ? 'BVC' : 'international';
+    if (state.market === 'BVC') state.currency = 'COP';
     state.updatedAt=new Date().toISOString();
     return Object.assign({},state);
   }
@@ -715,8 +899,10 @@
   });
 
   function fillEditor(rec) {
+    jmrAjustarMercado(rec);
     editing=false;
     state=Object.assign(freshState(),rec);
+    el('analysisSettings').open=false;
     el('tickerInput').value=state.ticker||'';el('companyInput').value=state.company||'';el('titleInput').value=state.title||'';el('dateInput').value=state.date||'';el('newsInput').value=state.news||'';
     checkQuality();renderPreview();refreshHistoryButton();el('historyPanel').hidden=true;el('historyPanel').innerHTML='';
     ['quoteStatus','analysisStatus','valuationStatus','linkVisorStatus','newsStatus'].forEach(function(id){setStatus(id,'');});
@@ -726,6 +912,7 @@
   function resetEditor() {
     editing=false;
     state=freshState();['tickerInput','companyInput','titleInput','newsInput'].forEach(function(id){el(id).value='';});el('dateInput').value=state.date;el('logoInput').value='';el('analysisFile').value='';el('valuationFile').value='';el('qualityChips').innerHTML='';
+    el('analysisSettings').open=true;
     ['quoteStatus','analysisStatus','valuationStatus','linkVisorStatus','newsStatus','saveStatus'].forEach(function(id){setStatus(id,'');});
     refreshHistoryButton();el('historyPanel').hidden=true;el('historyPanel').innerHTML='';renderPreview();
   }
@@ -738,18 +925,173 @@
   // debajo) es liviano y no requiere backend — si por algún motivo no
   // cargó desde el CDN, cae de vuelta a sugerir el botón de imprimir.
   function safeFileSlug(s) { return String(s || 'analisis').replace(/[^A-Za-z0-9._-]/g, '_'); }
+  // html2canvas 1.x no entiende los colores modernos (oklab/oklch, color(…)):
+  // Chrome y Safari los devuelven así en el estilo calculado de cualquier
+  // regla con color-mix(), y el PDF abortaba con «unsupported color function
+  // "oklab"». En la copia que se rasteriza se reemplazan por su rgba
+  // equivalente, que el propio navegador calcula pintando un píxel.
+  var MODERN_COLOR = /okl(?:ab|ch)\(|(?:^|[^a-z-])(?:lab|lch|color)\(/i;
+  var COLOR_PROPS = ['color', 'background-color', 'border-top-color', 'border-right-color', 'border-bottom-color',
+    'border-left-color', 'outline-color', 'text-decoration-color', 'fill', 'stroke', 'caret-color', 'column-rule-color'];
+  function fixModernColors(doc) {
+    var cv = doc.createElement('canvas'); cv.width = cv.height = 1;
+    var ctx = cv.getContext('2d', { willReadFrequently: true }), cache = {};
+    function toRgba(v) {
+      if (cache[v]) return cache[v];
+      ctx.clearRect(0, 0, 1, 1); ctx.fillStyle = 'rgba(0,0,0,0)'; ctx.fillStyle = v; ctx.fillRect(0, 0, 1, 1);
+      var d = ctx.getImageData(0, 0, 1, 1).data;
+      return (cache[v] = 'rgba(' + d[0] + ',' + d[1] + ',' + d[2] + ',' + (d[3] / 255).toFixed(3) + ')');
+    }
+    var win = doc.defaultView, nodes = [doc.documentElement, doc.body].concat(Array.prototype.slice.call(doc.body.querySelectorAll('*')));
+    nodes.forEach(function (n) {
+      var cs = win.getComputedStyle(n);
+      COLOR_PROPS.forEach(function (prop) { var v = cs.getPropertyValue(prop); if (v && MODERN_COLOR.test(v)) n.style.setProperty(prop, toRgba(v), 'important'); });
+      ['box-shadow', 'text-shadow', 'background-image'].forEach(function (prop) {
+        var v = cs.getPropertyValue(prop); if (v && MODERN_COLOR.test(v)) n.style.setProperty(prop, 'none', 'important');
+      });
+    });
+  }
+  // En pantalla las tablas anchas se desplazan de lado; en la hoja A4 no hay
+  // desplazamiento, así que en la copia del PDF se ajustan al ancho de la
+  // página (letra algo menor y celdas que parten líneas).
+  var PDF_TABLE_CSS = 'table{display:table!important;width:100%!important;max-width:100%!important;table-layout:auto!important;' +
+    'font-size:9px!important}th,td{white-space:normal!important;overflow-wrap:anywhere;word-break:normal;padding:3px 4px!important;' +
+    'min-width:0!important}pre,code{white-space:pre-wrap!important;overflow-wrap:anywhere}' +
+    '*{overflow:visible!important}';
+  function pdfOnClone(doc) {
+    var st = doc.createElement('style'); st.textContent = PDF_TABLE_CSS; doc.head.appendChild(st);
+    fixModernColors(doc);
+  }
+  // Un informe completo mide ~40.000 px de alto: rasterizado de una sola vez
+  // supera el tamaño máximo de un canvas (Chrome: 32.767 px de alto; Safari en
+  // iPhone: ~16,7 millones de píxeles) y el PDF salía en blanco o fallaba.
+  // Se rasteriza por tramos (cortando en los títulos de sección) y cada tramo
+  // sigue en una página nueva del mismo PDF.
+  var PDF_SCALE = 1.5, PDF_BLOCK_PX = 3500, PDF_PAGE_PX = Math.floor((210 - 2 * 10) * 96 / 25.4);  // medido en pantalla; en A4 el tramo crece ~1,5×
+  function pxH(n) { return n.getBoundingClientRect().height || 0; }
+  // Baja por los envoltorios de un solo hijo alto (p. ej. .preview-body >
+  // .research-document) hasta el contenedor que tiene las secciones.
+  function pdfDescend(node) {
+    var path = [node];
+    for (;;) {
+      var kids = Array.prototype.slice.call(node.children);
+      if (kids.length > 6) break;
+      var H = pxH(node), bigs = kids.filter(function (k) { return pxH(k) > 0.6 * H; });
+      if (bigs.length !== 1) return { path: path, cols: bigs.length > 1 ? bigs : null };
+      node = bigs[0]; path.push(node);
+    }
+    return { path: path, cols: null };
+  }
+  // Copia superficial de la cadena de envoltorios con los nodos indicados al
+  // fondo; los hermanos de cada envoltorio (encabezados, notas) van en el
+  // primer tramo (los anteriores) y en el último (los posteriores).
+  function pdfChain(path, nodes, first, last) {
+    var top = null, parent = null;
+    path.forEach(function (lvl, li) {
+      var c = lvl.cloneNode(false);
+      c.removeAttribute('id');
+      if (li === 0) top = c;
+      else {
+        var sib = Array.prototype.slice.call(path[li - 1].children), at = sib.indexOf(lvl);
+        if (first) sib.slice(0, at).forEach(function (x) { parent.appendChild(x.cloneNode(true)); });
+        parent.appendChild(c);
+        if (last) sib.slice(at + 1).forEach(function (x) { parent.appendChild(x.cloneNode(true)); });
+      }
+      parent = c;
+    });
+    nodes.forEach(function (n) { parent.appendChild(n.cloneNode(true)); });
+    return top;
+  }
+  function pdfChunks(nodes, n) {  // reparte nodos en n trozos de altura parecida
+    var tot = nodes.reduce(function (a, k) { return a + pxH(k); }, 0), out = [[]], acc = 0;
+    nodes.forEach(function (k) {
+      if (out[out.length - 1].length && acc >= tot / n * out.length && out.length < n) out.push([]);
+      out[out.length - 1].push(k); acc += pxH(k);
+    });
+    while (out.length < n) out.push([]);
+    return out;
+  }
+  function pdfBlocks(element) {
+    var d = pdfDescend(element), blocks = [];
+    var width = function (top) { top.style.width = PDF_PAGE_PX + 'px'; top.style.maxWidth = 'none'; return top; };
+    if (!d.cols) {
+      var node = d.path[d.path.length - 1], groups = [], cur = [], h = 0;
+      Array.prototype.slice.call(node.children).forEach(function (k) {
+        var kh = pxH(k);
+        if (cur.length && (h + kh > PDF_BLOCK_PX || (/^H[12]$/.test(k.tagName) && h > PDF_BLOCK_PX / 3))) { groups.push(cur); cur = []; h = 0; }
+        cur.push(k); h += kh;
+      });
+      if (cur.length) groups.push(cur);
+      return groups.map(function (g, gi) { return width(pdfChain(d.path, g, gi === 0, gi === groups.length - 1)); });
+    }
+    // Comparador: dos columnas largas lado a lado. Se cortan por secciones
+    // emparejadas (sección i de A junto a la sección i de B) para que cada
+    // tramo quepa en un canvas y la comparación siga alineada.
+    var cols = d.cols.map(function (col) {
+      var cd = pdfDescend(col), cont = cd.path[cd.path.length - 1], secs = [[]];
+      Array.prototype.slice.call(cont.children).forEach(function (k) {
+        if (/^H2$/.test(k.tagName) && secs[secs.length - 1].length) secs.push([]);
+        secs[secs.length - 1].push(k);
+      });
+      return { path: cd.path, secs: secs };
+    });
+    var nSec = Math.max.apply(null, cols.map(function (c) { return c.secs.length; })), units = [];
+    for (var i = 0; i < nSec; i++) {
+      var parts = cols.map(function (c) { return c.secs[i] || []; });
+      var hmax = Math.max.apply(null, parts.map(function (p) { return p.reduce(function (a, k) { return a + pxH(k); }, 0); }));
+      var n = Math.max(1, Math.ceil(hmax / PDF_BLOCK_PX));
+      var split = parts.map(function (p) { return pdfChunks(p, n); });
+      for (var j = 0; j < n; j++) units.push({ parts: split.map(function (sp) { return sp[j]; }), h: hmax / n });
+    }
+    var groups2 = [], cur2 = null;
+    units.forEach(function (u) {
+      if (cur2 && cur2.h + u.h <= PDF_BLOCK_PX) { cur2.parts = cur2.parts.map(function (p, ci) { return p.concat(u.parts[ci]); }); cur2.h += u.h; }
+      else { cur2 = { parts: u.parts.slice(), h: u.h }; groups2.push(cur2); }
+    });
+    return groups2.map(function (g, gi) {
+      var first = gi === 0, last = gi === groups2.length - 1;
+      var colNodes = cols.map(function (c, ci) { return pdfChain(c.path, g.parts[ci], first, last); });
+      return width(pdfChain(d.path, colNodes.map(function (n) { return { cloneNode: function () { return n; } }; }), first, last));
+    });
+  }
+  // El margen inferior de cada tramo quedaba a veces solo en una página nueva
+  // (páginas en blanco intercaladas): se recortan las filas blancas del final
+  // del canvas antes de pasarlo al PDF. html2pdf llama esto con this = worker.
+  function trimCanvasBottom() {
+    var c = this.prop.canvas, ctx = c.getContext('2d'), w = c.width, y = c.height, step = 64;
+    while (y > 0) {
+      var y0 = Math.max(0, y - step), d = ctx.getImageData(0, y0, w, y - y0).data, ink = -1;
+      for (var i = d.length - 4; i >= 0; i -= 4) { if (d[i] < 245 || d[i + 1] < 245 || d[i + 2] < 245) { ink = Math.floor(i / 4 / w); break; } }
+      if (ink >= 0) { y = y0 + ink + 1; break; }
+      y = y0;
+    }
+    var keep = Math.min(c.height, y + Math.round(12 * PDF_SCALE));
+    if (keep >= c.height || keep <= 0) return;
+    var t = document.createElement('canvas'); t.width = w; t.height = keep;
+    t.getContext('2d').drawImage(c, 0, 0);
+    this.prop.canvas = t;
+  }
   function downloadPdf(element, filename, btn, statusId) {
     if (typeof html2pdf === 'undefined') { if (statusId) setStatus(statusId, 'No se pudo cargar el generador de PDF — usa "Imprimir / PDF" en su lugar.', 'bad'); return; }
     if (btn) btn.disabled = true;
     if (statusId) setStatus(statusId, 'Generando PDF…');
-    html2pdf().set({
+    var opt = {
       margin: 10,
       filename: filename,
-      image: { type: 'jpeg', quality: 0.95 },
-      html2canvas: { scale: 2, useCORS: true },
+      image: { type: 'jpeg', quality: 0.92 },
+      html2canvas: { scale: PDF_SCALE, useCORS: true, onclone: pdfOnClone },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
       pagebreak: { mode: ['css', 'legacy'] }
-    }).from(element).save().then(function () {
+    };
+    var blocks = pdfBlocks(element), n = blocks.length;
+    var worker = html2pdf().set(opt).from(blocks[0]).toContainer().toCanvas().then(trimCanvasBottom).toPdf();
+    blocks.slice(1).forEach(function (blk, i) {
+      worker = worker.get('pdf').then(function (pdf) {
+        if (statusId) setStatus(statusId, 'Generando PDF… ' + Math.round((i + 1) / n * 100) + '%');
+        pdf.addPage();
+      }).from(blk).toContainer().toCanvas().then(trimCanvasBottom).toPdf();
+    });
+    worker.save().then(function () {
       if (statusId) setStatus(statusId, 'PDF descargado.', 'ok');
     }).catch(function (err) {
       if (statusId) setStatus(statusId, 'No se pudo generar el PDF: ' + err.message, 'bad');
@@ -800,7 +1142,9 @@
   function buildSubstackHtml() {
     var doc = el('previewBody').querySelector('.research-document');
     if (!doc) return null;
-    var html = doc.innerHTML;
+    var share = doc.cloneNode(true);
+    if (state.articleHtml) share.querySelectorAll('details').forEach(function (node) { node.remove(); });
+    var html = share.innerHTML;
     var meta = [state.company, state.ticker, state.date].filter(Boolean).join(' · ');
     if (meta) {
       var metaHtml = '<p><em>' + escapeHtml(meta) + '</em></p>';
@@ -869,15 +1213,15 @@
     return text;
   }
   function renderLibrary() {
-    var q=normalizeText(el('librarySearch').value), list=getLocalLibrary().filter(function(r){return !q||recordSearchText(r).indexOf(q)>=0;});
+    var q=normalizeText(el('librarySearch').value), list=getLocalLibrary().filter(function(r){return (typeof jmrDelMercado!=='function'||jmrDelMercado(r))&&(!q||recordSearchText(r).indexOf(q)>=0);});
     var holder=el('libraryCards');
-    if(!list.length){holder.innerHTML='<div class="empty">Todavía no hay análisis guardados. Abre “Nuevo análisis” para crear el primero.</div>';setStatus('libraryStatus',getGhToken()?'GitHub conectado.':'Biblioteca local · GitHub no conectado.');return;}
+    if(!list.length){populateCompareSelects();holder.innerHTML='<div class="empty">Todavía no hay análisis guardados. Abre “Nuevo análisis” para crear el primero.</div>';setStatus('libraryStatus',getGhToken()?'GitHub conectado.':'Biblioteca local · GitHub no conectado.');return;}
     holder.innerHTML=list.map(function(r){
       var logoSrc=logoForRecord(r);
       var logo=logoSrc?'<img class="mini-logo" src="'+escapeHtml(logoSrc)+'" data-ticker="'+escapeHtml(r.ticker||'?')+'" alt="Logo de '+escapeHtml(r.company||r.ticker||'empresa')+'">':'<span class="mini-logo mini-fallback">'+escapeHtml((r.ticker||'?').slice(0,2))+'</span>';
       var excerpt=recordExcerpt(r);
-      var visorLink=(r.linkedValuation&&r.linkedValuation.sourcePath)?'<a class="btn" href="visor.html?path='+encodeURIComponent(r.linkedValuation.sourcePath)+'">Ver en el Visor</a>':'';
-      return '<article class="analysis-card" data-id="'+escapeHtml(r.id)+'"><div class="card-head">'+logo+'<div class="card-title"><strong>'+escapeHtml(r.title||r.company)+'</strong><span class="ticker">'+escapeHtml(r.ticker||'—')+' · '+escapeHtml(r.company||'')+'</span></div></div>'+(excerpt?'<p class="card-excerpt">'+escapeHtml(excerpt)+'</p>':'')+'<div class="card-meta"><span>'+escapeHtml(r.date||'Sin fecha')+'</span><span>'+(r.remotePath?'GitHub + local':'Solo local')+'</span></div><div class="card-actions"><button class="btn" data-action="open" type="button">Abrir</button>'+visorLink+'<button class="btn danger" data-action="delete" type="button">Borrar</button></div></article>';
+      var visorLink=(r.linkedValuation&&r.linkedValuation.sourcePath)?'<a class="btn" href="visor.html?path='+encodeURIComponent(r.linkedValuation.sourcePath)+(typeof jmrMercadoQS==='function'?jmrMercadoQS():'')+'">Ver en el Visor</a>':'';
+      return '<article class="analysis-card" data-id="'+escapeHtml(r.id)+'"><div class="card-head">'+logo+'<div class="card-title"><strong>'+escapeHtml(r.title||r.company)+(typeof JmrDecision!=='undefined'?JmrDecision.badge(r.decision):'')+'</strong><span class="ticker">'+escapeHtml(r.ticker||'—')+' · '+escapeHtml(r.company||'')+'</span></div></div>'+(excerpt?'<p class="card-excerpt">'+escapeHtml(excerpt)+'</p>':'')+'<div class="card-meta"><span>'+escapeHtml(r.date||'Sin fecha')+'</span><span>'+(r.remotePath?'GitHub + local':'Solo local')+'</span></div><div class="card-actions"><button class="btn" data-action="open" type="button">Abrir</button>'+visorLink+'<button class="btn danger" data-action="delete" type="button">Borrar</button></div></article>';
     }).join('');
     wireLogoFallbacks(holder);
     setStatus('libraryStatus',list.length+' análisis · '+(getGhToken()?'GitHub disponible':'almacenamiento local'));
@@ -891,14 +1235,14 @@
     btn.disabled=true;remoteDelete(rec).then(function(){setLocalLibrary(list.filter(function(r){return r.id!==rec.id;}));renderLibrary();}).catch(function(err){btn.disabled=false;setStatus('libraryStatus','No se pudo borrar: '+err.message,'bad');});
   });
   el('syncBtn').addEventListener('click',function(){var btn=this;btn.disabled=true;setStatus('libraryStatus','Sincronizando…');syncRemote().then(function(n){setStatus('libraryStatus','Sincronización completa: '+n+' análisis.','ok');return pushLocalOnlyToRemote();}).catch(function(err){setStatus('libraryStatus',err.message,'bad');}).finally(function(){btn.disabled=false;});});
-  el('exportLibraryBtn').addEventListener('click',function(){download('modelo-jmr-research-'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(getLocalLibrary(),null,2),'application/json');});
+  el('exportLibraryBtn').addEventListener('click',function(){download('modelo-jmr-research-'+JMR_MERCADO+'-'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(getLocalLibrary().filter(jmrDelMercado),null,2),'application/json');});
   el('importLibraryInput').addEventListener('change',function(){var file=this.files&&this.files[0];if(!file)return;file.text().then(function(text){var incoming=JSON.parse(text);if(!Array.isArray(incoming))throw new Error('El respaldo no contiene una biblioteca válida.');var map={};getLocalLibrary().concat(incoming).forEach(function(r){if(r&&r.id)map[r.id]=r;});setLocalLibrary(Object.keys(map).map(function(k){return map[k];}));renderLibrary();setStatus('libraryStatus','Respaldo importado.','ok');}).catch(function(err){setStatus('libraryStatus','No se pudo importar: '+err.message,'bad');});this.value='';});
 
   // Comparar dos empresas/competidores lado a lado: reutiliza el mismo
   // renderer de documento (safeHtml + valuation-block) para cada columna,
   // a partir de dos análisis ya guardados en la biblioteca local.
   function populateCompareSelects() {
-    var list = getLocalLibrary();
+    var list = getLocalLibrary().filter(jmrDelMercado);
     ['compareA','compareB'].forEach(function (id) {
       var sel = el(id); if (!sel) return;
       var current = sel.value;
@@ -914,8 +1258,15 @@
     var linked = rec.linkedValuation ? buildLinkedValuationHtml(rec.linkedValuation) : '';
     var val = rec.valuationHtml ? '<section class="valuation-block"><h2>Valoración cuantitativa</h2>' + rec.valuationHtml + '</section>' : '';
     var title = rec.title ? '<h1>' + escapeHtml(rec.title) + '</h1>' : '';
-    return '<div class="compare-col"><div class="company-banner"><div class="identity">' + logo + '<div class="company-name"><h2>' + escapeHtml(rec.company || rec.title || rec.ticker || '—') + '</h2><div class="ticker">' + escapeHtml(rec.ticker || '—') + '</div></div></div></div>' +
-      '<div class="preview-body"><div class="research-document">' + title + safeHtml(rec.html || '') + linked + val + '</div></div></div>';
+    var analysis = navigableAnalysis(rec.articleHtml || rec.html || '', 'comparar-' + String(rec.id).replace(/[^a-zA-Z0-9_-]/g, '-'));
+    if (rec.calculationHtml) { var calculations = navigableAnalysis(rec.calculationHtml, 'comparar-calculos-' + rec.ticker); analysis.body += '<details class="jmr-research-details"><summary>Nivel 2 · Cálculos de valoración</summary>' + calculations.toc + calculations.body + '</details>'; }
+    var output = '<div class="compare-col"><div class="company-banner"><div class="identity">' + logo + '<div class="company-name"><h2>' + escapeHtml(rec.company || rec.title || rec.ticker || '—') + '</h2><div class="ticker">' + escapeHtml(rec.ticker || '—') + '</div></div></div></div>' +
+      '<div class="preview-body"><div class="research-document" id="jmrArticleLevel">' + title + analysis.toc + analysis.body + linked + val + '</div></div></div>';
+    var holder = document.createElement('div'); holder.innerHTML = output;
+    var anchors = {}, prefix = 'comparar-' + String(rec.id).replace(/[^a-zA-Z0-9_-]/g, '-') + '-';
+    holder.querySelectorAll('[id]').forEach(function (node) { var old = node.id; node.id = prefix + old; anchors[old] = node.id; });
+    holder.querySelectorAll('a[href^="#"]').forEach(function (a) { var target = anchors[a.getAttribute('href').slice(1)]; if (target) a.setAttribute('href', '#' + target); });
+    return holder.innerHTML;
   }
   el('compareBtn').addEventListener('click', function () {
     var list = getLocalLibrary();
@@ -923,7 +1274,11 @@
     var b = list.find(function (r) { return r.id === el('compareB').value; });
     if (!a || !b) { setStatus('compareStatus','Elegí dos análisis guardados para comparar.','bad'); el('compareOutput').innerHTML = '<div class="compare-empty">Elegí dos empresas arriba para verlas lado a lado.</div>'; return; }
     el('compareOutput').innerHTML = buildCompareColumnHtml(a) + buildCompareColumnHtml(b);
+    markNumericCells(el('compareOutput'));
     setStatus('compareStatus','Comparando "' + (a.ticker || a.title) + '" vs. "' + (b.ticker || b.title) + '".','ok');
+  });
+  el('compareOutput').addEventListener('click', function (event) {
+    window.JmrReportAnchors.navigate(event, el('compareOutput'));
   });
   el('comparePrintBtn').addEventListener('click', function () { window.print(); });
   el('compareDownloadBtn').addEventListener('click', function () {
@@ -934,14 +1289,67 @@
   });
 
   function download(name,text,type){var blob=new Blob([text],{type:type||'text/plain'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url);},1000);}
-  var defaultPrompt='';
-  function loadPrompt(force) {
-    fetch('prompts/analisis-fundamental-v1.md',{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.text();}).then(function(text){defaultPrompt=text;var saved='';try{saved=localStorage.getItem(PROMPT_KEY)||'';}catch(e){}el('promptText').value=force||!saved?text:saved;}).catch(function(err){setStatus('promptStatus','No se pudo cargar el prompt: '+err.message,'bad');});
+  // Dos prompts maestros: el de Research fundamental (v4) y el de valoración
+  // del Modelo JMR (v3, que reemplazó a la v2: múltiplos elegidos con anclas
+  // documentadas e independientes del DCF). Cada uno guarda sus cambios aparte.
+  var PROMPTS = {
+    research: { file: 'prompts/research-fundamental-jmr-v5.md', key: PROMPT_KEY, download: 'JMR - PROMPT Research VIGENTE v5.md',
+      title: 'Prompt maestro v5 · 18 secciones · historias y escenarios', btn: 'promptKindResearch',
+      help: 'Úsalo en ChatGPT o Claude junto con la tabla del Modelo JMR. El esquema fijo hace que ambos produzcan documentos comparables.',
+      note: 'Adjunta la tabla JMR y los informes disponibles. Revisión 30-sep-2026: cuatro historias como escenarios activos, supuestos y resultados trazables, DCF Base principal y esperado complementario; sección 12 con cálculo explicado y control de congruencia.' },
+    valuation: { file: 'prompts/valoracion-modelo-jmr-v4.md', key: 'jmr-valuation-prompt-v4-integridad-20261001', download: 'JMR - PROMPT Valoracion VIGENTE v4.md',
+      title: 'Prompt de valoración v4 · historias y escenarios', btn: 'promptKindValuation',
+      help: 'Arma el Modelo JMR de punta a punta (SEC EDGAR, costo de capital, supuestos anclados, bugs conocidos, guardado en Drive) y elige los múltiplos con tres anclas documentadas: historia depurada, peers ajustados y múltiplo justificado.',
+      note: 'DCF Base al presente primero. Siempre muestra métodos individuales, ponderado de múltiplos solos y ponderado DCF + múltiplos, tanto al presente como a 3 años sin descontar; pesos y dividendos explícitos. Fórmula única en todas las hojas (maestra + contrato): solo cambian datos enlazados y supuestos. Cuatro historias: Base, Conservadora, Disrupción y Optimista. Precio al final.' }
+  };
+  var promptKind = 'research', defaultPrompts = {};
+  try { if (localStorage.getItem('jmr-prompt-kind') === 'valuation') promptKind = 'valuation'; } catch (e) {}
+  var CO_PROMPTS = {
+    research: { file: 'prompts/colombia-research-v1.md', key: 'jmr-colombia-research-prompt-v1', download: 'JMR-Colombia-Research.md', title: 'Prompt de análisis fundamental · Colombia', btn: 'promptKindResearch', help: 'Análisis de acciones colombianas con fuentes del emisor y contexto local.', note: 'Núcleo Colombia, unidades y moneda del expediente; misma estructura de análisis.' },
+    valuation: { file: 'prompts/colombia-valuation-v1.md', key: 'jmr-colombia-valuation-prompt-v1', download: 'JMR-Colombia-Valoracion.md', title: 'Prompt de valoración · Colombia', btn: 'promptKindValuation', help: 'Valoración por sector: empresas operativas, entidades financieras y holdings.', note: 'Conserva COP, fecha de análisis, fuentes y conciliaciones del expediente Colombia.' }
+  };
+  function currentPrompt(){ return (JMR_MERCADO === 'colombia' ? CO_PROMPTS : PROMPTS)[promptKind]; }
+  document.addEventListener('jmr-market-change', function(){defaultPrompts={};renderLibrary();populateCompareSelects();loadPrompt(false);});
+  // Bloques obligatorios (2-oct-2026) que se agregan a un prompt guardado que no los tenga, en el orden del vigente.
+  var REQUIRED_BLOCKS = ['JMR-DOS-NIVELES-ARTICULO-CALCULOS-20261014', 'JMR-HORIZONTES-OBLIGATORIOS-20261002', 'JMR-FORMULA-UNICA-20261002', 'JMR-DESDE-CERO-20261006'];
+  function withRequiredHorizons(saved, current) {
+    if (!saved) return saved;
+    var prevEnd = null;
+    REQUIRED_BLOCKS.forEach(function(id){
+      var start = '<!-- ' + id + ' -->', end = '<!-- /' + id + ' -->';
+      var sa = saved.indexOf(start), sb = saved.indexOf(end);
+      if (sa !== -1 && sb > sa) {  // bloque ya presente: se reemplaza por la versión vigente
+        var ca = current.indexOf(start), cb = current.indexOf(end);
+        if (ca >= 0 && cb > ca) saved = saved.slice(0, sa) + current.slice(ca, cb + end.length) + saved.slice(sb + end.length);
+      } else if (saved.indexOf(start) === -1) {
+        var a = current.indexOf(start), b = current.indexOf(end);
+        if (a >= 0 && b > a) {
+          var block = current.slice(a, b + end.length);
+          var at = prevEnd ? saved.indexOf(prevEnd) : -1;
+          saved = at >= 0 ? saved.slice(0, at + prevEnd.length) + '\n\n' + block + saved.slice(at + prevEnd.length)
+                          : block + '\n\n' + saved;
+        }
+      }
+      prevEnd = end;
+    });
+    return saved;
   }
+  function showPromptMeta(){
+    var p = currentPrompt();
+    el('promptTitle').textContent = p.title; el('promptHelp').textContent = p.help; el('promptNote').textContent = p.note;
+    Object.keys(PROMPTS).forEach(function(k){ var b = el(PROMPTS[k].btn); b.classList.toggle('primary', k === promptKind); b.setAttribute('aria-pressed', String(k === promptKind)); });
+  }
+  function loadPrompt(force) {
+    var kind = promptKind, market = JMR_MERCADO, p = currentPrompt();
+    showPromptMeta();
+    var files = market === 'colombia' ? ['prompts/colombia-nucleo-v1.md', p.file] : [p.file];
+    Promise.all(files.map(function(file){return fetch(file,{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.text();});})).then(function(parts){var text=parts.join('\n\n');if(kind!==promptKind||market!==JMR_MERCADO)return;defaultPrompts[kind]=text;var saved='';try{saved=localStorage.getItem(p.key)||'';var revised=withRequiredHorizons(saved,text);if(revised!==saved){saved=revised;localStorage.setItem(p.key,saved);}}catch(e){}el('promptText').value=force||!saved?text:saved;setStatus('promptStatus','','');}).catch(function(err){setStatus('promptStatus','No se pudo cargar el prompt: '+err.message,'bad');});
+  }
+  Object.keys(PROMPTS).forEach(function(k){ el(PROMPTS[k].btn).addEventListener('click', function(){ if (k === promptKind) return; promptKind = k; try { localStorage.setItem('jmr-prompt-kind', k); } catch (e) {} loadPrompt(false); }); });
   el('copyPromptBtn').addEventListener('click',function(){navigator.clipboard.writeText(el('promptText').value).then(function(){setStatus('promptStatus','Prompt copiado.','ok');}).catch(function(){el('promptText').select();document.execCommand('copy');setStatus('promptStatus','Prompt copiado.','ok');});});
-  el('savePromptBtn').addEventListener('click',function(){try{localStorage.setItem(PROMPT_KEY,el('promptText').value);setStatus('promptStatus','Cambios guardados en este navegador.','ok');}catch(e){setStatus('promptStatus','No fue posible guardar el prompt.','bad');}});
-  el('downloadPromptBtn').addEventListener('click',function(){download('prompt-analisis-fundamental-modelo-jmr.md',el('promptText').value,'text/markdown');});
-  el('resetPromptBtn').addEventListener('click',function(){if(defaultPrompt){el('promptText').value=defaultPrompt;try{localStorage.removeItem(PROMPT_KEY);}catch(e){}setStatus('promptStatus','Prompt restaurado.','ok');}else loadPrompt(true);});
+  el('savePromptBtn').addEventListener('click',function(){try{localStorage.setItem(currentPrompt().key,el('promptText').value);setStatus('promptStatus','Cambios guardados en este navegador.','ok');}catch(e){setStatus('promptStatus','No fue posible guardar el prompt.','bad');}});
+  el('downloadPromptBtn').addEventListener('click',function(){download(currentPrompt().download,el('promptText').value,'text/markdown');});
+  el('resetPromptBtn').addEventListener('click',function(){var d=defaultPrompts[promptKind];if(d){el('promptText').value=d;try{localStorage.removeItem(currentPrompt().key);}catch(e){}setStatus('promptStatus','Prompt restaurado.','ok');}else loadPrompt(true);});
 
   // Enlace inverso desde "Valoraciones guardadas" del Visor: llega acá
   // como research.html?ticker=XXX — precarga la búsqueda con ese ticker
@@ -973,6 +1381,24 @@
     if (pdfDate) pdfDate.textContent = 'Generado el ' + new Date().toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' });
   }
 
+  // Carga editorial independiente: nunca sustituye ni modifica registros de analisis/*.json.
+  // Error de un lote no debe ocultar los demás ni impedir usar el análisis fundamental completo.
+  var editorialPromise = Promise.all([1,2,3,4,5,6].map(function (n) {
+    return fetch('editorial/articulos-' + n + '.json?v=20261014', { cache: 'no-store' })
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .catch(function () { return null; });
+  })).then(function (batches) {
+    batches.forEach(function (batch) {
+      if (!batch || batch.schema !== 'jmr-editorial-v1' || !batch.articulos) return;
+      Object.keys(batch.articulos).forEach(function (ticker) {
+        editorialArticles[ticker.toUpperCase()] = batch.articulos[ticker];
+      });
+    });
+    renderLibrary();
+    renderPreview();
+    return Object.keys(editorialArticles).length;
+  });
+
   renderGhBanner();
   el('compareOutput').innerHTML='<div class="compare-empty">Elegí dos empresas arriba para verlas lado a lado.</div>';
   renderLibrary();renderPreview();loadPrompt(false);
@@ -985,12 +1411,16 @@
     applyDeepLinkFilter();
     if (deepLinkId) applyDeepLinkId();
     return pushLocalOnlyToRemote();
-  }).catch(function () {}).finally(function () {
+  }).catch(function (err) {
+    applyDeepLinkFilter();
+    if (deepLinkId) applyDeepLinkId();
+    setStatus('libraryStatus',err.message,'bad');
+  }).finally(function () {
     // Señal para api/pdf.js: se espera este flag en vez de un timeout fijo,
     // porque syncRemote() es asíncrono y termina después de que la red
     // queda "quieta". Si pdfmode pidió un id que no existe, igual hay que
     // liberar a Chromium en vez de dejarlo colgado.
-    if (pdfMode) window.__pdfReady = true;
+    if (pdfMode) editorialPromise.finally(function () { window.__pdfReady = true; });
   });
   if ('serviceWorker' in navigator) window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});
 })();

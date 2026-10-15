@@ -1,18 +1,34 @@
-const CACHE = "modelo-jmr-v92";
+const CACHE = "modelo-jmr-v155-anclas-calculos";
 const APP_SHELL = [
   "index.html",
+  "colombia.html",
+  "colombia/app.js",
+  "colombia/core.js",
+  "colombia/catalog.js",
+  "prompts/colombia-nucleo-v1.md",
+  "prompts/colombia-research-v1.md",
+  "prompts/colombia-valuation-v1.md",
   "visor.html",
   "screener.html",
+  "damodaran.html",
+  "damodaran/multiplos.json",
+  "damodaran/valoraciones.json",
   "calculadora.html",
   "research.html",
   "research.js",
+  "report-anchors.js",
+  "method-details.js",
   "portafolio.html",
   "portafolio.js",
   "mi-bitacora.html",
   "jmr-theme.css",
   "gh_oauth.js",
+  "decision.js",
+  "valuation-board.js",
+  "mercado.js",
   "oauth-callback.html",
-  "prompts/analisis-fundamental-v1.md",
+  "prompts/research-fundamental-jmr-v5.md",
+  "prompts/valoracion-modelo-jmr-v4.md",
   "auth.js",
   "jmr_engine.js",
   "market_data.js",
@@ -47,7 +63,8 @@ self.addEventListener("fetch", (event) => {
   // financialmodelingprep.com pasan sin cachear: son datos vivos (precios,
   // análisis, hipótesis) y cachearlas podía terminar sirviendo una
   // respuesta vieja como si fuera la actual ante cualquier hipo de red.
-  if (new URL(event.request.url).origin !== self.location.origin) return;
+  const requestUrl = new URL(event.request.url);
+  if (requestUrl.origin !== self.location.origin || requestUrl.pathname.startsWith("/api/")) return;
   event.respondWith(
     fetch(event.request)
       .then((res) => {

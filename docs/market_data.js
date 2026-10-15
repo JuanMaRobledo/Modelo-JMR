@@ -309,6 +309,7 @@ var MarketData = (function () {
   function fetchPrice(ticker) {
     var t = (ticker || "").trim().toUpperCase();
     if (!t) return Promise.reject(new Error("Ingresa un ticker."));
+    if (/\.CL$/.test(t)) return Promise.reject(new Error("Esta acción local se consulta en Acciones colombianas, con datos y expediente independientes."));
     var key = getApiKey();
     if (!key) {
       var e = new Error("Falta la API key de Financial Modeling Prep.");
@@ -329,6 +330,7 @@ var MarketData = (function () {
   function fetchQuote(ticker) {
     var t = (ticker || "").trim().toUpperCase();
     if (!t) return Promise.reject(new Error("Ingresa un ticker."));
+    if (/\.CL$/.test(t)) return Promise.reject(new Error("Esta acción local se consulta en Acciones colombianas, con datos y expediente independientes."));
     var key = getApiKey();
     if (!key) {
       var e = new Error("Falta la API key de Financial Modeling Prep.");
@@ -350,6 +352,7 @@ var MarketData = (function () {
   function buscar(ticker) {
     var t = (ticker || "").trim().toUpperCase();
     if (!t) return Promise.reject(new Error("Ingresa un ticker."));
+    if (/\.CL$/.test(t)) return Promise.reject(new Error("Esta acción local se consulta en Acciones colombianas, con datos y expediente independientes."));
     var key = getApiKey();
     if (!key) {
       var e = new Error("Falta la API key de Financial Modeling Prep.");

@@ -31,6 +31,7 @@ nav.appnav{display:flex;gap:4px;padding:14px 20px 0;max-width:1180px;margin:0 au
 .quality{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}.quality span{font-size:10.5px;border-radius:999px;padding:4px 8px;background:var(--negative-soft);color:var(--negative)}.quality span.ok{background:var(--positive-soft);color:var(--positive)}
 .news-item{display:flex;align-items:center;flex-wrap:wrap;gap:8px}.impact-badge{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;border-radius:999px;padding:2px 8px;margin-left:auto}.impact-alta{background:var(--negative-soft);color:var(--negative)}.impact-media{background:var(--accent-soft);color:var(--accent-ink)}.impact-baja{background:var(--surface-2);color:var(--ink-faint)}
 .linked-valuation{border-color:var(--positive);background:color-mix(in oklab,var(--positive-soft) 55%,var(--surface-2))}.linked-tag{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--positive);margin-bottom:8px}.linked-visor-link{display:inline-block;font-size:11px;font-weight:700;color:var(--accent);text-decoration:none;margin-left:10px}.linked-visor-link:hover{text-decoration:underline}.linked-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}.linked-kv{background:var(--surface);border:1px solid var(--border-soft);border-radius:9px;padding:8px 10px}.linked-kv span{display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-faint);margin-bottom:2px}.linked-kv strong{font-family:"IBM Plex Mono",monospace;font-size:13px}
+.linked-scenarios{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:12px 0 18px}.linked-scenario{background:var(--surface);border:1px solid var(--border-soft);border-radius:12px;padding:12px}.linked-scenario.featured{border-color:var(--accent);box-shadow:0 2px 9px var(--shadow)}.linked-scenario span{display:block;color:var(--ink-faint);font-size:10px;text-transform:uppercase;letter-spacing:.05em}.linked-scenario strong{display:block;font:700 19px "IBM Plex Mono",monospace;margin:5px 0;color:var(--ink)}.linked-scenario small{color:var(--ink-soft);font:11px "IBM Plex Mono",monospace}.linked-note{font-size:12.5px;color:var(--ink-soft);margin:10px 0 0}.linked-scenarios.secondary .linked-scenario{background:var(--surface-2)}.linked-scenarios.secondary .linked-scenario strong{font-size:16px}.linked-scenario.featured strong{font-size:23px}
 .editor-toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 22px;border-bottom:1px solid var(--border-soft);background:var(--surface-2)}.editor-toolbar .btn{padding:6px 11px;font-size:12px}.editor-toolbar .help{font-size:11px;color:var(--ink-faint);flex:1 1 160px}
 #editableContent[contenteditable="true"]{outline:2px dashed var(--accent);outline-offset:6px;border-radius:8px;cursor:text}
 #editorActions[hidden]{display:none}
@@ -43,23 +44,83 @@ nav.appnav{display:flex;gap:4px;padding:14px 20px 0;max-width:1180px;margin:0 au
 @media(max-width:900px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.editor-grid,.prompt-layout{grid-template-columns:1fr}.sticky{position:static}}@media(max-width:600px){.wrap{padding-left:14px;padding-right:14px}.hero{padding-top:25px}.theme-btn{display:none}.cards{grid-template-columns:1fr}.company-banner{align-items:flex-start}.company-name h2{font-size:19px}.preview-body{padding:19px 16px}.live-price strong{font-size:16px}}
 @media print{nav,.hero,.tabs,.editor-grid>.stack,.theme-btn,.actions,.disclaimer,#ghConnectBanner,.editor-toolbar{display:none!important}.panel{display:block!important}.panel:not(.active){display:none!important}.editor-grid{display:block}.preview-shell{box-shadow:none;border:0}.preview-body{padding:0}.company-banner{padding:0 0 16px;background:none}.wrap{max-width:none;padding:0}.pdf-header{display:flex!important}}
 .pdf-header{display:none;align-items:center;gap:14px;margin-bottom:18px;padding-bottom:14px;border-bottom:2px solid var(--border-soft)}
+.research-toc{margin:0 0 28px;padding:18px 22px;background:var(--surface-2);border:1px solid var(--border-soft);border-radius:12px}.research-toc h2{font-family:"Fraunces",Georgia,serif;font-size:19px;margin:0 0 12px;padding:0;border:0}.research-toc ol{columns:2;column-gap:28px;margin:0;padding-left:20px}.research-toc li{break-inside:avoid;text-align:left;margin:0 0 5px}.research-toc .toc-h3{margin-left:14px;font-size:12px}.research-toc a{text-decoration:none}.research-toc a:hover,.research-toc a:focus{text-decoration:underline}.research-document h2[id],.research-document h3[id]{scroll-margin-top:24px}@media(max-width:600px){.research-toc ol{columns:1}}@media print{.research-toc{break-inside:avoid}.research-toc a{color:inherit;text-decoration:none}}
+body.research-page .wrap{max-width:none;padding-inline:clamp(16px,2.5vw,48px)}body.research-page nav.appnav{max-width:none}.editor-grid{display:flex;flex-direction:column;gap:16px}.editor-grid>.setup-panel,.editor-grid>.analysis-actions,.editor-grid>.preview-shell{width:100%;min-width:0}.setup-panel{border:1px solid var(--border-soft);background:var(--surface);border-radius:14px}.setup-panel>summary{cursor:pointer;padding:15px 20px;font-weight:700;list-style-position:inside}.setup-panel>summary span{font-size:12px;font-weight:400;color:var(--ink-faint);margin-left:10px}.setup-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;padding:0 16px 16px}.setup-grid .box{min-width:0}.analysis-actions{padding:13px 20px}.analysis-actions h3{margin:0}.analysis-actions .actions{margin-top:9px}.analysis-actions .status:empty{display:none}.save-help summary{cursor:pointer;font-size:12px;color:var(--ink-faint)}.save-help .help{margin:8px 0 0}.preview-body{padding:clamp(20px,3vw,56px)}.research-document{max-width:none}@media(max-width:900px){.setup-grid{grid-template-columns:1fr}}@media(max-width:600px){.setup-panel>summary span{display:block;margin:3px 0 0}.preview-body{padding:20px 16px}}@media print{.setup-panel,.analysis-actions{display:none!important}body.research-page .wrap{padding:0}.editor-grid{display:block}.preview-body{padding:0}}
+.research-document table,.research-document .valuation-table{display:table;table-layout:fixed;width:100%;max-width:100%;overflow:visible}
+.research-document th,.research-document td{white-space:normal;overflow-wrap:anywhere;word-break:normal;vertical-align:top}
+.research-document th *, .research-document td *{max-width:100%;overflow-wrap:anywhere;white-space:normal}
+.compare-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.compare-col{min-width:0}
+@media(max-width:900px){.compare-grid{grid-template-columns:1fr}}
+@media(max-width:600px){.research-document th,.research-document td{padding:4px;font-size:clamp(9px,2.5vw,12px);line-height:1.35}}
+/* Tablas anchas (8+ columnas, p. ej. la trayectoria anual de cada historia): en móvil se desplazan en horizontal en vez de solaparse. */
+@media(max-width:600px){.research-document table:not(.jvb-table):has(tr>:nth-child(8)){display:block;overflow-x:auto;table-layout:auto;-webkit-overflow-scrolling:touch}.research-document table:not(.jvb-table):has(tr>:nth-child(8)) th,.research-document table:not(.jvb-table):has(tr>:nth-child(8)) td{white-space:nowrap;overflow-wrap:normal}}
+@media print{.research-document th,.research-document td{padding:4px;font-size:10px}}
 .pdf-header img{width:52px;height:auto;flex:none}
+/* Tablas del análisis (30-sep-2026): contenedor redondeado, encabezado sobrio,
+   filas alternas suaves y números alineados a la derecha (research.js marca
+   las celdas numéricas con .num). El tablero de valoración (.jvb-table) tiene
+   su propio estilo. */
+.research-document table:not(.jvb-table){border-collapse:separate;border-spacing:0;border:1px solid var(--border-soft);border-radius:12px;overflow:hidden;background:var(--surface);margin:18px 0 22px;box-shadow:var(--shadow)}
+.research-document table:not(.jvb-table) th,.research-document table:not(.jvb-table) td{border:0;border-bottom:1px solid var(--border-soft);padding:9px 12px;line-height:1.45}
+.research-document table:not(.jvb-table) thead th{background:var(--surface-2);font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-faint);vertical-align:bottom}
+.research-document table:not(.jvb-table) tbody th{background:transparent;font-size:inherit;font-weight:650;color:var(--ink)}
+.research-document table:not(.jvb-table) tbody tr:last-child>*{border-bottom:0}
+.research-document table:not(.jvb-table) tbody tr:nth-child(even)>*{background:color-mix(in oklab,var(--surface-2) 45%,var(--surface))}
+.research-document table:not(.jvb-table) tbody tr:hover>*{background:var(--accent-soft)}
+.research-document table:not(.jvb-table) .num{text-align:right;font-family:"IBM Plex Mono",monospace;font-size:12.5px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow-wrap:normal}
+.research-document table:not(.jvb-table) thead th.num{font-family:inherit;font-size:10.5px;white-space:normal;overflow-wrap:normal}
+@media(min-width:601px){.research-document table:not(.jvb-table){table-layout:auto}.research-document table:not(.jvb-table) th,.research-document table:not(.jvb-table) td{overflow-wrap:normal}}
+.research-document table:not(.jvb-table) td strong{color:var(--ink)}
+@media(max-width:600px){.valuation-block{padding:12px 10px}.research-document table:not(.jvb-table) th,.research-document table:not(.jvb-table) td{padding:6px 7px;font-size:clamp(10px,2.8vw,12.5px)}.research-document table:not(.jvb-table) .num{font-size:clamp(10px,2.7vw,12px);white-space:normal}}
+@media print{.research-document table:not(.jvb-table){box-shadow:none;border-radius:0}.research-document table:not(.jvb-table) tbody tr:hover>*{background:none}}
 .pdf-header .pdf-header-text strong{display:block;font-size:16px;color:var(--ink)}
 .pdf-header .pdf-header-text span{font-size:12px;color:var(--ink-faint)}
 </style>
 <link rel="stylesheet" href="jmr-theme.css">
+<style>
+/* Lectura JMR en dos niveles, independiente del contenido técnico original. */
+.jmr-editorial-article{max-width:910px;margin:0 auto 22px;padding:0 3px 14px}
+.jmr-editorial-label{font-family:"IBM Plex Mono",monospace;font-weight:700;font-size:11px;letter-spacing:.11em;color:var(--accent);margin:0 0 18px}
+.jmr-editorial-article h1{font-size:clamp(28px,4.5vw,38px);line-height:1.2;letter-spacing:-.015em;margin:0 0 15px}
+.jmr-editorial-article h2{font-size:clamp(18px,2.4vw,23px);line-height:1.34;border:0;padding:0;margin:26px 0 11px}
+.jmr-editorial-article p{font-size:15px;line-height:1.85;text-align:left;hyphens:none;margin-bottom:16px;max-width:85ch}
+.jmr-editorial-article p.jmr-editorial-meta{font-size:12px;color:var(--ink-faint);margin:-5px 0 25px}
+.jmr-editorial-article a{text-underline-offset:3px}
+.jmr-editorial-source{padding:12px 14px;border-top:1px solid var(--border-soft);margin-top:18px}
+/* La tarjeta de valoración forma parte del artículo, no del nivel 2.
+   Así permanece visible en pantalla, en Imprimir/PDF y en el PDF del servidor. */
+.jmr-valuation-summary{max-width:940px;margin:30px auto 32px;padding:15px 20px 17px;border:1px solid var(--border);border-radius:14px;background:var(--surface)}
+.jmr-valuation-summary>h2{font-family:"Fraunces",Georgia,serif;font-size:24px;margin:0 0 16px!important;border:0!important;padding:0!important}
+.jmr-valuation-summary>.linked-valuation,.jmr-valuation-summary>.valuation-block{margin:0;background:var(--surface-2)}
+@media print{
+  .jmr-valuation-summary{max-width:none;margin:0 0 20px;padding:0;border:0;border-radius:0;break-before:page;page-break-before:always;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+  .jmr-valuation-summary>h2{break-after:avoid;page-break-after:avoid;margin:0 0 14px!important}
+  .jmr-valuation-summary .jvb-primary-card,.jmr-valuation-summary .linked-kv,.jmr-valuation-summary .jvb-ve,.jmr-valuation-summary .jvb-holding{break-inside:avoid;page-break-inside:avoid}
+  .jmr-valuation-summary .linked-visor-link,.jmr-valuation-summary .jvb-bar{display:none!important}
+  .jmr-valuation-summary .jvb-tw{overflow:visible!important}
+}
+.jmr-research-details{border:1px solid var(--border);border-radius:12px;background:var(--surface);margin:26px 0 10px}
+.jmr-research-details>summary{cursor:pointer;list-style:disclosure-closed;padding:17px 20px;font-size:14px;font-weight:700;color:var(--accent-ink);background:var(--accent-soft);border-radius:12px}
+.jmr-research-details[open]>summary{border-radius:12px 12px 0 0;border-bottom:1px solid var(--border)}
+.jmr-method-details{border:1px solid var(--border);border-radius:12px;margin:16px 0;padding:14px}.jmr-method-details>summary{cursor:pointer;font-weight:700;color:var(--accent-ink)}@media print{.jmr-method-details:not([open]){display:none!important}}
+.jmr-technical-content{padding:20px 18px;overflow-wrap:anywhere}
+@media(max-width:620px){.jmr-editorial-article{padding:0}.jmr-editorial-article p{font-size:14px;line-height:1.72}.jmr-research-details>summary{padding:15px 12px}.jmr-technical-content{padding:13px 8px}}
+@media print{.jmr-editorial-article{max-width:none}.jmr-research-details:not([open]){display:none!important}.jmr-editorial-label{color:#555}}
+</style>
 </head>
-<body>
+<body class="research-page">
 <script src="auth.js"></script>
-<nav class="appnav">
-  <a class="jmr-home" href="https://cartera-two-eta.vercel.app/" title="Centro financiero JMR">JMR</a>
-  <a href="index.html">Bitácora de Valoración</a>
+<script src="mercado.js"></script>
+<nav class="appnav" aria-label="Navegación principal">
+  <a href="https://cartera-two-eta.vercel.app/">JMR</a>
+  <a href="index.html">Referencias</a>
+  <a href="visor.html">Internacionales</a>
+  <a href="visor.html?mercado=colombia">Colombia</a>
   <a href="screener.html">Screener</a>
-  <a href="research.html" class="active">Análisis Fundamental</a>
-  <a href="visor.html">Valoración - Modelo JMR</a>
   <a href="calculadora.html">Calculadora DCF</a>
   <a href="portafolio.html">Portafolio</a>
-  <a href="mi-bitacora.html">Mi Bitácora</a>
+  <a href="damodaran.html">Damodaran</a>
+  <a href="mi-bitacora.html">Mi bitácora</a>
 </nav>
 <script>(function(){var a=document.querySelector('nav.appnav a.active');if(a)a.scrollIntoView({inline:'center',block:'nearest'});})();</script>
 <main class="wrap">
@@ -81,7 +142,9 @@ nav.appnav{display:flex;gap:4px;padding:14px 20px 0;max-width:1180px;margin:0 au
   </section>
   <section class="panel" data-panel="editor">
     <div class="editor-grid">
-      <div class="stack">
+      <details class="setup-panel" id="analysisSettings" open>
+        <summary>Datos y herramientas del análisis <span>Empresa · documento · valoración · noticias</span></summary>
+        <div class="setup-grid">
         <section class="box"><h2>1. Empresa</h2><p class="help">La cotización y el logo se consultan con la misma clave FMP del resto del modelo.</p>
           <div class="field"><label for="tickerInput">Ticker</label><div class="row"><input id="tickerInput" autocomplete="off" spellcheck="false" placeholder="Ej. ADBE"><button class="btn" id="quoteBtn" type="button">Consultar</button></div></div>
           <div class="field"><label for="companyInput">Empresa</label><input id="companyInput" placeholder="Nombre completo"></div>
@@ -103,11 +166,12 @@ nav.appnav{display:flex;gap:4px;padding:14px 20px 0;max-width:1180px;margin:0 au
           <div class="row"><button class="btn" id="fetchNewsBtn" type="button">Buscar noticias recientes</button></div>
           <p class="status" id="newsStatus"></p>
           <div class="field"><label for="newsInput">Noticias y eventos</label><textarea id="newsInput" placeholder="Resultados Q2 superan expectativas | https://… | 2026-08-15 | Alta"></textarea></div></section>
-        <section class="box"><h3>Guardar</h3><p class="help">Se guarda siempre una copia local. Si ya conectaste GitHub en el Visor, también se guarda en <code>Modelo-JMR-datos/analisis</code> — cada guardado ahí queda como una versión distinta en el historial de git, recuperable desde “Ver historial” — y aparece automáticamente en <a href="mi-bitacora.html">Mi Bitácora</a> (con las zonas y escenarios del Visor si lo vinculaste arriba) — se lee en vivo desde acá, así que si después editás el análisis, se actualiza solo, sin duplicar nada.</p><div class="actions" id="editorActions"><button class="btn primary" id="saveBtn" type="button">Guardar análisis</button><button class="btn" id="newBtn" type="button">Limpiar</button><button class="btn" id="printBtn" type="button">Imprimir / PDF</button><button class="btn" id="downloadPdfBtn" type="button">Descargar PDF (rápido)</button><button class="btn" id="downloadRealPdfBtn" type="button" hidden>Descargar PDF</button><button class="btn" id="substackBtn" type="button">Copiar para Substack</button><button class="btn" id="historyBtn" type="button" hidden>Ver historial</button></div><p class="status" id="saveStatus"></p><p class="status" id="realPdfStatus"></p>
+        </div>
+      </details>
+        <section class="box analysis-actions"><h3>Acciones del análisis</h3><details class="save-help"><summary>Cómo se guarda</summary><p class="help">Se guarda una copia local y, si conectaste GitHub, otra en <code>Modelo-JMR-datos/analisis</code>. Puedes recuperar versiones desde “Ver historial”.</p></details><div class="actions" id="editorActions"><button class="btn primary" id="saveBtn" type="button">Guardar análisis</button><button class="btn" id="newBtn" type="button">Limpiar</button><button class="btn" id="printBtn" type="button">Imprimir / PDF</button><button class="btn" id="downloadPdfBtn" type="button">Descargar PDF (rápido)</button><button class="btn" id="downloadRealPdfBtn" type="button" hidden>Descargar PDF</button><button class="btn" id="substackBtn" type="button">Copiar para Substack</button><button class="btn" id="historyBtn" type="button" hidden>Ver historial</button></div><p class="status" id="saveStatus"></p><p class="status" id="realPdfStatus"></p>
           <div id="historyPanel" hidden></div>
         </section>
-      </div>
-      <section class="box preview-shell"><div class="pdf-header"><img src="assets/jmr-sello-grabado.png" alt="JMR"><div class="pdf-header-text"><strong>Modelo JMR · Análisis Fundamental</strong><span id="pdfHeaderDate"></span></div></div><div class="company-banner"><div class="identity"><img class="company-logo" id="previewLogo" alt="" hidden><div class="company-name"><h2 id="previewCompany">Nuevo análisis</h2><div class="ticker" id="previewTicker">—</div></div></div><div class="live-price"><span>Precio al día</span><strong id="previewPrice">—</strong><small id="previewPriceNote"></small></div></div><div class="editor-toolbar" id="editorToolbar" hidden></div><article class="preview-body" id="previewBody"><div class="preview-empty">Sube un documento para ver aquí la versión normalizada.</div></article></section>
+      <section class="box preview-shell"><div class="pdf-header"><img src="assets/jmr-sello-grabado.png" alt="JMR"><div class="pdf-header-text"><strong>Modelo JMR · Análisis Fundamental</strong><span id="pdfHeaderDate"></span></div></div><div class="company-banner"><div class="identity"><img class="company-logo" id="previewLogo" alt="" hidden><div class="company-name"><h2 id="previewCompany">Nuevo análisis</h2><div class="ticker" id="previewTicker">—</div></div></div><div class="live-price"><span>Precio consultado</span><strong id="previewPrice">—</strong><small id="previewPriceNote"></small></div></div><div id="decisionBox" class="no-print"></div><div class="editor-toolbar" id="editorToolbar" hidden></div><article class="preview-body" id="previewBody"><div class="preview-empty">Sube un documento para ver aquí la versión normalizada.</div></article></section>
     </div>
   </section>
   <section class="panel" data-panel="compare">
@@ -122,12 +186,16 @@ nav.appnav{display:flex;gap:4px;padding:14px 20px 0;max-width:1180px;margin:0 au
     <div class="compare-grid" id="compareOutput"></div>
   </section>
   <section class="panel" data-panel="prompt">
-    <div class="prompt-layout"><textarea class="prompt-text" id="promptText" spellcheck="false" aria-label="Prompt maestro"></textarea><aside class="stack sticky"><div class="box"><h3>Prompt maestro</h3><p class="help">Úsalo en ChatGPT o Claude. El esquema fijo hace que ambos produzcan documentos comparables.</p><div class="actions"><button class="btn primary" id="copyPromptBtn" type="button">Copiar prompt</button><button class="btn" id="savePromptBtn" type="button">Guardar cambios</button><button class="btn" id="downloadPromptBtn" type="button">Descargar .md</button><button class="btn" id="resetPromptBtn" type="button">Restaurar</button></div><p class="status" id="promptStatus"></p></div><div class="note">Recomendación: adjunta informes anuales, presentaciones y transcripciones. Pide al modelo que distinga hechos, estimaciones e inferencias y que cite cada afirmación material.</div></aside></div>
+    <div class="prompt-layout"><textarea class="prompt-text" id="promptText" spellcheck="false" aria-label="Prompt maestro"></textarea><aside class="stack sticky"><div class="box"><div class="actions" role="group" aria-label="Prompt a mostrar" style="margin-bottom:10px"><button class="btn primary" id="promptKindResearch" type="button" aria-pressed="true">Research v5</button><button class="btn" id="promptKindValuation" type="button" aria-pressed="false">Valoración v4</button></div><h3 id="promptTitle">Prompt maestro v5 · 18 secciones · historias y escenarios</h3><p class="help" id="promptHelp">Úsalo en ChatGPT o Claude junto con la tabla del Modelo JMR. El esquema fijo hace que ambos produzcan documentos comparables.</p><div class="actions"><button class="btn primary" id="copyPromptBtn" type="button">Copiar prompt</button><button class="btn" id="savePromptBtn" type="button">Guardar cambios</button><button class="btn" id="downloadPromptBtn" type="button">Descargar .md</button><button class="btn" id="resetPromptBtn" type="button">Restaurar</button></div><p class="status" id="promptStatus"></p></div><div class="note" id="promptNote">Adjunta la tabla JMR y los informes disponibles. Revisión 30-sep-2026: cuatro historias como escenarios, DCF base y esperado juntos, cálculo explicado y auditoría de congruencia.</div></aside></div>
   </section>
 </main>
 <script src="market_data.js"></script>
 <script src="gh_oauth.js"></script>
-<script src="research.js"></script>
+<script src="decision.js?v=20261014-carga-informes"></script>
+<script src="valuation-board.js"></script>
+<script src="method-details.js?v=20261014"></script>
+<script src="report-anchors.js?v=20261014"></script>
+<script src="research.js?v=20261014-anclas-calculos"></script>
 <script>
 if("serviceWorker" in navigator){
   window.addEventListener("load", function(){

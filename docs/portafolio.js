@@ -73,9 +73,7 @@
     }).then(function (list) {
       var files = (Array.isArray(list) ? list : []).filter(function (f) { return /\.json$/i.test(f.name); });
       return Promise.all(files.map(function (f) {
-        return fetch(f.url || (GH_API + f.path), { headers: ghHeaders() }).then(function (r) { return r.json(); }).then(function (data) {
-          return JSON.parse(b64Decode(data.content.replace(/\n/g, '')));
-        }).catch(function (err) { console.error('Archivo ' + f.path + ':', err); return null; });
+        return fetch(f.url || (GH_API + f.path), { headers: Object.assign({}, ghHeaders(), { Accept: 'application/vnd.github.raw+json' }), cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }).catch(function (err) { console.error('Archivo ' + f.path + ':', err); return null; });
       }));
     }).then(function (records) { return records.filter(Boolean); }).catch(function (err) { console.error('Carpeta ' + folder + ':', err); return []; });
   }
@@ -156,7 +154,18 @@
 
   // Franjas de zonas de valor + líneas de objetivo — copia exacta de
   // buildZonesChart() en visor.html (mismo diseño visual en toda la app).
-  function buildZonesChart(precioActual, zonas, objetivoPonderado) {
+  // Zonas de compra sobre el valor esperado de las historias (sección Damodaran): mismos porcentajes del modelo
+  // (Value 70-65%, Deep Value 60-55%, Valoración histórica 50-45%) y precio con MOS = valor esperado × (1 − MOS).
+  // Sin valor esperado se usan las zonas guardadas de la hoja (sobre el objetivo FY+3 ponderado).
+  function zonasValorEsperado(r) {
+    var ve = r && r.valorEsperado && Number(r.valorEsperado.valor), mos = Number(r && r.mos);
+    if (!(ve > 0)) return null;
+    var z = function (a, b) { return { max: ve * a, min: ve * b }; };
+    var out = { value: z(0.70, 0.65), deepValue: z(0.60, 0.55), historica: z(0.50, 0.45) };
+    if (isFinite(mos)) out.conMOS = { min: ve * (1 - mos), max: ve * (1 - mos) };
+    return out;
+  }
+  function buildZonesChart(precioActual, zonas, objetivoPonderado, referencias) {
     if (!zonas) return '<div class="chart-empty">Sin datos suficientes.</div>';
     var rows = [
       { label: 'Precio con MOS', z: zonas.conMOS },
@@ -166,8 +175,8 @@
     ].filter(function (r) { return r.z && typeof r.z.min === 'number' && typeof r.z.max === 'number' && isFinite(r.z.min) && isFinite(r.z.max); });
     if (!rows.length) return '<div class="chart-empty">Sin datos suficientes.</div>';
 
-    var targets = [];
-    if (objetivoPonderado) {
+    var targets = referencias ? referencias.filter(function (r) { return typeof r.value === 'number' && isFinite(r.value); }) : [];
+    if (!referencias && objetivoPonderado) {
       if (typeof objetivoPonderado.conservador === 'number' && isFinite(objetivoPonderado.conservador)) targets.push({ value: objetivoPonderado.conservador, label: 'Conservador', cls: 'chart-ref-cons' });
       if (typeof objetivoPonderado.base === 'number' && isFinite(objetivoPonderado.base)) targets.push({ value: objetivoPonderado.base, label: 'Base', cls: 'chart-ref-base' });
       if (typeof objetivoPonderado.optimista === 'number' && isFinite(objetivoPonderado.optimista)) targets.push({ value: objetivoPonderado.optimista, label: 'Optimista', cls: 'chart-ref-opt' });
@@ -187,7 +196,7 @@
       var x1 = x(r.z.min), x2 = x(r.z.max);
       return '<g><text x="' + (padLeft - 12) + '" y="' + (barY + 4) + '" text-anchor="end" class="chart-lbl">' + r.label + '</text>' +
         '<rect x="' + x1 + '" y="' + (barY - 7) + '" width="' + Math.max(x2 - x1, 2) + '" height="14" rx="5" class="chart-zone-bar"><title>' + r.label + ': ' + fmtMoney(r.z.min) + ' – ' + fmtMoney(r.z.max) + '</title></rect>' +
-        '<text x="' + ((x1 + x2) / 2) + '" y="' + (rowCenter - 9) + '" text-anchor="middle" class="chart-zone-val">' + fmtMoney(r.z.min) + '–' + fmtMoney(r.z.max) + '</text></g>';
+        '<text x="' + ((x1 + x2) / 2) + '" y="' + (rowCenter - 9) + '" text-anchor="middle" class="chart-zone-val">' + (r.z.min === r.z.max ? fmtMoney(r.z.min) : fmtMoney(r.z.min) + '–' + fmtMoney(r.z.max)) + '</text></g>';
     }).join('');
     var marker = '';
     if (typeof precioActual === 'number' && isFinite(precioActual)) {
@@ -238,23 +247,30 @@
 
   function visorBlockHtml(entry) {
     var r = entry.visor;
-    if (!r) return '<div class="port-empty">Sin valoración guardada en el Visor. <a href="visor.html">Crear una →</a></div>';
+    if (!r) return '<div class="port-empty">Sin valoración guardada en el Visor. <a href="' + jmrMercadoHref('visor.html') + '">Crear una →</a></div>';
     var precio = typeof r.precio === 'number' ? r.precio : null;
+    var dm=r.descuentoMultiples||{}, mw=0, multiples={conservador:0,base:0,optimista:0};
+    (r.metodos||[]).forEach(function(m){if(/DCF/i.test(m.nombre||''))return;var w=Number(m.peso)||0;mw+=w;Object.keys(multiples).forEach(function(k){multiples[k]+=w*(Number(m[k])||0);});});
+    if(mw)Object.keys(multiples).forEach(function(k){multiples[k]/=mw;});
+    var zve = zonasValorEsperado(r);
+    function scenarios(label,s){return s?'<div class="port-kv"><span class="k">'+label+'</span><span class="v mono">Cons '+fmtMoney(s.conservador)+' · Base '+fmtMoney(s.base)+' · Opt '+fmtMoney(s.optimista)+'</span></div>':'';}
     return '' +
       '<div class="port-kv-row"><span class="port-fecha">Analizado el ' + escapeHtml(r.fecha || '—') + '</span></div>' +
       '<div class="port-kv"><span class="k">Precio al día del análisis</span><span class="v mono">' + fmtMoney(precio) + '</span></div>' +
-      (r.objetivoPonderado ? '<div class="port-kv"><span class="k">Objetivo ponderado</span><span class="v mono">Cons ' + fmtMoney(r.objetivoPonderado.conservador) + ' · Base ' + fmtMoney(r.objetivoPonderado.base) + ' · Opt ' + fmtMoney(r.objetivoPonderado.optimista) + '</span></div>' : '') +
-      '<div class="chart-card">' + buildZonesChart(precio, r.zonas, r.objetivoPonderado) + '</div>';
+      (typeof JmrValueBoard !== 'undefined' ? JmrValueBoard.html(JmrValueBoard.fromRecord(r), {hero:true}) : scenarios('DCF Base hoy',dm.dcfHoy)) +
+      '<div class="chart-card">' + (zve ? '<p class="port-zonas-nota">Zonas de compra sobre el valor esperado de las historias</p>' : '') +
+      (zve ? buildZonesChart(precio, zve, null, [{ value: r.valorEsperado.valor, label: 'Valor esperado', cls: 'chart-ref-base' }, { value: r.valorEsperado && r.valorEsperado.escenariosUnificados ? r.valorEsperado.valorCentral : dm.dcfHoy && dm.dcfHoy.base, label: r.valorEsperado && r.valorEsperado.escenariosUnificados ? 'Tesis Base' : 'DCF Base', cls: 'chart-ref-opt' }])
+           : buildZonesChart(precio, r.zonas, r.objetivoPonderado)) + '</div>';
   }
 
   function researchBlockHtml(entry) {
     var r = entry.research;
-    if (!r) return '<div class="port-empty">Sin análisis fundamental guardado. <a href="research.html">Crear uno →</a></div>';
+    if (!r) return '<div class="port-empty">Sin análisis fundamental guardado. <a href="' + jmrMercadoHref('research.html') + '">Crear uno →</a></div>';
     var excerpt = excerptFromHtml(r.html);
     return '' +
       '<div class="port-kv-row"><span class="port-fecha">' + escapeHtml(r.title || 'Tesis fundamental') + '</span></div>' +
       (excerpt ? '<p class="port-text">' + escapeHtml(excerpt) + '</p>' : '') +
-      '<p><a class="port-link" href="research.html?ticker=' + encodeURIComponent(entry.ticker) + '">Ver análisis completo →</a></p>';
+      '<p><a class="port-link" href="' + jmrMercadoHref('research.html?ticker=' + encodeURIComponent(entry.ticker), entry) + '">Ver análisis completo →</a></p>';
   }
 
   function cardHtml(entry) {
@@ -276,14 +292,15 @@
   var ALL = [];
   function render() {
     var q = normalizeText(el('portSearch').value);
-    var list = q ? ALL.filter(function (e) { return entrySearchText(e).indexOf(q) >= 0; }) : ALL;
+    var scoped = ALL.filter(jmrDelMercado);
+    var list = q ? scoped.filter(function (e) { return entrySearchText(e).indexOf(q) >= 0; }) : scoped;
     var holder = el('portList');
     if (!list.length) {
-      holder.innerHTML = '<div class="port-empty-state">' + (ALL.length ? 'Ningún ticker coincide con la búsqueda.' : 'No se pudo cargar ninguna fuente de datos todavía.') + '</div>';
+      holder.innerHTML = '<div class="port-empty-state">' + (scoped.length ? 'Ningún ticker coincide con la búsqueda.' : 'No hay registros en este mercado todavía.') + '</div>';
     } else {
       holder.innerHTML = list.map(cardHtml).join('');
     }
-    el('portStatus').textContent = list.length + ' de ' + ALL.length + ' tickers · combina Mi Bitácora, la Bitácora externa, el Visor y Análisis Fundamental por ticker';
+    el('portStatus').textContent = list.length + ' de ' + scoped.length + ' tickers · ' + (JMR_MERCADO === 'colombia' ? 'Colombia' : 'Internacionales') + ' · Mi Bitácora, valoraciones y análisis';
   }
 
   function boot() {
@@ -301,3 +318,4 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
 })();
+

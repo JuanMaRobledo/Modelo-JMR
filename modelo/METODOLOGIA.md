@@ -193,3 +193,272 @@ para escalonar compras (no todo de una vez):
 
 Usa `Modelo_Valoracion.xlsx` (pestaña **Calculadora**) para aplicar este checklist con fórmulas
 automáticas.
+
+---
+
+## Anexo — Modelo en Google Sheets (DCF Damodaran + 5 múltiplos): de dónde salen los supuestos
+
+La plantilla maestra de Google Sheets (`Modelo_JMR_Plantilla_Maestra`, que llena el pipeline de
+`JuanMaRobledo/JMR-valuation`) lleva el Paso 5 a un modelo completo. Cada copia trae una hoja
+**«Origen de los Supuestos»** que muestra, con fórmulas vivas, el valor de cada supuesto por
+escenario, la fórmula real de la celda y las anclas históricas y de industria para contrastarlo.
+Este anexo resume las reglas.
+
+### Cómo se arma el precio objetivo
+
+- **Seis métodos**: DCF de Damodaran y cinco múltiplos (EV/EBITDA, EV/FCFF, P/E, P/FCFE, P/OCF).
+  El precio objetivo es su promedio ponderado. Los pesos dependen de la categoría de empresa
+  elegida en `Resumen de Valoración!G3` (tabla `I5:U11`). Por ejemplo, «Madura» da DCF 40%,
+  EV/EBITDA 20%, P/E 20%, EV/FCFF 10%, P/FCFE 5% y P/OCF 5%; «Software» da 60% al DCF, y
+  «Financiera» da 0% a los múltiplos EV.
+- **Horizonte común de 3 años.** Cada múltiplo da el precio al cierre del año fiscal FY+3 más
+  los dividendos cobrados en el camino. El DCF da el valor intrínseco *hoy*, así que se lleva
+  a 3 años con el costo del equity: `valor × (1 + Ke)³`. Así el «CAGR a 3 años» y las zonas de
+  compra comparan magnitudes del mismo momento.
+- **Valor intrínseco hoy (29-sep-2026).** Además del precio FY+3, cada valoración trae la hoja
+  **«Descuento de múltiplos»**, que pone todo en dólares de hoy para poder ponderar el DCF con los
+  múltiplos sin mezclar momentos:
+  1. Para cada múltiplo (EV/EBITDA, EV/FCFF, P/E, P/FCFE, P/OCF), escenario y horizonte n = 1, 2 y
+     3 años se toma el precio objetivo al cierre de FY+n (múltiplo × métrica proyectada) más los
+     dividendos por acción acumulados hasta ese año, sumados en nominal (filas 12, 23 y 34, columnas
+     F:H de cada hoja de múltiplo).
+  2. Ese total se trae a hoy con el costo del patrimonio (Ke, `Cost of capital worksheet!B63`, el
+     mismo con que se lleva el DCF a FY+3): `VP_n = (Precio FY+n + Dividendos FY+1..FY+n) ÷ (1 + Ke)^n`.
+     Se usa Ke y no el WACC porque se descuenta un precio por acción (patrimonio); el WACC descuenta
+     flujos a la firma. `C5` permite escribir otra tasa.
+  3. Son 15 valores presente por escenario (5 métodos × 3 horizontes). Cada método se consolida con
+     el **promedio simple de los tres horizontes** (criterio por defecto: suaviza la dependencia de un
+     solo año de salida) o, eligiendo «Solo 3 años» en `C6`, con el VP a 3 años.
+  4. **Múltiplos consolidados** = promedio de los 5 métodos con sus pesos de la categoría,
+     reescalados a 100% dentro de los múltiplos. **Valor intrínseco ponderado** = DCF hoy × peso DCF
+     + múltiplos consolidados × peso de los múltiplos (los pesos de `Resumen de Valoración!I5:U11`;
+     ej. «Madura»: 40% DCF y 60% múltiplos, con EV/EBITDA y P/E 20% cada uno).
+  5. Chequeo matemático: el VP a 3 años de cada método y del consolidado debe ser menor que el precio
+     FY+3 sin descontar (columna K y filas 47-49). Si algún método da un precio ≤ 0 se marca «n/a».
+
+  El Resumen (filas 30-47) y el visor web muestran por separado el DCF hoy, los múltiplos
+  consolidados hoy, el ponderado y cada método a valor hoy, para ver cuánto divergen la valoración
+  intrínseca y la relativa (enfoque de Damodaran). El precio de compra con MOS de la fila 36 sale del
+  ponderado hoy. Script: `JMR-valuation/scripts/discount_multiples.py` (plantilla maestra y copias).
+- **Tres escenarios.** El **Base** lo fija el analista (`Input sheet` B27–B33) con la guía de la
+  empresa, el consenso y la historia, y lo justifica en la hoja «Tesis de Inversión y
+  Supuestos». **Conservador** y **Optimista** salen de reglas sobre el Base en
+  `Valuation output` (C45, C47, C55, C106). Cada valoración puede ajustar esas reglas, y la hoja
+  «Origen de los Supuestos» muestra la regla vigente.
+
+### Crecimiento de ingresos
+
+| Tramo | Base | Conservador (regla de la plantilla) | Optimista (regla de la plantilla) |
+|---|---|---|---|
+| Año 1 | Analista (`Input` B27): guía de la empresa y consenso del próximo año fiscal | mín(Año 1; Años 2-5) − 1,5 pp | máx(Año 1; Años 2-5) + 1 pp |
+| Años 2-5 | Analista (`Input` B29): consenso a 2-3 años y CAGR histórico | igual al Año 1 conservador | igual al Año 1 optimista |
+| Años 6-10 | Convergen en línea recta a la tasa de perpetuidad | ídem | ídem |
+| Perpetuidad | Tasa libre de riesgo (`Input` B35), salvo override en B65–B69 | ídem | ídem |
+
+Anclas para validar el Base: crecimiento del último año fiscal y CAGR de 3, 5 y 9 años
+(«Crecimiento y Márgenes»), mediana de los peers de la hoja «Sector» y promedio de la industria
+de Damodaran (`Input` J26).
+
+### Margen operativo (EBIT)
+
+| Tramo | Base | Conservador | Optimista |
+|---|---|---|---|
+| Año 0 | EBIT base ÷ ingresos (con I+D y arriendos capitalizados si aplica) | ídem | ídem |
+| Año 1 | Analista (`Input` B28) | igual | igual |
+| Objetivo | Analista (`Input` B30): guía de largo plazo, margen histórico y comparables maduros | el margen no mejora (se queda en el Año 0) | objetivo Base + 5 pp |
+| Convergencia | Lineal desde el Año 1 hasta el objetivo en el año `Input` B31 | ídem | ídem |
+
+La reinversión sale del **sales-to-capital** (`Input` B32/B33: Δ ingresos ÷ Δ capital
+invertido, calculado de abajo hacia arriba con la historia de la empresa). Como chequeo, el ROIC
+implícito del año 10 no debería superar por mucho al actual ni al de la industria.
+
+**ROIC después del año 10** (`Input` B49/B50), criterio Damodaran (30-sep-2026). El crecimiento solo crea valor si la empresa gana
+más que su costo de capital; en crecimiento estable la reinversión es g ÷ ROIC. Damodaran supone por defecto ROIC = costo de capital,
+pero advierte que los retornos excedentes persisten y que llevar el ROIC hacia el promedio de la industria da valores más razonables
+(*Investment Valuation*, cap. 12):
+
+| Veredicto (sección 6) | Evidencia | ROIC terminal |
+|---|---|---|
+| Sin ventaja defendible | No gana sobre el costo de capital de forma sostenida (3 años), o no hay ventaja identificable | Costo de capital |
+| Ventaja durable | Gana sobre el costo de capital, ventaja identificable y sin desgaste visible | Promedio de la industria (Damodaran), sin superar el ROIC actual |
+| Ventaja que se desvanece | Igual, pero con desgaste visible hoy (ROIC en caída por competencia, pérdida de participación) | Punto medio entre el costo de capital terminal y ese valor |
+
+Ventajas identificables: costos de cambio, efectos de red, escala o costo, licencias, patentes y marca probada (20 años o más y un
+ciclo o una crisis superados). La probabilidad de perder la ventaja va a las historias (las de erosión usan el costo de capital).
+
+Si la industria no es
+representativa se usa la madura más cercana; el ROIC terminal nunca es mayor que el actual ni menor que el costo
+de capital. Clasificación vigente: JMR-valuation `reference/moat_2026-09-30.json`. En las historias de la sección
+Damodaran, las de erosión de la ventaja usan ROIC = costo de capital.
+
+Con ROIC terminal, la reinversión del año terminal es g ÷ ROIC × EBIT(1 − t). El motor de la app
+(`jmr_engine.js`) lo lee de la hoja (`inp.roicTerminal`).
+
+### Costo de capital
+
+Tasa libre de riesgo (bono a 10 años en la moneda de la valoración) + beta (desapalancada de la
+industria de Damodaran o de comparables, reapalancada con la deuda/equity de mercado) × prima de
+riesgo de mercado de Damodaran (según el país), ponderado con el costo de la deuda después de
+impuestos (rating real o sintético). Entre los años 6 y 10 el WACC converge al terminal:
+tasa libre de riesgo + ERP maduro.
+
+### Múltiplos objetivo (salida al cierre FY+3)
+
+- **Base = el menor múltiplo positivo que pagó el mercado por la empresa en sus últimos 4
+  cierres fiscales** (celda J19 de cada hoja de múltiplo). Si no hay ninguno positivo, se usa la
+  mediana de 5 años. Se usa el mínimo, no el promedio, por disciplina de margen de seguridad: si
+  la tesis funciona aun al múltiplo más bajo reciente, el retorno viene del negocio y no de una
+  re-valoración.
+- **Conservador = Base × 0,9** y **Optimista = Base × 1,1**. Un número escrito en J8/J19/J30
+  reemplaza el cálculo automático, y queda marcado en «Supuestos de los Múltiplos».
+- **Precio** = múltiplo × métrica proyectada al cierre FY+3 del mismo escenario
+  («Financials Multiples», que usa el crecimiento y el margen de ese escenario del DCF) ÷
+  acciones proyectadas. En EV/EBITDA y EV/FCFF se resta la deuda neta (deuda + arriendos − caja
+  − activos no operativos + minoritarios). Se suman los dividendos por acción de FY+1 a FY+3
+  (DPS de los últimos 12 meses × (1 + g); g es el CAGR de 5 años del DPS, acotado entre 0% y 15%).
+- La hoja «Origen de los Supuestos» pone al lado la mediana de 5 y 10 años, el múltiplo actual y
+  la mediana de los peers. Si el Base queda muy por encima de esas referencias, el precio
+  objetivo depende de una re-valoración y hay que justificarlo en la Tesis.
+
+> **Desde el 29-sep-2026 los múltiplos de cada valoración se eligen con el prompt de valoración v3**
+> (hoy `docs/prompts/valoracion-modelo-jmr-v4.md`, también en la pestaña «Prompt maestro» de Análisis
+> Fundamental). Cada múltiplo Conservador/Base/Optimista sale de tres anclas documentadas: la historia
+> de la empresa sin atípicos, la mediana de peers ajustada explícitamente por crecimiento, margen, ROIC
+> y riesgo, y el múltiplo justificado por fundamentales de Damodaran (EV/FCFF = (1+g)/(WACC−g),
+> P/FCFE = (1+g)/(Ke−g), etc.). El Base debe quedar dentro del rango de esas anclas, se escribe en
+> J8/J19/J30 y queda explicado en «Supuestos de los Múltiplos» A3/A12 y en la hoja de tesis. Está
+> prohibido derivar un múltiplo del valor del DCF o ajustarlo después de ver el DCF: así los múltiplos
+> siguen siendo una segunda opinión independiente. La regla automática de la plantilla (mínimo positivo
+> de 4 cierres, ±10%) queda solo como valor por defecto cuando J está vacía.
+
+> Relación con la Calculadora de Excel: la regla de la Calculadora (Base ≈ 0,78× el promedio
+> histórico) viene del juicio promedio en los 55 casos. La regla del modelo de Sheets (mínimo
+> positivo de los últimos 4 cierres) es una variante mecánica y, en general, igual o más exigente.
+> Conviene mirar ambas: si difieren mucho, la historia reciente de múltiplos está distorsionada
+> (una burbuja o un derrumbe) y el analista debe fijar el múltiplo a mano.
+
+### Criterio Damodaran (30-sep-2026)
+
+Desde el prompt de valoración v4 y el de análisis fundamental v5:
+
+- **El valor intrínseco es el DCF de hoy; su cifra principal es el DCF Base (jerarquía del 1-oct-2026).**
+  El DCF Base (la historia central) va primero y con mayor destaque en el Visor, en Mi Bitácora, en los
+  análisis y en los informes. El DCF esperado de las cuatro historias (Σ probabilidad × DCF) es un
+  complemento; el margen de seguridad se sigue aplicando sobre el esperado.
+- **Los múltiplos son precio relativo y van por aparte.** Siguen eligiéndose con las tres anclas y
+  pasan el chequeo de crecimiento implícito (pestaña «Crecimiento implícito»). El ponderado DCF +
+  múltiplos, con los pesos de la categoría de empresa, es una lectura opcional en la app.
+- **Primero la historia, el precio al final.** Cada supuesto sale de una historia (posible, plausible,
+  probable) contrastada con las tasas base de crecimiento por tamaño (Mauboussin); el crecimiento se
+  descompone por segmento o marca, orgánico frente a comprado; el margen se normaliza y se ancla en un
+  comparable maduro; la reinversión incluye las compras; la beta es bottom-up del sector (Damodaran).
+- **Escenarios = historias (contrato del 30-sep-2026, primero en ADBE y luego en las 22 empresas).** Cuatro
+  historias —Base, Conservadora, Disrupción · Deterioro de los fundamentales y Optimista, cada una con su título
+  propio; las letras A-D son solo claves internas— son los únicos escenarios DCF activos. Cada una es un DCF completo con los
+  insumos de la hoja, la misma tasa de descuento y su propio crecimiento, margen, reinversión, crecimiento
+  terminal y ROIC terminal. DCF esperado = Σ probabilidad × DCF; el margen de seguridad se aplica al esperado.
+  Los antiguos casos Conservador/Base/Optimista de la hoja quedan como calibración técnica y supuestos de los
+  múltiplos auxiliares; la mezcla DCF + múltiplos es «mezcla auxiliar». La hoja tiene la pestaña «Escenarios e
+  historias» con los cuatro DCF por fórmulas, verificada contra el motor; el análisis explica «De dónde sale el
+  cálculo», «Las cuatro tesis» y «Justificación de los supuestos»: un párrafo por supuesto material
+  (crecimiento, margen, reinversión y ventas/capital, vida de I+D, costo de capital, crecimiento y ROIC
+  terminales, dilución y múltiplos) con evidencia y fecha, mecanismo, alternativas, cambio entre escenarios, qué
+  lo invalidaría y su sensibilidad (DCF completo de la Base con un solo supuesto cambiado); si falta soporte, el
+  supuesto se declara provisional. Los múltiplos se muestran en una tabla por método con los casos Base,
+  Conservador y Optimista (Base primero), el múltiplo aplicado (×) y el precio por acción de hoy, sin inventar un
+  caso de Disrupción. Se agregan pre-mortem, indicadores y un registro de decisión; la decisión
+  (comprar, mantener o vender) la registra el usuario en la app.
+- **Crecimiento terminal por historia, sin recuperación por defecto.** Base, Conservadora y Optimista conservan el
+  terminal de la hoja (tasa libre de riesgo). Disrupción, salvo que el análisis justifique otra trayectoria (contracción continua o
+  liquidación), se estabiliza: su terminal es el crecimiento de su año 5, sin superar el de la hoja y con piso de
+  0% nominal, y su ROIC terminal es el costo de capital. Un 0% nominal es contracción real; no significa gasto
+  bruto cero.
+
+- **Arrendamientos (criterio Damodaran, 1-oct-2026).** Los arrendamientos operativos son deuda (Damodaran, *Leases, Debt and Value* y *Dealing with Operating Leases in Valuation*). Bajo US GAAP (ASC 842) el EBIT todavía descuenta el alquiler, así que se activa el conversor de la hoja ('Input sheet'!B18 = Yes) con el gasto y los compromisos del 10-K: el valor presente de los compromisos se suma a la deuda y al peso de la deuda del WACC; el EBIT suma el gasto de arrendamiento y resta la depreciación del activo arrendado; el capital invertido incluye ese activo. Los márgenes del modelo y de las historias pasan a base ajustada (reportado + ajuste del EBIT / ventas) y el ventas/capital incluye el capital arrendado: 1/(1/s2c + VP arrendamientos / ventas), porque crecer exige también activo arrendado. Para no contar dos veces, la deuda de balance (B16) excluye los arrendamientos operativos que ya entran por el conversor; los financieros siguen en B16. Bajo NIIF 16 (AFYA, NVO, ONON, PAGS) el EBIT ya excluye el costo financiero y el pasivo por arrendamientos está en la deuda: no se ajusta. Caja con valores negociables; inversiones no operativas aparte; capital invertido sin activos no operativos; saldos del último informe trimestral.
+
+- **Control de integridad (1-oct-2026).** Un solo editor por hoja a la vez; una empresa por conversación para análisis y auditorías; los cambios de criterio se aplican en todas las hojas y se siguen de `scripts/integridad_hojas.py`. Ninguna fórmula se reemplaza por un número sin respaldo y nota. Una revisión cierra con el cuadre contra la SEC (incluidas preferentes, convertibles y minoritarios), sin celdas con error, con el motor igual a la hoja ('Valuation output'!B35 y la pestaña «Escenarios e historias») y con cada cifra del texto derivada del cálculo o de una fuente citada. Las acciones preferentes separadas van en 'Input sheet'!B76 y se restan del patrimonio en la hoja y en el motor. El «DCF técnico anterior» es el DCF propio de la hoja (B35); 'Descuento de múltiplos'!C38:E38 usa el DCF de las historias Conservadora, Base y Optimista.
+
+**Chequeo de crecimiento implícito, v2 (30-sep-2026).** Cada múltiplo Base se compara con el múltiplo que
+implica el DCF llevado a FY+3 (misma métrica, deuda neta, acciones y dividendos de la hoja), y los dos pasan
+por la misma fórmula de crecimiento perpetuo. La versión anterior comparaba el crecimiento implícito del
+múltiplo —calculado con el ROE de FY+3 para siempre— con el crecimiento del DCF, cuyo valor supone que el
+retorno sobre el capital baja al costo de capital después del año 10; en empresas de ROE alto eso marcaba
+como «menos crecimiento que el DCF» múltiplos que en valor coincidían con él (UBER). Alerta: más de 2 pp de
+diferencia en crecimiento implícito o más de 25% en valor.
+
+### Auditoría de la plantilla (26-sep-2026)
+
+Se corrigieron en la plantilla maestra y en todas sus copias de valoración (script
+`JMR-valuation/scripts/audit_fix_model.py`; respaldo de cada fórmula anterior en
+`JMR-valuation/reference/backups/auditoria_2026-09-26/`). El script solo reescribe una celda si
+todavía tiene la fórmula original de la plantilla, así que los ajustes hechos a mano en una
+valoración se respetan.
+
+| # | Error | Efecto | Corrección |
+|---|---|---|---|
+| A1 | EV/EBITDA y EV/FCFF convertían el EV objetivo en precio sin restar la deuda neta | Sobrevaloraba a las empresas endeudadas y subvaloraba a las que tienen caja neta | (EV − deuda − arriendos + caja + activos no operativos − minoritarios) ÷ acciones |
+| A2 | La hoja «Dividendos» estaba vacía y se leía corrida una columna; el DPS proyectado *sumaba* la tasa de crecimiento; el «dividendo acumulado» tomaba un solo año | Los múltiplos ignoraban los dividendos (NKE: ~US$5 por acción en 3 años) | DPS vivo desde el Cash Flow; DPS × (1 + g); suma de FY+1 a FY+3 |
+| A3 | El Resumen mezclaba el DCF (valor hoy) con los múltiplos (precio en 3 años) | El DCF quedaba subponderado en el precio objetivo y en el CAGR | DCF × (1 + Ke)³ |
+| A4 | CAGR con exponentes equivocados (2 intervalos ÷ 3 años, 4 ÷ 5, 9 ÷ 10) | Distorsionaba el crecimiento histórico (lo subestimaba si crecía, lo suavizaba si caía) | Exponentes 1/3, 1/5, 1/9 sobre el año correcto |
+| A5 | «Margen EBITDA» histórico promediaba la fila del margen EBIT | Ancla de margen equivocada | Fila 30 (EBITDA) |
+| A6 | Estadísticas de industria con rangos inconsistentes que incluían a la propia empresa y excluían peers | Medianas de industria sesgadas | Solo peers (filas 3–11 de «Sector»), con mínimo 3 datos |
+| A7 | Múltiplo Base = MIN de 4 años aunque alguno fuera negativo | Precios objetivo negativos o absurdos cuando un año tuvo FCFE negativo | Mínimo de los múltiplos positivos |
+| A8 | «Forward Valuation» M:N traía valores de PYPL pegados | Dato ajeno visible en todas las valoraciones | Se borran |
+| A9 | Rótulos «NTM» en múltiplos trailing; «LTM» que era el último año fiscal | Lectura equivocada | Rótulos corregidos |
+| A10 | El múltiplo del año FY-3 (columna B de cada hoja de múltiplos) salía de «Trailing Valuation» con OTRA definición que los años C-E (EV/FCF apalancado vs. FCFF; OCF reportado vs. NI+D&A-ΔNWC; precio/EPS diluido vs. NI consolidado) | El múltiplo Base (mínimo de la fila) podía mezclar dos definiciones distintas | La columna B usa la misma definición que C-E |
+| A11 | El endeudamiento neto del FCFE se proyectaba como el % promedio de las ventas de los últimos 3 años, perpetuamente | Distorsionaba el FCFE y el precio por P/FCFE (NKE: −US$933/año) | La deuda crece con las ventas, manteniendo la razón deuda/ventas LTM constante |
+| A12 | La mediana del cambio de acciones incluía un año LTM parcial; el precio de EV/EBITDA y EV/FCFF dividía por las acciones proyectadas (menos por recompras) pero restaba la deuda neta de HOY, sin descontar la caja que paga esas recompras | Doble conteo de la recompra en el precio objetivo | Mediana sin el año parcial; precio dividido por MAX(acciones de hoy; proyectadas) |
+| A13 | Los escenarios Conservador y Optimista convergían el margen desde el margen Año 1 del escenario BASE ($C$6), no desde el suyo propio | Cambiar el margen Año 1 de un escenario solo afectaba al año 1 | Cada escenario converge desde su propio margen Año 1 |
+| A14 | «Income Statement» fila 30 (margen EBITDA) daba #DIV/0! en empresas con menos de 10 años de historia | Se propagaba a «Crecimiento y Márgenes» | IFERROR |
+| A15 | «Resumen»: B2 «Fecha del análisis» era `=HOY()` (cambia cada día); etiquetas de MOS y Potencial usaban precios distintos sin aclararlo | Confusión entre precio del análisis y precio en vivo | B2 = fecha de valoración fija; etiquetas aclaradas |
+| A16 | «Valuation output»: la columna «Growth» de la tabla de escenarios mostraba la tasa libre de riesgo, el promedio de industria y el CAGR 3Y en vez del crecimiento real de cada escenario; tablas de referencia sin usar (filas 95-102, 146-153) | Lectura equivocada | Muestra el crecimiento real (Año 1); tablas marcadas como referencia |
+| A17 | «Stories to Numbers» F13 («Sales to capital» terminal) calculaba g/ROIC (tasa de reinversión), no ventas/capital | Etiqueta y cifra no correspondían | ROIC ÷ (margen × (1 − tasa de impuestos)) |
+| A18 | «Input sheet» C20 (año anterior) sumaba Other LT Assets y B20 (LTM) no | Comparación LTM vs. año anterior inconsistente | Misma definición en ambas |
+
+Las hojas de texto (Tesis, Cualitativo, Supuestos Recomendados, Supuestos de los Múltiplos,
+Stories to Numbers) quedaron con un formato uniforme: tipografía, bandas de sección, texto
+ajustado y alto de fila calculado para que ningún párrafo quede cortado. Los resultados por
+escenario que estaban tipeados en la Tesis pasaron a fórmulas vivas.
+
+### Contaminación entre empresas por copiar una valoración ya llena (26-sep-2026)
+
+Varias valoraciones se armaron duplicando en Drive la hoja de OTRA empresa ya llena, en vez de
+partir de la plantilla maestra en blanco. Los estados financieros y los supuestos se corrigen al
+correr el refresh, pero **las hojas de texto no se regeneran solas** y se detectaron casos reales
+con contenido de la empresa anterior sin corregir:
+
+- **PYPL**: `Cualitativo` con CAGRs de Adobe, `Stories to Numbers` con contenido de Amazon (ya
+  corregido antes de esta auditoría; lo documenta la propia hoja de PYPL en su bitácora).
+- **ADBE, DUOL, UBER** y, por separado, **LULU, MSFT, PLTR**: en `Estadísticas`, el bloque de
+  crecimiento histórico (`G4:H15`) quedó copiado y pegado entre las tres empresas de cada grupo
+  (mismos números en compañías sin relación).
+- **MSFT**: `Cualitativo` con el perfil completo de Palantir (CEO, plataformas, métricas).
+- **PLTR** (su propia hoja): `Cualitativo` con párrafos de Apple mezclados con los propios, y el
+  CEO equivocado.
+- **LULU**: `Cualitativo` con el encabezado (título, fecha, precio, WACC) de Palantir; el cuerpo
+  sí era propio.
+
+**Regla obligatoria de acá en adelante: ninguna empresa nueva empieza duplicando la hoja de otra
+empresa.** Se usa `JMR-valuation/scripts/reset_from_master.py`, que copia la plantilla maestra
+auditada hoja por hoja (fórmulas, no solo valores) y respalda el contenido anterior por si la
+hoja destino no era en realidad nueva:
+
+```
+# Hoja que ya existe (por ejemplo, duplicada de otra empresa por error) — la reinicia:
+PYTHONPATH=.:scripts python scripts/reset_from_master.py --sheet-id ID [--dry-run]
+
+# Hoja que todavia no existe — crea una copia limpia de la plantilla en Drive:
+PYTHONPATH=.:scripts python scripts/reset_from_master.py --new "Modelo JMR - TICKER" [--dry-run]
+```
+
+`--new` casi seguro falla (la cuenta de servicio tiene cuota de Drive 0, no puede ser dueña de
+archivos nuevos): en ese caso, una persona hace "Archivo > Hacer una copia" de la plantilla
+maestra a mano en Drive y la comparte con la cuenta de servicio; esa copia ya sale limpia y no
+necesita `--sheet-id` después. `reset_from_master.py` generaliza el paso `step_reset` que se
+escribió primero solo para AFYA (`run_afya.py`), para que cualquier empresa nueva lo use sin
+tener que escribir un script a medida.
+
+Además, después de correr el contenido de una empresa nueva conviene un chequeo rápido de
+`Cualitativo`, `Stories to Numbers`, `Supuestos Recomendados` y `Supuestos de los Múltiplos`
+buscando el nombre de otra empresa o su CEO (así se encontraron los casos de arriba), sobre todo
+si la hoja se armó a mano en vez de con un script reproducible.
