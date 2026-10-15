@@ -279,6 +279,32 @@
     });
   }
 
+
+  function linkedMultiplesLevel2(lv) {
+    if(!lv || typeof JmrValueBoard==='undefined' || !JmrValueBoard.fromRecord) return '';
+    var d=JmrValueBoard.fromRecord(lv,{precioLbl:'Referencia guardada'}),
+      i=d&&d.impliedMultiples,market=d&&d.marketComparison;
+    if(!i || !i.metodos || !i.metodos.length)return '';
+    var by=Object.create(null);
+    (market&&market.metodos||[]).forEach(function(q){by[String(q.nombre||'').toUpperCase()]=q;});
+    function f(v){return typeof v==='number'&&Number.isFinite(v)?v.toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2})+'×':'N/D';}
+    function pct(v){return typeof v==='number'&&Number.isFinite(v)?(v>0?'+':'')+(v*100).toLocaleString('es-CO',{minimumFractionDigits:1,maximumFractionDigits:1})+'%':'N/D';}
+    var trs=i.metodos.map(function(m){
+      var q=by[String(m.nombre||'').toUpperCase()]||{};
+      return '<tr><td>'+escapeHtml(m.nombre)+'</td>'+['conservador','base','optimista'].map(function(k){
+        var v=m[k],w=q.mercado_FY3_equivalente&&q.mercado_FY3_equivalente[k],delta=typeof v==='number'&&v>0&&typeof w==='number'?w/v-1:null;
+        return '<td>'+f(v)+'</td><td>'+f(w)+'</td><td>'+pct(delta)+'</td>';
+      }).join('')+'</tr>';
+    }).join('');
+    var note=market?'Referencia de mercado: '+escapeHtml(market.fechaCorte||'fecha no verificada')+
+      '; precio '+escapeHtml(market.precioMercado)+'; debe verificarse que corresponda a la cotización vigente.':
+      'Precio de mercado LTM y equivalentes FY+3: N/D hasta obtener información compatible.';
+    return '<section class="jmr-dcf-multiples-annex"><h2>Múltiplos y cotización frente al DCF conservador, base y optimista · FY+3</h2>'+
+      '<p>Cada historia usa su propio DCF y sus métricas FY+3. Mercado FY+3 = múltiplo equivalente al precio de referencia guardado, NO múltiplo LTM. Δ = múltiplo mercado FY+3 / múltiplo DCF FY+3 − 1.</p>'+
+      '<table><thead><tr><th>Múltiplo</th>'+['Conservador','Base','Optimista'].map(function(k){return '<th>DCF '+k+'</th><th>Mercado FY+3 '+k+'</th><th>Δ '+k+'</th>';}).join('')+
+      '</tr></thead><tbody>'+trs+'</tbody></table><p>'+note+'</p><p>No se modifica el DCF ni se asume que EV/FCF = EV/FCFF o P/FCF = P/FCFE. Los múltiplos LTM reales requieren fuente y fecha propias.</p></section>';
+  }
+
   function renderPreview() {
     el('previewCompany').textContent = state.company || state.title || 'Nuevo análisis';
     el('previewTicker').textContent = state.ticker || '—';
@@ -310,7 +336,7 @@
         articleView.toc + '<div id="editableContent">' + articleView.body + '</div>' + renderNews() +
         '<section class="jmr-valuation-summary" aria-label="Tarjeta de valoración"><h2>Tarjeta de valoración</h2>' + (linked || val) + '</section></section>' +
         '<details class="jmr-research-details" id="jmrTechnicalLevel"><summary>Ver nivel 2 · Cálculos de valoración</summary>' +
-        '<div class="jmr-technical-content">' + calculationView.toc + calculationView.body + '</div></details></div>';
+        '<div class="jmr-technical-content">' + calculationView.toc + calculationView.body + linkedMultiplesLevel2(state.linkedValuation) + '</div></details></div>';
       markNumericCells(body);
       renderEditorToolbar();
       body.onclick = function (event) {
@@ -561,7 +587,7 @@
       return fetchJsonFile(matches[0].path).then(function (rec) { return { rec: rec, path: matches[0].path, count: matches.length }; });
     }).then(function (found) {
       var rec = found.rec;
-      state.linkedValuation = { precio: rec.precio, fecha: rec.fecha, zonas: rec.zonas, objetivoPonderado: rec.objetivoPonderado, valorPresentePonderado: rec.valorPresentePonderado, descuentoMultiples: rec.descuentoMultiples, metodos: rec.metodos, hojas: rec.hojas, cagr: rec.cagr, mos: rec.mos, hojaGoogle: rec.hojaGoogle, valorEsperado: rec.valorEsperado, valoracionHolding: rec.valoracionHolding, currency: rec.currency, sourcePath: found.path };
+      state.linkedValuation = { precio: rec.precio, fecha: rec.fecha, zonas: rec.zonas, objetivoPonderado: rec.objetivoPonderado, valorPresentePonderado: rec.valorPresentePonderado, descuentoMultiples: rec.descuentoMultiples, metodos: rec.metodos, hojas: rec.hojas, cagr: rec.cagr, mos: rec.mos, hojaGoogle: rec.hojaGoogle, valorEsperado: rec.valorEsperado, valoracionHolding: rec.valoracionHolding, currency: rec.currency, ticker: rec.ticker, precioReferenciaConsultadoAt: rec.precioReferenciaConsultadoAt, precioReferenciaFuente: rec.precioReferenciaFuente, multiplosImplicitosDCF: rec.multiplosImplicitosDCF, cotizacionMultiples: rec.cotizacionMultiples, sourcePath: found.path };
       renderPreview();
       setStatus('linkVisorStatus','Vinculado con "' + found.path + '"' + (found.count > 1 ? ' (la más reciente de ' + found.count + ' guardadas para este ticker)' : '') + '.','ok');
     }).catch(function (err) { setStatus('linkVisorStatus', err.message, 'bad'); }).finally(function () { btn.disabled = false; });
@@ -578,7 +604,7 @@
     var openedId=state.id, linkedPath=state.linkedValuation.sourcePath;
     if(linkedPath) fetchJsonFile(linkedPath).then(function(rec){
       if(state.id!==openedId||!state.linkedValuation||state.linkedValuation.sourcePath!==linkedPath)return;
-      state.linkedValuation=Object.assign({},state.linkedValuation,{valorPresentePonderado:rec.valorPresentePonderado,descuentoMultiples:rec.descuentoMultiples,metodos:rec.metodos,hojas:rec.hojas,objetivoPonderado:rec.objetivoPonderado,mos:rec.mos,hojaGoogle:rec.hojaGoogle,valorEsperado:rec.valorEsperado,valoracionHolding:rec.valoracionHolding,currency:rec.currency});
+      state.linkedValuation=Object.assign({},state.linkedValuation,{valorPresentePonderado:rec.valorPresentePonderado,descuentoMultiples:rec.descuentoMultiples,metodos:rec.metodos,hojas:rec.hojas,objetivoPonderado:rec.objetivoPonderado,mos:rec.mos,hojaGoogle:rec.hojaGoogle,valorEsperado:rec.valorEsperado,valoracionHolding:rec.valoracionHolding,currency:rec.currency,ticker:rec.ticker,precio:rec.precio,precioReferenciaConsultadoAt:rec.precioReferenciaConsultadoAt,precioReferenciaFuente:rec.precioReferenciaFuente,multiplosImplicitosDCF:rec.multiplosImplicitosDCF,cotizacionMultiples:rec.cotizacionMultiples});
       renderPreview();
     }).catch(function(){});
     listValoraciones().then(function (files) {
