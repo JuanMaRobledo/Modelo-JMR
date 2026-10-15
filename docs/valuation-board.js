@@ -309,11 +309,11 @@ function fromRecord(rec, extra) {
     // the caller or a strictly newer, timestamped model quote.
     var quoteFromCaller = num(extra.precio) != null && num(extra.precio) > 0 &&
       (num(rec.precio)==null || Math.abs(extra.precio-rec.precio)>0.000001);
-    var snapshotDate = savedMarket && /^\\d{4}-\\d{2}-\\d{2}/.test(savedMarket.fechaCorte||'')
+    var snapshotDate = savedMarket && /^\d{4}-\d{2}-\d{2}/.test(savedMarket.fechaCorte||'')
       ? savedMarket.fechaCorte.slice(0,10) : '';
     var recDate = String(rec.precioReferenciaConsultadoAt||'');
     var newerSavedQuote = savedMarket && num(rec.precio)>0 && num(savedMarket.precioMercado)>0 &&
-      recDate.slice(0,10)>snapshotDate && /^\\d{4}-\\d{2}-\\d{2}/.test(recDate);
+      recDate.slice(0,10)>snapshotDate && /^\d{4}-\d{2}-\d{2}/.test(recDate);
     var effectivePrice = quoteFromCaller ? extra.precio :
       newerSavedQuote ? rec.precio :
       savedMarket && num(savedMarket.precioMercado)>0 ? savedMarket.precioMercado : rec.precio;
