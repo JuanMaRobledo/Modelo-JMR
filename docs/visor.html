@@ -2976,7 +2976,13 @@
     var box = document.getElementById('valueBoard');
     if(!box || !boardParts || typeof JmrValueBoard === 'undefined') return;
     var r = currentResumen || {};
-    var d = JmrValueBoard.fromParts(Object.assign({}, boardParts, { precio: r.precio, precioLbl: 'Precio de hoy', mos: r.mos, hoja: r.hojaGoogle, ve: r.valorEsperado, hist: r.multiplesHistoricos, currency: r.currency, holding: r.valoracionHolding }));
+    // Para valoraciones guardadas, fromRecord añade el contraste precio de
+    // mercado vs DCF en los tres escenarios; fromParts sigue para Excel nuevo.
+    var hasSavedMetrics = !!(r.hojas && r.hojas.valoracion &&
+      (r.hojas.valoracion['Financials Multiples'] || r.multiplosImplicitosDCF) &&
+      Array.isArray(r.metodos) && r.metodos.length);
+    var d = hasSavedMetrics ? JmrValueBoard.fromRecord(r, {precioLbl: 'Precio de referencia'}) :
+      JmrValueBoard.fromParts(Object.assign({}, boardParts, { precio: r.precio, precioLbl: 'Precio de referencia', mos: r.mos, hoja: r.hojaGoogle, ve: r.valorEsperado, hist: r.multiplesHistoricos, currency: r.currency, holding: r.valoracionHolding }));
     box.innerHTML = JmrValueBoard.html(d, { hero: false });
   }
   function renderPresentValue(dm, vp, metodosFY3, objetivoFY3){
