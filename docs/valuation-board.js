@@ -111,7 +111,7 @@
   // Múltiplos necesarios para justificar CADA DCF Conservador, Base y Optimista con las métricas FY+3 del mismo escenario.
   // Nunca alimentan el DCF; son una comprobación posterior. Omitir si no hay DCF FY+3 verificable.
   function impliedMultiplesFromRecord(rec) {
-    if (!rec || rec.valoracionHolding) return null;
+    if (!rec || rec.valoracionHolding || /^(?:NU|PFDAVVNDA|GRUPOSURA|PFGRUPSURA|GRUPOARGOS|PFGRUPOARG)$/i.test(rec.ticker||'')) return null;
     var stored = rec.multiplosImplicitosDCF;
     if (stored && stored.metodos && stored.metodos.length) {
       return { metodos: stored.metodos.map(function (m) {
@@ -211,14 +211,14 @@
             diff=intrinsic!=null&&intrinsic>0&&traded!=null?traded/intrinsic-1:null;
           return '<td class="n">'+v(intrinsic)+'</td><td class="n">'+v(traded)+'</td><td class="n">'+delta(diff)+'</td>';
         }).join('');
-        return '<tr><td>'+esc(m.nombre)+'</td>'+cells+'</tr>';
+        return '<tr><td>'+esc(m.nombre)+'</td><td class="n">'+v(market.ratiosLTM&&market.ratiosLTM[m.nombre])+'</td>'+cells+'</tr>';
       }).filter(Boolean).join('');
       if(rows){
         var when=esc(market.fechaCorte||'fecha no disponible'),
         price=money(market.precioMercado),
-        fmt='<p class="jvb-note">Se comparan, escenario por escenario, el múltiplo que justifica su DCF y el que justificaría el <strong>'+ (market.esPrecioActualVerificado === true ? 'precio de mercado verificado' : 'precio de referencia guardado') +' de '+when+' ('+price+')</strong>, con las MISMAS métricas FY+3. Se capitaliza el precio a FY+3 con Ke. No son múltiplos LTM. Δ = múltiplo a precio de referencia / múltiplo DCF − 1.</p>';
-        return '<details class="jvb-secondary jvb-implied"><summary>DCF vs precio actual · múltiplos y diferencias (3 escenarios)</summary>'+fmt+
-          '<div class="jvb-tw"><table class="jvb-table"><thead><tr><th rowspan="2">Múltiplo</th><th colspan="3">Conservador</th><th colspan="3">Base</th><th colspan="3">Optimista</th></tr><tr><th>DCF</th><th>Precio hoy</th><th>Δ</th><th>DCF</th><th>Precio hoy</th><th>Δ</th><th>DCF</th><th>Precio hoy</th><th>Δ</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+        fmt='<p class="jvb-note">Se comparan, escenario por escenario, el múltiplo que justifica su DCF y el que justificaría el <strong>'+ (market.esPrecioActualVerificado === true ? 'precio de mercado verificado' : 'precio de referencia guardado') +' de '+when+' ('+price+')</strong>, con las MISMAS métricas FY+3. Se capitaliza el precio a FY+3 con Ke. Las cifras LTM, cuando están disponibles, son solo contexto: Los valores LTM de fuente financiera pueden diferir de las métricas FY+3 del modelo y no deben compararse como prima homogénea. Δ = múltiplo a precio de referencia FY+3 / múltiplo DCF FY+3 − 1.</p>';
+        return '<details class="jvb-secondary jvb-implied"><summary>DCF vs precio de referencia · múltiplos y diferencias (3 escenarios)</summary>'+fmt+
+          '<div class="jvb-tw"><table class="jvb-table"><thead><tr><th rowspan="2">Múltiplo</th><th rowspan="2">Mercado LTM</th><th colspan="3">Conservador</th><th colspan="3">Base</th><th colspan="3">Optimista</th></tr><tr><th>DCF</th><th>Precio ref.</th><th>Δ</th><th>DCF</th><th>Precio ref.</th><th>Δ</th><th>DCF</th><th>Precio ref.</th><th>Δ</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
           '<p class="jvb-note">Un Δ positivo indica que el precio de referencia exigiría un múltiplo mayor que el implícito por el DCF. Son equivalentes FY+3, NO múltiplos cotizados LTM ni cotizaciones futuras. '+esc((market.salvedades||[]).join(' · '))+'</p></details>';
       }
     }
@@ -303,7 +303,10 @@ function fromRecord(rec, extra) {
     result.costo = num(extra.costo);
     result.hist = histFrom(rec.multiplesHistoricos);
     result.impliedMultiples = impliedMultiplesFromRecord(rec);
-    result.marketComparison = rec.cotizacionMultiples || deriveMarketComparison(rec, result.impliedMultiples, extra.precio != null ? extra.precio : rec.precio);
+    var savedMarket = rec.cotizacionMultiples || null;
+    var effectivePrice = extra.precio != null ? extra.precio : rec.precio;
+    var isChanged = num(effectivePrice) != null && savedMarket && num(savedMarket.precioMercado)!=null && Math.abs(effectivePrice-savedMarket.precioMercado)>0.000001;
+    result.marketComparison = isChanged ? deriveMarketComparison(rec, result.impliedMultiples, effectivePrice) : (savedMarket || deriveMarketComparison(rec, result.impliedMultiples, effectivePrice));
     return result;
   }
   // Bloque del valor esperado, junto al DCF. d = resultado de fromParts/fromRecord.
