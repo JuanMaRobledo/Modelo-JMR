@@ -157,8 +157,27 @@
     Object.keys(map).forEach(function (method) {
       var target=fy.find(function (m) { return String(m.nombre || '').toUpperCase()===method; });
       if(!target || !sheets[map[method]])return;
-      var anchors=cells(sheets[map[method]]).filter(function (row) { return /^Múltiplo\s+(EV\/|P\/)/i.test(row[0] || ''); });
-      if(!anchors.length)return;
+      var allMethodRows=cells(sheets[map[method]]);
+      var anchors=allMethodRows.filter(function (row) { return /^Múltiplo\s+(EV\/|P\/)/i.test(row[0] || ''); });
+      // Las hojas antiguas muestran solo números y 3 bloques por historia.
+      if(!anchors.length){
+        var blocks=[],block=-1;
+        allMethodRows.forEach(function(row){
+          if(row.some(function(x){return /FY\s*\+\s*1/i.test(x);}) &&
+             row.some(function(x){return /FY\s*\+\s*3/i.test(x);})){
+            blocks[++block]=[];return;
+          }
+          if(block>=0)blocks[block].push(row);
+        });
+        if(blocks.length===3)anchors=blocks.map(function(group){
+          return group.find(function(row){
+            var n=[nhtml(row[5]),nhtml(row[6]),nhtml(row[7])];
+            return n.every(function(v){return num(v)!=null&&v>0&&v<1000;}) &&
+              Math.max.apply(null,n)-Math.min.apply(null,n)<0.0001;
+          })||null;
+        });
+      }
+      if(!anchors.length||anchors.every(function(a){return !a;}))return;
       var entry={nombre:method,seleccionado:null};
       ['conservador','base','optimista'].forEach(function (key,i) {
         var source=anchors.length>=3?anchors[i]:anchors[0], m=nhtml(source && source[5]),
