@@ -176,17 +176,40 @@
     return {metodos:result,nota:'Cada columna reproduce el DCF intrínseco de su propia historia, capitalizado a FY+3; verificar acciones y métricas FY+3 por escenario.'};
   }
   function impliedMultiplesHtml(d) {
-    var imp=d && d.impliedMultiples;
+    var imp=d && d.impliedMultiples, market=d && d.marketComparison;
     if(!imp || !imp.metodos || !imp.metodos.length)return '';
+    function v(n){return num(n)==null?'N/D':n2(n)+'×';}
+    function delta(n){if(num(n)==null)return 'N/D';return (n>0?'+':'')+(n*100).toLocaleString('es-CO',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';}
+    if(market && Array.isArray(market.metodos) && market.metodos.length) {
+      var marketByName={};
+      market.metodos.forEach(function(m){marketByName[String(m.nombre||'').toUpperCase()]=m;});
+      var rows=imp.metodos.map(function(m){
+        var q=marketByName[String(m.nombre||'').toUpperCase()];
+        if(!q)return '';
+        var keys=['conservador','base','optimista'];
+        var cells=keys.map(function(k){
+          var intrinsic=num(m[k]), traded=num(q.mercado_FY3_equivalente&&q.mercado_FY3_equivalente[k]),
+            diff=intrinsic!=null&&intrinsic>0&&traded!=null?traded/intrinsic-1:null;
+          return '<td class="n">'+v(intrinsic)+'</td><td class="n">'+v(traded)+'</td><td class="n">'+delta(diff)+'</td>';
+        }).join('');
+        return '<tr><td>'+esc(m.nombre)+'</td>'+cells+'</tr>';
+      }).filter(Boolean).join('');
+      if(rows){
+        var when=esc(market.fechaCorte||'fecha no disponible'),
+        price=money(market.precioMercado),
+        fmt='<p class="jvb-note">Se comparan, escenario por escenario, el múltiplo que justifica su DCF y el múltiplo que justificaría el <strong>precio de mercado de '+when+' ('+price+')</strong>, con las MISMAS métricas FY+3. El precio de hoy se lleva a FY+3 con Ke; no se usan múltiplos LTM. Δ = múltiplo del precio de hoy / múltiplo DCF − 1.</p>';
+        return '<details class="jvb-secondary jvb-implied"><summary>DCF vs precio actual · múltiplos y diferencias (3 escenarios)</summary>'+fmt+
+          '<div class="jvb-tw"><table class="jvb-table"><thead><tr><th rowspan="2">Múltiplo</th><th colspan="3">Conservador</th><th colspan="3">Base</th><th colspan="3">Optimista</th></tr><tr><th>DCF</th><th>Precio hoy</th><th>Δ</th><th>DCF</th><th>Precio hoy</th><th>Δ</th><th>DCF</th><th>Precio hoy</th><th>Δ</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+          '<p class="jvb-note">Un Δ positivo indica que la cotización exige un múltiplo mayor que el implícito por el DCF de esa historia. Son múltiplos equivalentes FY+3, no cotizaciones futuras observadas. '+esc((market.salvedades||[]).join(' · '))+'</p></details>';
+      }
+    }
     var lines=imp.metodos.map(function (m) {
-      function v(n){return num(n)==null?'N/D':n2(n)+'×';}
       return '<tr><td>'+esc(m.nombre)+'</td><td class="n">'+v(m.seleccionado)+'</td><td class="n">'+v(m.conservador)+'</td><td class="n">'+v(m.base)+'</td><td class="n">'+v(m.optimista)+'</td></tr>';
     }).join('');
     return '<details class="jvb-secondary jvb-implied"><summary>Múltiplos necesarios para justificar cada DCF (FY+3)</summary>'+
-      '<p class="jvb-note">Cada columna utiliza su valor intrínseco propio (DCF Conservador / Base / Optimista) capitalizado al cierre FY+3, junto con las métricas financieras y el múltiplo elegido de esa misma historia. Es una comprobación POSTERIOR al DCF, nunca un supuesto del modelo ni una sustitución de las anclas históricas o los comparables.</p>'+
+      '<p class="jvb-note">Cada columna utiliza su DCF Conservador/Base/Optimista propio, capitalizado al cierre FY+3, y sus métricas financieras del mismo escenario. No se usa este múltiplo como entrada del DCF. Para comparar con la cotización falta un precio de mercado verificado.</p>'+
       '<div class="jvb-tw"><table class="jvb-table"><thead><tr><th>Múltiplo</th><th>Elegido Base</th><th>DCF Conservador</th><th>DCF Base</th><th>DCF Optimista</th></tr></thead><tbody>'+lines+'</tbody></table></div>'+
-      (imp.nota?'<p class="jvb-note">'+esc(imp.nota)+'</p>':'')+
-      '<p class="jvb-note">Cada columna iguala su propio DCF; no crea un cuarto caso de múltiplos para Disrupción ni ajusta el valor intrínseco. Métrica no positiva: N/D.</p></details>';
+      (imp.nota?'<p class="jvb-note">'+esc(imp.nota)+'</p>':'')+'</details>';
   }
 
   function fromRecord(rec, extra) {
@@ -201,6 +224,7 @@
     result.costo = num(extra.costo);
     result.hist = histFrom(rec.multiplesHistoricos);
     result.impliedMultiples = impliedMultiplesFromRecord(rec);
+    result.marketComparison = rec.cotizacionMultiples || null;
     return result;
   }
   // Bloque del valor esperado, junto al DCF. d = resultado de fromParts/fromRecord.
