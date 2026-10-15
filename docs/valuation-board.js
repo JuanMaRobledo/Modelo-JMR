@@ -107,6 +107,88 @@
     });
     return out;
   }
+
+  // Múltiplos de salida que reproducen el DCF de CADA historia al cierre FY+3.
+  // Nunca alimentan el DCF; son una comprobación posterior. Omitir si no hay DCF FY+3 verificable.
+  function impliedMultiplesFromRecord(rec) {
+    if (!rec || rec.valoracionHolding) return null;
+    var stored = rec.multiplosImplicitosDCF;
+    if (stored && stored.metodos && stored.metodos.length) {
+      return { metodos: stored.metodos.map(function (m) {
+        return { nombre: m.nombre, seleccionado: num(m.seleccionadoBase != null ? m.seleccionadoBase : m.seleccionado),
+          conservador: num(m.conservador), base: num(m.base), optimista: num(m.optimista) };
+      }).filter(function (m) { return m.base != null; }), nota: stored.salvedades && stored.salvedades.join(' · ') };
+    }
+    var sheets = rec.hojas && rec.hojas.valoracion || {}, fm = sheets['Financials Multiples'];
+    if (!fm) return null;
+    var fy = rec.metodos || [], dcf = fy.find(function (m) { return /^DCF(?:\b|\s)/i.test(m.nombre || ''); });
+    if (!dcf || !['conservador','base','optimista'].every(function(k){ return num(dcf[k]) != null && dcf[k] > 0; })) return null;
+    function cells(html) {
+      return (String(html || '').match(/<tr\b[^>]*>[\s\S]*?<\/tr>/gi) || []).map(function (row) {
+        return (row.match(/<t[dh]\b[^>]*>[\s\S]*?<\/t[dh]>/gi) || []).map(function (cell) {
+          return cell.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+        });
+      });
+    }
+    function nhtml(v) {
+      var s = String(v == null ? '' : v).replace(/\s/g,'').replace(/[^\d.,+\-]/g,'');
+      if (!s) return null;
+      var a=s.lastIndexOf(','), b=s.lastIndexOf('.'), dec=null;
+      if(a>=0 && b>=0) dec=a>b?',':'.';
+      else if(a>=0) dec=s.length-a-1===3 && a<=3 ? null : ',';
+      else if(b>=0) dec=s.length-b-1===3 && b<=3 ? null : '.';
+      if(!dec) s=s.replace(/[.,]/g,'');
+      else { s=s.replace(new RegExp(dec===','?'\\.':',','g'),''); if(dec===',') s=s.replace(',','.'); }
+      var n=Number(s); return isFinite(n)?n:null;
+    }
+    var data={ conservador:{}, base:{}, optimista:{} }, active=null, col=null;
+    var labels = { 'ebitda':'EV/EBITDA', 'fcff':'EV/FCFF', 'net income normalized':'P/E', 'fcfe':'P/FCFE', 'ocf':'P/OCF', 'diluted shares outstanding':'shares' };
+    cells(fm).forEach(function (row) {
+      var label=String(row[0] || '').trim().toLowerCase();
+      var name={ conservador:'conservador', conservadora:'conservador', base:'base', optimista:'optimista' }[label];
+      if(name){ active=name; col=null; return; }
+      if(!active)return;
+      if(label==='operating data'){ col=row.findIndex(function (z) { return /FY\s*\+\s*3\b/i.test(z); });return; }
+      if(col==null || col<0 || !row[col])return;
+      var metric=labels[label];if(metric) data[active][metric]=nhtml(row[col]);
+    });
+    var map = { 'EV/EBITDA':'EVEBITDA', 'EV/FCFF':'EVFCFF', 'P/E':'PE', 'P/FCFE':'PFCFE', 'P/OCF':'POCF' };
+    var result=[];
+    Object.keys(map).forEach(function (method) {
+      var target=fy.find(function (m) { return String(m.nombre || '').toUpperCase()===method; });
+      if(!target || !sheets[map[method]])return;
+      var anchors=cells(sheets[map[method]]).filter(function (row) { return /^Múltiplo\s+(EV\/|P\/)/i.test(row[0] || ''); });
+      if(!anchors.length)return;
+      var entry={nombre:method,seleccionado:null};
+      ['conservador','base','optimista'].forEach(function (key,i) {
+        var source=anchors.length>=3?anchors[i]:anchors[0], m=nhtml(source && source[5]),
+          metric=data[key][method], shares=data[key].shares;
+        if(key==='base')entry.seleccionado=m;
+        var intrinsic=dcf[key], relative=target[key];
+        if([m,metric,shares,intrinsic,relative].every(function (x) { return num(x)!=null; }) && metric>0 && shares>0) {
+          var implied=m+(intrinsic-relative)*shares/metric;
+          entry[key]=isFinite(implied)&&implied>0?implied:null;
+        } else entry[key]=null;
+      });
+      if(entry.conservador!=null || entry.base!=null || entry.optimista!=null)result.push(entry);
+    });
+    if(!result.length)return null;
+    return {metodos:result,nota:'Cifras reproducidas desde el registro guardado; verificar acciones, período FY+3 y métricas con la hoja vigente.'};
+  }
+  function impliedMultiplesHtml(d) {
+    var imp=d && d.impliedMultiples;
+    if(!imp || !imp.metodos || !imp.metodos.length)return '';
+    var lines=imp.metodos.map(function (m) {
+      function v(n){return num(n)==null?'N/D':n2(n)+'×';}
+      return '<tr><td>'+esc(m.nombre)+'</td><td class="n">'+v(m.seleccionado)+'</td><td class="n">'+v(m.conservador)+'</td><td class="n">'+v(m.base)+'</td><td class="n">'+v(m.optimista)+'</td></tr>';
+    }).join('');
+    return '<details class="jvb-secondary jvb-implied"><summary>Múltiplos que reproduce el DCF de cada escenario (FY+3)</summary>'+
+      '<p class="jvb-note">Cada múltiplo implícito iguala el DCF de su historia al cierre del año 3, con la métrica y las acciones FY+3 de ese mismo escenario. Se calcula DESPUÉS del DCF; no sustituye las anclas históricas, los comparables ni los múltiplos justificados por fundamentales.</p>'+
+      '<div class="jvb-tw"><table class="jvb-table"><thead><tr><th>Múltiplo</th><th>Elegido Base</th><th>Cons.</th><th>Base</th><th>Opt.</th></tr></thead><tbody>'+lines+'</tbody></table></div>'+
+      (imp.nota?'<p class="jvb-note">'+esc(imp.nota)+'</p>':'')+
+      '<p class="jvb-note">La tabla no agrega un quinto escenario de Disrupción y no se usa para ajustar el valor intrínseco. Si alguna métrica no es positiva, se muestra N/D.</p></details>';
+  }
+
   function fromRecord(rec, extra) {
     rec = rec || {}; extra = extra || {};
     var result = fromParts({ dm: rec.descuentoMultiples, vp: rec.valorPresentePonderado, metodosFY3: rec.metodos, objetivoFY3: rec.objetivoPonderado,
@@ -118,6 +200,7 @@
     // la diferencia contra el costo promedio.
     result.costo = num(extra.costo);
     result.hist = histFrom(rec.multiplesHistoricos);
+    result.impliedMultiples = impliedMultiplesFromRecord(rec);
     return result;
   }
   // Bloque del valor esperado, junto al DCF. d = resultado de fromParts/fromRecord.
@@ -396,7 +479,7 @@
     var historical = historicalHtml(d);
     if (opts.compactMethods && historical) historical = '<details class="jvb-secondary"><summary>Ver múltiplos históricos</summary>' + historical + '</details>';
     return '<section class="jvb' + (opts.compactMethods ? ' jvb-compact' : '') + '" data-h="' + p.h + '" data-mult="' + p.mult + '" data-met="' + p.met + '" data-pond="' + p.pond + '">' +
-      (opts.hero === false ? (unified(d) ? unifiedHtml(d) : '') : heroHtml(d, opts.compactMethods)) + secondary + historical +
+      (opts.hero === false ? (unified(d) ? unifiedHtml(d) : '') : heroHtml(d, opts.compactMethods)) + secondary + impliedMultiplesHtml(d) + historical +
       '<p class="jvb-note">' + esc(note) + (d.hoja && opts.hoja !== false ? ' <a href="' + esc(d.hoja) + '" target="_blank" rel="noopener noreferrer">Abrir hoja con fórmulas →</a>' : '') + '</p></section>';
   }
 
