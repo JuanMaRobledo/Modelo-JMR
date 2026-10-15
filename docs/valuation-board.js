@@ -197,10 +197,10 @@
       if(rows){
         var when=esc(market.fechaCorte||'fecha no disponible'),
         price=money(market.precioMercado),
-        fmt='<p class="jvb-note">Se comparan, escenario por escenario, el múltiplo que justifica su DCF y el múltiplo que justificaría el <strong>precio de mercado de '+when+' ('+price+')</strong>, con las MISMAS métricas FY+3. El precio de hoy se lleva a FY+3 con Ke; no se usan múltiplos LTM. Δ = múltiplo del precio de hoy / múltiplo DCF − 1.</p>';
+        fmt='<p class="jvb-note">Se comparan, escenario por escenario, el múltiplo que justifica su DCF y el que justificaría el <strong>'+ (market.esPrecioActualVerificado === true ? 'precio de mercado verificado' : 'precio de referencia guardado') +' de '+when+' ('+price+')</strong>, con las MISMAS métricas FY+3. Se capitaliza el precio a FY+3 con Ke. No son múltiplos LTM. Δ = múltiplo a precio de referencia / múltiplo DCF − 1.</p>';
         return '<details class="jvb-secondary jvb-implied"><summary>DCF vs precio actual · múltiplos y diferencias (3 escenarios)</summary>'+fmt+
           '<div class="jvb-tw"><table class="jvb-table"><thead><tr><th rowspan="2">Múltiplo</th><th colspan="3">Conservador</th><th colspan="3">Base</th><th colspan="3">Optimista</th></tr><tr><th>DCF</th><th>Precio hoy</th><th>Δ</th><th>DCF</th><th>Precio hoy</th><th>Δ</th><th>DCF</th><th>Precio hoy</th><th>Δ</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
-          '<p class="jvb-note">Un Δ positivo indica que la cotización exige un múltiplo mayor que el implícito por el DCF de esa historia. Son múltiplos equivalentes FY+3, no cotizaciones futuras observadas. '+esc((market.salvedades||[]).join(' · '))+'</p></details>';
+          '<p class="jvb-note">Un Δ positivo indica que el precio de referencia exigiría un múltiplo mayor que el implícito por el DCF. Son equivalentes FY+3, NO múltiplos cotizados LTM ni cotizaciones futuras. '+esc((market.salvedades||[]).join(' · '))+'</p></details>';
       }
     }
     var lines=imp.metodos.map(function (m) {
@@ -212,7 +212,67 @@
       (imp.nota?'<p class="jvb-note">'+esc(imp.nota)+'</p>':'')+'</details>';
   }
 
-  function fromRecord(rec, extra) {
+  
+  // Common comparison for all saved FCFF industrial records. A saved price is
+  // clearly labeled "referencia guardada", not represented as today's live quote.
+  function deriveMarketComparison(rec, implied, quoteOverride) {
+    if(!rec || !implied || !implied.metodos || !implied.metodos.length) return null;
+    if(rec.valoracionHolding) return null;
+    var p=num(quoteOverride),ke=num(rec.descuentoMultiples && rec.descuentoMultiples.costoPatrimonio);
+    if(p==null || p<=0 || ke==null || ke<=-1)return null;
+    var rows=(String(rec.hojas && rec.hojas.valoracion && rec.hojas.valoracion['Financials Multiples']||'')
+      .match(/<tr\b[^>]*>[\s\S]*?<\/tr>/gi)||[]).map(function(tr){
+      return (tr.match(/<t[dh]\b[^>]*>[\s\S]*?<\/t[dh]>/gi)||[]).map(function(cell){
+        return cell.replace(/<[^>]+>/g,'').replace(/&nbsp;/g,' ').trim();
+      });
+    });
+    if(!rows.length)return null;
+    function parse(v){
+      var s=String(v==null?'':v).replace(/\s/g,'').replace(/[^\d.,+\-]/g,'');
+      if(!s)return null;
+      var comma=s.lastIndexOf(','),dot=s.lastIndexOf('.'),dec=null;
+      if(comma>=0&&dot>=0)dec=comma>dot?',':'.';
+      else if(comma>=0)dec=s.length-comma-1===3&&comma<=3?null:',';
+      else if(dot>=0)dec=s.length-dot-1===3&&dot<=3?null:'.';
+      if(dec==null)s=s.replace(/[.,]/g,'');
+      else {s=s.replace(new RegExp(dec===','?'\\.':',','g'),'');if(dec===',')s=s.replace(',','.');}
+      var n=Number(s);return isFinite(n)?n:null;
+    }
+    var metricNames={ebitda:'EV/EBITDA',fcff:'EV/FCFF','net income normalized':'P/E',
+      fcfe:'P/FCFE',ocf:'P/OCF','diluted shares outstanding':'shares'};
+    var info={conservador:{},base:{},optimista:{}},active=null,col=-1;
+    rows.forEach(function(row){
+      var t=String(row[0]||'').toLowerCase().trim(),label={conservador:'conservador',conservadora:'conservador',base:'base',optimista:'optimista'}[t];
+      if(label){active=label;col=-1;return;}
+      if(!active)return;
+      if(t==='operating data'){col=row.findIndex(function(s){return /FY\s*\+\s*3\b/i.test(s)});return;}
+      if(col<1)return;
+      var k=metricNames[t];if(k)info[active][k]=parse(row[col]);
+    });
+    var dcf=rec.metodos && rec.metodos.find(function(m){return /^DCF\b/i.test(m.nombre||'');});
+    if(!dcf)return null;
+    var priceFY3=p*Math.pow(1+ke,3);
+    var metrics=implied.metodos.map(function(m){
+      var equivalent={},differences={},keys=['conservador','base','optimista'];
+      keys.forEach(function(k){
+        var shares=info[k].shares,metric=info[k][m.nombre],intrinsic=num(dcf[k]),imp=num(m[k]);
+        if(shares!=null && shares>0 && metric!=null && metric>0 && intrinsic!=null && imp!=null && imp>0){
+          var trade=imp+(priceFY3-intrinsic)*shares/metric;
+          if(isFinite(trade) && trade>0){equivalent[k]=trade;differences[k]=trade/imp-1;}
+        }
+      });
+      return {nombre:m.nombre,mercado_FY3_equivalente:equivalent,deltaMercado_vs_DCF_FY3:differences};
+    });
+    if(!metrics.some(function(m){return Object.keys(m.mercado_FY3_equivalente).length;}))return null;
+    var quoteStamp=rec.precioReferenciaConsultadoAt || rec.precioFecha || '';
+    return {version:2,precioMercado:p,precioFY3:priceFY3,fechaCorte:quoteStamp||'Sin fecha verificada (precio de referencia guardado)',
+      fuente:rec.precioReferenciaFuente||'Precio guardado en valoración; no equivale a cotización de hoy',
+      horizonte:3,esPrecioActualVerificado:false,metodos:metrics,
+      salvedades:['Cotización guardada o sin timestamp; actualizar antes de interpretarla como precio de hoy',
+      'Sólo comparación FY+3 homogénea, no múltiplo actual LTM']};
+  }
+
+function fromRecord(rec, extra) {
     rec = rec || {}; extra = extra || {};
     var result = fromParts({ dm: rec.descuentoMultiples, vp: rec.valorPresentePonderado, metodosFY3: rec.metodos, objetivoFY3: rec.objetivoPonderado,
       precio: extra.precio != null ? extra.precio : rec.precio, precioLbl: extra.precioLbl, mos: extra.mos != null ? extra.mos : rec.mos, hoja: rec.hojaGoogle,
@@ -224,7 +284,7 @@
     result.costo = num(extra.costo);
     result.hist = histFrom(rec.multiplesHistoricos);
     result.impliedMultiples = impliedMultiplesFromRecord(rec);
-    result.marketComparison = rec.cotizacionMultiples || null;
+    result.marketComparison = rec.cotizacionMultiples || deriveMarketComparison(rec, result.impliedMultiples, extra.precio != null ? extra.precio : rec.precio);
     return result;
   }
   // Bloque del valor esperado, junto al DCF. d = resultado de fromParts/fromRecord.
