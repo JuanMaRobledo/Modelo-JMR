@@ -443,6 +443,25 @@ Seguí este proceso, en este orden:
      múltiplos históricos de 'Trailing Valuation'.
 
 2. COST OF CAPITAL
+   - Regla permanente para cada empresa: diligenciá y verificá TODA la pestaña
+     `Cost of capital worksheet` antes de informar el DCF. No alcanza con escribir
+     una tasa en `Input sheet`. Comprobá `Input sheet!B36 = Cost of capital
+     worksheet!B14`; con método `Detailed`, también `B14 = E63`.
+   - Revisá y documentá método activo, fecha, moneda, tasa libre de riesgo,
+     beta sectorial desapalancada y reapalancada, D/E de mercado, ERP base y
+     exposición geográfica (`B12:B28`, `G5:K33`). Conciliá los ingresos y
+     pesos regionales con la fuente; marcá como proxy cualquier reparto no
+     publicado, sin inventar países.
+   - Conciliá deuda, intereses, rating o spread, arrendamientos, convertibles,
+     preferentes y tratamiento fiscal (`B31:B51`, `C54:C57`). Evitá doble
+     conteo. Reproducí Ke, Kd, pesos y WACC sin redondear en `B60:E63`; los
+     pesos deben sumar 100 %.
+   - Completá o marcá explícitamente como inactivos los comparadores de mezcla
+     de negocios US y global (`G35:L65`), sector (`B67:B68`) y distribución
+     (`B71:F80`). Conservá fuentes, notas y desplegables de Damodaran;
+     retirá nombres ilustrativos de países, negocios o ratings que no sean
+     datos de la empresa. Separá «cálculo completo» de «validación económica
+     pendiente» y no declares certificación integral solo por conciliar fórmulas.
    - En "Cost of capital worksheet", verificá la industria (Input!B9/B10) contra la
      clasificación real de Damodaran, el approach de beta («Single Business(US)» si la mayoría de las ventas está en
      Norteamérica; «Single Business(Global)» si no), y el approach de costo de deuda: si la empresa no tiene
