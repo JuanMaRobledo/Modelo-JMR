@@ -576,10 +576,21 @@
     }).then(function (list) { return (Array.isArray(list) ? list : []).filter(function (f) { return /\.json$/i.test(f.name); }); });
   }
   function fetchJsonFile(path) {
-    return fetch(GH_API + path, { headers: ghHeaders() }).then(function (res) {
-      if (!res.ok) throw new Error('HTTP ' + res.status);
+    // Fuente única: registro vigente de Modelo-JMR-datos. Raw evita el
+    // límite anónimo de GitHub API y no recopia 32 tablas en cada artículo.
+    if(!/^valoraciones\/[A-Za-z0-9._-]+\.json$/.test(path))
+      return Promise.reject(new Error('Ruta de valoración no válida'));
+    var url='https://raw.githubusercontent.com/JuanMaRobledo/Modelo-JMR-datos/main/'+
+      path.split('/').map(encodeURIComponent).join('/');
+    return fetch(url,{cache:'no-store'}).then(function(res){
+      if(!res.ok)throw new Error('HTTP '+res.status);
       return res.json();
-    }).then(function (data) { return JSON.parse(b64Decode(data.content.replace(/\n/g, ''))); });
+    }).catch(function(){
+      return fetch(GH_API+path,{headers:ghHeaders(),cache:'no-store'}).then(function(res){
+        if(!res.ok)throw new Error('HTTP '+res.status);
+        return res.json();
+      }).then(function(data){return JSON.parse(b64Decode(data.content.replace(/\n/g,'')));});
+    });
   }
   function linkVisorValuation() {
     syncFields();
@@ -605,22 +616,53 @@
   // pisar algo a propósito) — solo avisa, con el mismo botón de siempre
   // para refrescarlo si el usuario quiere.
   function checkLinkedValuationFreshness() {
-    if (!state.linkedValuation || !state.ticker) return;
-    var openedId=state.id, linkedPath=state.linkedValuation.sourcePath;
-    if(linkedPath) fetchJsonFile(linkedPath).then(function(rec){
-      if(state.id!==openedId||!state.linkedValuation||state.linkedValuation.sourcePath!==linkedPath)return;
-      state.linkedValuation=Object.assign({},state.linkedValuation,{valorPresentePonderado:rec.valorPresentePonderado,descuentoMultiples:rec.descuentoMultiples,metodos:rec.metodos,hojas:rec.hojas,objetivoPonderado:rec.objetivoPonderado,mos:rec.mos,hojaGoogle:rec.hojaGoogle,valorEsperado:rec.valorEsperado,valoracionHolding:rec.valoracionHolding,currency:rec.currency,ticker:rec.ticker,precio:rec.precio,precioReferenciaConsultadoAt:rec.precioReferenciaConsultadoAt,precioReferenciaFuente:rec.precioReferenciaFuente,multiplosImplicitosDCF:rec.multiplosImplicitosDCF,cotizacionMultiples:rec.cotizacionMultiples});
+    if(!state.ticker)return;
+    var origin=state,ticker=String(state.ticker).toUpperCase();
+    var linked=state.linkedValuation||{};
+    var knownPath=linked.sourcePath||
+      (state.linkedValuationAtResearch&&state.linkedValuationAtResearch.sourcePath)||
+      (state.valuationSync&&state.valuationSync.sourcePath)||'';
+    function accept(rec,path){
+      // Protección contra respuestas tardías y archivos de otra empresa.
+      if(state!==origin||!rec||String(rec.ticker||'').toUpperCase()!==ticker)return;
+      state.linkedValuation=Object.assign({},state.linkedValuation||{},{
+        sourcePath:path,ticker:rec.ticker,precio:rec.precio,precioAnalisis:rec.precioAnalisis,
+        fecha:rec.fecha,fechaValoracion:rec.fecha,zonas:rec.zonas,
+        objetivoPonderado:rec.objetivoPonderado,valorPresentePonderado:rec.valorPresentePonderado,
+        descuentoMultiples:rec.descuentoMultiples,metodos:rec.metodos,
+        hojas:rec.hojas,cagr:rec.cagr,mos:rec.mos,baseMOS:rec.baseMOS,
+        precioMOS:rec.precioMOS,hojaGoogle:rec.hojaGoogle,
+        valorEsperado:rec.valorEsperado,valoracionHolding:rec.valoracionHolding,
+        currency:rec.currency,precioReferenciaConsultadoAt:rec.precioReferenciaConsultadoAt,
+        precioReferenciaFuente:rec.precioReferenciaFuente,multiplosImplicitosDCF:rec.multiplosImplicitosDCF,
+        cotizacionMultiples:rec.cotizacionMultiples,crecimientoImplicito:rec.crecimientoImplicito,
+        reportMigration:rec.reportMigration,reportSchema:rec.reportSchema
+      });
+      if(!rec.hojas||!Object.keys(rec.hojas).length)
+        setStatus('linkVisorStatus','Esta valoración no tiene anexos publicados; abre la hoja fuente para revisarlos.','bad');
+      else setStatus('linkVisorStatus','Anexos y matrices sincronizados desde la valoración vigente de '+ticker+'.','ok');
       renderPreview();
-    }).catch(function(){});
-    listValoraciones().then(function (files) {
-      var matches = files.filter(function (f) { return tickerFromValoracionName(f.name) === state.ticker; });
-      if (!matches.length) return;
-      matches.sort(function (a, b) { return b.name.localeCompare(a.name); });
-      var latestPath = matches[0].path;
-      if (latestPath !== state.linkedValuation.sourcePath) {
-        setStatus('linkVisorStatus', '⚠ Hay una valoración más reciente en el Visor ("' + latestPath + '") — este análisis sigue vinculado con "' + state.linkedValuation.sourcePath + '". Pulsa "Vincular con Visor" para actualizarlo.', 'bad');
-      }
-    }).catch(function () {});
+    }
+    function load(path){
+      return fetchJsonFile(path).then(function(rec){accept(rec,path);}).catch(function(err){
+        if(state===origin)setStatus('linkVisorStatus',
+          'No se pudo sincronizar la valoración original: '+err.message+
+          '. Se conservan los datos guardados sin sustituirlos.', 'bad');
+      });
+    }
+    if(/^valoraciones\/[A-Za-z0-9._-]+\.json$/.test(knownPath)){
+      load(knownPath);return;
+    }
+    // Para investigaciones antiguas sin sourcePath, resolver por ticker sin
+    // reutilizar nunca un archivo de otra empresa.
+    listValoraciones().then(function(files){
+      var matches=files.filter(function(f){return tickerFromValoracionName(f.name).toUpperCase()===ticker;});
+      if(!matches.length)return;
+      matches.sort(function(a,b){return b.name.localeCompare(a.name);});
+      return load(matches[0].path);
+    }).catch(function(err){
+      if(state===origin)setStatus('linkVisorStatus','No se encontró valoración vinculable: '+err.message,'bad');
+    });
   }
 
   // Noticias automáticas: usa la misma API key de FMP del resto de la app.
@@ -920,7 +962,13 @@
     state.market = jmrEsCOP(state) || JMR_MERCADO === 'colombia' ? 'BVC' : 'international';
     if (state.market === 'BVC') state.currency = 'COP';
     state.updatedAt=new Date().toISOString();
-    return Object.assign({},state);
+    var saved=Object.assign({},state);
+    if(saved.linkedValuation&&saved.linkedValuation.sourcePath){
+      saved.linkedValuation=Object.assign({},saved.linkedValuation);
+      delete saved.linkedValuation.hojas;
+      // Volver a leer hojas al abrir evita copias obsoletas y registros >1 MB.
+    }
+    return saved;
   }
   el('saveBtn').addEventListener('click',function(){
     var btn=this,record;
