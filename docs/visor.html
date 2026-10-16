@@ -1074,9 +1074,10 @@
       <p class="sub">Consulta valoraciones que hayas guardado antes desde este visor — no necesitas volver a importar la hoja, ni conectar nada para verlas. Solo hace falta pegar tu Personal Access Token de GitHub (<code>Modelo-JMR-datos</code>) si querés guardar, archivar o borrar una — el navegador lo recuerda después, no hace falta volver a escribirlo.</p>
       <div id="ghConnect"></div>
       <div class="gh-row">
-        <button class="gh-btn" id="loadSavedBtn" type="button">Cargar lista</button>
+        <button class="gh-btn" id="loadSavedBtn" type="button">Actualizar lista</button>
         <button class="gh-btn" id="toggleArchiveBtn" type="button" hidden>Ver archivadas</button>
       </div>
+      <input id="savedSearchTicker" type="search" placeholder="Buscar ticker (ej. PYPL)" aria-label="Buscar valoración por ticker" style="width:100%;max-width:380px;margin:10px 0;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--ink)">
       <p class="gh-status" id="savedStatus"></p>
       <div class="saved-list" id="savedList"></div>
     </div>
@@ -2879,7 +2880,14 @@
   var ARCHIVE_FOLDER = 'valoraciones/archivadas';
 
   function listValoraciones(folder){
-    return fetch(GH_API + (folder || 'valoraciones'), { headers: ghHeaders(getGhToken()) }).then(function(res){
+    var uri = GH_API + (folder || 'valoraciones') + '?ref=main';
+    var token = getGhToken();
+    return fetch(uri, { headers: ghHeaders(token), cache: 'no-store' }).then(function(res){
+      if((res.status === 401 || res.status === 403) && token){
+        return fetch(uri, {cache:'no-store'});
+      }
+      return res;
+    }).then(function(res){
       if(res.status === 404) return [];
       if(!res.ok) return res.json().then(function(e){ throw new Error((e && e.message) || ('HTTP ' + res.status)); });
       return res.json();
@@ -2889,12 +2897,25 @@
   }
 
   function fetchValoracion(path){
-    var token = getGhToken();
-    return fetch(GH_API + path, { headers: ghHeaders(token) }).then(function(res){
+    // Los registros del repo son públicos: raw GitHub evita consumir cuotas API
+    // al abrir cada valoración. La API se conserva como alternativa.
+    if(!/^valoraciones\/(?:archivadas\/)?[A-Za-z0-9._-]+\.json$/.test(path)){
+      return Promise.reject(new Error('Ruta de valoración inválida'));
+    }
+    var raw = 'https://raw.githubusercontent.com/' + GH_OWNER + '/' + GH_REPO +
+      '/main/' + path.split('/').map(encodeURIComponent).join('/');
+    return fetch(raw, {cache:'no-store'}).then(function(res){
       if(!res.ok) throw new Error('HTTP ' + res.status);
       return res.json();
-    }).then(function(data){
-      return { record: JSON.parse(b64DecodeUnicode(data.content.replace(/\n/g, ''))), sha: data.sha };
+    }).then(function(record){
+      return {record:record, sha:null};
+    }).catch(function(){
+      return fetch(GH_API + path, {headers:ghHeaders(getGhToken()),cache:'no-store'}).then(function(res){
+        if(!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      }).then(function(data){
+        return {record:JSON.parse(b64DecodeUnicode(data.content.replace(/\n/g, ''))),sha:data.sha};
+      });
     });
   }
 
@@ -3295,18 +3316,8 @@
   }
   function parseSavedFileLabel(f){
     var ticker = f.ticker || tickerFromFileName(f.name);
-    if(f.fecha){
-      return ticker + ' · ' + f.fecha.replace(/^Análisis del\s*/i, '');
-    }
-    var base = f.name.replace(/\.json$/i, '');
-    var m = base.match(/^(.+)-(\d{10,})$/);
-    if(m){
-      var d = new Date(parseInt(m[2], 10));
-      if(!isNaN(d.getTime())){
-        return ticker + ' · guardada el ' + d.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
-      }
-    }
-    return ticker;
+    if(f.fecha) return ticker + ' · ' + f.fecha.replace(/^Análisis del\s*/i, '');
+    return ticker + ' · valoración guardada';
   }
 
   function renderSavedList(files){
@@ -3334,6 +3345,13 @@
         '</span>' +
       '</div>';
     }).join('');
+    var search = document.getElementById('savedSearchTicker');
+    if(search){
+      var q = search.value.trim().toUpperCase();
+      listEl.querySelectorAll('.saved-item').forEach(function(row){
+        row.hidden = !!q && row.textContent.toUpperCase().indexOf(q) < 0;
+      });
+    }
 
     listEl.querySelectorAll('button[data-act="ver"]').forEach(function(b){
       b.addEventListener('click', function(){
@@ -3407,31 +3425,34 @@
     }).catch(function(){ return {}; });
   }
 
-  // Abre cada archivo (no solo el listado de nombres) para poder mostrar
-  // el ticker y la fecha del análisis reales en vez de adivinarlos del
-  // nombre del archivo. Si algún archivo falla al leerse (o es muy viejo
-  // y no tiene rec.fecha), esa fila se cae al nombre/fecha de guardado en
-  // vez de romper el resto de la lista.
+  // Construir el listado desde los nombres TICKER-timestamp; cargar cada
+  // JSON sólo al abrirlo. Evita docenas de solicitudes y límites GitHub.
   function reloadSavedList(){
     var status = document.getElementById('savedStatus');
-    status.textContent = 'Cargando…';
-    Promise.all([
+    status.textContent = 'Cargando valoraciones…';
+    return Promise.all([
       listValoraciones(viewingArchive ? ARCHIVE_FOLDER : 'valoraciones'),
       listResearchTickers()
     ]).then(function(results){
-      var files = results[0], researchTickers = results[1];
-      if(!files.length) return files;
-      status.textContent = 'Cargando ' + files.length + ' valoración(es)…';
-      return Promise.all(files.map(function(f){
-        return fetchValoracion(f.path).then(function(res){
-          var ticker = res.record && res.record.ticker;
-          return Object.assign({}, f, { ticker: ticker, fecha: res.record && res.record.fecha, hasResearch: !!(ticker && researchTickers[ticker]), mercadoOk: jmrDelMercado(res.record) });
-        }).catch(function(){ return Object.assign({}, f, { mercadoOk: jmrDelMercado({ticker:tickerFromFileName(f.name)}) }); });
-      }));
-    }).then(function(files){ return files.filter(function(f){ return f.mercadoOk !== false; }); }).then(renderSavedList).catch(function(err){
-      status.textContent = 'Error: ' + err.message;
+      var tickers = results[1];
+      return results[0].map(function(f){
+        var ticker = tickerFromFileName(f.name);
+        return Object.assign({},f,{
+          ticker:ticker,hasResearch:!!tickers[ticker],
+          mercadoOk:jmrDelMercado({ticker:ticker})
+        });
+      }).filter(function(f){return f.mercadoOk;});
+    }).then(renderSavedList).catch(function(err){
+      status.textContent = 'Error al listar: ' + err.message;
     });
   }
+
+  document.getElementById('savedSearchTicker').addEventListener('input', function(){
+    var q = this.value.trim().toUpperCase();
+    document.querySelectorAll('#savedList .saved-item').forEach(function(row){
+      row.hidden = !!q && row.textContent.toUpperCase().indexOf(q) < 0;
+    });
+  });
 
   document.getElementById('loadSavedBtn').addEventListener('click', function(){
     viewingArchive = false;
@@ -4039,7 +4060,9 @@
   // valoración directo, sin tener que ir a buscarla a mano en
   // "Valoraciones guardadas". Leer no requiere token (el repo de datos es
   // público), así que funciona igual sin conectar nada.
-  var deepLinkPath = new URLSearchParams(location.search).get('path');
+  var deepParams = new URLSearchParams(location.search);
+  var deepLinkPath = deepParams.get('path');
+  var deepLinkTicker = String(deepParams.get('ticker') || '').trim().toUpperCase();
 
   // ?pdfmode=1 lo agrega api/pdf.js al abrir esta página con Chromium
   // headless (ver docs/visor.html .pdf-header en el <style>) — nunca lo usa
@@ -4066,9 +4089,33 @@
       window.__pdfReady = true;
     });
   } else if(pdfMode){
-    // pdfmode sin ?path es un uso incorrecto de la API — no hay nada que
-    // esperar, así que no hay que dejar a Chromium colgado.
+    // Sin ?path la API PDF no tiene registro que renderizar.
     window.__pdfReady = true;
+  } else if(deepLinkTicker){
+    // ?ticker=PYPL funciona sin conocer el nombre del archivo JSON.
+    var tickerStatus = document.getElementById('savedStatus');
+    tickerStatus.textContent = 'Buscando ' + deepLinkTicker + '…';
+    if(!/^[A-Z0-9._-]{1,24}$/.test(deepLinkTicker)){
+      tickerStatus.textContent = 'Ticker inválido.';
+    } else {
+      listValoraciones('valoraciones').then(function(files){
+        var chosen = files.find(function(f){
+          return tickerFromFileName(f.name).toUpperCase() === deepLinkTicker;
+        });
+        if(!chosen) throw new Error('Ticker no encontrado en valoraciones guardadas');
+        return fetchValoracion(chosen.path).then(function(res){
+          if(String(res.record.ticker || '').toUpperCase() !== deepLinkTicker) throw new Error('Ticker no coincide');
+          displaySavedRecord(res.record);
+          setCurrentSavedPath(chosen.path);
+          tickerStatus.textContent = deepLinkTicker + ' · valoración cargada.';
+        });
+      }).catch(function(err){
+        tickerStatus.textContent = 'No se pudo abrir ' + deepLinkTicker + ': ' + err.message;
+      });
+    }
+  } else {
+    document.getElementById('toggleArchiveBtn').hidden = false;
+    reloadSavedList();
   }
 })();
 </script>
