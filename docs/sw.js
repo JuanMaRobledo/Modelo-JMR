@@ -1,4 +1,4 @@
-const CACHE = "modelo-jmr-v155-anclas-calculos";
+const CACHE = "modelo-jmr-v156-matrices-catalogo";
 const APP_SHELL = [
   "index.html",
   "colombia.html",
@@ -9,6 +9,8 @@ const APP_SHELL = [
   "prompts/colombia-research-v1.md",
   "prompts/colombia-valuation-v1.md",
   "visor.html",
+  "jmr-report-sheets.js",
+  "jmr-report-sheets.css",
   "screener.html",
   "damodaran.html",
   "damodaran/multiplos.json",
