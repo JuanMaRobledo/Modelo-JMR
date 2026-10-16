@@ -1,3 +1,17 @@
+<!-- JMR-REPORTE-HOJAS-UNIFORMES-20261016 -->
+## Contrato obligatorio de hojas, matrices y presentación (16-oct-2026)
+
+Este contrato **prevalece sobre prácticas anteriores que hayan publicado sólo algunos cuadros o una mezcla de pestañas heredadas**, sin alterar la economía del DCF, fuentes ni el uso de cuatro escenarios. Aplicar a **toda nueva valoración y republicación**, diferenciando FCFF industrial de FCFE bancos y SOTP holdings.
+
+1. **Única fuente de estructura:** siempre copiar la plantilla IA maestra vacía y vigente, con hojas y fórmulas originales intactas. Nunca reciclar la copia de otra empresa ni suponer que los datos faltantes son cero. Una carpeta por empresa; conservar versiones previas y respaldos. Mantener selectores, notas, fórmulas, matrices, fuentes, unidades y fecha de corte.
+2. **Contrato de hojas industriales:** Inputs; Income Statement, Balance Sheet y Cash Flow Statement (años históricos + LTM disponible); Valuation output; Cost of capital worksheet; Option value; Resumen de Valoración; Descuento de múltiplos; Escenarios e historias; Márgenes; Eficiencia de capital; Salud Financiera; Por acción; Financials Multiples; Crecimiento implícito. Las hojas secundarias de múltiplos, moat, auditoría y dividendos se conservan cuando apliquen. Ver `reference/report_contract_v1.json` del repositorio de cálculo. No dar por completa una pestaña sólo porque existe: verificar rangos, fórmulas y datos.
+3. **Sensibilidad en hoja Y artículo:** presentar directamente tres matrices sobre el **DCF Base vigente**, no el promedio: WACC terminal × g; ROIC terminal × g; crecimiento de ingresos años 1–5 × margen EBIT. Ejes explícitos, unidades, fuente y fecha, celda central que concilie con el DCF Base por acción, valores numéricos completos. Sensibilidades adicionales (ventaja competitiva/moat y, cuando procede, SOTP/FCFE) se rotulan por separado. Admitir un formato histórico 3×3 cuando el original lo sea, sin interpolar ni fingir 5×5.
+4. **Diseño unificado:** nivel 1 = artículo compartible, hipótesis justificadas, DCF Base, MOS y matrices legibles. Nivel 2 = cálculos profundos y accesos desplegables a estados financieros, eficiencia de capital, márgenes, salud financiera, costo de capital, Options, DCF inverso, escenarios, múltiplos y vínculos a la hoja. Todas las tablas con encabezados, alineación numérica y desplazamiento horizontal móvil; no incrustar 30 tablas abiertas en el artículo.
+5. **Campos de publicación sincronizados:** `valoraciones/<TICKER>-*.json` debe contener `hojas` agrupadas y completas; Research debe conservar `linkedValuation.hojas` y `linkedValuation.sourcePath` a la misma versión, además de `articleHtml` y `calculationHtml`. No usar HTML/caché anterior si cambiaron los inputs. Regenerar tarjeta, MOS Base, sensibilidad, DCF inverso, PDF y bitácora. Marcar datos no disponibles expresamente; nunca completarlos desde otra empresa.
+6. **Control previo:** `scripts/audit_report_contract.py` + controles económicos y de fórmulas; bloquear publicación si faltan hojas esenciales o matrices incongruentes. No confundir un control estructural aprobado con certificación externa de valor razonable. Si falta un control sectorial de bancos o holdings, aplicar el validador correspondiente sin reutilizar FCFF industrial.
+
+---
+
 <!-- JMR-FOUR-SCENARIOS-MOAT-20261015 -->
 ## Contrato JMR: exactamente cuatro escenarios y sensibilidad de duración de ventaja (15-oct-2026)
 
