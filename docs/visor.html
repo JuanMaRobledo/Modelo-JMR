@@ -2752,8 +2752,10 @@
     // Preservar las hojas específicas de holdings/sectores y futuras plantillas.
     if(currentWb)currentWb.SheetNames.forEach(function(name){
       if(seen[name]||name==='Cualitativo')return;
-      var section=/income|balance|cash flow/i.test(name)?'financieros':
-        /margen|eficiencia|salud|roic|estadist|diagnos|tesis/i.test(name)?'analisis':'valoracion';
+      // Referencias fijas de Damodaran, diccionarios y conversores no son
+      // tablas propias del emisor y no deben inflar el JSON publicado.
+      if(!/sensib|anexo work|sotp|fcfe banc|revenue segment|segmentos|moat|puente equity|auditor[ií]a econ/i.test(name))return;
+      var section=/margen|eficiencia|salud|roic|estadist|diagnos|tesis/i.test(name)?'analisis':'valoracion';
       out[section][name]=compactSheetForPublishing(renderGenericSheet(name));
     });
     if(currentWb && (currentWb.Sheets['Cualitativo'] || cualitativoOverride !== null))
