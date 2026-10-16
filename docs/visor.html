@@ -2982,7 +2982,7 @@
       (r.hojas.valoracion['Financials Multiples'] || r.multiplosImplicitosDCF) &&
       Array.isArray(r.metodos) && r.metodos.length);
     var d = hasSavedMetrics ? JmrValueBoard.fromRecord(r, {precioLbl: 'Precio de referencia'}) :
-      JmrValueBoard.fromParts(Object.assign({}, boardParts, { precio: r.precio, precioLbl: 'Precio de referencia', mos: r.mos, hoja: r.hojaGoogle, ve: r.valorEsperado, hist: r.multiplesHistoricos, currency: r.currency, holding: r.valoracionHolding }));
+      JmrValueBoard.fromParts(Object.assign({}, boardParts, { precio: r.precio, precioLbl: 'Precio de referencia', mos: r.mos, baseMOS: r.baseMOS, hoja: r.hojaGoogle, ve: r.valorEsperado, hist: r.multiplesHistoricos, currency: r.currency, holding: r.valoracionHolding }));
     box.innerHTML = JmrValueBoard.html(d, { hero: false });
   }
   function renderPresentValue(dm, vp, metodosFY3, objetivoFY3){
@@ -4075,3 +4075,4 @@ if("serviceWorker" in navigator){
 </script>
 </body>
 </html>
+
