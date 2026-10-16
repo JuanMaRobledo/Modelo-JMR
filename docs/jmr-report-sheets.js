@@ -82,31 +82,41 @@
     var n=Number(v);return isFinite(n)?n:null;
   }
   function matrixTable(title,header,rows,base,idx){
-    var numbers=[];rows.forEach(function(r){r.cells.slice(1,6).forEach(function(v){var x=num(v);if(x!==null)numbers.push(x);});});
+    var count=rows.length,mid=Math.floor(count/2),numbers=[];
+    rows.forEach(function(r){r.cells.slice(1,count+1).forEach(function(v){var x=num(v);if(x!==null)numbers.push(x);});});
     var low=Math.min.apply(null,numbers),high=Math.max.apply(null,numbers);
     var thead='<thead><tr><th scope="col">'+esc(header.cells[0]||'')+'</th>'+
-      header.cells.slice(1,6).map(function(c){return '<th scope="col">'+esc(c)+'</th>';}).join('')+'</tr></thead>';
+      header.cells.slice(1,count+1).map(function(c){return '<th scope="col">'+esc(c)+'</th>';}).join('')+'</tr></thead>';
     var content=rows.map(function(r,ri){
-      return '<tr><th scope="row">'+esc(r.cells[0])+'</th>'+r.cells.slice(1,6).map(function(v,ci){
-        var value=num(v),center=ri===2&&ci===2,level=value===null||high===low?'mid':(value<(low+(high-low)*.42)?'low':value>(low+(high-low)*.58)?'high':'mid');
-        return '<td class="jmr-heat-'+level+(center?' jmr-matrix-base':'')+'">'+esc(v)+(center?'<span class="jmr-base-tag">Base</span>':'')+'</td>';
+      return '<tr><th scope="row">'+esc(r.cells[0])+'</th>'+r.cells.slice(1,count+1).map(function(v,ci){
+        var value=num(v),center=ri===mid&&ci===mid,level=value===null||high===low?'mid':(value<(low+(high-low)*.42)?'low':value>(low+(high-low)*.58)?'high':'mid');
+        var matchesBase=center&&typeof base==='number'&&Math.abs(value-base)<=Math.max(.02,base*.00035);
+        return '<td class="jmr-heat-'+level+(center?' jmr-matrix-base':'')+'">'+esc(v)+(center?'<span class="jmr-base-tag">'+(matchesBase?'Base':'Centro')+'</span>':'')+'</td>';
       }).join('')+'</tr>';
     }).join('');
     return '<article class="jmr-matrix-card"><div class="jmr-matrix-heading"><span class="jmr-matrix-index">0'+idx+'</span><h4>'+esc(title)+'</h4></div>'+
-      '<div class="jmr-sheet-scroll"><table class="jmr-table jmr-matrix"><caption>'+esc(title)+' · valor intrínseco por acción</caption>'+thead+'<tbody>'+content+'</tbody></table></div></article>';
+      '<div class="jmr-sheet-scroll"><table class="jmr-table jmr-matrix"><caption>'+esc(title)+' · sensibilidad de valor/acción ('+count+' × '+count+')</caption>'+thead+'<tbody>'+content+'</tbody></table></div></article>';
   }
   function sensitivity(record){
     var index=sheets(record);
     var sens=get(index,'Sensibilidades');
     if(!sens)return '<p class="jmr-sheet-note">Esta valoración no contiene una matriz de sensibilidad publicada. Consulta la hoja fuente; no se generan cifras aproximadas.</p>';
-    var rows=readRows(sens.html), blocks=[];
-    for(var i=0;i<rows.length-6;i++){
+    var rows=readRows(sens.html),blocks=[],base=record?.valorEsperado?.dcfBase ??
+      record?.descuentoMultiples?.dcfHoy?.base;
+    for(var i=0;i<rows.length-4;i++){
       var r=rows[i],title=r.cells.filter(Boolean).join(' ').trim();
       if(!/[\u00d7]|sensibilidad|sensitivity/i.test(title)||r.cells.filter(Boolean).length>2)continue;
-      var header=rows[i+1],body=rows.slice(i+2,i+7);
-      if(!header||header.cells.length<6||body.length!==5||!body.every(function(z){return z.cells.length>=6&&z.cells.slice(1,6).every(function(v){return num(v)!==null;});}))continue;
-      blocks.push(matrixTable(title,header,body,null,blocks.length+1));
-      i+=6;
+      var header=rows[i+1],length=0,body=null;
+      for(var n of [5,3]){
+        var candidate=rows.slice(i+2,i+2+n);
+        if(header && header.cells.length>=n+1 && candidate.length===n &&
+           candidate.every(function(z){return z.cells.length>=n+1&&z.cells.slice(1,n+1).every(function(v){return num(v)!==null;});})){
+           length=n;body=candidate;break;
+        }
+      }
+      if(!length)continue;
+      blocks.push(matrixTable(title,header,body,base,blocks.length+1));
+      i+=length+1;
     }
     if(blocks.length)return '<div class="jmr-matrix-grid">'+blocks.join('')+'</div>';
     return '<div class="jmr-sheet-note">Matriz histórica conservada tal cual se publicó; no se interpreta como matriz estándar 5 × 5.</div>'+
