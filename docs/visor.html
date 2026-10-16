@@ -1345,6 +1345,13 @@
   function renderMosDcf(){
     var r = currentResumen || {}, d = (r.descuentoMultiples || {}).dcfHoy, mos = Number(r.mos);
     var ve = r.valorEsperado && Number(r.valorEsperado.valor);
+    var base = r.valorEsperado && Number(r.valorEsperado.valorCentral || r.valorEsperado.dcfBase);
+    if (!(base > 0) && d) base = Number(d.base);
+    if (r.baseMOS === 'dcfBase' && base > 0 && isFinite(mos)) {
+      document.getElementById('rPrecioMOSLbl').textContent = 'Precio con MOS sobre DCF Base';
+      document.getElementById('rPrecioMOS').textContent = fmtMoney(base*(1-mos));
+      return;
+    }
     var elM = document.getElementById('rPrecioMOS'), elL = document.getElementById('rPrecioMOSLbl');
     if (r.valoracionHolding) { elL.textContent = 'Umbral con MOS · referencia preliminar'; elM.textContent = fmtMoney(r.valoracionHolding.umbralMOS); return; }
     if(ve && isFinite(ve) && isFinite(mos)){
@@ -2982,7 +2989,7 @@
       (r.hojas.valoracion['Financials Multiples'] || r.multiplosImplicitosDCF) &&
       Array.isArray(r.metodos) && r.metodos.length);
     var d = hasSavedMetrics ? JmrValueBoard.fromRecord(r, {precioLbl: 'Precio de referencia'}) :
-      JmrValueBoard.fromParts(Object.assign({}, boardParts, { precio: r.precio, precioLbl: 'Precio de referencia', mos: r.mos, hoja: r.hojaGoogle, ve: r.valorEsperado, hist: r.multiplesHistoricos, currency: r.currency, holding: r.valoracionHolding }));
+      JmrValueBoard.fromParts(Object.assign({}, boardParts, { precio: r.precio, precioLbl: 'Precio de referencia', mos: r.mos, baseMOS: r.baseMOS, hoja: r.hojaGoogle, ve: r.valorEsperado, hist: r.multiplesHistoricos, currency: r.currency, holding: r.valoracionHolding }));
     box.innerHTML = JmrValueBoard.html(d, { hero: false });
   }
   function renderPresentValue(dm, vp, metodosFY3, objetivoFY3){
@@ -4075,3 +4082,4 @@ if("serviceWorker" in navigator){
 </script>
 </body>
 </html>
+

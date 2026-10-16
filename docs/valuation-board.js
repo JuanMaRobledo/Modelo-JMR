@@ -60,7 +60,7 @@
       metodos.push({ nombre: m.nombre, peso: m.peso, hoy: null, fy3: trio(m) });
     });
     return {
-      precio: num(o.precio), precioLbl: o.precioLbl || 'Precio de referencia', mos: num(o.mos), ke: num(dm.costoPatrimonio),
+      precio: num(o.precio), precioLbl: o.precioLbl || 'Precio de referencia', mos: num(o.mos), baseMOS: o.baseMOS || null, ke: num(dm.costoPatrimonio),
       dcf: { hoy: trio(dm.dcfHoy), fy3: dcfFy3, peso: pesoDcf },
       mult: { hoy: trio(dm.multiplesHoy), fy3: multFy3, peso: pesoMult },
       metodos: metodos,
@@ -295,7 +295,7 @@ function fromRecord(rec, extra) {
     rec = rec || {}; extra = extra || {};
     var result = fromParts({ dm: rec.descuentoMultiples, vp: rec.valorPresentePonderado, metodosFY3: rec.metodos, objetivoFY3: rec.objetivoPonderado,
       precio: extra.precio != null ? extra.precio : rec.precio, precioLbl: extra.precioLbl, mos: extra.mos != null ? extra.mos : rec.mos, hoja: rec.hojaGoogle,
-      ve: rec.valorEsperado, currency: rec.currency, holding: rec.valoracionHolding });
+      ve: rec.valorEsperado, baseMOS: rec.baseMOS, currency: rec.currency, holding: rec.valoracionHolding });
     var applied = appliedMultiples(rec);
     result.metodos.forEach(function (m) { m.aplicados = applied[String(m.nombre).toUpperCase()] || null; });
     // Precio de compra de la posición (opcional, 6-oct-2026): si se pasa, las tarjetas principales muestran también
@@ -357,9 +357,14 @@ function fromRecord(rec, extra) {
       return '<tr><td class="hn"><b>' + esc(storyName(h)) + '</b>' + (h.id === d.ve.historiaCentralId ? '<small>Historia central</small>' : '') + '<small>ROIC terminal: ' + (h.roicTerminal === 'costo_capital' ? 'costo de capital' : pct(h.roicTerminal, 1)) + '</small>' + (typeof h.terminalGrowth === 'number' ? '<small>Crecimiento terminal: ' + pct(h.terminalGrowth, 2) + '</small>' : '') + '</td><td class="n">' + pct(h.probabilidad) + '</td><td class="n">' + pct(h.crecimiento, 1) + '</td><td class="n">' + pct(h.margen) + '</td><td class="n">' + n2(h.valor) + '</td><td class="n">' + vsPrecio(h.valor, d.precio) + '</td></tr>';
     }).join('') + '</tbody></table></div>';
   }
+  function mosBasis(d) {
+    var base = primaryValues(d).base;
+    var useBase = d.baseMOS === 'dcfBase' && base != null && base >= 0;
+    return { value: useBase ? base : (d.ve ? d.ve.valor : base), label: useBase ? 'DCF Base' : 'promedio de escenarios DCF' };
+  }
   function unifiedHtml(d) {
-    var h = centralStory(d), values = d.ve.historias.map(function(x) { return x.valor; });
-    return '<div class="jvb-ve">' + primaryHtml(d) + storiesTable(d) + '<div class="jvb-scen"><span>Rango <b>' + money(Math.min.apply(null, values)) + ' – ' + money(Math.max.apply(null, values)) + '</b></span>' + (d.mos != null ? '<span>MOS ' + pct(d.mos) + ' <b>' + money(d.ve.valor * (1-d.mos)) + '</b></span>' : '') + '</div>' + averageHtml(d) + '<p class="jvb-venote">Cada historia se valora con un DCF completo. El promedio de escenarios DCF suma DCF × probabilidad; las probabilidades son juicio del analista. El MOS se aplica a ese promedio. El rango muestra desenlaces, no un intervalo de confianza.</p><details class="jvb-vedet"><summary>Referencia técnica de la hoja anterior</summary><p class="jvb-venote">Antiguo caso técnico Base de la hoja ' + money(d.ve.dcfBaseTecnicoAnterior != null ? d.ve.dcfBaseTecnicoAnterior : (d.dcf.hoy && d.dcf.hoy.base)) + '. Se conserva para calibrar el motor y los supuestos auxiliares de múltiplos; no representa la tesis Base.</p></details></div>';
+    var h = centralStory(d), values = d.ve.historias.map(function(x) { return x.valor; }), basis = mosBasis(d);
+    return '<div class="jvb-ve">' + primaryHtml(d) + storiesTable(d) + '<div class="jvb-scen"><span>Rango <b>' + money(Math.min.apply(null, values)) + ' – ' + money(Math.max.apply(null, values)) + '</b></span>' + (d.mos != null ? '<span>MOS ' + pct(d.mos) + ' sobre ' + basis.label + ' <b>' + money(basis.value * (1-d.mos)) + '</b></span>' : '') + '</div>' + averageHtml(d) + '<p class="jvb-venote">Cada historia se valora con un DCF completo. El promedio de escenarios DCF suma DCF × probabilidad; las probabilidades son juicio del analista. El MOS se aplica sobre ' + basis.label + '. El rango muestra desenlaces, no un intervalo de confianza.</p><details class="jvb-vedet"><summary>Referencia técnica de la hoja anterior</summary><p class="jvb-venote">Antiguo caso técnico Base de la hoja ' + money(d.ve.dcfBaseTecnicoAnterior != null ? d.ve.dcfBaseTecnicoAnterior : (d.dcf.hoy && d.dcf.hoy.base)) + '. Se conserva para calibrar el motor y los supuestos auxiliares de múltiplos; no representa la tesis Base.</p></details></div>';
   }
   function veHtml(d) {
     var ve = d && d.ve;
@@ -378,14 +383,15 @@ function fromRecord(rec, extra) {
         (h.roicTerminal === 'costo_capital' ? '<small>ROIC después del año 10 = costo de capital</small>' : '') + '</td>' +
         '<td class="n">' + pct(h.probabilidad) + '</td><td class="n">' + n2(h.valor) + '</td><td class="n">' + vsPrecio(h.valor, d.precio) + '</td></tr>';
     }).join('');
-    var mos = d.mos != null ? '<span class="jvb-vemos">Precio con MOS (' + pct(d.mos) + ') sobre el promedio de escenarios DCF <b>' + money(ve.valor * (1 - d.mos)) + '</b>' + vsPrecio(ve.valor * (1 - d.mos), d.precio) + '</span>' : '';
+    var basis = mosBasis(d);
+    var mos = d.mos != null ? '<span class="jvb-vemos">Precio con MOS (' + pct(d.mos) + ') sobre ' + basis.label + ' <b>' + money(basis.value * (1 - d.mos)) + '</b>' + vsPrecio(basis.value * (1 - d.mos), d.precio) + '</span>' : '';
     var vsDcf = dcf ? '<span>Frente al DCF Base <b>' + (ve.valor >= dcf ? '+' : '−') + Math.abs((ve.valor / dcf - 1) * 100).toFixed(0) + '%</b></span>' : '';
     return '<div class="jvb-ve">' +
       '<div class="jvb-vebar" aria-hidden="true">' + bar + '</div>' +
       '<details class="jvb-vedet"><summary>Ver historias</summary><table class="jvb-vetab"><thead><tr><th>Historia</th><th>Prob.</th><th>' + (d.currency === 'COP' ? 'COP' : 'US$') + '/acción</th><th>vs. precio</th></tr></thead><tbody>' +
       rows + '</tbody></table></details>' +
       '<div class="jvb-meta">' + vsDcf + mos + '</div>' + averageHtml(d) +
-      '<p class="jvb-venote">El DCF base y el promedio de escenarios DCF son lecturas distintas; el promedio todas las historias (cada una un DCF completo) según la probabilidad que les asigna el análisis. El margen de seguridad se aplica sobre el promedio de escenarios DCF' +
+      '<p class="jvb-venote">El DCF base y el promedio de escenarios DCF son lecturas distintas; el promedio todas las historias (cada una un DCF completo) según la probabilidad que les asigna el análisis. El margen de seguridad se aplica sobre ' + basis.label +
       (ve.fecha ? ' (análisis del ' + esc(ve.fecha) + ')' : '') + '. Las probabilidades son juicio del analista.</p></div>';
   }
   function historicalHtml(d) {
@@ -755,4 +761,5 @@ function fromRecord(rec, extra) {
     primaryValues: primaryValues, primaryHtml: primaryHtml, veBox: function (d) { if (d && d.holding) return ''; DISPLAY_CURRENCY = d && d.currency === 'COP' ? 'COP' : 'USD'; var h = unified(d) ? unifiedHtml(d) : primaryHtml(d) + veHtml(d); return h ? '<div class="jvb-vebox">' + h + '</div>' : ''; },
     apply: function () { apply(prefs()); } };
 })(window);
+
 
