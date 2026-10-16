@@ -1222,7 +1222,23 @@
   // Read each scenario assumption from the authoritative native workbook.
   function readUnifiedStories(wb){
     var ws=wb && wb.Sheets && wb.Sheets['Escenarios e historias'];
-    if(!ws || typeof cellVal(ws,'H10')!=='number') return null;
+    if(!ws || typeof cellVal(ws,'H10')!=='number') {
+      var legacy=wb && wb.Sheets && wb.Sheets['Escenarios JMR NFLX'];
+      if(!legacy || !String(cellVal(legacy,'A1')||'').match(/NFLX/)) return null;
+      var histories=[5,6,7,8].map(function(row,i){
+        var output=i===3 ? wb.Sheets['DCF Disrupción NFLX'] : wb.Sheets['Valuation output'];
+        var offset=i===3 ? 0 : i*51, product=1;
+        ['C','D','E','F','G'].forEach(function(col){product*=1+Number(cellVal(output,col+(4+offset)));});
+        return {id:['A','B','D','C'][i],nombre:cellVal(legacy,'A'+row),valor:cellVal(legacy,'B'+row),
+          probabilidad:null,crecimiento:Math.pow(product,.2)-1,margen:cellVal(legacy,'E'+row),
+          salesToCapital:cellVal(legacy,'F'+row),salesToCapital2:cellVal(legacy,'G'+row),
+          terminalGrowth:cellVal(legacy,'H'+row),roicTerminal:cellVal(legacy,'I'+row)};
+      });
+      if(histories.some(function(h){return typeof h.valor!=='number' || !isFinite(h.valor);})) return null;
+      var vals=histories.map(function(h){return h.valor;});
+      return {valor:null,valorCentral:histories[0].valor,dcfBase:histories[0].valor,historias:histories,
+        escenariosUnificados:true,historiaCentralId:'A',pesosAprobados:false,rango:{min:Math.min.apply(null,vals),max:Math.max.apply(null,vals)}};
+    }
     var hs=[];
     for(var row=5;row<=8;row++) hs.push({id:String.fromCharCode(60+row),nombre:cellVal(ws,'A'+row),probabilidad:cellVal(ws,'B'+row),crecimiento:cellVal(ws,'C'+row),margen:cellVal(ws,'D'+row),salesToCapital:cellVal(ws,'E'+row),salesToCapital2:cellVal(ws,'F'+row),roicTerminal:cellVal(ws,'G'+row),terminalGrowth:cellVal(ws,'J'+row),valor:cellVal(ws,'H'+row)});
     return {valor:cellVal(ws,'H10'),valorCentral:cellVal(ws,'H11'),historias:hs,escenariosUnificados:true,historiaCentralId:'A',rango:{min:cellVal(ws,'H12'),max:cellVal(ws,'H13')}};
@@ -1265,7 +1281,7 @@
     if(!vals && key !== 'fy3'){ vals = headlineValues('fy3'); key = 'fy3'; fallback = true; }
     var info = HEADLINE_INFO[key];
     var unified = key === 'dcfHoy' && currentResumen.valorEsperado && currentResumen.valorEsperado.escenariosUnificados;
-    return { key: key, titulo: unified ? 'Valor intrínseco principal · DCF Base hoy' : info.titulo, hoy: info.hoy, desc: unified ? 'DCF de la tesis Base como valor principal. El promedio de escenarios DCF se muestra al final; el rango contiene los cuatro escenarios.' : info.desc, valores: vals || {}, fallback: fallback, unified: unified };
+    return { key: key, titulo: unified ? 'Valor intrínseco principal · DCF Base hoy' : info.titulo, hoy: info.hoy, desc: unified ? (currentResumen.valorEsperado.valor == null ? 'DCF de la tesis Base como valor principal. Cuatro escenarios sin probabilidades asignadas; no se calcula un promedio.' : 'DCF de la tesis Base como valor principal. El promedio de escenarios DCF se muestra al final; el rango contiene los cuatro escenarios.') : info.desc, valores: vals || {}, fallback: fallback, unified: unified };
   }
   function fmtVsPrecio(target, basePrice){
     if(typeof target !== 'number' || !isFinite(target) || typeof basePrice !== 'number' || !isFinite(basePrice) || !basePrice) return '—';
