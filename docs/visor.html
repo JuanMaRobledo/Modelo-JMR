@@ -2726,21 +2726,38 @@
   // tamaño) de las hojas crudas ya renderizadas, para guardarlas junto con
   // la valoración — así se pueden consultar después sin el Excel original.
   function stripSheetHtmlMeta(html){
-    return html.replace(/\s+(data-t|data-v|id)="[^"]*"/g, '');
+    return String(html || '').replace(/\s+(data-t|data-v|id)="[^"]*"/g, '');
+  }
+  function compactSheetForPublishing(html){
+    // CSS y atributos de Excel no son datos. Eliminarlos conserva títulos,
+    // celdas, cifras y estructuras sin sobrepasar innecesariamente 1 MB.
+    // Cualitativo/HTML con imágenes se mantiene íntegro.
+    html=stripSheetHtmlMeta(html);
+    if(/<img\b/i.test(html)) return html;
+    return html.replace(/\s+style="[^"]*"/g,'')
+      .replace(/\s+class="[^"]*"/g,'').replace(/>\s+</g,'><');
   }
   function collectRawSheets(){
-    var out = {};
+    var out = {financieros:{},valoracion:{},analisis:{}};
+    var seen = {};
     Object.keys(SHEET_GROUPS).forEach(function(g){
-      var map = {};
       SHEET_GROUPS[g].forEach(function(name){
-        map[name] = stripSheetHtmlMeta(renderGenericSheet(name));
+        // No serializar pestañas imaginarias: antes se guardaba HTML vacío
+        // como si la empresa tuviera todas las hojas del catálogo.
+        if(!currentWb || !currentWb.Sheets[name] || seen[name])return;
+        seen[name]=true;
+        out[g][name]=compactSheetForPublishing(renderGenericSheet(name));
       });
-      out[g] = map;
     });
-    // Cualitativo ya no es una pill de "analisis", pero se sigue guardando
-    // en esa misma ubicación del JSON por compatibilidad con valoraciones
-    // guardadas antes de este cambio.
-    out.analisis['Cualitativo'] = stripSheetHtmlMeta(cualitativoOverride !== null ? cualitativoOverride : renderGenericSheet('Cualitativo'));
+    // Preservar las hojas específicas de holdings/sectores y futuras plantillas.
+    if(currentWb)currentWb.SheetNames.forEach(function(name){
+      if(seen[name]||name==='Cualitativo')return;
+      var section=/income|balance|cash flow/i.test(name)?'financieros':
+        /margen|eficiencia|salud|roic|estadist|diagnos|tesis/i.test(name)?'analisis':'valoracion';
+      out[section][name]=compactSheetForPublishing(renderGenericSheet(name));
+    });
+    if(currentWb && (currentWb.Sheets['Cualitativo'] || cualitativoOverride !== null))
+      out.analisis['Cualitativo']=stripSheetHtmlMeta(cualitativoOverride !== null ? cualitativoOverride : renderGenericSheet('Cualitativo'));
     return out;
   }
 
@@ -3246,20 +3263,16 @@
         record.hojas.analisis = Object.assign({}, record.hojas.analisis, { 'Cualitativo': stripSheetHtmlMeta(cualitativoOverride) });
       }
       record.analisisFundamental = fundamentalOverride !== null ? stripSheetHtmlMeta(fundamentalOverride) : (currentResumen.analisisFundamental || null);
-      var hojasOmitidas = false, fundamentalOmitido = false;
-      if(record.hojas && JSON.stringify(record).length > 900000){
-        delete record.hojas;
-        hojasOmitidas = true;
-      }
-      if(record.analisisFundamental && JSON.stringify(record).length > 900000){
-        delete record.analisisFundamental;
-        fundamentalOmitido = true;
+      record.reportSchema = 'jmr-report-contract-v1-20261016';
+      // Nunca perder hojas o artículo sin avisar. GitHub Contents API tiene
+      // limitaciones de tamaño; exigir compactación o el publicador oficial.
+      if(JSON.stringify(record).length > 900000){
+        status.textContent = 'No publicado: el expediente completo supera el límite de GitHub. Conserva la hoja original, reduce imágenes o usa el publicador JMR sin eliminar estados ni matrices.';
+        btn.disabled = false;
+        return;
       }
       saveValoracion(record).then(function(){
-        var notas = [];
-        if(hojasOmitidas) notas.push('sin hojas crudas — el archivo era muy grande para guardarlas');
-        if(fundamentalOmitido) notas.push('sin el análisis fundamental — probablemente por imágenes muy pesadas; prueba con capturas más chicas o menos imágenes');
-        status.textContent = 'Guardada ✓' + (notas.length ? ' (' + notas.join('; ') + ')' : '') + ' · ' + new Date().toLocaleTimeString();
+        status.textContent = 'Guardada ✓ · Hojas financieras y matrices conservadas · ' + new Date().toLocaleTimeString();
         btn.disabled = false;
       }).catch(function(err){
         status.textContent = 'Error al guardar: ' + err.message;
