@@ -1,0 +1,64 @@
+/* JMR Report Sheets · presentation contract for Visor and Research */
+.jmr-report-sheets{--jmr-ink:#162a24;--jmr-line:#dce5db;--jmr-deep:#194536;--jmr-gold:#ad8437;margin:26px 0;color:var(--ink,#162a24);font-family:"Public Sans",system-ui,sans-serif}
+.jmr-sheets-head{padding:23px 20px 13px;margin-top:20px;border-top:1px solid var(--border,#dae3d9)}
+.jmr-sheets-head h2{font-family:"Fraunces",Georgia,serif!important;margin:4px 0 8px!important;padding:0!important;border:0!important;font-size:clamp(21px,3vw,29px)!important;color:var(--ink,#162a24)}
+.jmr-sheets-head p{font-size:13px;line-height:1.65;color:var(--ink-soft,#60716a);max-width:860px;margin:0 0 12px}
+.jmr-overline{font-size:10px;color:var(--accent,#a6791f);font-weight:800;letter-spacing:.14em}
+.jmr-matrix-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,385px),1fr));gap:16px;margin:4px 0 24px}
+.jmr-matrix-card{border:1px solid var(--jmr-line);border-radius:16px;background:var(--surface,#fff);box-shadow:0 8px 25px -17px rgba(25,69,54,.32);overflow:hidden;min-width:0}
+.jmr-matrix-heading{display:flex;align-items:center;gap:11px;padding:15px 15px 10px;background:linear-gradient(125deg,rgba(227,236,226,.75),transparent)}
+.jmr-matrix-heading h4{margin:0!important;font-size:14px;font-family:"Public Sans",sans-serif;font-weight:760;line-height:1.35;color:var(--jmr-deep)}
+.jmr-matrix-index{border:1px solid rgba(173,132,55,.35);background:rgba(173,132,55,.1);color:#7a5a19;border-radius:8px;display:inline-grid;place-items:center;width:29px;height:29px;font-size:11px;font-weight:800;flex:none}
+.jmr-report-sheets .jmr-sheet-scroll{width:100%;max-width:100%;overflow-x:auto;overscroll-behavior-inline:contain;scrollbar-width:thin;padding:0 12px 13px}
+.jmr-report-sheets table.jmr-table{width:100%;min-width:530px;margin:0!important;border-collapse:separate!important;border-spacing:0!important;display:table!important;font-family:"Public Sans",sans-serif;font-size:12px;line-height:1.4;background:var(--surface,#fff);box-shadow:none!important;table-layout:auto}
+.jmr-report-sheets .jmr-table caption{text-align:left;font-size:10.5px;color:var(--ink-faint,#718079);padding:8px 4px;caption-side:bottom}
+.jmr-report-sheets .jmr-table th,.jmr-report-sheets .jmr-table td{border:0!important;border-bottom:1px solid var(--border-soft,#e8eee7)!important;padding:10px 10px!important;white-space:nowrap!important;vertical-align:middle;text-align:right!important;font-variant-numeric:tabular-nums}
+.jmr-report-sheets .jmr-table thead th{background:var(--jmr-deep)!important;color:#fff!important;font-size:11px!important;font-weight:750!important;white-space:nowrap!important}
+.jmr-report-sheets .jmr-table thead th:first-child{text-align:left!important;border-radius:9px 0 0 0}
+.jmr-report-sheets .jmr-table thead th:last-child{border-radius:0 9px 0 0}
+.jmr-report-sheets .jmr-table tbody th{position:sticky;left:0;z-index:1;background:var(--surface,#fff);color:var(--jmr-deep);font-weight:700;text-align:left!important;box-shadow:1px 0 0 var(--jmr-line);max-width:260px;overflow:hidden;text-overflow:ellipsis}
+.jmr-report-sheets .jmr-table tbody tr:nth-child(even)>*{background-color:rgba(244,248,244,.9)}
+.jmr-report-sheets .jmr-table tbody tr:hover>*{filter:brightness(.97)}
+.jmr-report-sheets .jmr-matrix tbody td{font:600 11.5px "IBM Plex Mono",ui-monospace,monospace}
+.jmr-report-sheets .jmr-matrix td.jmr-heat-low{background-color:#f9e9df!important;color:#904a34}
+.jmr-report-sheets .jmr-matrix td.jmr-heat-mid{background-color:#faf4e4!important;color:#775e24}
+.jmr-report-sheets .jmr-matrix td.jmr-heat-high{background-color:#e5f3eb!important;color:#195a3b}
+.jmr-report-sheets .jmr-matrix td.jmr-matrix-base{position:relative;outline:2px solid var(--jmr-gold);outline-offset:-2px;color:#183e2a!important;font-weight:850!important;background:#f8edcf!important}
+.jmr-base-tag{display:block;font:700 9px "Public Sans",sans-serif;letter-spacing:.04em;color:#805d15;line-height:1.25}
+.jmr-sheet-section{padding:16px 18px;margin:14px 0;background:var(--surface,#fff);border:1px solid var(--border,#dce5db);border-radius:15px;box-shadow:0 5px 15px -13px rgba(0,0,0,.25)}
+.jmr-sheet-group-heading{margin-bottom:12px}
+.jmr-sheet-group-heading h3{font:720 17px "Public Sans",sans-serif!important;margin:0 0 5px!important;color:var(--jmr-deep)!important}
+.jmr-sheet-group-heading p{font-size:12.5px;margin:0!important;color:var(--ink-soft,#607168)}
+.jmr-sheet-panel{border:1px solid var(--border-soft,#edf1ed);border-radius:9px;margin:6px 0;overflow:hidden;background:var(--surface,#fff)}
+.jmr-sheet-panel>summary{list-style:none;display:flex;justify-content:space-between;align-items:center;gap:12px;cursor:pointer;padding:11px 14px;font-size:13px;font-weight:680;color:var(--ink,#162a24);background:rgba(245,248,245,.95)}
+.jmr-sheet-panel>summary::-webkit-details-marker{display:none}
+.jmr-sheet-panel>summary:before{content:"＋";font-size:14px;color:var(--jmr-gold);margin-right:4px}
+.jmr-sheet-panel[open]>summary:before{content:"−"}
+.jmr-sheet-panel>summary span:first-child{flex:1}
+.jmr-sheet-panel[open]>summary{border-bottom:1px solid var(--jmr-line)}
+.jmr-sheet-action{font-size:11px;font-weight:600;color:#667970}
+.jmr-sheet-body{padding:13px 3px 4px}
+.jmr-sheet-missing,.jmr-sheet-note{font-size:11.5px!important;line-height:1.55;color:var(--ink-faint,#7f8984)!important;padding:8px 2px;margin:8px 0}
+.jmr-sheet-missing{max-height:80px;overflow:auto}
+.jmr-sheet-source{padding:13px 18px;text-align:right!important}
+.jmr-sheet-source a{font-size:12px;color:var(--accent,#956b19);font-weight:700}
+.jmr-sheets-empty{color:var(--ink-faint,#77867f)}
+/* Same table geometry for the viewer's stored sheets. */
+#sheetFinancieros table,#sheetValoracion table,#sheetAnalisis table{border-collapse:separate;border-spacing:0;box-shadow:0 4px 14px -12px rgba(20,40,30,.28);border-radius:9px;overflow:hidden;font-variant-numeric:tabular-nums}
+#sheetFinancieros tr:nth-child(even),#sheetValoracion tr:nth-child(even),#sheetAnalisis tr:nth-child(even){background:rgba(232,241,234,.28)}
+#sheetFinancieros table th,#sheetValoracion table th,#sheetAnalisis table th{font-weight:730}
+@media(max-width:640px){
+ .jmr-report-sheets{margin:18px -3px}.jmr-sheets-head{padding:18px 11px 11px}.jmr-matrix-grid{grid-template-columns:1fr;gap:13px}
+ .jmr-matrix-card{border-radius:12px}.jmr-sheet-section{padding:13px 9px}
+ .jmr-report-sheets table.jmr-table{min-width:495px;font-size:11px}
+ .jmr-report-sheets .jmr-table th,.jmr-report-sheets .jmr-table td{padding:8px 9px!important}
+ .jmr-report-sheets .jmr-sheet-scroll{padding:0 9px 12px}
+ .jmr-sheet-group-heading h3{font-size:15px!important}
+}
+@media print{
+ .jmr-report-sheets .jmr-sheet-scroll{overflow:visible!important}
+ .jmr-matrix-grid{display:block}.jmr-matrix-card{break-inside:avoid;box-shadow:none;margin:0 0 12px}
+ .jmr-report-sheets .jmr-matrix td.jmr-matrix-base{border:2px solid #9b771c!important}
+ .jmr-report-sheets .jmr-sheet-panel:not([open]){display:none}
+ .jmr-sheet-section{break-inside:auto;box-shadow:none}
+}
