@@ -75,8 +75,10 @@
   // Valor esperado de las historias (sección «Valor con criterio Damodaran»): promedio de 3-4 historias, cada una un
   // DCF completo, ponderado por la probabilidad que asigna el analista.
   function veFrom(v) {
-    if (!v || num(v.valor) == null) return null;
-    var h = (v.historias || []).filter(function (x) { return num(x.valor) != null && num(x.probabilidad) != null; });
+    if (!v) return null;
+    var all = (v.historias || []).filter(function (x) { return num(x.valor) != null; });
+    if (num(v.valor) == null && !(v.escenariosUnificados === true && all.length)) return null;
+    var h = num(v.valor) == null ? all : all.filter(function (x) { return num(x.probabilidad) != null; });
     return { valor: v.valor, fecha: v.fecha || '', historias: h, escenariosUnificados: v.escenariosUnificados === true, historiaCentralId: v.historiaCentralId || 'A', dcfBaseTecnicoAnterior: num(v.dcfBaseTecnicoAnterior) };
   }
   function histFrom(h) {
@@ -364,7 +366,7 @@ function fromRecord(rec, extra) {
   }
   function unifiedHtml(d) {
     var h = centralStory(d), values = d.ve.historias.map(function(x) { return x.valor; }), basis = mosBasis(d);
-    return '<div class="jvb-ve">' + primaryHtml(d) + storiesTable(d) + '<div class="jvb-scen"><span>Rango <b>' + money(Math.min.apply(null, values)) + ' – ' + money(Math.max.apply(null, values)) + '</b></span>' + (d.mos != null ? '<span>MOS ' + pct(d.mos) + ' sobre ' + basis.label + ' <b>' + money(basis.value * (1-d.mos)) + '</b></span>' : '') + '</div>' + averageHtml(d) + '<p class="jvb-venote">Cada historia se valora con un DCF completo. El promedio de escenarios DCF suma DCF × probabilidad; las probabilidades son juicio del analista. El MOS se aplica sobre ' + basis.label + '. El rango muestra desenlaces, no un intervalo de confianza.</p><details class="jvb-vedet"><summary>Referencia técnica de la hoja anterior</summary><p class="jvb-venote">Antiguo caso técnico Base de la hoja ' + money(d.ve.dcfBaseTecnicoAnterior != null ? d.ve.dcfBaseTecnicoAnterior : (d.dcf.hoy && d.dcf.hoy.base)) + '. Se conserva para calibrar el motor y los supuestos auxiliares de múltiplos; no representa la tesis Base.</p></details></div>';
+    return '<div class="jvb-ve">' + primaryHtml(d) + storiesTable(d) + '<div class="jvb-scen"><span>Rango <b>' + money(Math.min.apply(null, values)) + ' – ' + money(Math.max.apply(null, values)) + '</b></span>' + (d.mos != null ? '<span>MOS ' + pct(d.mos) + ' sobre ' + basis.label + ' <b>' + money(basis.value * (1-d.mos)) + '</b></span>' : '') + '</div>' + averageHtml(d) + '<p class="jvb-venote">Cada historia se valora con un DCF completo. ' + (d.ve.valor == null ? 'Sin probabilidades asignadas: no se calcula un promedio. ' : 'El promedio de escenarios DCF suma DCF × probabilidad; las probabilidades son juicio del analista. ') + 'El MOS se aplica sobre ' + basis.label + '. El rango muestra desenlaces, no un intervalo de confianza.</p><details class="jvb-vedet"><summary>Referencia técnica de la hoja anterior</summary><p class="jvb-venote">Antiguo caso técnico Base de la hoja ' + money(d.ve.dcfBaseTecnicoAnterior != null ? d.ve.dcfBaseTecnicoAnterior : (d.dcf.hoy && d.dcf.hoy.base)) + '. Se conserva para calibrar el motor y los supuestos auxiliares de múltiplos; no representa la tesis Base.</p></details></div>';
   }
   function veHtml(d) {
     var ve = d && d.ve;
