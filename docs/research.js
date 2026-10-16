@@ -1247,7 +1247,13 @@
       var logoSrc=logoForRecord(r);
       var logo=logoSrc?'<img class="mini-logo" src="'+escapeHtml(logoSrc)+'" data-ticker="'+escapeHtml(r.ticker||'?')+'" alt="Logo de '+escapeHtml(r.company||r.ticker||'empresa')+'">':'<span class="mini-logo mini-fallback">'+escapeHtml((r.ticker||'?').slice(0,2))+'</span>';
       var excerpt=recordExcerpt(r);
-      var visorLink=(r.linkedValuation&&r.linkedValuation.sourcePath)?'<a class="btn" href="visor.html?path='+encodeURIComponent(r.linkedValuation.sourcePath)+(typeof jmrMercadoQS==='function'?jmrMercadoQS():'')+'">Ver en el Visor</a>':'';
+      // El publicador puede conservar la ruta en linkedValuationAtResearch
+      // o valuationSync; no ocultar la navegación si falta sólo el alias.
+      var visorPath = (r.linkedValuation && r.linkedValuation.sourcePath) ||
+        (r.linkedValuationAtResearch && r.linkedValuationAtResearch.sourcePath) ||
+        (r.valuationSync && r.valuationSync.sourcePath) || '';
+      if(!/^valoraciones\/[A-Za-z0-9._-]+\.json$/.test(visorPath)) visorPath = '';
+      var visorLink=visorPath?'<a class="btn" href="visor.html?path='+encodeURIComponent(visorPath)+(typeof jmrMercadoQS==='function'?jmrMercadoQS():'')+'">Ver en el Visor</a>':'';
       return '<article class="analysis-card" data-id="'+escapeHtml(r.id)+'"><div class="card-head">'+logo+'<div class="card-title"><strong>'+escapeHtml(r.title||r.company)+(typeof JmrDecision!=='undefined'?JmrDecision.badge(r.decision):'')+'</strong><span class="ticker">'+escapeHtml(r.ticker||'—')+' · '+escapeHtml(r.company||'')+'</span></div></div>'+(excerpt?'<p class="card-excerpt">'+escapeHtml(excerpt)+'</p>':'')+'<div class="card-meta"><span>'+escapeHtml(r.date||'Sin fecha')+'</span><span>'+(r.remotePath?'GitHub + local':'Solo local')+'</span></div><div class="card-actions"><button class="btn" data-action="open" type="button">Abrir</button>'+visorLink+'<button class="btn danger" data-action="delete" type="button">Borrar</button></div></article>';
     }).join('');
     wireLogoFallbacks(holder);
