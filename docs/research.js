@@ -334,10 +334,13 @@
         '<section class="jmr-editorial-article" id="jmrArticleLevel" aria-label="Artículo completo">' +
         '<div class="jmr-editorial-label">NIVEL 1 · ARTÍCULO DE ANÁLISIS E INVERSIÓN</div>' +
         articleView.toc + '<div id="editableContent">' + articleView.body + '</div>' + renderNews() +
-        '<section class="jmr-valuation-summary" aria-label="Tarjeta de valoración"><h2>Tarjeta de valoración</h2>' + (linked || val) + '</section></section>' +
+        '<section class="jmr-valuation-summary" aria-label="Tarjeta de valoración"><h2>Tarjeta de valoración</h2>' + (linked || val) + '</section>' +
+        '<div data-jmr-extended-sheets></div></section>' +
         '<details class="jmr-research-details" id="jmrTechnicalLevel"><summary>Ver nivel 2 · Cálculos de valoración</summary>' +
         '<div class="jmr-technical-content">' + calculationView.toc + calculationView.body + linkedMultiplesLevel2(state.linkedValuation) + '</div></details></div>';
       markNumericCells(body);
+      if (typeof JmrReportSheets !== 'undefined')
+        JmrReportSheets.mount(body, state.linkedValuation);
       renderEditorToolbar();
       body.onclick = function (event) {
         window.JmrReportAnchors.navigate(event, body);
@@ -371,8 +374,10 @@
     var valoracionDetalle = articulo ? (linked ? val : '') : linked + val;
     body.innerHTML = '<div class="research-document">' + articulo + tarjetaValoracion + technicalStart + title + analysis.toc +
       '<div id="editableContent">' + analysis.body + '</div>' + valoracionDetalle + renderNews() +
-      technicalEnd + '</div>';
+      technicalEnd + '<div data-jmr-extended-sheets></div></div>';
     markNumericCells(body);
+    if (typeof JmrReportSheets !== 'undefined')
+      JmrReportSheets.mount(body, state.linkedValuation);
     renderEditorToolbar();
   }
 
