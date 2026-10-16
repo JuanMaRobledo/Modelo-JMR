@@ -118,7 +118,14 @@
       blocks.push(matrixTable(title,header,body,base,blocks.length+1));
       i+=length+1;
     }
-    if(blocks.length)return '<div class="jmr-matrix-grid">'+blocks.join('')+'</div>';
+    if(blocks.length){
+      // No presentar una instantánea histórica como DCF Base si sus cifras
+      // no concilian con la valoración principal publicada.
+      var different=blocks.filter(function(b){return b.indexOf('>Centro</span>')>=0;}).length;
+      var warning=different?'<p class="jmr-sheet-note jmr-sheet-warning"><strong>Atención:</strong> '+
+        different+' matriz(es) no tienen el centro conciliado con el DCF Base vigente. Son referencias históricas o escenarios condicionados; requieren revisión antes de usarlas para decidir.</p>':'';
+      return warning+'<div class="jmr-matrix-grid">'+blocks.join('')+'</div>';
+    }
     return '<div class="jmr-sheet-note">Matriz histórica conservada tal cual se publicó; no se interpreta como matriz estándar 5 × 5.</div>'+
       safeTable(sens.html,160);
   }
