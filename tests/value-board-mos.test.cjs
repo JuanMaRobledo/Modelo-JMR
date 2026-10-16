@@ -34,3 +34,14 @@ test('non-unified stories honor the Base reference too',()=>{
   assert.match(html,/sobre DCF Base/);
   assert.match(html,/255,42/);
 });
+
+test('summary MOS card honors Base as well as the shared board',()=>{
+  const source=fs.readFileSync(require('node:path').join(__dirname,'../docs/visor.html'),'utf8');
+  const fn=source.slice(source.indexOf('  function renderMosDcf(){'),source.indexOf('  function renderHeadline(){'));
+  const els={rPrecioMOS:{},rPrecioMOSLbl:{}};
+  const p=parts('dcfBase');
+  const c={currentResumen:{mos:p.mos,baseMOS:p.baseMOS,descuentoMultiples:p.dm,valorEsperado:{...p.ve,valorCentral:392.9600099404326}},document:{getElementById:id=>els[id]},fmtMoney:n=>n.toFixed(2)};
+  vm.runInNewContext(fn+';renderMosDcf()',c);
+  assert.equal(els.rPrecioMOS.textContent,'255.42');
+  assert.equal(els.rPrecioMOSLbl.textContent,'Precio con MOS sobre DCF Base');
+});

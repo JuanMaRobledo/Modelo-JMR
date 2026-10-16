@@ -1345,6 +1345,13 @@
   function renderMosDcf(){
     var r = currentResumen || {}, d = (r.descuentoMultiples || {}).dcfHoy, mos = Number(r.mos);
     var ve = r.valorEsperado && Number(r.valorEsperado.valor);
+    var base = r.valorEsperado && Number(r.valorEsperado.valorCentral || r.valorEsperado.dcfBase);
+    if (!(base > 0) && d) base = Number(d.base);
+    if (r.baseMOS === 'dcfBase' && base > 0 && isFinite(mos)) {
+      document.getElementById('rPrecioMOSLbl').textContent = 'Precio con MOS sobre DCF Base';
+      document.getElementById('rPrecioMOS').textContent = fmtMoney(base*(1-mos));
+      return;
+    }
     var elM = document.getElementById('rPrecioMOS'), elL = document.getElementById('rPrecioMOSLbl');
     if (r.valoracionHolding) { elL.textContent = 'Umbral con MOS · referencia preliminar'; elM.textContent = fmtMoney(r.valoracionHolding.umbralMOS); return; }
     if(ve && isFinite(ve) && isFinite(mos)){
