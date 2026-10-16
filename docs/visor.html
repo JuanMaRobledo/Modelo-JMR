@@ -2873,7 +2873,14 @@
   var ARCHIVE_FOLDER = 'valoraciones/archivadas';
 
   function listValoraciones(folder){
-    return fetch(GH_API + (folder || 'valoraciones'), { headers: ghHeaders(getGhToken()) }).then(function(res){
+    var uri = GH_API + (folder || 'valoraciones') + '?ref=main';
+    var token = getGhToken();
+    return fetch(uri, { headers: ghHeaders(token), cache: 'no-store' }).then(function(res){
+      if((res.status === 401 || res.status === 403) && token){
+        return fetch(uri, {cache:'no-store'});
+      }
+      return res;
+    }).then(function(res){
       if(res.status === 404) return [];
       if(!res.ok) return res.json().then(function(e){ throw new Error((e && e.message) || ('HTTP ' + res.status)); });
       return res.json();
@@ -3302,18 +3309,8 @@
   }
   function parseSavedFileLabel(f){
     var ticker = f.ticker || tickerFromFileName(f.name);
-    if(f.fecha){
-      return ticker + ' · ' + f.fecha.replace(/^Análisis del\s*/i, '');
-    }
-    var base = f.name.replace(/\.json$/i, '');
-    var m = base.match(/^(.+)-(\d{10,})$/);
-    if(m){
-      var d = new Date(parseInt(m[2], 10));
-      if(!isNaN(d.getTime())){
-        return ticker + ' · guardada el ' + d.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
-      }
-    }
-    return ticker;
+    if(f.fecha) return ticker + ' · ' + f.fecha.replace(/^Análisis del\s*/i, '');
+    return ticker + ' · valoración guardada';
   }
 
   function renderSavedList(files){
@@ -4113,7 +4110,6 @@
     document.getElementById('toggleArchiveBtn').hidden = false;
     reloadSavedList();
   }
-})();
 })();
 </script>
 
