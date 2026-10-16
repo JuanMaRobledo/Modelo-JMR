@@ -1281,7 +1281,7 @@
     if(!vals && key !== 'fy3'){ vals = headlineValues('fy3'); key = 'fy3'; fallback = true; }
     var info = HEADLINE_INFO[key];
     var unified = key === 'dcfHoy' && currentResumen.valorEsperado && currentResumen.valorEsperado.escenariosUnificados;
-    return { key: key, titulo: unified ? 'Valor intrínseco principal · DCF Base hoy' : info.titulo, hoy: info.hoy, desc: unified ? 'DCF de la tesis Base como valor principal. El promedio de escenarios DCF se muestra al final; el rango contiene los cuatro escenarios.' : info.desc, valores: vals || {}, fallback: fallback, unified: unified };
+    return { key: key, titulo: unified ? 'Valor intrínseco principal · DCF Base hoy' : info.titulo, hoy: info.hoy, desc: unified ? (currentResumen.valorEsperado.valor == null ? 'DCF de la tesis Base como valor principal. Cuatro escenarios sin probabilidades asignadas; no se calcula un promedio.' : 'DCF de la tesis Base como valor principal. El promedio de escenarios DCF se muestra al final; el rango contiene los cuatro escenarios.') : info.desc, valores: vals || {}, fallback: fallback, unified: unified };
   }
   function fmtVsPrecio(target, basePrice){
     if(typeof target !== 'number' || !isFinite(target) || typeof basePrice !== 'number' || !isFinite(basePrice) || !basePrice) return '—';
