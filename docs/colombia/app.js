@@ -6,6 +6,8 @@ import {
   validateDossier,
   annualTable,
   csvFor,
+  isStressScenario,
+  ordinaryScenarioAverage,
 } from "./core.js";
 const $ = (id) => document.getElementById(id),
   KEY = "jmr-colombia-dossiers-v1";
@@ -188,8 +190,13 @@ function renderValuationStats() {
   const root = $("valuationStats");
   root.replaceChildren();
   root.classList.add("col-value-board");
-  const v = dossier?.valuationSummary;
-  if (!v) return;
+  if (!dossier?.valuationSummary) return;
+  const v = {...dossier.valuationSummary};
+  const ordinary=ordinaryScenarioAverage(dossier.scenarios);
+  if(Array.isArray(dossier.scenarios)&&dossier.scenarios.length)v.expected=ordinary.value;
+  for(const [source,target,valueKey] of [['dcfLookthroughScenarios','dcfLookthroughExpected','value'],['dcfFcffIntrinsicScenarios','dcfPrimaryExpectedCOP','intrinsicPerPreferredShareCOP']]){
+    if(Array.isArray(v[source])&&v[source].length)v[target]=ordinaryScenarioAverage(v[source],valueKey).value;
+  }
   const isHolding = dossier?.instrument?.model === "holding";
   const sotpMarket = typeof v.valuationOutput?.marketSotpPrimaryCOP === "number" ? v.valuationOutput.marketSotpPrimaryCOP : v.valuationOutput?.sotpCheck?.hybridNAVBaseCOP;
   const bookPure = v.valuationOutput?.bookValueProformaCOP;
@@ -211,6 +218,13 @@ function renderValuationStats() {
     b.append(el("small", "", label), el("strong", "", cop(number)),
       el("small", "col-value-note", annotation));
     return b;
+  };
+  const appendStress=(stories,key='value')=>{
+    for(const story of (stories||[]).filter(isStressScenario)){
+      const card=el('aside','jmr-stress-case');card.style.cssText='border:2px solid #b76b36;padding:18px;margin:20px 0;border-radius:12px;background:#fff6ed;color:#432b1b';
+      card.append(el('h4','','¿Qué pasaría si todo fallara?'),el('p','',story.name||story.nombre||'Disrupción'),el('strong','',cop(story[key])),el('p','','Disrupción calculada aparte; fuera del promedio y del rango ordinario.'));
+      root.append(card);
+    }
   };
   const heading = el("div", "col-value-heading");
   heading.append(el("div", "col-value-eyebrow", "MODELO JMR · COLOMBIA"),
@@ -261,18 +275,32 @@ function renderValuationStats() {
       box(v.baseIsIntrinsic === false ? "SOTP Base · estimación condicionada" : "Valor intrínseco Base · principal", v.base,
         v.base == null ? "No hay DCF/SOTP certificado" : (v.scopeLabel || "Modelo fundamental condicionado"), "featured"),
       box("Cotización del análisis", v.marketPrice, "Sesión " + priceDate),
-      box("Valor esperado · escenarios", v.expected, "Secundario; no reemplaza el Base")
+      box("Promedio condicionado · Conservador, Base y Optimista", v.expected, "Excluye disrupción: no es el valor esperado de cuatro historias; pesos renormalizados o media aritmética sin probabilidades")
     );
   }
   root.append(hero);
+  if(!v.dcfLookthroughScenarios?.length&&!v.dcfFcffIntrinsicScenarios?.length&&!v.sotpScenarios?.length){
+    const cards=el('div','col-value-method-grid');
+    for(const story of ordinary.stories){cards.append(box(story.name,story.value,'Supuestos propios de la historia; valor por acción.'));}
+    root.append(cards);appendStress(dossier.scenarios);
+  } else if(!isPrimaryFCFF&&!v.dcfLookthroughScenarios?.length&&!v.sotpScenarios?.length){
+    const cards=el('div','col-value-method-grid');
+    for(const story of ordinary.stories)cards.append(box(story.name,story.value,'Historia financiera propia.'));
+    root.append(cards);appendStress(dossier.scenarios);
+  }
+  const additional=dossier.multiplesAdicionales?.metodos||[];
+  if(additional.length){const cards=el('div','col-value-method-grid');
+    for(const method of additional)cards.append(box(method.nombre+' · Base al presente',method.vp?.base,method.estado+' · peso adicional 0%'));
+    root.append(cards);
+  }
 
   if (!isPrimaryFCFF && Array.isArray(v.dcfLookthroughScenarios) && v.dcfLookthroughScenarios.length) {
     const heading = el("div", "col-value-section-title");
-    heading.append(el("h3", "", "Cuatro historias · DCF por negocios"),
+    heading.append(el("h3", "", "Conservador, Base y Optimista · DCF por negocios"),
       el("p", "", "Valores por acción derivados de flujos y valores terminales explícitos; la prima de voto de la PF y varios flujos privados siguen sin certificación."));
     root.append(heading);
     const cards = el("div", "col-value-method-grid");
-    for (const scenario of v.dcfLookthroughScenarios) {
+    for (const scenario of v.dcfLookthroughScenarios.filter(s=>!isStressScenario(s))) {
       const item = el("article", "col-value-method-card");
       item.append(el("h4", "", scenario.name),
         el("small", "", "Peso narrativo: " + (100 * scenario.p).toFixed(0) + "%"),
@@ -281,8 +309,9 @@ function renderValuationStats() {
       cards.append(item);
     }
     root.append(cards);
+    appendStress(v.dcfLookthroughScenarios);
     const weighted = el("div", "col-value-banner");
-    weighted.append(el("strong", "", "Valor esperado de escenarios DCF: " + cop(v.dcfLookthroughExpected)),
+    weighted.append(el("strong", "", "Promedio de tres historias DCF: " + cop(v.dcfLookthroughExpected)),
       el("p", "col-value-note", "La probabilidad de las historias es subjetiva. Se mantiene el DCF Base como referencia principal."));
     root.append(weighted);
   }
@@ -292,7 +321,7 @@ function renderValuationStats() {
       el("p", "", "Dividendos 2027–2036 y terminal, separados del DCF por negocios. El plan corporativo de dividendos futuros no equivale a pagos aprobados."));
     root.append(heading);
     const cards = el("div", "col-value-method-grid");
-    for (const story of v.dcfDividendScenarios) {
+    for (const story of v.dcfDividendScenarios.filter(s=>!isStressScenario(s))) {
       const item = el("article", "col-value-method-card");
       item.append(el("h4", "", story.name), el("strong", "col-value-method-number", cop(story.value)),
         el("p", "col-value-note", "Escenario del flujo efectivo pagado a accionistas."));
@@ -307,7 +336,7 @@ function renderValuationStats() {
       el("p", "", "Cada negocio proyecta NOPAT menos reinversión neta; su FCFF descontado a WACC pasa de EV a equity. Valoración de analista con incertidumbre material, no certificado."));
     root.append(header);
     const cases = el("div", "col-value-method-grid");
-    for (const sc of v.dcfFcffIntrinsicScenarios) {
+    for (const sc of v.dcfFcffIntrinsicScenarios.filter(s=>!isStressScenario(s))) {
       const item = el("article", "col-value-method-card");
       item.append(el("h4", "", sc.name),
         el("small", "", "Probabilidad subjetiva: " + ((sc.weight || 0) * 100).toFixed(0) + "%"),
@@ -316,9 +345,10 @@ function renderValuationStats() {
       cases.append(item);
     }
     root.append(cases);
+    appendStress(v.dcfFcffIntrinsicScenarios,'intrinsicPerPreferredShareCOP');
     const exp = el("div", "col-value-banner");
-    exp.append(el("strong", "", "Valor esperado FCFF: " + cop(v.dcfPrimaryExpectedCOP)),
-      el("p", "col-value-note", "Promedio por historias 50/25/20/5, no reemplaza el Base. Precio PF analizado: COP 16.500 del 9-oct-2026 (Grupo Aval)."));
+    exp.append(el("strong", "", "Promedio de tres historias FCFF: " + cop(v.dcfPrimaryExpectedCOP)),
+      el("p", "col-value-note", "Promedio solo Conservador, Base y Optimista con pesos renormalizados; no reemplaza el Base. Precio PF analizado: COP 16.500 del 9-oct-2026 (Grupo Aval)."));
     root.append(exp);
   }
   if (isPrimaryFCFF && v.fcffPrimaryValuationAudit) {
@@ -355,11 +385,11 @@ function renderValuationStats() {
   }
   if (Array.isArray(v.sotpScenarios) && v.sotpScenarios.length) {
     const storyTitle = el("div", "col-value-section-title");
-    storyTitle.append(el("h3", "", "Cuatro escenarios · SOTP híbrida"),
+    storyTitle.append(el("h3", "", "Conservador, Base y Optimista · SOTP híbrida"),
       el("p", "", "COMPARADOR bursátil SOTP, no DCF. Probabilidades subjetivas; se muestra en segundo plano tras la valoración de flujos."));
     root.append(storyTitle);
     const storyGrid = el("div", "col-value-method-grid");
-    for (const scenario of v.sotpScenarios) {
+    for (const scenario of v.sotpScenarios.filter(s=>!isStressScenario(s))) {
       const item = el("article", "col-value-method-card");
       item.append(el("h4", "", scenario.name || "Escenario"),
         el("small", "", "Probabilidad: " + (100 * (scenario.p || 0)).toFixed(0) + "%"),
@@ -370,6 +400,7 @@ function renderValuationStats() {
       storyGrid.append(item);
     }
     root.append(storyGrid);
+    appendStress(v.sotpScenarios);
   }
   if (v.baseIsIntrinsic === false) {
     const caution = el("div", "col-value-banner");
@@ -859,8 +890,12 @@ $("xlsxBtn").onclick = async () => {
       ],
       Historias: [
         ["name", "probability", "value"],
-        ...snapshot.scenarios.map((s) => [s.name, s.probability ?? null, s.value ?? null]),
+        ...snapshot.scenarios.filter(s=>!isStressScenario(s)).map((s) => [s.name, s.probability ?? null, s.value ?? null]),
+        ["Promedio de tres historias",null,ordinaryScenarioAverage(snapshot.scenarios).value],
       ],
+      Disrupcion: [["¿Qué pasaría si todo fallara?","probabilidad original","valor"],...snapshot.scenarios.filter(isStressScenario).map(s=>[s.name,s.probability??null,s.value??null])],
+      PV: [["Método","Base VP","Base FY+3","Estado"],...(snapshot.multiplesAdicionales?.metodos||[]).filter(m=>m.nombre==='P/V').map(m=>[m.nombre,m.vp?.base??null,m.fy3?.base??null,m.estado])],
+      PBV: [["Método","Base VP","Base FY+3","Estado"],...(snapshot.multiplesAdicionales?.metodos||[]).filter(m=>m.nombre==='P/BV').map(m=>[m.nombre,m.vp?.base??null,m.fy3?.base??null,m.estado])],
       Fuentes: [
         ["role", "url", "retrieved_at"],
         ...snapshot.sources.map((s) => [s.role, s.url, s.retrievedAt]),
@@ -1214,3 +1249,4 @@ document
   .scrollIntoView({ inline: "center", block: "nearest" });
 if ("serviceWorker" in navigator)
   navigator.serviceWorker.register("sw.js").catch(() => {});
+

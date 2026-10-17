@@ -14,7 +14,7 @@
     {id:'multiplos',title:'Múltiplos y otras tablas',desc:'Valoraciones secundarias, normalización histórica y métricas prospectivas.',names:[
       'Descuento de múltiplos','Múltiplos históricos','Múltiplos y mercado FY+3',
       'Financials Multiples','Trailing Valuation','Forward Valuation',
-      'EVEBITDA','EVFCFF','PE','PFCFE','POCF']}
+      'EVEBITDA','EVFCFF','PE','PFCFE','POCF','PV','PBV','Control historias y múltiplos']}
   ];
   var NAME_ALIASES = {
     'Income Statement':'Estado de resultados','Balance Sheet':'Balance general',
@@ -24,7 +24,7 @@
     'Input sheet':'Supuestos y datos de entrada','Cost of capital worksheet':'Costo de capital · WACC',
     'Option value':'Opciones y dilución','Crecimiento implícito':'DCF inverso',
     'Anexo Work 15-oct-2026':'Sensibilidades','Financials Multiples':'Métricas de múltiplos',
-    'EVEBITDA':'EV/EBITDA','EVFCFF':'EV/FCFF','PE':'P/E','PFCFE':'P/FCFE','POCF':'P/OCF',
+    'EVEBITDA':'EV/EBITDA','EVFCFF':'EV/FCFF','PE':'P/E','PFCFE':'P/FCFE','POCF':'P/OCF','PV':'P/V','PBV':'P/BV',
     'Auditoría económica PYPL':'Auditoría económica','Duración ventaja · FCFF':'Duración de ventaja competitiva',
     'Tesis de Inversión y Supuestos':'Tesis y justificación'
   };
@@ -195,3 +195,4 @@
   }
   global.JmrReportSheets={groups:GROUPS,groupNames:groupNames,renderSensitivity:sensitivity,safeTable:safeTable,mount:mount};
 })(typeof window!=='undefined'?window:globalThis);
+

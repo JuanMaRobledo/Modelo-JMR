@@ -1,5 +1,22 @@
 // Colombia-only data contract. No imports from the US loaders or assumption engine.
 export const SCHEMA = "jmr-colombia-dossier-v1";
+export function isStressScenario(story) {
+  const label=String(story?.name||story?.nombre||'').replace(/^[A-D]\s*[·:-]\s*/,'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  if (/^(disrup|disrupt|stress|estres)/.test(label)) return true;
+  if (/^(base|conserv|optim)/.test(label)) return false;
+  return story?.id==='C';
+}
+export function ordinaryScenarioAverage(stories, valueKey='value') {
+  const main=(stories||[]).filter(s=>!isStressScenario(s));
+  const stress=(stories||[]).filter(isStressScenario);
+  const number=x=>typeof x==='number'&&Number.isFinite(x);
+  const weight=s=>s.probability??s.probabilidad??s.p??s.weight;
+  const sum=main.reduce((a,s)=>a+(number(weight(s))?weight(s):0),0);
+  const weighted=main.every(s=>number(weight(s))&&weight(s)>=0)&&sum>0;
+  const value=main.length===3&&main.every(s=>number(s[valueKey]))
+    ?main.reduce((a,s)=>a+s[valueKey]*(weighted?weight(s)/sum:1/3),0):null;
+  return {value,weighted,totalWeight:sum,stories:main,stress};
+}
 export const FIELDS = {
   TotalRevenue: ["Ingresos", "income"],
   OperatingIncome: ["EBIT", "income"],
@@ -413,3 +430,4 @@ export function csvFor(d) {
     )
     .join("\r\n");
 }
+

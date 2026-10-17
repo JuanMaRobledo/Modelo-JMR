@@ -73,13 +73,16 @@
     };
   }
   // Valor esperado de las historias (sección «Valor con criterio Damodaran»): promedio de 3-4 historias, cada una un
-  // DCF completo, ponderado por la probabilidad que asigna el analista.
+  // DCF completo; tres historias ordinarias ponderadas y disrupción separada.
   function veFrom(v) {
     if (!v) return null;
     var all = (v.historias || []).filter(function (x) { return num(x.valor) != null; });
-    if (num(v.valor) == null && !(v.escenariosUnificados === true && all.length)) return null;
-    var h = num(v.valor) == null ? all : all.filter(function (x) { return num(x.probabilidad) != null; });
-    return { valor: v.valor, fecha: v.fecha || '', historias: h, escenariosUnificados: v.escenariosUnificados === true, historiaCentralId: v.historiaCentralId || 'A', dcfBaseTecnicoAnterior: num(v.dcfBaseTecnicoAnterior) };
+    var h = all.filter(function (x) { return ['A','B','D'].indexOf(x.id) >= 0; });
+    if (!h.length) return null;
+    var weighted = h.every(function(x){return num(x.probabilidad)!=null && x.probabilidad>=0;}), total = h.reduce(function(s,x){return s+(num(x.probabilidad)||0);},0);
+    weighted = weighted && total>0;
+    var average = h.length===3 ? h.reduce(function(s,x){return s+x.valor*(weighted?x.probabilidad/total:1/3);},0) : null;
+    return { valor: average, tipoPromedio: weighted?'ponderado':'aritmetico', fecha: v.fecha || '', historias: h, disrupcion: all.find(function(x){return x.id==='C';}) || null, escenariosUnificados: v.escenariosUnificados === true, historiaCentralId: v.historiaCentralId || 'A', dcfBaseTecnicoAnterior: num(v.dcfBaseTecnicoAnterior) };
   }
   function histFrom(h) {
     if (!h || !Array.isArray(h.metodos)) return null;
@@ -351,12 +354,17 @@ function fromRecord(rec, extra) {
   function averageHtml(d) {
     var v = primaryValues(d).esperado;
     if (v == null) return '';
-    return '<div class="jvb-primary" style="grid-template-columns:1fr;margin-top:12px"><div class="jvb-primary-card complementary"><span class="jvb-kicker">Promedio de escenarios DCF</span><div class="jvb-big"><span class="v">' + money(v) + '</span>' + vsPrecio(v, d.precio) + '</div><span class="vl">Promedio de los DCF de las historias, ponderado por su probabilidad</span>' +
+    return '<div class="jvb-primary" style="grid-template-columns:1fr;margin-top:12px"><div class="jvb-primary-card complementary"><span class="jvb-kicker">Promedio condicionado · Conservador, Base y Optimista</span><div class="jvb-big"><span class="v">' + money(v) + '</span>' + vsPrecio(v, d.precio) + '</div><span class="vl">' + (d.ve.tipoPromedio==='ponderado'?'Pesos originales renormalizados entre tres historias. Condicionado a que no ocurra la disrupción':'Media aritmética: sin probabilidades asignadas; no representa un valor esperado probabilístico') + '. Disrupción excluida; no es el valor esperado de las cuatro historias.</span>' +
       (d.costo ? '<span class="vl jvb-vscompra">vs. tu compra (' + money(d.costo) + ') ' + vsPrecio(v, d.costo) + '</span>' : '') + '</div></div>';
   }
+  function stressHtml(d) {
+    var h=d.ve && d.ve.disrupcion;
+    if(!h)return '';
+    return '<aside class="jvb-stress" style="margin:18px 0;padding:18px;border:2px solid #b76b36;border-radius:12px;background:#fff6ed;color:#432b1b"><h4>¿Qué pasaría si todo fallara?</h4><p><b>'+esc(storyName(h))+'</b></p><p>Valor por acción: <b>'+money(h.valor)+'</b> '+vsPrecio(h.valor,d.precio)+'</p><p>Crecimiento: '+pct(h.crecimiento,1)+' · Margen / ROE: '+pct(h.margen,1)+' · ROIC / ROE terminal: '+(h.roicTerminal==='costo_capital'?'costo de capital':pct(h.roicTerminal,1))+'</p><p>Escenario de disrupción calculado por separado. No entra en el promedio ni en el rango de las tres historias.</p></aside>';
+  }
   function storiesTable(d) {
-    return '<div class="jvb-tw"><table class="jvb-vetab"><thead><tr><th>Escenario / historia</th><th>Prob.</th><th>Crec. 5 años</th><th>Margen</th><th>DCF hoy</th><th>vs. precio</th></tr></thead><tbody>' + d.ve.historias.map(function(h) {
-      return '<tr><td class="hn"><b>' + esc(storyName(h)) + '</b>' + (h.id === d.ve.historiaCentralId ? '<small>Historia central</small>' : '') + '<small>ROIC terminal: ' + (h.roicTerminal === 'costo_capital' ? 'costo de capital' : pct(h.roicTerminal, 1)) + '</small>' + (typeof h.terminalGrowth === 'number' ? '<small>Crecimiento terminal: ' + pct(h.terminalGrowth, 2) + '</small>' : '') + '</td><td class="n">' + pct(h.probabilidad) + '</td><td class="n">' + pct(h.crecimiento, 1) + '</td><td class="n">' + pct(h.margen) + '</td><td class="n">' + n2(h.valor) + '</td><td class="n">' + vsPrecio(h.valor, d.precio) + '</td></tr>';
+    return '<div class="jvb-tw"><table class="jvb-vetab"><thead><tr><th>Escenario / historia</th><th>Peso en promedio</th><th>Crec. 5 años</th><th>Margen</th><th>DCF hoy</th><th>vs. precio</th></tr></thead><tbody>' + d.ve.historias.map(function(h) {
+      return '<tr><td class="hn"><b>' + esc(storyName(h)) + '</b>' + (h.id === d.ve.historiaCentralId ? '<small>Historia central</small>' : '') + '<small>ROIC terminal: ' + (h.roicTerminal === 'costo_capital' ? 'costo de capital' : pct(h.roicTerminal, 1)) + '</small>' + (typeof h.terminalGrowth === 'number' ? '<small>Crecimiento terminal: ' + pct(h.terminalGrowth, 2) + '</small>' : '') + '</td><td class="n">' + pct(d.ve.tipoPromedio==='ponderado'?h.probabilidad/d.ve.historias.reduce(function(a,x){return a+x.probabilidad;},0):1/3) + '</td><td class="n">' + pct(h.crecimiento, 1) + '</td><td class="n">' + pct(h.margen) + '</td><td class="n">' + n2(h.valor) + '</td><td class="n">' + vsPrecio(h.valor, d.precio) + '</td></tr>';
     }).join('') + '</tbody></table></div>';
   }
   function mosBasis(d) {
@@ -366,7 +374,7 @@ function fromRecord(rec, extra) {
   }
   function unifiedHtml(d) {
     var h = centralStory(d), values = d.ve.historias.map(function(x) { return x.valor; }), basis = mosBasis(d);
-    return '<div class="jvb-ve">' + primaryHtml(d) + storiesTable(d) + '<div class="jvb-scen"><span>Rango <b>' + money(Math.min.apply(null, values)) + ' – ' + money(Math.max.apply(null, values)) + '</b></span>' + (d.mos != null ? '<span>MOS ' + pct(d.mos) + ' sobre ' + basis.label + ' <b>' + money(basis.value * (1-d.mos)) + '</b></span>' : '') + '</div>' + averageHtml(d) + '<p class="jvb-venote">Cada historia se valora con un DCF completo. ' + (d.ve.valor == null ? 'Sin probabilidades asignadas: no se calcula un promedio. ' : 'El promedio de escenarios DCF suma DCF × probabilidad; las probabilidades son juicio del analista. ') + 'El MOS se aplica sobre ' + basis.label + '. El rango muestra desenlaces, no un intervalo de confianza.</p><details class="jvb-vedet"><summary>Referencia técnica de la hoja anterior</summary><p class="jvb-venote">Antiguo caso técnico Base de la hoja ' + money(d.ve.dcfBaseTecnicoAnterior != null ? d.ve.dcfBaseTecnicoAnterior : (d.dcf.hoy && d.dcf.hoy.base)) + '. Se conserva para calibrar el motor y los supuestos auxiliares de múltiplos; no representa la tesis Base.</p></details></div>';
+    return '<div class="jvb-ve">' + primaryHtml(d) + storiesTable(d) + '<div class="jvb-scen"><span>Rango <b>' + money(Math.min.apply(null, values)) + ' – ' + money(Math.max.apply(null, values)) + '</b></span>' + (d.mos != null ? '<span>MOS ' + pct(d.mos) + ' sobre ' + basis.label + ' <b>' + money(basis.value * (1-d.mos)) + '</b></span>' : '') + '</div>' + averageHtml(d) + stressHtml(d) + '<p class="jvb-venote">Cada historia se valora con un DCF completo. ' + (d.ve.valor == null ? 'Promedio pendiente: faltan valores de alguna de las tres historias. ' : 'El promedio usa exclusivamente Conservador, Base y Optimista; los pesos se renormalizan si hay probabilidades asignadas. ') + 'El MOS se aplica sobre ' + basis.label + '. El rango muestra desenlaces, no un intervalo de confianza.</p><details class="jvb-vedet"><summary>Referencia técnica de la hoja anterior</summary><p class="jvb-venote">Antiguo caso técnico Base de la hoja ' + money(d.ve.dcfBaseTecnicoAnterior != null ? d.ve.dcfBaseTecnicoAnterior : (d.dcf.hoy && d.dcf.hoy.base)) + '. Se conserva para calibrar el motor y los supuestos auxiliares de múltiplos; no representa la tesis Base.</p></details></div>';
   }
   function veHtml(d) {
     var ve = d && d.ve;
@@ -376,7 +384,7 @@ function fromRecord(rec, extra) {
     var letras = ve.historias.map(function (h) { return storyName(h).split(' · ')[0]; });
     var bar = ve.historias.map(function (h, i) {
       var cls = (num(d.precio) != null && h.valor < d.precio) ? 'lo' : 'hi';
-      return '<span class="' + cls + '" style="flex:' + (h.probabilidad * 100).toFixed(1) + '" title="' + esc(storyName(h)) + ': ' + pct(h.probabilidad) + ' · ' + money(h.valor) + '">' +
+      return '<span class="' + cls + '" style="flex:' + ((ve.tipoPromedio==='ponderado'?h.probabilidad/ve.historias.reduce(function(a,x){return a+x.probabilidad;},0):1/3)*100).toFixed(1) + '" title="' + esc(storyName(h)) + ': ' + pct(h.probabilidad) + ' · ' + money(h.valor) + '">' +
         esc(letras[i]) + ' ' + pct(h.probabilidad) + '</span>';
     }).join('');
     var rows = ve.historias.map(function (h) {
@@ -392,8 +400,8 @@ function fromRecord(rec, extra) {
       '<div class="jvb-vebar" aria-hidden="true">' + bar + '</div>' +
       '<details class="jvb-vedet"><summary>Ver historias</summary><table class="jvb-vetab"><thead><tr><th>Historia</th><th>Prob.</th><th>' + (d.currency === 'COP' ? 'COP' : 'US$') + '/acción</th><th>vs. precio</th></tr></thead><tbody>' +
       rows + '</tbody></table></details>' +
-      '<div class="jvb-meta">' + vsDcf + mos + '</div>' + averageHtml(d) +
-      '<p class="jvb-venote">El DCF base y el promedio de escenarios DCF son lecturas distintas; el promedio todas las historias (cada una un DCF completo) según la probabilidad que les asigna el análisis. El margen de seguridad se aplica sobre ' + basis.label +
+      '<div class="jvb-meta">' + vsDcf + mos + '</div>' + averageHtml(d) + stressHtml(d) +
+      '<p class="jvb-venote">El DCF base y el promedio de escenarios DCF son lecturas distintas; el promedio considera solo Conservador, Base y Optimista, con pesos renormalizados o media aritmética cuando no hay probabilidades. El margen de seguridad se aplica sobre ' + basis.label +
       (ve.fecha ? ' (análisis del ' + esc(ve.fecha) + ')' : '') + '. Las probabilidades son juicio del analista.</p></div>';
   }
   function historicalHtml(d) {
@@ -436,13 +444,13 @@ function fromRecord(rec, extra) {
     var methods = (h.metodos || []).map(function (m) {
       return '<tr><td>' + esc(m.nombre) + '</td><td class="n">' + pct(m.peso) + '</td><td>' + esc(m.estado) + '</td><td class="n">' + money(m.valor) + '</td></tr>';
     }).join('');
-    var scenarios = ['conservador', 'base', 'optimista', 'disrupcion'].map(function (key, i) {
+    var scenarios = ['conservador', 'base', 'optimista'].map(function (key, i) {
       return '<tr><td>' + ['Conservadora', 'Base', 'Optimista', 'Disrupción'][i] + '</td><td class="n">' + money(t[key]) + '</td><td class="n">' + vsPrecio(t[key], d.precio) + '</td></tr>';
     }).join('');
     return '<section class="jvb jvb-holding"><p class="jvb-note"><strong>' + esc(h.estado || 'PRELIMINAR') + ' · SOTP de participaciones</strong> · ' + esc(h.nota || '') + '</p>' +
       '<div class="jvb-primary">' + card('SOTP Base · NAV referencial', t.base, 'Equity atribuible; no es DCF certificado', true) + card('Valor contable separado proforma', h.valorContable, 'Ancla contable; no valor justo', false) + card('Ponderado elegido', h.ponderado, 'Pendiente si falta un método seleccionado', false) + '</div>' +
       '<div class="jvb-tw"><table class="jvb-table"><thead><tr><th>Sensibilidad</th><th>NAV por acción</th><th>vs. precio guardado</th></tr></thead><tbody>' + scenarios + '</tbody></table></div>' +
-      '<p class="jvb-note">Sensibilidades sin probabilidades asignadas. ' + esc(h.dcfEstado || 'DCF por negocio pendiente') + '. El DCF consolidado anterior está retirado.</p>' +
+      '<div class="jvb-primary-card complementary">Promedio de tres sensibilidades: <b>'+money((t.conservador+t.base+t.optimista)/3)+'</b></div><aside style="padding:18px;margin:18px 0;border:2px solid #b76b36;background:#fff6ed;color:#432b1b"><h4>¿Qué pasaría si todo fallara?</h4><p>Disrupción: <b>'+money(t.disrupcion)+'</b>. Fuera del promedio.</p></aside><p class="jvb-note">Sensibilidades sin probabilidades asignadas. ' + esc(h.dcfEstado || 'DCF por negocio pendiente') + '. El DCF consolidado anterior está retirado.</p>' +
       '<div class="jvb-tw"><table class="jvb-table"><thead><tr><th>Método</th><th>Peso elegido</th><th>Estado</th><th>Valor por acción</th></tr></thead><tbody>' + methods + '</tbody></table></div>' +
       '<p class="jvb-note">Un método seleccionado pendiente bloquea el ponderado; su peso no se asigna a otro método ni se sustituye por cero.</p>' +
       (pending.length ? '<details><summary>Pendientes de verificación</summary><ul>' + pending.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></details>' : '') +
@@ -763,5 +771,6 @@ function fromRecord(rec, extra) {
     primaryValues: primaryValues, primaryHtml: primaryHtml, veBox: function (d) { if (d && d.holding) return ''; DISPLAY_CURRENCY = d && d.currency === 'COP' ? 'COP' : 'USD'; var h = unified(d) ? unifiedHtml(d) : primaryHtml(d) + veHtml(d); return h ? '<div class="jvb-vebox">' + h + '</div>' : ''; },
     apply: function () { apply(prefs()); } };
 })(window);
+
 
 
