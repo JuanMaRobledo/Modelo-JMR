@@ -62,3 +62,7 @@
  .jmr-report-sheets .jmr-sheet-panel:not([open]){display:none}
  .jmr-sheet-section{break-inside:auto;box-shadow:none}
 }
+
+
+/* Stress remains outside the ordinary scenario average in every saved report. */
+.jmr-stress-case{border:2px solid #b76b36;border-radius:12px;padding:18px;margin:20px 0;background:#fff6ed;color:#432b1b;overflow-x:auto}.jmr-stress-case h4{color:#753f1c;margin-top:0}.jmr-stress-case table{background:#fffaf5;color:#432b1b}

@@ -1,3 +1,11 @@
+REGLA GLOBAL JMR · 17-OCT-2026 · HISTORIAS Y SIETE MÚLTIPLOS
+1. La historia determina los supuestos de cada escenario. DCF y múltiplos comparten el crecimiento, margen EBIT e impuestos de Valuation output para esa misma historia; los métodos de valoración permanecen separados. Justificar también el múltiplo de salida por crecimiento, margen/ROE, riesgo, régimen histórico y comparables; los percentiles históricos son una referencia inicial, no una regla automática ni un objetivo que deba coincidir con Toro.
+2. Calcular las cuatro historias completas. El promedio y el rango principal incluyen SOLO Conservador, Base y Optimista. Promedio = suma(p_i × V_i) / suma(p_i), i en esas tres historias, conservando los pesos relativos existentes. Si no hay probabilidades aprobadas, presentar media aritmética de las tres, expresamente rotulada; nunca inventar probabilidades.
+3. Mostrar la historia de Disrupción en un recuadro separado titulado «¿Qué pasaría si todo fallara?», con sus supuestos, cálculos y valor por acción. Conservar su probabilidad original como dato de la historia, pero excluirla del promedio y del rango ordinario. No omitir su cálculo.
+4. Calcular y presentar los siete múltiplos: EV/EBITDA, EV/FCFF, P/E, P/FCFE, P/OCF, P/V y P/BV. Crear pestañas PV y PBV adicionales. P/V usa capitalización/ventas, no EV/ventas; P/BV usa patrimonio común atribuible. Conciliar patrimonio futuro = patrimonio previo + beneficio atribuible − dividendos + otros movimientos de equity (recompras, emisiones, SBC, OCI, etc.), por historia. Cero en otros movimientos es una hipótesis explícita provisional que exige justificación, no un dato observado. Denominadores no positivos: no interpretable; faltantes: pendiente, nunca cero aparente.
+5. Conservar ambos horizontes (valor presente y FY+3), fechas de descuento de dividendos, métodos sectoriales, pesos existentes y MOS sobre DCF Base/valor intrínseco principal. Los nuevos métodos parten con peso 0 hasta justificar su inclusión; calcular no obliga a ponderar. Aplicar esta regla a todas las valoraciones, análisis, plantillas, motores, hojas, importaciones y vistas de la app. Prevalece sobre instrucciones anteriores incompatibles acerca de promediar las cuatro historias.
+
+
 <!-- JMR-FOUR-SCENARIOS-MOAT-20261015 -->
 ## Contrato JMR: exactamente cuatro escenarios y sensibilidad de duración de ventaja (15-oct-2026)
 
@@ -319,3 +327,4 @@ Usa el expediente y las reglas Colombia de este archivo. No llames al pipeline d
 14. Control de calidad: Sí/No solo con verificación, AISLAMIENTO=OK, método, moneda, derechos, períodos, terminal y ambos horizontes.
 
 Entrega [TICKER]_Valoracion_JMR_Colombia_[FECHA].md con metadatos e índice; workbook o hoja independiente de la rama adecuada y resultados reproducibles. No declares éxito de una escritura no verificada. No llames valor intrínseco a una SOTP que solo agrega precios de mercado, ni DCF industrial a una valoración bancaria.
+

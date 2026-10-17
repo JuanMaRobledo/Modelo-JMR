@@ -1,4 +1,4 @@
-// Motor de cálculo del Modelo JMR (DCF Damodaran + 5 múltiplos), reimplementado y
+// Motor de cálculo del Modelo JMR (DCF Damodaran + 7 múltiplos), reimplementado y
 // validado celda-a-celda contra la plantilla real (caso ADBE, 26-ago-2026).
 
 var JMR_WEIGHTS = {
@@ -237,7 +237,8 @@ function projectFinancials(inp, growthY2to5, marginTarget, growthY1, marginY1, e
 
   var rev=[num(inp.revenueFY0, inp.revenue0)], ebit=[null], da=[null], capex=[null], nwc=[null], fcff=[null],
       ebitda=[null], interestOther=[null], ebt=[null], netIncome=[null], ocf=[null],
-      netBorrow=[null], fcfe=[null], shares=[num(inp.sharesMultiplos, inp.shares0)], eps=[null], dps=[null];
+      netBorrow=[null], fcfe=[null], shares=[num(inp.sharesMultiplos, inp.shares0)], eps=[null], dps=[null],
+      bookEquity=[typeof inp.bookEquity0==='number' && isFinite(inp.bookEquity0)?inp.bookEquity0:null];
   for(var n=1;n<=3;n++){
     rev[n]=rev[n-1]*(1+g[n]);
     ebit[n]=rev[n]*m[n];
@@ -262,8 +263,11 @@ function projectFinancials(inp, growthY2to5, marginTarget, growthY1, marginY1, e
     shares[n]=shares[0]*Math.pow(1+inp.buybackRate, n-1);
     eps[n]=netIncome[n]/shares[n];
     dps[n]=(inp.dividendPerShare||0)*Math.pow(1+divGrowth, n-1);
+    var eqMove=inp.otherEquityMovements && inp.otherEquityMovements[n-1];
+    bookEquity[n]=bookEquity[n-1]!=null && typeof eqMove==='number' && isFinite(eqMove)
+      ? bookEquity[n-1]+netIncome[n]-dps[n]*shares[n]+eqMove : null;
   }
-  return {rev:rev, fcff:fcff, ebitda:ebitda, netIncome:netIncome, ocf:ocf, fcfe:fcfe, shares:shares, eps:eps, dps:dps};
+  return {rev:rev, fcff:fcff, ebitda:ebitda, netIncome:netIncome, ocf:ocf, fcfe:fcfe, shares:shares, eps:eps, dps:dps, bookEquity:bookEquity};
 }
 
 function impliedPrice(multiploBase, metricFY3, sharesFY3, mult){
@@ -272,11 +276,15 @@ function impliedPrice(multiploBase, metricFY3, sharesFY3, mult){
 // Precio implícito de un múltiplo en FY+n como en las pestañas de la hoja: los múltiplos de
 // empresa (EV/EBITDA, EV/FCFF) restan la deuda neta y dividen por MAX(acciones FY+1, FY+n).
 function precioMultiplo(inp, name, M, f, n){
+  if(name==='pv'||name==='pbv'){
+    var metric=f[METRICAS[name]][n];
+    if(typeof M!=='number'||!isFinite(M)||M<=0||typeof metric!=='number'||!isFinite(metric)||metric<=0||!(f.shares[n]>0))return null;
+  }
   var ev = (name === 'evEbitda' || name === 'evFcff') && typeof inp.deudaNetaMultiplos === 'number';
   if(ev) return (M*f[METRICAS[name]][n] - inp.deudaNetaMultiplos)/Math.max(f.shares[1], f.shares[n]);
   return M*(f[METRICAS[name]][n]/f.shares[n]);
 }
-var METRICAS = {evEbitda:'ebitda', evFcff:'fcff', pe:'netIncome', pfcfe:'fcfe', pocf:'ocf'};
+var METRICAS = {evEbitda:'ebitda', evFcff:'fcff', pe:'netIncome', pfcfe:'fcfe', pocf:'ocf', pv:'rev', pbv:'bookEquity'};
 
 // Múltiplos a valor presente (29-sep-2026; dividendos año a año desde el
 // 2-oct-2026): el precio de cada múltiplo al cierre del año n (n = 1, 2, 3)
@@ -326,7 +334,7 @@ function calcularModeloJMR(inp){
   // Múltiplo de salida por escenario: los de la hoja (J8/J19/J30) si vienen en inp.multiplos;
   // si no, el Base × 0,9 / 1,1.
   var multMap = {cons:0.9, base:1.0, opt:1.1};
-  var baseMult = {evEbitda: inp.evEbitdaBase, evFcff: inp.evFcffBase, pe: inp.peBase, pfcfe: inp.pfcfeBase, pocf: inp.pocfBase};
+  var baseMult = {evEbitda: inp.evEbitdaBase, evFcff: inp.evFcffBase, pe: inp.peBase, pfcfe: inp.pfcfeBase, pocf: inp.pocfBase, pv: inp.pvBase, pbv: inp.pbvBase};
   var methods = {};
   Object.keys(baseMult).forEach(function(name){
     methods[name] = {};
@@ -348,7 +356,8 @@ function calcularModeloJMR(inp){
   Object.keys(methods).forEach(function(name){
     precios[name] = {};
     scenarios.forEach(function(s){
-      precios[name][s] = precioMultiplo(inp, name, methods[name][s], fin[s], 3) + cumDiv(fin[s], 3);
+      var p=precioMultiplo(inp, name, methods[name][s], fin[s], 3);
+      precios[name][s] = p==null?null:p + cumDiv(fin[s], 3);
     });
   });
 
@@ -359,24 +368,27 @@ function calcularModeloJMR(inp){
   // método y ponderado con el DCF (que ya está en valor de hoy).
   var criterio = inp.criterioConsolidacion === 'solo3' ? 'solo3' : 'promedio';
   var pesoMultiplos = 0;
-  Object.keys(methods).forEach(function(name){ pesoMultiplos += pesosVP[name]; });
+  Object.keys(methods).forEach(function(name){ pesoMultiplos += (pesosVP[name]||0); });
   var vpMetodos = {}, vpMultiplos = {}, vpPonderado = {}, chequeo = {};
   Object.keys(methods).forEach(function(name){
     vpMetodos[name] = {};
     scenarios.forEach(function(s){
       var f = fin[s], nominal = [], vp = [];
       for(var n=1;n<=3;n++){
-        var total = precioMultiplo(inp, name, methods[name][s], f, n) + cumDiv(f, n);
+        var p = precioMultiplo(inp, name, methods[name][s], f, n);
+        var total = p==null?null:p + cumDiv(f, n);
         nominal.push(total);
-        vp.push(valorPresenteMultiplo(total, ke, n, f.dps));
+        vp.push(total==null?null:valorPresenteMultiplo(total, ke, n, f.dps));
       }
-      vpMetodos[name][s] = {nominal: nominal, vp: vp, consolidado: consolidarHorizontes(vp, criterio)};
+      vpMetodos[name][s] = {nominal: nominal, vp: vp, consolidado: vp.every(function(x){return x!=null;})?consolidarHorizontes(vp, criterio):null};
     });
   });
   scenarios.forEach(function(s){
     var cons = 0, nominal3 = 0, vp3 = 0;
     Object.keys(methods).forEach(function(name){
-      var w = pesoMultiplos ? pesosVP[name]/pesoMultiplos : 0;
+      var w = pesoMultiplos ? (pesosVP[name]||0)/pesoMultiplos : 0;
+      if(!w)return;
+      if(vpMetodos[name][s].consolidado==null)throw new Error('Método ponderado sin denominador válido: '+name+' / '+s);
       cons += w*vpMetodos[name][s].consolidado;
       nominal3 += w*vpMetodos[name][s].nominal[2];
       vp3 += w*vpMetodos[name][s].vp[2];
@@ -394,7 +406,7 @@ function calcularModeloJMR(inp){
   var precioObjetivo = {};
   scenarios.forEach(function(s){
     var sum=0;
-    Object.keys(pesos).forEach(function(m){ sum += pesos[m]*precios[m][s]; });
+    Object.keys(pesos).forEach(function(m){ if(pesos[m])sum += pesos[m]*precios[m][s]; });
     precioObjetivo[s]=sum;
   });
 
@@ -418,10 +430,10 @@ function calcularModeloJMR(inp){
   };
   // El MOS se aplica a una cifra presente. Si no hay historias cuantificadas,
   // se explicita el DCF Base como referencia; nunca se usa el ponderado FY+3.
-  var baseMOS = typeof inp.valorEsperado === 'number' && isFinite(inp.valorEsperado) ? inp.valorEsperado : dcf.base;
+  var baseMOS = dcf.base;
   var precioConMOS = {base:baseMOS*(1-inp.mos),cons:baseMOS*(1-inp.mos),
     valor:baseMOS*(1-inp.mos),baseValor:baseMOS,
-    criterio:typeof inp.valorEsperado === 'number' ? 'valorEsperado' : 'dcfBase'};
+    criterio:'dcfBase'};
 
   return {precios: precios, pesos: pesos, precioObjetivo: precioObjetivo, cagr: cagr, zonas: zonas, precioConMOS: precioConMOS,
           valorPresente: valorPresente, financials:fin};
@@ -534,6 +546,7 @@ function insumosDesdeHoja(celda){
     buybackRate: (n(FM, 'E31') && n(FM, 'F31') != null) ? n(FM, 'F31') / n(FM, 'E31') - 1 : 0,
     dividendPerShare: z(n(FM, 'E35')), dividendGrowth: z(n(FM, 'E36')),
     deudaNetaMultiplos: z(n(IS, 'B16')) - z(n(IS, 'B19')) - z(n(IS, 'B20')) + z(n(IS, 'B21')),
+    bookEquity0: n('PBV','M6'),
     multiplos: {}
   };
   if(celda('DCF FCFE financiero','A1')==='DCF FCFE financiero'){
@@ -572,10 +585,11 @@ function insumosDesdeHoja(celda){
       netBorrowingPctDeltaRevenue: dR ? z(c('E', 28)) / dR : null,
       sharesMultiplos: c('E', 31),
       buybackRate: (c('E', 31) && c('F', 31) != null) ? c('F', 31) / c('E', 31) - 1 : null,
-      dividendPerShare: c('E', 35), dividendGrowth: c('E', 36)
+      dividendPerShare: c('E', 35), dividendGrowth: c('E', 36),
+      otherEquityMovements: [7,8,9].map(function(r){return n('PBV', {cons:'M',base:'N',opt:'O'}[b[0]]+r);})
     };
   });
-  [['evEbitda', 'EVEBITDA'], ['evFcff', 'EVFCFF'], ['pe', 'PE'], ['pfcfe', 'PFCFE'], ['pocf', 'POCF']].forEach(function(p){
+  [['evEbitda', 'EVEBITDA'], ['evFcff', 'EVFCFF'], ['pe', 'PE'], ['pfcfe', 'PFCFE'], ['pocf', 'POCF'], ['pv','PV'], ['pbv','PBV']].forEach(function(p){
     inp.multiplos[p[0]] = {cons: n(p[1], 'F8'), base: n(p[1], 'F19'), opt: n(p[1], 'F30')};
     inp[p[0] + 'Base'] = inp.multiplos[p[0]].base;
   });
@@ -588,3 +602,4 @@ if(typeof module !== 'undefined') module.exports = {calcularModeloJMR: calcularM
   valorPresenteMultiplo: valorPresenteMultiplo, consolidarHorizontes: consolidarHorizontes,
   crecimientoImplicitoDCF: crecimientoImplicitoDCF, crecimientoImplicitoMultiplo: crecimientoImplicitoMultiplo, runDCF: runDCF,
   runDCFDetalle: runDCFDetalle, insumosDesdeHoja: insumosDesdeHoja, valorDelCrecimiento: valorDelCrecimiento};
+

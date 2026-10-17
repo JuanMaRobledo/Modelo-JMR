@@ -1244,13 +1244,15 @@
           terminalGrowth:cellVal(legacy,'H'+row),roicTerminal:cellVal(legacy,'I'+row)};
       });
       if(histories.some(function(h){return typeof h.valor!=='number' || !isFinite(h.valor);})) return null;
-      var vals=histories.map(function(h){return h.valor;});
-      return {valor:null,valorCentral:histories[0].valor,dcfBase:histories[0].valor,historias:histories,
+      var vals=histories.filter(function(h){return h.id!=='C';}).map(function(h){return h.valor;});
+      return {valor:vals.reduce(function(a,b){return a+b;},0)/3,tipoPromedio:'aritmetico',valorCentral:histories[0].valor,dcfBase:histories[0].valor,historias:histories,
         escenariosUnificados:true,historiaCentralId:'A',pesosAprobados:false,rango:{min:Math.min.apply(null,vals),max:Math.max.apply(null,vals)}};
     }
     var hs=[];
     for(var row=5;row<=8;row++) hs.push({id:String.fromCharCode(60+row),nombre:cellVal(ws,'A'+row),probabilidad:cellVal(ws,'B'+row),crecimiento:cellVal(ws,'C'+row),margen:cellVal(ws,'D'+row),salesToCapital:cellVal(ws,'E'+row),salesToCapital2:cellVal(ws,'F'+row),roicTerminal:cellVal(ws,'G'+row),terminalGrowth:cellVal(ws,'J'+row),valor:cellVal(ws,'H'+row)});
-    return {valor:cellVal(ws,'H10'),valorCentral:cellVal(ws,'H11'),historias:hs,escenariosUnificados:true,historiaCentralId:'A',rango:{min:cellVal(ws,'H12'),max:cellVal(ws,'H13')}};
+    var main=hs.filter(function(h){return ['A','B','D'].indexOf(h.id)>=0;}), w=main.reduce(function(a,h){return a+(typeof h.probabilidad==='number'?h.probabilidad:0);},0), weighted=main.every(function(h){return typeof h.probabilidad==='number'&&h.probabilidad>=0;})&&w>0;
+    var average=main.every(function(h){return typeof h.valor==='number'&&isFinite(h.valor);})?main.reduce(function(a,h){return a+h.valor*(weighted?h.probabilidad/w:1/3);},0):null;
+    return {valor:average,tipoPromedio:weighted?'ponderado':'aritmetico',valorCentral:cellVal(ws,'H11'),historias:hs,escenariosUnificados:true,historiaCentralId:'A',rango:{min:Math.min.apply(null,main.map(function(h){return h.valor;})),max:Math.max.apply(null,main.map(function(h){return h.valor;}))}};
   }
   function readHistoricalMultiples(wb){
     var ws=wb && wb.Sheets && wb.Sheets['Múltiplos históricos'];
@@ -1279,7 +1281,7 @@
     if (key === 'sotp') return r.valoracionHolding && r.valoracionHolding.nav || null;
     var map = { ponderadoHoy: dm.ponderadoHoy || r.valorPresentePonderado, dcfHoy: dm.dcfHoy, multHoy: dm.multiplesHoy, fy3: r.objetivoPonderado };
     var unified = r.valorEsperado && r.valorEsperado.escenariosUnificados;
-    if (key === 'dcfHoy' && unified) { var hs=r.valorEsperado.historias; return {conservador:Math.min.apply(null,hs.map(function(x){return x.valor;})),base:((hs.find(function(x){return x.id===(r.valorEsperado.historiaCentralId||'A');})||{}).valor),optimista:Math.max.apply(null,hs.map(function(x){return x.valor;}))}; }
+    if (key === 'dcfHoy' && unified) { var hs=r.valorEsperado.historias; return {conservador:((hs.find(function(x){return x.id==='B';})||{}).valor),base:((hs.find(function(x){return x.id===(r.valorEsperado.historiaCentralId||'A');})||{}).valor),optimista:((hs.find(function(x){return x.id==='D';})||{}).valor)}; }
     var t = map[key];
     return (t && typeof t.base === 'number' && isFinite(t.base)) ? t : null;
   }
@@ -1290,7 +1292,7 @@
     if(!vals && key !== 'fy3'){ vals = headlineValues('fy3'); key = 'fy3'; fallback = true; }
     var info = HEADLINE_INFO[key];
     var unified = key === 'dcfHoy' && currentResumen.valorEsperado && currentResumen.valorEsperado.escenariosUnificados;
-    return { key: key, titulo: unified ? 'Valor intrínseco principal · DCF Base hoy' : info.titulo, hoy: info.hoy, desc: unified ? (currentResumen.valorEsperado.valor == null ? 'DCF de la tesis Base como valor principal. Cuatro escenarios sin probabilidades asignadas; no se calcula un promedio.' : 'DCF de la tesis Base como valor principal. El promedio de escenarios DCF se muestra al final; el rango contiene los cuatro escenarios.') : info.desc, valores: vals || {}, fallback: fallback, unified: unified };
+    return { key: key, titulo: unified ? 'Valor intrínseco principal · DCF Base hoy' : info.titulo, hoy: info.hoy, desc: unified ? (currentResumen.valorEsperado.valor == null ? 'DCF de la tesis Base como valor principal. Promedio pendiente si falta alguna de las tres historias ordinarias.' : 'DCF de la tesis Base como valor principal. El promedio de escenarios DCF se muestra al final; el rango contiene Conservador, Base y Optimista; disrupción va aparte.') : info.desc, valores: vals || {}, fallback: fallback, unified: unified };
   }
   function fmtVsPrecio(target, basePrice){
     if(typeof target !== 'number' || !isFinite(target) || typeof basePrice !== 'number' || !isFinite(basePrice) || !basePrice) return '—';
@@ -1755,6 +1757,17 @@
     var descuento = readDescuentoMultiples(wb, res);
     var valorHoy = { conservador: cellVal(res,'C34'), base: cellVal(res,'D34'), optimista: cellVal(res,'E34') };
     var metodosFY3 = methods.map(function(m){ return { nombre: m[0], peso: cellVal(res,'B'+m[1]), conservador: cellVal(res,'C'+m[1]), base: cellVal(res,'D'+m[1]), optimista: cellVal(res,'E'+m[1]) }; });
+    [['P/V','PV'],['P/BV','PBV']].forEach(function(m){
+      var sh=wb.Sheets[m[1]];if(!sh)return;
+      var item={nombre:m[0],peso:0,conservador:cellVal(sh,'H12'),base:cellVal(sh,'H23'),optimista:cellVal(sh,'H34')};
+      metodosFY3.push(item);
+      if(descuento && Array.isArray(descuento.metodos)){
+        var vp={nombre:m[0],peso:0};
+        ['conservador','base','optimista'].forEach(function(k,i){var r=41+i;vp[k]={vp:['B','C','D'].map(function(c){return cellVal(sh,c+r);}),consolidado:cellVal(sh,'E'+r)};});
+        descuento.metodos.push(vp);
+      }
+      var tr=document.createElement('tr');tr.innerHTML='<td>'+m[0]+' · referencia inicial</td><td>0%</td><td>'+fmtMoney(item.conservador)+'</td><td>'+fmtMoney(item.base)+'</td><td>'+fmtMoney(item.optimista)+'</td>';tbody.appendChild(tr);
+    });
     renderPresentValue(descuento, valorHoy, metodosFY3, { conservador: cellVal(res,'C12'), base: cellVal(res,'D12'), optimista: cellVal(res,'E12') });
 
     document.getElementById('cagrC').textContent = fmtPct(cellVal(res,'C13'));
@@ -1785,10 +1798,7 @@
       mos: mos,
       precioMOS: cellVal(res,'C19'),
       precioMOSMax: cellVal(res,'B19'),
-      metodos: methods.map(function(m){
-        var row = m[1];
-        return { nombre: m[0], peso: cellVal(res,'B'+row), conservador: cellVal(res,'C'+row), base: cellVal(res,'D'+row), optimista: cellVal(res,'E'+row) };
-      }),
+      metodos: metodosFY3,
       objetivoPonderado: { conservador: cellVal(res,'C12'), base: cellVal(res,'D12'), optimista: cellVal(res,'E12') },
       valorPresentePonderado: valorHoy,
       descuentoMultiples: descuento,
@@ -4185,4 +4195,5 @@ if("serviceWorker" in navigator){
 </script>
 </body>
 </html>
+
 
