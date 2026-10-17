@@ -354,7 +354,7 @@ function fromRecord(rec, extra) {
   function averageHtml(d) {
     var v = primaryValues(d).esperado;
     if (v == null) return '';
-    return '<div class="jvb-primary" style="grid-template-columns:1fr;margin-top:12px"><div class="jvb-primary-card complementary"><span class="jvb-kicker">Promedio · Conservador, Base y Optimista</span><div class="jvb-big"><span class="v">' + money(v) + '</span>' + vsPrecio(v, d.precio) + '</div><span class="vl">' + (d.ve.tipoPromedio==='ponderado'?'Pesos originales renormalizados entre tres historias':'Media aritmética: sin probabilidades asignadas') + '. Disrupción excluida.</span>' +
+    return '<div class="jvb-primary" style="grid-template-columns:1fr;margin-top:12px"><div class="jvb-primary-card complementary"><span class="jvb-kicker">Promedio condicionado · Conservador, Base y Optimista</span><div class="jvb-big"><span class="v">' + money(v) + '</span>' + vsPrecio(v, d.precio) + '</div><span class="vl">' + (d.ve.tipoPromedio==='ponderado'?'Pesos originales renormalizados entre tres historias. Condicionado a que no ocurra la disrupción':'Media aritmética: sin probabilidades asignadas; no representa un valor esperado probabilístico') + '. Disrupción excluida; no es el valor esperado de las cuatro historias.</span>' +
       (d.costo ? '<span class="vl jvb-vscompra">vs. tu compra (' + money(d.costo) + ') ' + vsPrecio(v, d.costo) + '</span>' : '') + '</div></div>';
   }
   function stressHtml(d) {

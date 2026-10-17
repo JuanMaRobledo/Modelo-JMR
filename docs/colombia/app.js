@@ -275,7 +275,7 @@ function renderValuationStats() {
       box(v.baseIsIntrinsic === false ? "SOTP Base · estimación condicionada" : "Valor intrínseco Base · principal", v.base,
         v.base == null ? "No hay DCF/SOTP certificado" : (v.scopeLabel || "Modelo fundamental condicionado"), "featured"),
       box("Cotización del análisis", v.marketPrice, "Sesión " + priceDate),
-      box("Promedio · Conservador, Base y Optimista", v.expected, "Disrupción excluida; pesos renormalizados o media aritmética sin probabilidades")
+      box("Promedio condicionado · Conservador, Base y Optimista", v.expected, "Excluye disrupción: no es el valor esperado de cuatro historias; pesos renormalizados o media aritmética sin probabilidades")
     );
   }
   root.append(hero);
