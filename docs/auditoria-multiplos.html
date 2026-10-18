@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Auditoría de múltiplos · Modelo JMR</title><link rel="icon" href="favicon.ico">
+<style>
+:root{--bg:#f5f6f2;--card:#fff;--ink:#16231f;--sub:#57665b;--line:#dbe1d9;--soft:#edf1e9;--gold:#8e692c}
+@media(prefers-color-scheme:dark){:root{--bg:#111912;--card:#1b2720;--ink:#f2f5ed;--sub:#b1c0b4;--line:#38473c;--soft:#26372b;--gold:#e2b975}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.55 system-ui,Arial,sans-serif}
+h1,h2,h3,h4{font-family:Georgia,serif;line-height:1.22}h1{font-size:clamp(28px,4vw,43px);margin:0}h2{font-size:23px;margin:0 0 15px}
+a{color:var(--gold)}p{line-height:1.65}.muted,small,.small{color:var(--sub);font-size:12px}
+.top{padding:12px 3vw;background:var(--card);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:15px}
+.top strong{font:20px Georgia,serif}.top nav{display:flex;flex-wrap:wrap;gap:16px}
+.wrap{max-width:1450px;margin:auto;padding:27px 17px 50px}.lead{max-width:1040px}
+.layout{display:grid;grid-template-columns:270px minmax(0,1fr);gap:20px;align-items:start;margin-top:24px}
+.sidebar,.panel{border:1px solid var(--line);border-radius:13px;background:var(--card);padding:19px}
+.sidebar{position:sticky;top:10px;max-height:calc(100vh - 20px);overflow:auto}
+.columns{display:grid;gap:16px}button,input,select,textarea{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:9px}
+button{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.controls{display:grid;gap:8px}.controls input,.controls select{width:100%}
+.company-list{display:grid;gap:7px;margin-top:12px}.company{display:flex;justify-content:space-between;gap:9px;text-align:left;width:100%;padding:10px}
+.company.selected{background:var(--soft);border-color:var(--gold)}.company small{display:block}.audit-progress{white-space:nowrap;color:var(--sub);font-size:10px}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:16px 0}
+.metrics article,.reference-grid article{padding:13px;border:1px solid var(--line);border-radius:9px;background:var(--soft)}
+.metrics strong{display:block;font-size:clamp(17px,1.7vw,23px);overflow-wrap:anywhere}.metrics small,.metrics span{display:block;color:var(--sub);font-size:11px}
+.reference-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.table-wrap{overflow-x:auto;margin:13px 0}table{min-width:650px;border-collapse:collapse;width:100%;font-size:12px}
+th,td{border-bottom:1px solid var(--line);padding:8px;text-align:right;vertical-align:top}
+th:first-child,td:first-child{text-align:left}thead th{background:var(--soft)}.sensitivity td,.sensitivity th{text-align:center}
+.center-cell{background:#c6e6d1;font-weight:800;color:#16472b}
+.notice{border-left:3px solid var(--gold);padding:12px 14px;background:var(--soft);border-radius:6px}
+.review-grid{display:grid;grid-template-columns:200px 1fr;gap:12px}.review-grid select,.review-grid textarea{display:block;width:100%;margin-top:8px}
+.review-grid textarea{min-height:85px;resize:vertical}.tool-line,.links{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:12px 0}
+.primary{background:var(--ink);color:var(--card)}.status-line{min-height:22px;color:var(--sub)}
+footer{margin-top:30px;color:var(--sub);font-size:12px}
+[hidden]{display:none!important}
+@media(max-width:950px){.metrics{grid-template-columns:repeat(2,1fr)}.reference-grid{grid-template-columns:1fr}}
+@media(max-width:680px){.layout{display:block}.sidebar{position:static;max-height:350px;margin-bottom:15px}.metrics{grid-template-columns:1fr 1fr}.review-grid{grid-template-columns:1fr}.panel{padding:14px}}
+</style><script src="gh_oauth.js" defer></script><script src="auditoria-multiplos.js?v=20261018-1" defer></script></head>
+<body><header class="top"><strong>Modelo JMR · Auditoría de múltiplos</strong><nav><a href="index.html">Inicio</a><a href="visor.html">Valoraciones</a><a href="research.html">Análisis</a><a href="visor.html?mercado=colombia">Colombia</a></nav></header>
+<main class="wrap"><h1>Audita los múltiplos empresa por empresa</h1>
+<p class="lead muted">38 valoraciones. A: historia propia depurada; B: comparables por crecimiento, ROIC, margen y riesgo; C: múltiplo justificado por fundamentales. Inspirado en los criterios de Toro/Arena Alfa, McKinsey y Damodaran; ningún autor prescribe ponderaciones fijas para el Modelo JMR.</p>
+<p id="summary" class="notice">Abriendo las valoraciones publicadas…</p>
+<div class="layout"><aside class="sidebar"><h2>Empresas</h2><div class="controls"><label for="search">Ticker</label><input id="search" type="search" placeholder="PYPL, NFLX, SHAK" autocomplete="off">
+<label for="filter">Filtrar revisiones</label><select id="filter"><option value="todas">Todas las empresas</option><option value="pendientes">Sin revisar</option><option value="revisar">Brechas y casos especiales</option><option value="aprobados">Marcadas conformes</option></select></div>
+<p id="count" class="small" aria-live="polite"></p><div id="companies" class="company-list"></div></aside>
+<div class="columns"><p id="status" class="status-line" role="status" aria-live="polite">Cargando datos del repositorio…</p>
+<div id="companyDetail" class="columns" hidden>
+<section class="panel"><h2 id="auditTitle"></h2><p id="auditSubtitle" class="muted small"></p><div id="metrics"></div><p id="auditTechnical" class="small"></p><div id="companyLinks" class="links"></div></section>
+<section class="panel"><h3>Siete múltiplos y pesos aplicados</h3><p class="small">EV/EBITDA, EV/FCFF, P/E, P/FCFE, P/OCF, P/V y P/BV. Un peso cero no elimina el método de la auditoría.</p><div id="methods"></div></section>
+<section class="panel"><h3>Anclas A / B / C y criterios económicos</h3><div id="dossier"></div><h4>Historia registrada (A)</h4><div id="historical"></div>
+<p class="small">Lecturas metodológicas: <a href="https://www.mckinsey.com/capabilities/strategy-and-corporate-finance/our-insights/the-right-role-for-multiples-in-valuation" target="_blank" rel="noopener noreferrer">McKinsey</a> · <a href="https://pages.stern.nyu.edu/~adamodar/New_Home_Page/littlebook/comparables.htm" target="_blank" rel="noopener noreferrer">Damodaran</a>. La réplica Arena Alfa permanece independiente del DCF.</p></section>
+<section class="panel"><h3>Sensibilidad: siete métodos × tres escenarios</h3><p class="small">Matrices FY+3 descontadas a valor presente, con ejes de múltiplo × fundamental ±20%; el centro debe conciliar con VP3. Disrupción no participa en el promedio.</p>
+<div class="tool-line"><label>Método <select id="matrixMethod" aria-label="Seleccionar múltiplo"></select></label><label>Historia <select id="matrixScenario" aria-label="Seleccionar escenario"><option value="conservador">Conservador</option><option value="base" selected>Base</option><option value="optimista">Optimista</option></select></label></div><div id="matrix"></div><p class="notice small" id="disruption"></p></section>
+<section class="panel"><h3>Mi auditoría de esta empresa</h3><p class="small">Guarda tus observaciones para revisarlas una a una. El registro se conserva solo en este navegador y no modifica los resultados publicados. Exporta tus revisiones cuando quieras conservarlas.</p>
+<div class="review-grid"><label for="reviewState">Estado <select id="reviewState"><option value="pendiente">Pendiente</option><option value="revisando">En revisión</option><option value="conforme">Conforme</option><option value="ajustes">Requiere ajustes</option></select></label>
+<label for="reviewNote">Observaciones y cambios propuestos <textarea id="reviewNote" placeholder="Múltiplos, comparables, exclusiones, ROIC, márgenes, N/D…"></textarea></label></div>
+<div class="tool-line"><button id="reviewSave" type="button" class="primary">Guardar revisión local</button><button id="exportReviews" type="button">Exportar revisiones a JSON</button></div><p id="reviewUpdated" class="small"></p></section>
+</div></div></div>
+<footer>Lectura en vivo desde Modelo-JMR-datos/main. DCF Base y MOS sin modificación; comparables y ponderaciones permanecen sujetos a auditoría económica individual.</footer>
+</main></body></html>

@@ -667,6 +667,7 @@
   <a href="calculadora.html">Calculadora DCF</a>
   <a href="portafolio.html">Portafolio</a>
   <a href="damodaran.html">Damodaran</a>
+  <a href="auditoria-multiplos.html">Auditoría de múltiplos</a>
   <a href="mi-bitacora.html">Mi bitácora</a>
 </nav>
 <script>(function(){var a=document.querySelector('nav.appnav a.active');if(a)a.scrollIntoView({inline:'center',block:'nearest'});})();</script>
@@ -1091,6 +1092,7 @@
       </div>
       <input id="savedSearchTicker" type="search" placeholder="Buscar ticker (ej. PYPL)" aria-label="Buscar valoración por ticker" style="width:100%;max-width:380px;margin:10px 0;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--ink)">
       <p class="gh-status" id="savedStatus"></p>
+      <p class="meta" style="margin:10px 0"><a href="auditoria-multiplos.html">Abrir auditoría de las 38 valoraciones, múltiplos y matrices →</a></p>
       <div class="saved-list" id="savedList"></div>
     </div>
   </div>
@@ -3504,7 +3506,8 @@
         (auditState ? '<span class="si-meta"> · ' + auditLabel(f.ticker) + '</span>' : '') +
         '<span class="si-actions">' +
           researchLink +
-          '<button class="gh-btn" data-act="ver" data-path="' + f.path + '" data-sha="' + f.sha + '" data-name="' + f.name + '" type="button">Ver</button>' +
+          '<a class="gh-btn" href="auditoria-multiplos.html?ticker=' + encodeURIComponent(f.ticker) + '">Auditar múltiplos</a>' +
+          '<button class="gh-btn" data-act="ver"' data-path="' + f.path + '" data-sha="' + f.sha + '" data-name="' + f.name + '" type="button">Ver</button>' +
           '<button class="gh-btn" data-act="mover" data-path="' + f.path + '" data-sha="' + f.sha + '" data-name="' + f.name + '" type="button">' + moveLabel + '</button>' +
           '<button class="gh-btn danger" data-act="borrar" data-path="' + f.path + '" data-sha="' + f.sha + '" data-name="' + f.name + '" type="button">Borrar</button>' +
         '</span>' +

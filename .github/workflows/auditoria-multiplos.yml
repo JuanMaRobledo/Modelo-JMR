@@ -1,0 +1,29 @@
+name: Auditoría visual y funcional de múltiplos
+on:
+  pull_request:
+    paths:
+      - 'docs/auditoria-multiplos.*'
+      - 'docs/visor.html'
+      - 'docs/research.html'
+      - 'tests/auditoria-multiplos.test.cjs'
+      - '.github/workflows/auditoria-multiplos.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'docs/auditoria-multiplos.*'
+      - 'docs/visor.html'
+      - 'docs/research.html'
+      - 'tests/auditoria-multiplos.test.cjs'
+permissions:
+  contents: read
+jobs:
+  audit-ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check docs/auditoria-multiplos.js
+      - run: node --test tests/auditoria-multiplos.test.cjs
