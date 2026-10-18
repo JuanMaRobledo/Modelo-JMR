@@ -135,6 +135,38 @@ automático: en 0% aplica la regla pura; puedes moverla (ej. -10% a -20% en hip�
 especulativas, o al alza si tienes convicción de que el negocio merece re-ratear por encima de su
 propia historia) sin perder el punto de partida objetivo.
 
+### Regla de selección por ciclo (vigente desde el 18-oct-2026)
+
+Los múltiplos se escogen siempre según lo que se puede esperar de la empresa por su **historia y su
+ciclo**, no por un promedio general ni por un descuento fijo. Esta regla manda sobre los factores del
+anexo anterior (0,78× / 0,92× del promedio histórico), que quedan como referencia de los casos de
+estudio, y sobre cualquier ancla de comparables o de múltiplo justificado que la contradiga.
+
+1. **Ancla principal: la historia propia, por etapa.** No se promedia todo el historial. Se mira en qué
+   cierres la empresa tuvo el crecimiento, el margen y el ROIC que el escenario espera en FY+3, y se usa
+   el múltiplo de esos cierres. Un promedio largo solo vale si el escenario espera volver a esos
+   fundamentales.
+2. **Cada escenario toma el múltiplo de su propia etapa.**
+   - **Conservador:** el valle o la etapa actual; nunca por encima del múltiplo actual (LTM).
+   - **Base:** los cierres cuyo crecimiento queda a ±2 pp del esperado en FY+3 (mediana). Si el margen
+     esperado es claramente distinto, se explica el ajuste.
+   - **Optimista:** los cierres con el crecimiento y el margen de la reactivación. Si queda más de 25%
+     por encima del múltiplo actual, la historia debe justificar con evidencia por qué se recupera.
+   - Si el escenario crece menos que todos los cierres observados, se usa el mínimo observado: no se
+     extrapola por debajo de lo que la empresa ha cotizado.
+3. **Comprobación con una regresión de la propia empresa** (múltiplo contra crecimiento, recortada al
+   rango observado). Si difiere de la elección por etapa, se explica la diferencia.
+4. **Los comparables solo comprueban.** Entran únicamente los que se parecen en crecimiento y margen,
+   sin descuentos generales (como un −30% uniforme), con exclusión de atípicos igual en todos los
+   métodos y con un conjunto suficiente (diez o más empresas, no tres o cuatro).
+5. **El múltiplo justificado por fundamentales también solo comprueba.** Hereda el crecimiento y el costo
+   de capital del DCF, así que no puede ser un ancla «independiente» ni fijar el techo del rango.
+6. **Cada múltiplo deja su evidencia:** cierres elegidos, crecimiento y margen de esos cierres frente a
+   los del escenario, múltiplo actual, y qué dato nuevo lo haría cambiar.
+
+Herramienta: `scripts/multiples_by_cycle.py <TICKER>` en JMR-valuation (lee `<T>_anclas.json` y
+`<T>_ciclo.json`). Ejemplo resuelto: `data/PYPL_Multiplos_por_ciclo_2026-10-18.md`.
+
 ## Paso 6 — Definir las 3 "zonas de valor"
 
 A partir de los múltiplos históricos mínimos y el precio actual, definir tres rangos de precio
