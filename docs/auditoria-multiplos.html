@@ -34,7 +34,51 @@ footer{margin-top:30px;color:var(--sub);font-size:12px}
 [hidden]{display:none!important}
 @media(max-width:950px){.metrics{grid-template-columns:repeat(2,1fr)}.reference-grid{grid-template-columns:1fr}}
 @media(max-width:680px){.layout{display:block}.sidebar{position:static;max-height:350px;margin-bottom:15px}.metrics{grid-template-columns:1fr 1fr}.review-grid{grid-template-columns:1fr}.panel{padding:14px}}
-</style><script src="gh_oauth.js" defer></script><script src="auditoria-multiplos.js?v=20261018-1" defer></script></head>
+
+/* Auditoría a ancho completo: siempre una sola columna de contenido. */
+html,body{width:100%;min-width:0}
+body{overflow-x:clip}
+.wrap{width:100%;max-width:none;margin:0;padding:clamp(12px,1.6vw,28px)}
+.lead{max-width:none}
+.layout,.columns,#companyDetail{display:grid;grid-template-columns:minmax(0,1fr);width:100%;min-width:0;gap:16px}
+.sidebar{position:static;top:auto;max-height:none;overflow:visible;width:100%;min-width:0}
+.sidebar .controls{display:grid;grid-template-columns:auto minmax(150px,1fr) auto minmax(190px,1fr);align-items:center;gap:8px 12px}
+.sidebar .controls input,.sidebar .controls select{min-width:0}
+.company-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px;max-height:205px;overflow-y:auto;overflow-x:hidden;padding-right:4px}
+.company{min-width:0}
+.panel{width:100%;max-width:none;min-width:0;overflow:visible}
+.panel p,.panel a,.panel td,.panel th{overflow-wrap:anywhere}
+.metrics{grid-template-columns:repeat(auto-fit,minmax(190px,1fr));width:100%}
+.reference-grid,.review-grid{grid-template-columns:minmax(0,1fr)}
+.reference-grid article,.metrics article{min-width:0}
+.table-wrap{width:100%;max-width:100%;min-width:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-inline:contain}
+table.audit-data-table{width:100%;min-width:0;table-layout:fixed}
+.audit-data-table th,.audit-data-table td{white-space:normal;overflow-wrap:anywhere;word-break:normal}
+.audit-data-table th:last-child,.audit-data-table td:last-child{width:30%;text-align:left}
+.audit-data-table tbody td .small{max-width:none}
+table.sensitivity{width:100%;min-width:0;table-layout:fixed}
+.sensitivity th,.sensitivity td{padding:clamp(2px,.55vw,8px);overflow-wrap:anywhere;word-break:normal}
+@media(max-width:800px){
+  .sidebar .controls{grid-template-columns:minmax(0,1fr)}
+  .company-list{grid-template-columns:repeat(auto-fill,minmax(145px,1fr));max-height:188px}
+  .metrics{grid-template-columns:repeat(auto-fit,minmax(185px,1fr))}
+}
+@media(max-width:680px){
+  .layout,.columns,#companyDetail{display:grid;grid-template-columns:minmax(0,1fr)}
+  .sidebar{position:static;max-height:none;margin-bottom:0}
+  .metrics{grid-template-columns:minmax(0,1fr)}
+  .panel{padding:14px}
+  .audit-data-table thead{display:none}
+  .audit-data-table,.audit-data-table tbody,.audit-data-table tbody tr,.audit-data-table tbody td,.audit-data-table tbody th{display:block;width:100%;min-width:0}
+  .audit-data-table tbody tr{border:1px solid var(--line);border-radius:10px;background:var(--soft);margin:0 0 12px;overflow:hidden}
+  .audit-data-table tbody th,.audit-data-table tbody td{display:grid;grid-template-columns:minmax(92px,36%) minmax(0,1fr);gap:10px;text-align:left;align-items:start;width:100%;border-bottom:1px solid var(--line);padding:10px}
+  .audit-data-table tbody th:last-child,.audit-data-table tbody td:last-child{width:100%;border-bottom:0}
+  .audit-data-table tbody th::before,.audit-data-table tbody td::before{content:attr(data-label);font-weight:600;color:var(--sub);font-size:11px}
+  .audit-data-table tbody td .small{max-width:none}
+  .sensitivity{font-size:clamp(9px,2.3vw,12px)}
+  .sensitivity th,.sensitivity td{padding:3px 2px;font-variant-numeric:tabular-nums}
+}
+</style><script src="gh_oauth.js" defer></script><script src="auditoria-multiplos.js?v=20261018-fullwidth" defer></script></head>
 <body><header class="top"><strong>Modelo JMR · Auditoría de múltiplos</strong><nav><a href="index.html">Inicio</a><a href="visor.html">Valoraciones</a><a href="research.html">Análisis</a><a href="visor.html?mercado=colombia">Colombia</a></nav></header>
 <main class="wrap"><h1>Audita los múltiplos empresa por empresa</h1>
 <p class="lead muted">38 valoraciones. A: historia propia depurada; B: comparables por crecimiento, ROIC, margen y riesgo; C: múltiplo justificado por fundamentales. Inspirado en los criterios de Toro/Arena Alfa, McKinsey y Damodaran; ningún autor prescribe ponderaciones fijas para el Modelo JMR.</p>
