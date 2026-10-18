@@ -18,7 +18,8 @@
 <script src="jmr-weight-selector.js?v=20261018"></script>
 <script src="gh_oauth.js"></script>
 <script src="valuation-board.js"></script>
-<script src="jmr-report-sheets.js?v=20261016"></script>
+<script src="jmr-multiples-axes.js?v=20261018-realejes"></script>
+<script src="jmr-report-sheets.js?v=20261018-realejes"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
   :root{
@@ -2662,7 +2663,8 @@
       return renderGenericSheet(name);
     }
     function show(idx){
-      containerEl.innerHTML = getHtml(names[idx]);
+      containerEl.innerHTML = (names[idx] === 'Sensibilidad por múltiplo' && mode && currentResumen && typeof JmrReportSheets !== 'undefined')
+        ? JmrReportSheets.renderMultiplesSensitivity(currentResumen) : getHtml(names[idx]);
       containerEl.classList.toggle('diagnostics', names[idx] === 'Diagnostics');
       containerEl.classList.toggle('resumen-val', names[idx] === 'Resumen de Valoración');
       containerEl.classList.toggle('prose', names[idx] === 'Tesis de Inversión y Supuestos');
