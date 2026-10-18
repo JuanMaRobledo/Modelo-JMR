@@ -174,6 +174,23 @@
         esc(scenario)+' · siete métodos</summary><div class="jmr-matrix-grid">'+cards+'</div></details>';
     }).join('');
   }
+  /* Segunda familia de sensibilidades: múltiplo económicamente justificado,
+     NO valor por acción. Un panel por historia y siete métodos independientes. */
+  function economicSensitivity(record){
+    if(typeof JmrEconomicMultiples==='undefined')return '<p class="jmr-sheet-note">No se cargó el motor de múltiplos justificados.</p>';
+    return JmrEconomicMultiples.SCENARIOS.map(function(scenario){
+      var methods=JmrEconomicMultiples.METHODS.map(function(method){
+        var result=JmrEconomicMultiples.matrix(record,method,scenario);
+        var center=result.center==null?'N/D':result.center.toLocaleString('es-CO',{maximumFractionDigits:2,minimumFractionDigits:2})+'×';
+        return '<details class="jmr-sheet-panel"'+(scenario==='base'&&method==='EV/EBITDA'?' open':'')+'><summary>'+
+          esc(method)+' · múltiplo justificado central '+esc(center)+'</summary>'+
+          '<div class="jmr-matrix-card">'+JmrEconomicMultiples.render(record,method,scenario)+'</div></details>';
+      }).join('');
+      return '<details class="jmr-sheet-panel"'+(scenario==='base'?' open':'')+'><summary>'+
+        esc(scenario.charAt(0).toUpperCase()+scenario.slice(1))+' · siete métodos justificados</summary>'+
+        '<div class="jmr-matrix-grid">'+methods+'</div></details>';
+    }).join('');
+  }
   function safeTable(html,maxRows){
     var rows=readRows(html).filter(function(r){return r.cells.some(Boolean);}).slice(0,maxRows||180);
     if(!rows.length)return '<p class="jmr-sheet-note">Esta pestaña no contiene una tabla visible.</p>';
@@ -222,7 +239,9 @@
     destination.innerHTML='<section class="jmr-report-sheets" aria-label="Hojas y anexos de valoración">'+
       '<div class="jmr-sheets-head"><span class="jmr-overline">ANEXOS DE VALORACIÓN</span><h2>Matrices de sensibilidad</h2>'+
       '<p>Impacto en el DCF Base al modificar dos hipótesis. La celda central identifica el escenario Base; el color refleja valores relativos, no recomendaciones de compra.</p></div>'+
-      sensitivity(record)+'<div class="jmr-sheets-head"><span class="jmr-overline">VALORACIÓN RELATIVA</span><h2>Sensibilidad por múltiplo</h2><p>Eje vertical: múltiplo real (×). Eje horizontal: fundamental FY+3 en unidades de la hoja (±20%). Las cifras son valores presentes por acción; cada centro concilia contra su propio método y no contra el DCF. Disrupción se analiza por separado.</p></div>'+multiplesSensitivity(record)+'<div class="jmr-sheets-head"><span class="jmr-overline">CONSULTA DE SOPORTE</span><h2>Estados, eficiencia y cálculos completos</h2>'+
+      sensitivity(record)+'<div class="jmr-sheets-head"><span class="jmr-overline">VALORACIÓN RELATIVA</span><h2>Sensibilidad por múltiplo</h2><p>Eje vertical: múltiplo real (×). Eje horizontal: fundamental FY+3 en unidades de la hoja (±20%). Las cifras son valores presentes por acción; cada centro concilia contra su propio método y no contra el DCF. Disrupción se analiza por separado.</p></div>'+multiplesSensitivity(record)+
+      '<div class="jmr-sheets-head"><span class="jmr-overline">MÚLTIPLO ECONÓMICAMENTE JUSTIFICADO</span><h2>Sensibilidad económica independiente</h2><p>Grillas de crecimiento sostenible, ROIC, ROE, margen, Ke, WACC o conversión de caja según el método. Cada celda es un <strong>múltiplo justificado (×)</strong>, NO un valor por acción. El centro no se fuerza a coincidir con el múltiplo elegido ni con el DCF. No incluye Disrupción.</p></div>'+
+      economicSensitivity(record)+'<div class="jmr-sheets-head"><span class="jmr-overline">CONSULTA DE SOPORTE</span><h2>Estados, eficiencia y cálculos completos</h2>'+
       '<p>Las mismas categorías del Visor, con tablas por empresa y acceso a su hoja original. Los faltantes se identifican expresamente.</p></div>'+
       (has?renderGallery(record):'<p class="jmr-sheet-note">No se publicaron hojas adicionales para esta valoración. Es necesario exportarlas desde su plantilla IA.</p>')+
       (record.hojaGoogle&&/^https:\/\/docs\.google\.com\/spreadsheets\/d\//.test(record.hojaGoogle)?
@@ -238,6 +257,6 @@
       });
     });
   }
-  global.JmrReportSheets={groups:GROUPS,groupNames:groupNames,renderSensitivity:sensitivity,renderMultiplesSensitivity:multiplesSensitivity,safeTable:safeTable,mount:mount};
+  global.JmrReportSheets={groups:GROUPS,groupNames:groupNames,renderSensitivity:sensitivity,renderMultiplesSensitivity:multiplesSensitivity,renderEconomicSensitivity:economicSensitivity,safeTable:safeTable,mount:mount};
 })(typeof window!=='undefined'?window:globalThis);
 

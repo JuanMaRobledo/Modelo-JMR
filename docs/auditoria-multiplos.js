@@ -138,6 +138,14 @@ function showMatrix(){
     '</tbody></table></div><p class="small muted">Conciliación VP3: '+escapeHTML(data.validation.join(" · "))+
     '. Los ejes expresan cantidades económicas reales; las celdas conservan los valores presentes publicados. Disrupción queda separada.</p>';
 }
+function showEconomicMatrix(){
+ const box=$("economicMatrix");
+ if(!box||!state.record)return;
+ box.innerHTML=typeof JmrEconomicMultiples!=="undefined"?
+   JmrEconomicMultiples.render(state.record,$("matrixMethod").value,$("matrixScenario").value):
+   '<p class="muted">No se cargó el cálculo de múltiplos económicamente justificados.</p>';
+}
+function showBothMatrices(){showMatrix();showEconomicMatrix();}
 function reviewPanel(ticker){
  const rev=state.reviews[ticker]||{estado:"pendiente",nota:""};
  $("reviewState").value=rev.estado;
@@ -163,7 +171,7 @@ function paintCompany(rec){
  $("auditTechnical").textContent="Pesos publicados: DCF "+percent(c.pesoDcf)+", múltiplos "+percent(c.pesoMultiplos)+"; suma "+percent(c.weightSum)+". La aprobación personal no modifica las valoraciones ni se publica automáticamente.";
  const choices=METHODS.map(m=>'<option value="'+escapeHTML(m)+'">'+escapeHTML(m)+'</option>').join("");
  $("matrixMethod").innerHTML=choices;
- $("matrixMethod").value="EV/EBITDA";$("matrixScenario").value="base";showMatrix();
+ $("matrixMethod").value="EV/EBITDA";$("matrixScenario").value="base";showBothMatrices();
  const dis=rec.escenariosDCF?.disrupcion??rec.valorEsperado?.disrupcionSeparada?.valor;
  $("disruption").textContent=finite(dis)?"Escenario de disrupción: "+fmt(dis,currIsCOP(rec)?"COP":"USD")+" (solo estrés, excluido del promedio).":"Disrupción permanece separada. Consultar el expediente para su valor o controles.";
  reviewPanel(rec.ticker);
@@ -188,7 +196,7 @@ async function init(){
  $("search").addEventListener("input",paintList);
  $("filter").addEventListener("change",e=>{state.filter=e.target.value;paintList()});
  $("companies").addEventListener("click",e=>{const b=e.target.closest("[data-ticker]");if(b)selectCompany(b.dataset.ticker)});
- $("matrixMethod").addEventListener("change",showMatrix);$("matrixScenario").addEventListener("change",showMatrix);
+ $("matrixMethod").addEventListener("change",showBothMatrices);$("matrixScenario").addEventListener("change",showBothMatrices);
  $("reviewSave").addEventListener("click",()=>{
   if(!state.ticker)return;
   state.reviews[state.ticker]={estado:$("reviewState").value,nota:$("reviewNote").value.trim(),actualizado:new Date().toISOString()};

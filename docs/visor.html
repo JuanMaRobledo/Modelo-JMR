@@ -19,7 +19,8 @@
 <script src="gh_oauth.js"></script>
 <script src="valuation-board.js"></script>
 <script src="jmr-multiples-axes.js?v=20261018-realejes"></script>
-<script src="jmr-report-sheets.js?v=20261018-realejes"></script>
+<script src="jmr-economic-multiples.js?v=20261018-justificados"></script>
+<script src="jmr-report-sheets.js?v=20261018-justificados"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
   :root{
@@ -1172,6 +1173,8 @@
     valoracion: ['Resumen de Valoración', 'Valuation output', 'Cost of capital worksheet', 'Option value', 'Crecimiento implícito', 'Anexo Work 15-oct-2026', 'Descuento de múltiplos', 'Múltiplos históricos'],
     analisis: ['Tesis de Inversión y Supuestos', 'Márgenes', 'Eficiencia de capital', 'Salud Financiera', 'Por acción', 'Dividendos', 'Estadísticas', 'Crecimiento y Márgenes', 'Diagnostics']
   };
+  if(SHEET_GROUPS.valoracion.indexOf('Sensibilidad económica de múltiplos')<0)
+    SHEET_GROUPS.valoracion.push('Sensibilidad económica de múltiplos');
   var sheetHtmlCache = {};
   // Hojas de múltiplos: cada una trae al final una "Matriz de
   // Sensibilidad" (múltiplo x métrica -> precio implícito) mezclada en la
@@ -2637,6 +2640,7 @@
     var all = SHEET_GROUPS[groupKey] || [];
     var extras = mode ? Object.keys(mode) : currentWb ? currentWb.SheetNames || [] : [];
     var names = all.filter(function(n){
+      if(n==='Sensibilidad económica de múltiplos' && currentResumen && currentResumen.hojas)return true;
       if(currentWb && currentWb.Sheets[n])return true;
       return !!(currentResumen && currentResumen.hojas &&
         Object.keys(currentResumen.hojas).some(function(k){
@@ -2663,7 +2667,9 @@
       return renderGenericSheet(name);
     }
     function show(idx){
-      containerEl.innerHTML = (names[idx] === 'Sensibilidad por múltiplo' && mode && currentResumen && typeof JmrReportSheets !== 'undefined')
+      containerEl.innerHTML = (names[idx] === 'Sensibilidad económica de múltiplos' && currentResumen && typeof JmrReportSheets !== 'undefined')
+        ? JmrReportSheets.renderEconomicSensitivity(currentResumen)
+        : (names[idx] === 'Sensibilidad por múltiplo' && mode && currentResumen && typeof JmrReportSheets !== 'undefined')
         ? JmrReportSheets.renderMultiplesSensitivity(currentResumen) : getHtml(names[idx]);
       containerEl.classList.toggle('diagnostics', names[idx] === 'Diagnostics');
       containerEl.classList.toggle('resumen-val', names[idx] === 'Resumen de Valoración');
