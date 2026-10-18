@@ -3128,7 +3128,13 @@
     document.getElementById('tickerOverride').value = rec.ticker || '';
     document.getElementById('rCompanyName').textContent = rec.nombreActivo || '';
     showLogo(rec.ticker);
-    document.getElementById('rMeta').textContent = (rec.fecha || 'Modelo JMR — DCF Damodaran + múltiplos') + (rec.savedAt ? ' · guardada el ' + new Date(rec.savedAt).toLocaleDateString('es-CO') : '');
+    var savedMeta = (rec.fecha || 'Modelo JMR — DCF Damodaran + múltiplos') + (rec.savedAt ? ' · guardada el ' + new Date(rec.savedAt).toLocaleDateString('es-CO') : '');
+    document.getElementById('rMeta').textContent = savedMeta;
+    (auditState ? Promise.resolve(auditState) : loadAuditState()).then(function(data){
+      if(data && document.getElementById('rTicker').textContent === rec.ticker){
+        document.getElementById('rMeta').textContent = savedMeta + ' · Auditoría ' + data.fecha + ': ' + auditLabel(rec.ticker);
+      }
+    });
     var sheetLink = document.getElementById('rSheetLink');
     sheetLink.hidden = !/^https:\/\/docs\.google\.com\/spreadsheets\/d\/[\w-]+\//.test(rec.hojaGoogle || '');
     if(!sheetLink.hidden) sheetLink.href = rec.hojaGoogle;
@@ -3366,6 +3372,28 @@
   renderGhConnect();
 
   var viewingArchive = false;
+  var auditState = null;
+  var AUDIT_STATUS_URL = 'https://raw.githubusercontent.com/JuanMaRobledo/Modelo-JMR-datos/main/auditorias/estado-valoraciones-2026-10-18.json';
+
+  function loadAuditState(){
+    return fetch(AUDIT_STATUS_URL, {cache:'no-store'}).then(function(res){
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    }).then(function(data){
+      auditState = data;
+      return data;
+    }).catch(function(){
+      auditState = null;
+      return null;
+    });
+  }
+
+  function auditLabel(ticker){
+    if(!auditState) return '';
+    if((auditState.pendientes || []).indexOf(ticker) >= 0) return 'Modelo pendiente de conciliación';
+    if((auditState.brechaMaterial || []).indexOf(ticker) >= 0) return 'Revisar brecha DCF / múltiplos';
+    return 'Auditoría económica en revisión';
+  }
 
   // El nombre del archivo es "TICKER-<timestamp>.json" (así se guarda en
   // saveValoracion, con el timestamp solo para que el nombre sea único) —
@@ -3394,7 +3422,15 @@
       listEl.innerHTML = '';
       return;
     }
-    status.textContent = files.length + ' valoración(es) ' + (viewingArchive ? 'archivada(s).' : 'guardada(s).');
+    status.textContent = files.length + ' valoración(es) ' + (viewingArchive ? 'archivada(s).' : 'guardada(s).') + (auditState ? ' · Auditoría ' + auditState.fecha + ': cifras en revisión. ' : '');
+    if(auditState && /^https:\/\/drive\.google\.com\/file\/d\/[A-Za-z0-9_-]+\/view$/.test(auditState.informe || '')){
+      var auditLink = document.createElement('a');
+      auditLink.href = auditState.informe;
+      auditLink.textContent = 'Leer informe de auditoría';
+      auditLink.target = '_blank';
+      auditLink.rel = 'noopener noreferrer';
+      status.appendChild(auditLink);
+    }
     var filesByName = {};
     files.forEach(function(f){ filesByName[f.name] = f; });
     listEl.innerHTML = files.map(function(f){
@@ -3403,6 +3439,7 @@
       var researchLink = f.hasResearch ? '<a class="gh-btn" href="research.html?ticker=' + encodeURIComponent(f.ticker) + jmrMercadoQS() + '">Ver análisis fundamental →</a>' : '';
       return '<div class="saved-item">' +
         '<span class="si-name">' + label + '</span>' +
+        (auditState ? '<span class="si-meta"> · ' + auditLabel(f.ticker) + '</span>' : '') +
         '<span class="si-actions">' +
           researchLink +
           '<button class="gh-btn" data-act="ver" data-path="' + f.path + '" data-sha="' + f.sha + '" data-name="' + f.name + '" type="button">Ver</button>' +
@@ -3498,7 +3535,8 @@
     status.textContent = 'Cargando valoraciones…';
     return Promise.all([
       listValoraciones(viewingArchive ? ARCHIVE_FOLDER : 'valoraciones'),
-      listResearchTickers()
+      listResearchTickers(),
+      loadAuditState()
     ]).then(function(results){
       var tickers = results[1];
       return results[0].map(function(f){
