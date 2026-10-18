@@ -3140,6 +3140,12 @@
     var intro=document.createElement('p');intro.className='meta';
     intro.textContent='Selecciona múltiplos elegibles y ajusta su peso relativo. El motor conserva la proporción DCF del modelo y reparte el resto entre los métodos elegidos. Los resultados son una simulación; no alteran la valoración guardada.';
     host.appendChild(intro);
+    var sources=document.createElement('p');sources.className='meta';
+    sources.appendChild(document.createTextNode('Criterio: comparar crecimiento, ROIC, riesgo y denominadores homogéneos; explicar brechas antes de combinar DCF y múltiplos. Los pesos son decisiones JMR, no porcentajes prescritos por las fuentes. Referencias: '));
+    [['McKinsey','https://www.mckinsey.com/capabilities/strategy-and-corporate-finance/our-insights/the-right-role-for-multiples-in-valuation'],['Arena Alfa','https://cursosarenaalfa.teachable.com/p/aprendiendo-a-invertir-en-bolsa-intermedio-abr2024']].forEach(function(pair,i){
+      if(i)sources.appendChild(document.createTextNode(' · '));
+      var link=document.createElement('a');link.href=pair[1];link.textContent=pair[0];link.target='_blank';link.rel='noopener noreferrer';sources.appendChild(link);
+    });host.appendChild(sources);
     var grid=document.createElement('div');grid.className='weight-grid';host.appendChild(grid);
     var rows=[];
     JmrWeightSelector.candidates(rec).forEach(function(method){
