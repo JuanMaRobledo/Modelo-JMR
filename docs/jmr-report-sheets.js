@@ -141,7 +141,17 @@
     rows.forEach(function(r){if(r.row)lookup[r.row]=r;});
     var methods=['EV/EBITDA','EV/FCFF','P/E','P/FCFE','P/OCF','P/V','P/BV'];
     var scenarios=['Conservador','Base','Optimista'];
-    return scenarios.map(function(scenario,si){
+    var selectionRows=Array.from({length:7},function(_,i){return lookup[223+i];}).filter(Boolean);
+    var selection=selectionRows.length===7?'<details class="jmr-sheet-panel" open><summary>Selección de múltiplos y ponderaciones vigentes</summary>'+
+      '<div class="jmr-sheet-scroll"><table class="jmr-table"><thead><tr><th>Método</th><th>Estado</th><th>Peso total</th><th>Peso relativo</th><th>Control</th><th>Razón económica</th></tr></thead><tbody>'+
+      selectionRows.map(function(r){
+        var c=r.cells,percent=function(x){var n=num(x);return n===null?'N/D':(n*100).toFixed(1)+'%';};
+        return '<tr><th scope="row">'+esc(c[0])+'</th><td>'+esc(c[1])+'</td>'+
+          '<td>'+percent(c[6])+'</td><td>'+percent(c[4])+'</td>'+
+          '<td>'+esc(c[8])+'</td><td>'+esc(c[2])+'</td></tr>';
+      }).join('')+'</tbody></table></div>'+
+      '<p class="jmr-sheet-note">Pesos tomados del modelo vigente, sin sustituirlos por una regla sectorial. Revisar pares, fecha y calidad de beneficios para una nueva calibración.</p></details>':'';
+    return selection+scenarios.map(function(scenario,si){
       var cards=methods.map(function(method,mi){
         var first=6+(si*7+mi)*10,head=lookup[first+2],body=[];
         for(var y=0;y<5;y++)if(lookup[first+3+y])body.push(lookup[first+3+y]);
