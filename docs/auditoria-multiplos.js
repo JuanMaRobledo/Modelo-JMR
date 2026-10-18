@@ -18,7 +18,7 @@ function methodView(record,name){
  const s=byName(record.seleccionMultiples?.metodos,name)||{};
  const m=byName(record.descuentoMultiples?.metodos,name)||{};
  const fy=byName(record.metodos,name)||{};
- const weight=finite(fy.peso)?fy.peso:(finite(s.pesoVigente)?s.pesoVigente:0);
+ const weight=finite(fy.peso)?fy.peso:0; // Solo peso aplicado en métodos, no metadatos históricos.
  return {nombre:name,peso:weight,control:s.control||"SIN CONTROL",rol:s.rol||"Sin dictamen",
  criterio:s.criterio||"Sin justificación económica estructurada; revisar expediente",
  actual:byName(record.multiplesHistoricos?.metodos,name)||null,
@@ -89,7 +89,7 @@ function paintList(){
  if(!entries.length)$("companies").textContent="No hay empresas con este filtro.";
 }
 function summaryCards(rec,c,e){
- const curr=(rec.currency==="COP"||rec.market==="BVC"||/GRUPO|PFDAV|P911/.test(rec.ticker)&&rec.ticker!=="P911")?"COP":"USD";
+ const curr=currIsCOP(rec)?"COP":"USD";
  const gap=finite(c.gap)?(c.gap>=0?"+":"")+(c.gap*100).toFixed(1).replace(".",",")+" %":"N/D";
  const mos=rec.baseMOS==="dcfBase"&&finite(c.dcf)&&finite(rec.mos)?fmt(c.dcf*(1-rec.mos),curr):"Pendiente de validar";
  return '<div class="metrics">'+
