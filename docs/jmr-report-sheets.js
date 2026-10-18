@@ -250,6 +250,7 @@
       panel.addEventListener('toggle',function(){
         if(!panel.open)return;
         var holder=panel.querySelector('[data-jmr-sheet]');
+        if(!holder)return; // Los nuevos paneles de matrices económicas no son pestañas crudas.
         if(holder.dataset.jmrFilled)return;
         var found=get(index,holder.getAttribute('data-jmr-sheet'));
         holder.innerHTML=found?(holder.getAttribute('data-jmr-sheet')==='Sensibilidad por múltiplo'?multiplesSensitivity(record):safeTable(found.html,190)):'<p class="jmr-sheet-note">No se publicó esta tabla.</p>';
