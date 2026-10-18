@@ -153,8 +153,9 @@ function render(record,method,scenario){
    m.xValues.map(v=>'<th scope="col">'+format(x,v)+'</th>').join('')+'</tr></thead>';
  const body=m.table.map((row,i)=>'<tr><th scope="row">'+format(y,m.yValues[i])+'</th>'+
    row.map((z,j)=>'<td'+(i===2&&j===2?' class="jmr-matrix-base"':'')+'>'+mult(z)+'</td>').join('')+'</tr>').join('');
- const selected=record?.multiplosImplicitosDCF?.metodos?.find(z=>z.nombre===method)?.seleccionadoBase;
- return '<p class="jmr-sheet-note"><strong>Múltiplo justificado central: '+mult(m.center)+'</strong>. Múltiplo de salida seleccionado en la historia: '+(typeof selected==='number'?mult(selected):'consultar expediente')+'. Son conceptos distintos y no se igualan artificialmente.</p>'+
+ const selected=(typeof JmrMultiplesAxes!=='undefined'?
+   JmrMultiplesAxes.axes(record,method,scenario)?.multiple:null);
+ return '<p class="jmr-sheet-note"><strong>Múltiplo justificado central: '+mult(m.center)+'</strong>. Múltiplo de salida de esta historia: '+(typeof selected==='number'?mult(selected):'consultar expediente')+'. Son conceptos distintos y no se igualan artificialmente.</p>'+
    '<div class="jmr-sheet-scroll"><table class="jmr-table jmr-matrix">'+header+'<tbody>'+body+'</tbody></table></div>'+
    '<p class="jmr-sheet-note"><strong>Fórmula estable:</strong> '+esc(m.def.formula)+'. Se mantienen constantes: '+esc(m.def.fixed)+'. Los factores ±20% solo determinan la amplitud; los ejes muestran porcentajes reales. Sensibilidades exploratorias, no pronósticos perpetuos ni sustitutos del DCF.</p>'+
    '<p class="jmr-sheet-note">Fuente: '+esc(m.source)+'. Validar sostenibilidad de estos supuestos antes de aprobar el método.</p>';
