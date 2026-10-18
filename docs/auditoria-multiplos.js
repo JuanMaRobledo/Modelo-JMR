@@ -101,16 +101,16 @@ function summaryCards(rec,c,e){
 }
 function methodsTable(rec,c){
  const curr=(rec.currency==="COP"||rec.market==="BVC"||/^(GRUPO|PF)/.test(rec.ticker))?"COP":"USD";
- return '<div class="table-wrap"><table><thead><tr><th>Método</th><th>Peso vigente</th><th>VP3 conserv.</th><th>VP3 base</th><th>VP3 optim.</th><th>Control / fundamento</th></tr></thead><tbody>'+
- c.metodos.map(m=>'<tr><th>'+escapeHTML(m.nombre)+'</th><td>'+percent(m.peso)+'</td>'+
- m.vp3.map(v=>'<td>'+fmt(v,curr)+'</td>').join('')+
- '<td><strong>'+escapeHTML(m.control)+'</strong><div class="small">'+escapeHTML(m.criterio)+'</div></td></tr>').join('')+
+ return '<div class="table-wrap"><table class="audit-data-table audit-methods"><thead><tr><th>Método</th><th>Peso vigente</th><th>VP3 conserv.</th><th>VP3 base</th><th>VP3 optim.</th><th>Control / fundamento</th></tr></thead><tbody>'+
+ c.metodos.map(m=>'<tr><th data-label="Método">'+escapeHTML(m.nombre)+'</th><td data-label="Peso vigente">'+percent(m.peso)+'</td>'+
+ m.vp3.map((v,i)=>'<td data-label="'+['VP3 conservador','VP3 base','VP3 optimista'][i]+'">'+fmt(v,curr)+'</td>').join('')+
+ '<td data-label="Control y fundamento"><strong>'+escapeHTML(m.control)+'</strong><div class="small">'+escapeHTML(m.criterio)+'</div></td></tr>').join('')+
  '</tbody></table></div><p class="small muted">Peso de selección vigente, no peso recomendado. Un método N/D o no comparable conserva peso 0 en la propuesta. P/V y P/BV permanecen visibles aun si no ponderan.</p>';
 }
 function historyTable(c){
- return '<div class="table-wrap"><table><thead><tr><th>Método</th><th>Datos históricos válidos</th><th>Mediana 5A</th><th>Mediana depurada</th><th>Múltiplo de referencia</th></tr></thead><tbody>'+
+ return '<div class="table-wrap"><table class="audit-data-table audit-history"><thead><tr><th>Método</th><th>Datos históricos válidos</th><th>Mediana 5A</th><th>Mediana depurada</th><th>Múltiplo de referencia</th></tr></thead><tbody>'+
  c.metodos.map(m=>{const o=m.actual,st=o?.estadisticas||{},cur=finite(o?.actual)?o.actual:null;
- return '<tr><th>'+escapeHTML(m.nombre)+'</th><td>'+(Number.isInteger(st.n)?st.n:"N/D")+'</td><td>'+(finite(st.mediana_5a)?st.mediana_5a.toFixed(2)+"×":"N/D")+'</td><td>'+(finite(st.mediana_10a)?st.mediana_10a.toFixed(2)+"×":"N/D")+'</td><td>'+(finite(cur)?cur.toFixed(2)+"×":"N/D")+'</td></tr>'}).join('')+
+ return '<tr><th data-label="Método">'+escapeHTML(m.nombre)+'</th><td data-label="Datos históricos válidos">'+(Number.isInteger(st.n)?st.n:"N/D")+'</td><td data-label="Mediana 5A">'+(finite(st.mediana_5a)?st.mediana_5a.toFixed(2)+"×":"N/D")+'</td><td data-label="Mediana depurada">'+(finite(st.mediana_10a)?st.mediana_10a.toFixed(2)+"×":"N/D")+'</td><td data-label="Múltiplo de referencia">'+(finite(cur)?cur.toFixed(2)+"×":"N/D")+'</td></tr>'}).join('')+
  '</tbody></table></div><p class="small muted">A: se muestra lo guardado para cada empresa. “N/D” significa que falta evidencia estructurada; no es una estimación de referencia.</p>';
 }
 function matrixRows(rec,name,scenario){
@@ -202,6 +202,6 @@ async function init(){
   if(first)await selectCompany(first);else setStatus("No hay empresas publicadas en la carpeta de valoraciones");
  }catch(e){setStatus("No se pudo abrir el inventario: "+e.message+". Comprueba conexión y acceso GitHub.");}
 }
-root.JmrMultiplesAudit={METHODS,SCENARIOS,methodView,compare,reviewList};
+root.JmrMultiplesAudit={METHODS,SCENARIOS,methodView,compare,reviewList,methodsTable,historyTable};
 if(typeof document!=="undefined")document.addEventListener("DOMContentLoaded",init);
 })(typeof window!=="undefined"?window:globalThis);
