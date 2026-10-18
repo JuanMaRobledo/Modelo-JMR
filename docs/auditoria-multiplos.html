@@ -78,7 +78,7 @@ table.sensitivity{width:100%;min-width:0;table-layout:fixed}
   .sensitivity{font-size:clamp(9px,2.3vw,12px)}
   .sensitivity th,.sensitivity td{padding:3px 2px;font-variant-numeric:tabular-nums}
 }
-</style><script src="gh_oauth.js" defer></script><script src="auditoria-multiplos.js?v=20261018-fullwidth" defer></script><link rel="stylesheet" href="jmr-fullwidth.css?v=20261018">
+</style><script src="gh_oauth.js" defer></script><script src="jmr-multiples-axes.js?v=20261018-realejes" defer></script><script src="auditoria-multiplos.js?v=20261018-realejes" defer></script><link rel="stylesheet" href="jmr-fullwidth.css?v=20261018">
 </head>
 <body><header class="top"><strong>Modelo JMR · Auditoría de múltiplos</strong><nav><a href="index.html">Inicio</a><a href="visor.html">Valoraciones</a><a href="research.html">Análisis</a><a href="visor.html?mercado=colombia">Colombia</a></nav></header>
 <main class="wrap"><h1>Audita los múltiplos empresa por empresa</h1>
@@ -93,7 +93,7 @@ table.sensitivity{width:100%;min-width:0;table-layout:fixed}
 <section class="panel"><h3>Siete múltiplos y pesos aplicados</h3><p class="small">EV/EBITDA, EV/FCFF, P/E, P/FCFE, P/OCF, P/V y P/BV. Un peso cero no elimina el método de la auditoría.</p><div id="methods"></div></section>
 <section class="panel"><h3>Anclas A / B / C y criterios económicos</h3><div id="dossier"></div><h4>Historia registrada (A)</h4><div id="historical"></div>
 <p class="small">Lecturas metodológicas: <a href="https://www.mckinsey.com/capabilities/strategy-and-corporate-finance/our-insights/the-right-role-for-multiples-in-valuation" target="_blank" rel="noopener noreferrer">McKinsey</a> · <a href="https://pages.stern.nyu.edu/~adamodar/New_Home_Page/littlebook/comparables.htm" target="_blank" rel="noopener noreferrer">Damodaran</a>. La réplica Arena Alfa permanece independiente del DCF.</p></section>
-<section class="panel"><h3>Sensibilidad: siete métodos × tres escenarios</h3><p class="small">Matrices FY+3 descontadas a valor presente, con ejes de múltiplo × fundamental ±20%; el centro debe conciliar con VP3. Disrupción no participa en el promedio.</p>
+<section class="panel"><h3>Sensibilidad: siete métodos × tres escenarios</h3><p class="small">Matrices FY+3 en valor presente: eje vertical = múltiplo real (×); eje horizontal = fundamental FY+3 en unidades de la hoja (variación ±20%). El centro concilia con VP3. Disrupción no participa en el promedio.</p>
 <div class="tool-line"><label>Método <select id="matrixMethod" aria-label="Seleccionar múltiplo"></select></label><label>Historia <select id="matrixScenario" aria-label="Seleccionar escenario"><option value="conservador">Conservador</option><option value="base" selected>Base</option><option value="optimista">Optimista</option></select></label></div><div id="matrix"></div><p class="notice small" id="disruption"></p></section>
 <section class="panel"><h3>Mi auditoría de esta empresa</h3><p class="small">Guarda tus observaciones para revisarlas una a una. El registro se conserva solo en este navegador y no modifica los resultados publicados. Exporta tus revisiones cuando quieras conservarlas.</p>
 <div class="review-grid"><label for="reviewState">Estado <select id="reviewState"><option value="pendiente">Pendiente</option><option value="revisando">En revisión</option><option value="conforme">Conforme</option><option value="ajustes">Requiere ajustes</option></select></label>
