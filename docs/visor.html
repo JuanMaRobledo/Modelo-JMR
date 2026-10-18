@@ -3154,7 +3154,7 @@
       var reason=document.createElement('small');reason.textContent=method.eligible?(method.reason||'Elegible; revisar comparables y ancla.'):'N/D o no elegible: '+(method.reason||'falta un denominador válido.');item.appendChild(reason);
       grid.appendChild(item);rows.push({name:method.name,method:method,check:check,weight:weight});
     });
-    var reset=document.createElement('button');reset.type='button';reset.className='gh-btn';reset.textContent='Restablecer propuesta del motor';host.appendChild(reset);
+    var reset=document.createElement('button');reset.type='button';reset.className='gh-btn';reset.textContent='Restablecer pesos vigentes elegibles';host.appendChild(reset);
     var status=document.createElement('p');status.className='meta';host.appendChild(status);
     var scroll=document.createElement('div');scroll.className='methods-scroll';host.appendChild(scroll);
     var table=document.createElement('table');table.className='methods';scroll.appendChild(table);
