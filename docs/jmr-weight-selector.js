@@ -3,9 +3,22 @@
   'use strict';
   var SCENARIOS = ['conservador', 'base', 'optimista'];
   var NAMES = ['EV/EBITDA', 'EV/FCFF', 'P/E', 'P/FCFE', 'P/OCF', 'P/V', 'P/BV'];
+  // Exclusiones económicas documentadas en reference/multiplos_v3/*_decision_resultado.json.
+  // Un centro numérico válido no vuelve comparable un denominador inaplicable.
+  var EXCLUDED = {
+    AMZN:['EV/FCFF','P/FCFE','P/OCF'],
+    GRUPOARGOS:['EV/FCFF','P/FCFE','P/OCF'],
+    GRUPOSURA:['EV/EBITDA','EV/FCFF','P/FCFE','P/OCF'],
+    NU:['EV/EBITDA','EV/FCFF','P/FCFE','P/OCF'],
+    PAGS:['EV/EBITDA','EV/FCFF'],
+    PFDAVVNDA:['EV/EBITDA','EV/FCFF','P/FCFE','P/OCF'],
+    PFGRUPOARG:['EV/FCFF','P/FCFE','P/OCF'],
+    SHAK:['EV/FCFF','P/FCFE']
+  };
   function finite(x){ return typeof x === 'number' && isFinite(x); }
   function byName(rows, name){ return (rows || []).find(function(x){ return x.nombre === name; }); }
   function validMethod(record, name){
+    if((EXCLUDED[record.ticker] || []).indexOf(name)>=0) return false;
     var selected = byName(record.seleccionMultiples && record.seleccionMultiples.metodos, name);
     var present = byName(record.descuentoMultiples && record.descuentoMultiples.metodos, name);
     var future = byName(record.metodos, name);
@@ -20,7 +33,8 @@
   function candidates(record){
     return NAMES.map(function(name){
       var m = byName(record.seleccionMultiples && record.seleccionMultiples.metodos, name) || {};
-      return {name:name, eligible:validMethod(record,name), reason:m.criterio || m.estado || '',
+      var excluded=(EXCLUDED[record.ticker] || []).indexOf(name)>=0;
+      return {name:name, eligible:validMethod(record,name), reason:excluded?'Excluido en la revisión económica específica del emisor: denominador no comparable o no representativo.':(m.criterio || m.estado || ''),
         suggested:Math.max(0, Number(m.pesoValido) || 0),
         previous:Math.max(0, Number(m.pesoVigente) || 0)};
     });
