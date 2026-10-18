@@ -202,6 +202,6 @@ async function init(){
   if(first)await selectCompany(first);else setStatus("No hay empresas publicadas en la carpeta de valoraciones");
  }catch(e){setStatus("No se pudo abrir el inventario: "+e.message+". Comprueba conexión y acceso GitHub.");}
 }
-root.JmrMultiplesAudit={METHODS,SCENARIOS,methodView,compare,reviewList};
+root.JmrMultiplesAudit={METHODS,SCENARIOS,methodView,compare,reviewList,methodsTable,historyTable};
 if(typeof document!=="undefined")document.addEventListener("DOMContentLoaded",init);
 })(typeof window!=="undefined"?window:globalThis);
