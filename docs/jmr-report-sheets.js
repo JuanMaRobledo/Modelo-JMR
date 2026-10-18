@@ -101,6 +101,8 @@
   function sensitivity(record){
     var index=sheets(record);
     var sens=get(index,'Sensibilidades');
+    // La matriz relativa nunca reemplaza las sensibilidades del DCF.
+    if(sens && norm(sens.name)===norm('Sensibilidad por múltiplo')) sens=null;
     if(!sens)return '<p class="jmr-sheet-note">Esta valoración no contiene una matriz de sensibilidad publicada. Consulta la hoja fuente; no se generan cifras aproximadas.</p>';
     var rows=readRows(sens.html),blocks=[],base=record?.valorEsperado?.dcfBase ??
       record?.descuentoMultiples?.dcfHoy?.base;
