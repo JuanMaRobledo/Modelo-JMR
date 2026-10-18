@@ -54,3 +54,28 @@ test('página integrada y accesible por ticker desde visor',()=>{
  const research=fs.readFileSync(path.join(root,'docs/research.html'),'utf8');
  assert.match(research,/href="auditoria-multiplos\.html"/);
 });
+
+test('diseño de auditoría: ancho completo y una columna principal en todas las pantallas',()=>{
+ const html=fs.readFileSync(path.join(root,'docs/auditoria-multiplos.html'),'utf8');
+ const css=html.slice(html.indexOf('/* Auditoría a ancho completo'),html.indexOf('</style>'));
+ assert.ok(css.length>1800,'Debe existir el diseño responsive nuevo');
+ assert.match(css,/\.wrap\{width:100%;max-width:none/);
+ assert.match(css,/\.layout,\.columns,#companyDetail\{display:grid;grid-template-columns:minmax\(0,1fr\)/);
+ assert.match(css,/\.reference-grid,\.review-grid\{grid-template-columns:minmax\(0,1fr\)/);
+ assert.match(css,/\.table-wrap\{width:100%;max-width:100%;min-width:0;overflow-x:auto/);
+ assert.match(css,/\.audit-data-table thead\{display:none\}/);
+ assert.match(css,/\.audit-data-table tbody td::before\{content:attr\(data-label\)/);
+ assert.match(css,/table\.sensitivity\{width:100%;min-width:0;table-layout:fixed\}/);
+});
+test('tablas de cada empresa tienen rótulos móviles en cada columna de cada fila',()=>{
+ const tables=[
+  [audit.methodsTable(sample,audit.compare(sample)),['Método','Peso vigente','VP3 conservador','VP3 base','VP3 optimista','Control y fundamento']],
+  [audit.historyTable(audit.compare(sample)),['Método','Datos históricos válidos','Mediana 5A','Mediana depurada','Múltiplo de referencia']]
+ ];
+ for(const [html,labels] of tables){
+  assert.match(html,/class="audit-data-table/);
+  assert.match(html,/class="table-wrap"/);
+  for(const label of labels)assert.ok(html.includes('data-label="'+label+'"'),label+' falta en la tabla');
+  assert.equal((html.match(/<tr><th data-label="Método">/g)||[]).length,7,'siete múltiplos presentes');
+ }
+});
