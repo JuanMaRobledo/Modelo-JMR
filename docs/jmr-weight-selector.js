@@ -58,6 +58,11 @@
         combinadoFY3:selected.length && finite(dFY)?dcfShare*dFY+(1-dcfShare)*soloFY:null
       };
     });
+    var base=out.scenarios.base;
+    if(selected.length && finite(base.dcfHoy) && base.dcfHoy>0 && finite(base.multiplesVP3)){
+      out.baseGap=base.multiplesVP3/base.dcfHoy-1;
+      if(Math.abs(out.baseGap)>0.30) out.status+=' · Brecha Base superior a 30%: explicar crecimiento, margen, riesgo y comparables antes de adoptar la mezcla';
+    }
     return out;
   }
   function suggestedChoices(record){
