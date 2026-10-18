@@ -130,6 +130,34 @@
     return '<div class="jmr-sheet-note">Matriz histórica conservada tal cual se publicó; no se interpreta como matriz estándar 5 × 5.</div>'+
       safeTable(sens.html,160);
   }
+
+  /* Las matrices relativas usan el centro VP3 del propio múltiplo, no el DCF Base.
+     Los 21 bloques mantienen 7 métodos × 3 escenarios y se presentan en
+     tres desplegables para evitar tablas kilométricas. */
+  function multiplesSensitivity(record){
+    var source=get(sheets(record),'Sensibilidad por múltiplo');
+    if(!source)return '<p class="jmr-sheet-note">Las matrices por múltiplo aún no se han sincronizado en este análisis. Consulta la hoja fuente.</p>';
+    var rows=readRows(source.html),lookup={};
+    rows.forEach(function(r){if(r.row)lookup[r.row]=r;});
+    var methods=['EV/EBITDA','EV/FCFF','P/E','P/FCFE','P/OCF','P/V','P/BV'];
+    var scenarios=['Conservador','Base','Optimista'];
+    return scenarios.map(function(scenario,si){
+      var cards=methods.map(function(method,mi){
+        var first=6+(si*7+mi)*10,head=lookup[first+2],body=[];
+        for(var y=0;y<5;y++)if(lookup[first+3+y])body.push(lookup[first+3+y]);
+        var ctl=lookup[first+8],status=ctl&&ctl.cells[8]||'N/D';
+        if(status!=='OK'||!head||body.length!==5||
+           !body.every(function(r){return r.cells.slice(1,6).every(function(c){return num(c)!==null;});})){
+          return '<article class="jmr-matrix-card"><h4>'+esc(method)+'</h4>'+
+            '<p class="jmr-sheet-note">N/D — denominador no interpretable, datos incompletos o conciliación pendiente. No se usa como valoración certificada.</p></article>';
+        }
+        var base=num(ctl.cells[6]);
+        return matrixTable(method+' · '+scenario,head,body,base,si*7+mi+1);
+      }).join('');
+      return '<details class="jmr-sheet-panel"'+(si===1?' open':'')+'><summary>'+
+        esc(scenario)+' · siete métodos</summary><div class="jmr-matrix-grid">'+cards+'</div></details>';
+    }).join('');
+  }
   function safeTable(html,maxRows){
     var rows=readRows(html).filter(function(r){return r.cells.some(Boolean);}).slice(0,maxRows||180);
     if(!rows.length)return '<p class="jmr-sheet-note">Esta pestaña no contiene una tabla visible.</p>';
@@ -178,7 +206,7 @@
     destination.innerHTML='<section class="jmr-report-sheets" aria-label="Hojas y anexos de valoración">'+
       '<div class="jmr-sheets-head"><span class="jmr-overline">ANEXOS DE VALORACIÓN</span><h2>Matrices de sensibilidad</h2>'+
       '<p>Impacto en el DCF Base al modificar dos hipótesis. La celda central identifica el escenario Base; el color refleja valores relativos, no recomendaciones de compra.</p></div>'+
-      sensitivity(record)+'<div class="jmr-sheets-head"><span class="jmr-overline">CONSULTA DE SOPORTE</span><h2>Estados, eficiencia y cálculos completos</h2>'+
+      sensitivity(record)+'<div class="jmr-sheets-head"><span class="jmr-overline">VALORACIÓN RELATIVA</span><h2>Sensibilidad por múltiplo</h2><p>Múltiplo de salida × fundamental FY+3 (±20%). Las cifras son valores presentes por acción; cada centro concilia contra su propio método y no contra el DCF. Disrupción se analiza por separado.</p></div>'+multiplesSensitivity(record)+'<div class="jmr-sheets-head"><span class="jmr-overline">CONSULTA DE SOPORTE</span><h2>Estados, eficiencia y cálculos completos</h2>'+
       '<p>Las mismas categorías del Visor, con tablas por empresa y acceso a su hoja original. Los faltantes se identifican expresamente.</p></div>'+
       (has?renderGallery(record):'<p class="jmr-sheet-note">No se publicaron hojas adicionales para esta valoración. Es necesario exportarlas desde su plantilla IA.</p>')+
       (record.hojaGoogle&&/^https:\/\/docs\.google\.com\/spreadsheets\/d\//.test(record.hojaGoogle)?
@@ -189,11 +217,11 @@
         var holder=panel.querySelector('[data-jmr-sheet]');
         if(holder.dataset.jmrFilled)return;
         var found=get(index,holder.getAttribute('data-jmr-sheet'));
-        holder.innerHTML=found?safeTable(found.html,190):'<p class="jmr-sheet-note">No se publicó esta tabla.</p>';
+        holder.innerHTML=found?safeTable(found.html,holder.getAttribute('data-jmr-sheet')==='Sensibilidad por múltiplo'?240:190):'<p class="jmr-sheet-note">No se publicó esta tabla.</p>';
         holder.dataset.jmrFilled='1';
       });
     });
   }
-  global.JmrReportSheets={groups:GROUPS,groupNames:groupNames,renderSensitivity:sensitivity,safeTable:safeTable,mount:mount};
+  global.JmrReportSheets={groups:GROUPS,groupNames:groupNames,renderSensitivity:sensitivity,renderMultiplesSensitivity:multiplesSensitivity,safeTable:safeTable,mount:mount};
 })(typeof window!=='undefined'?window:globalThis);
 
