@@ -164,6 +164,12 @@ estudio, y sobre cualquier ancla de comparables o de múltiplo justificado que l
 6. **Cada múltiplo deja su evidencia:** cierres elegidos, crecimiento y margen de esos cierres frente a
    los del escenario, múltiplo actual, y qué dato nuevo lo haría cambiar.
 
+7. **El crecimiento del escenario sale del motor, no de las celdas de entrada.** Se toma el año 3 (FY+3) de la fila de
+   crecimiento de cada historia en `Valuation output`. Las celdas `Input sheet` B27/B29 pueden quedar desalineadas del motor
+   (en PYPL el Base figuraba como 3,5% y el motor usa ~5%).
+8. **Topes de Toro en el código:** Conservador ≤ múltiplo actual; Base ≤ 0,78x y Optimista ≤ 0,92x el promedio histórico propio.
+   Se usan como topes, no como valores, cuando el promedio incluye una etapa de fundamentales distintos.
+
 Herramienta: `scripts/multiples_by_cycle.py <TICKER>` en JMR-valuation (lee `<T>_anclas.json` y
 `<T>_ciclo.json`). Ejemplo resuelto: `data/PYPL_Multiplos_por_ciclo_2026-10-18.md`.
 
