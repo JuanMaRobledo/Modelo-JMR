@@ -1,0 +1,70 @@
+/* Modelo JMR: vista fluida y tablas legibles.
+   Un bloque de tabla/matriz por fila; sus columnas internas se conservan.
+   En pantallas angostas la tabla desplaza horizontalmente, nunca se recorta. */
+@media screen {
+  html,body{width:100%;min-width:0}
+  body .wrap,body main.wrap,body.research-page .wrap{
+    width:100%!important;max-width:none!important;margin-inline:0!important;
+    padding-inline:clamp(12px,1.6vw,30px)!important
+  }
+  body nav.appnav,body header.top .inner,body header.top nav.appnav{
+    width:100%!important;max-width:none!important;margin-inline:0!important;
+    padding-inline:clamp(12px,1.6vw,30px)!important
+  }
+  body .research-document,body .jmr-editorial-article,
+  body .jmr-valuation-summary,body .sheet-scroll.prose{
+    max-width:none!important;width:100%;min-width:0
+  }
+  body .jmr-editorial-article p,body .research-document p,
+  body .hero p,body .subtitle{max-width:none}
+  body :is(.jmr-matrix-grid,.data-grid,.compare-grid,.charts-grid,
+    .col-value-method-grid,.col-value-weighted){
+    display:grid;grid-template-columns:minmax(0,1fr)!important;width:100%;min-width:0
+  }
+  body :is(.jmr-matrix-grid,.data-grid,.compare-grid,.charts-grid,
+    .col-value-method-grid,.col-value-weighted)>*{min-width:0;max-width:100%}
+  body :is(.table-wrap,.table-scroll,.methods-scroll,.hist-scroll,
+    .scen-scroll,.rv-scroll,.sheet-scroll,.jmr-sheet-scroll){
+    width:100%;max-width:100%;min-width:0;overflow-x:auto!important;
+    -webkit-overflow-scrolling:touch;overscroll-behavior-inline:contain
+  }
+  body :is(.table-wrap,.methods-scroll,.hist-scroll,.scen-scroll,.rv-scroll,
+    .jmr-sheet-scroll)>table{
+    width:100%;min-width:max-content;max-width:none;table-layout:auto
+  }
+  body .jmr-report-sheets table.jmr-table{width:100%;min-width:max-content;table-layout:auto}
+  body .jmr-report-sheets .jmr-table tbody th{
+    max-width:none;overflow:visible;text-overflow:clip;white-space:normal
+  }
+  body .research-document{overflow-x:auto}
+  body .research-document :is(section,article,div):has(>table){
+    max-width:100%;min-width:0;overflow-x:auto
+  }
+  body .research-document table:not(.jvb-table){
+    table-layout:auto!important;max-width:none!important;min-width:max-content
+  }
+  body .audit-data-table,body table.audit-data-table{
+    display:table!important;min-width:850px!important;width:100%;
+    table-layout:auto!important
+  }
+  body table.sensitivity{
+    display:table!important;min-width:620px!important;width:100%;
+    table-layout:auto!important
+  }
+  body .audit-data-table thead{display:table-header-group!important}
+  body .audit-data-table tbody{display:table-row-group!important}
+  body .audit-data-table tr,body .audit-data-table tbody tr{
+    display:table-row!important;border:0!important;margin:0!important;
+    border-radius:0!important;background:transparent!important
+  }
+  body .audit-data-table th,body .audit-data-table td,
+  body .audit-data-table tbody th,body .audit-data-table tbody td{
+    display:table-cell!important;width:auto!important;min-width:0!important;
+    text-align:inherit;white-space:normal;overflow-wrap:anywhere
+  }
+  body .audit-data-table tbody th::before,
+  body .audit-data-table tbody td::before{content:none!important}
+  body .audit-methods th:last-child,body .audit-methods td:last-child{
+    min-width:220px!important;text-align:left
+  }
+}
