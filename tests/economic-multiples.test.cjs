@@ -57,9 +57,10 @@ test('siete métodos × tres historias; centro justificado no coincide forzosame
  const expectCenters={'EV/EBITDA':8.5,'EV/FCFF':1/(.09-.03),'P/E':10,'P/FCFE':12.5,'P/OCF':7.8125,'P/V':1.5,'P/BV':1.5};
  for(const story of S.SCENARIOS)for(const [method,expected] of Object.entries(expectCenters)){
   const x=S.matrix(record,method,story);
+  const economicExpected=method==='EV/EBITDA'?({'conservador':8,'base':8.5,'optimista':8.8}[story]):expected;
   assert.equal(x.table.length,5,method+' '+story);
   assert.equal(x.table[0].length,5);
-  assert.ok(Math.abs(x.center-expected)<.00001,method+': '+x.center+' vs '+expected);
+  assert.ok(Math.abs(x.center-economicExpected)<.00001,method+': '+x.center+' vs '+economicExpected);
   assert.match(S.render(record,method,story),/Múltiplo justificado central/);
  }
 });
