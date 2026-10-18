@@ -15,6 +15,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="market_data.js"></script>
 <script src="jmr_engine.js"></script>
+<script src="jmr-weight-selector.js?v=20261018"></script>
 <script src="gh_oauth.js"></script>
 <script src="valuation-board.js"></script>
 <script src="jmr-report-sheets.js?v=20261016"></script>
@@ -614,6 +615,13 @@
   }
   .saved-item .si-name{font-weight:600; font-family:"IBM Plex Mono", monospace;}
   .saved-item .si-meta{color:var(--ink-faint); font-size:11.5px;}
+  .weight-selector{margin:18px 0;padding:18px;border:1px solid var(--border);border-radius:12px;background:var(--surface);}
+  .weight-selector h3{margin:0 0 6px;font-family:"Fraunces",Georgia,serif;font-size:19px;}
+  .weight-selector .weight-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px;margin:14px 0;}
+  .weight-selector .weight-item{padding:10px;border:1px solid var(--border-soft);border-radius:8px;}
+  .weight-selector .weight-item small{display:block;color:var(--ink-faint);line-height:1.4;margin-top:4px;}
+  .weight-selector .weight-item input[type=number]{width:70px;margin-left:8px;}
+  .weight-selector .weight-item.is-disabled{opacity:.55;}
   .saved-item .si-actions{display:flex; gap:6px; flex-wrap:wrap;}
   .gh-btn.danger{border-color:var(--negative); color:var(--negative);}
   .gh-btn.danger:hover{background:var(--negative-soft);}
@@ -784,6 +792,8 @@
         <p class="meta" id="presentNote" style="font-size:12px;color:var(--ink-faint);margin:8px 0 0;"></p>
       </details>
     </div>
+
+    <section id="weightSelector" class="weight-selector" hidden aria-label="Explorar ponderaciones por empresa"></section>
 
     <div id="growthSection" hidden>
       <p class="section-title">Coherencia del crecimiento · criterio Damodaran (escenario Base)</p>
@@ -3121,6 +3131,51 @@
     document.getElementById('presentNote').textContent = note.join(' · ') + '.';
   }
 
+  function renderWeightSelector(rec){
+    var host=document.getElementById('weightSelector');
+    host.replaceChildren();
+    if(typeof JmrWeightSelector === 'undefined' || !rec.seleccionMultiples || !rec.descuentoMultiples){host.hidden=true;return;}
+    host.hidden=false;
+    var heading=document.createElement('h3');heading.textContent='Explorar ponderaciones por empresa';host.appendChild(heading);
+    var intro=document.createElement('p');intro.className='meta';
+    intro.textContent='Selecciona múltiplos elegibles y ajusta su peso relativo. El motor conserva la proporción DCF del modelo y reparte el resto entre los métodos elegidos. Los resultados son una simulación; no alteran la valoración guardada.';
+    host.appendChild(intro);
+    var grid=document.createElement('div');grid.className='weight-grid';host.appendChild(grid);
+    var rows=[];
+    JmrWeightSelector.candidates(rec).forEach(function(method){
+      var item=document.createElement('div');item.className='weight-item'+(method.eligible?'':' is-disabled');
+      var label=document.createElement('label');
+      var check=document.createElement('input');check.type='checkbox';check.disabled=!method.eligible;check.checked=method.eligible&&method.suggested>0;
+      label.appendChild(check);label.appendChild(document.createTextNode(' '+method.name));
+      var weight=document.createElement('input');weight.type='number';weight.min='0';weight.max='100';weight.step='1';weight.value=String(Math.round(method.suggested*100));
+      weight.setAttribute('aria-label','Peso relativo '+method.name);weight.disabled=!method.eligible||!check.checked;
+      label.appendChild(weight);label.appendChild(document.createTextNode(' % relativo'));
+      item.appendChild(label);
+      var reason=document.createElement('small');reason.textContent=method.eligible?(method.reason||'Elegible; revisar comparables y ancla.'):'N/D o no elegible: '+(method.reason||'falta un denominador válido.');item.appendChild(reason);
+      grid.appendChild(item);rows.push({name:method.name,method:method,check:check,weight:weight});
+    });
+    var reset=document.createElement('button');reset.type='button';reset.className='gh-btn';reset.textContent='Restablecer propuesta del motor';host.appendChild(reset);
+    var status=document.createElement('p');status.className='meta';host.appendChild(status);
+    var scroll=document.createElement('div');scroll.className='methods-scroll';host.appendChild(scroll);
+    var table=document.createElement('table');table.className='methods';scroll.appendChild(table);
+    var thead=document.createElement('thead');thead.innerHTML='<tr><th>Escenario</th><th>Múltiplos FY+3</th><th>DCF + múltiplos FY+3</th><th>Múltiplos VP3 hoy</th><th>DCF + múltiplos hoy</th></tr>';table.appendChild(thead);
+    var body=document.createElement('tbody');table.appendChild(body);
+    function update(){
+      var choices={};rows.forEach(function(row){choices[row.name]=row.check.checked?Math.max(0,Number(row.weight.value)||0):0;row.weight.disabled=!row.check.checked;});
+      var result=JmrWeightSelector.calculate(rec,choices);
+      status.textContent=result.status+' · Peso DCF '+fmtPct(result.weights.dcf)+' · '+result.selected.map(function(name){return name+' '+fmtPct(result.weights[name]);}).join(' · ');
+      body.replaceChildren();
+      [['conservador','Conservador'],['base','Base'],['optimista','Optimista']].forEach(function(pair){
+        var v=result.scenarios[pair[0]],tr=document.createElement('tr');
+        [pair[1],v.multiplesFY3,v.combinadoFY3,v.multiplesVP3,v.combinadoHoy].forEach(function(value,i){var cell=document.createElement('td');cell.textContent=i?value==null?'N/D':fmtMoney(value):value;tr.appendChild(cell);});
+        body.appendChild(tr);
+      });
+    }
+    rows.forEach(function(row){row.check.addEventListener('change',function(){if(row.check.checked&&!(Number(row.weight.value)>0))row.weight.value='10';update();});row.weight.addEventListener('input',update);});
+    reset.addEventListener('click',function(){rows.forEach(function(row){row.check.checked=row.method.eligible&&row.method.suggested>0;row.weight.value=String(Math.round(row.method.suggested*100));});update();});
+    update();
+  }
+
   function displaySavedRecord(rec){
     jmrAjustarMercado(rec);
     JMR_CUR = jmrEsCOP(rec) ? 'COP' : 'USD';
@@ -3178,6 +3233,7 @@
     totRow.innerHTML = '<td>Ponderado FY+3 (secundario; incluye dividendos)</td><td>100%</td><td class="total-cons">'+fmtMoney(op.conservador)+'</td><td class="total-base">'+fmtMoney(op.base)+'</td><td class="total-opt">'+fmtMoney(op.optimista)+'</td>';
     tbody.appendChild(totRow);
     renderPresentValue(rec.descuentoMultiples, rec.valorPresentePonderado, rec.metodos, rec.objetivoPonderado);
+    renderWeightSelector(rec);
     var cagr = rec.cagr || {};
     document.getElementById('cagrC').textContent = fmtPct(cagr.conservador);
     document.getElementById('cagrB').textContent = fmtPct(cagr.base);
