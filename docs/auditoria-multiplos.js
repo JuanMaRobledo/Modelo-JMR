@@ -125,13 +125,18 @@ function matrixRows(rec,name,scenario){
  return {heading,header:cells(base+2).slice(0,6),body:Array.from({length:5},(_,i)=>cells(base+3+i).slice(0,6)),validation:cells(base+8).filter(Boolean)};
 }
 function showMatrix(){
- if(!state.record)return;
- const m=$("matrixMethod").value,sc=$("matrixScenario").value;
- const dat=matrixRows(state.record,m,sc),el=$("matrix");
- if(!dat){el.innerHTML='<p class="muted">Matriz no disponible en el registro publicado. Revisar la hoja vinculada.</p>';return}
- el.innerHTML='<h4>'+escapeHTML(dat.heading)+'</h4><div class="table-wrap"><table class="sensitivity"><thead><tr>'+dat.header.map(x=>'<th>'+escapeHTML(x)+'</th>').join("")+'</tr></thead><tbody>'+
- dat.body.map((row,i)=>'<tr>'+row.map((x,j)=>'<td class="'+(i===2&&j===3?"center-cell":"")+'">'+escapeHTML(x||"N/D")+'</td>').join("")+'</tr>').join("")+
- '</tbody></table></div><p class="small muted">Conciliación del centro VP3: '+escapeHTML(dat.validation.join(" · "))+' · ejes: múltiplo × fundamental ±20%. Disrupción se presenta fuera de estas matrices.</p>';
+  if(!state.record)return;
+  const method=$("matrixMethod").value,scenario=$("matrixScenario").value;
+  const data=matrixRows(state.record,method,scenario),box=$("matrix");
+  if(!data){box.innerHTML='<p class="muted">Matriz no disponible en el registro publicado. Revisar hoja fuente.</p>';return}
+  const axis=typeof JmrMultiplesAxes!=="undefined"?JmrMultiplesAxes.labels(state.record,method,scenario):null;
+  if(!axis){box.innerHTML='<p class="muted">N/D — falta múltiplo o fundamental FY+3 verificable para '+escapeHTML(method)+'. No se publican fracciones como si fueran múltiplos reales. Consulta la hoja original.</p>';return}
+  const body=data.body.map((row,i)=>[axis.rows[i],...row.slice(1)]);
+  box.innerHTML='<h4>'+escapeHTML(data.heading)+'</h4><p class="small muted">'+escapeHTML(axis.caption)+'</p>'+
+    '<div class="table-wrap"><table class="sensitivity"><thead><tr>'+axis.header.map(x=>'<th>'+escapeHTML(x)+'</th>').join("")+'</tr></thead><tbody>'+
+    body.map((row,i)=>'<tr>'+row.map((v,j)=>'<td class="'+(i===2&&j===3?"center-cell":"")+'">'+escapeHTML(v||"N/D")+'</td>').join("")+'</tr>').join("")+
+    '</tbody></table></div><p class="small muted">Conciliación VP3: '+escapeHTML(data.validation.join(" · "))+
+    '. Los ejes expresan cantidades económicas reales; las celdas conservan los valores presentes publicados. Disrupción queda separada.</p>';
 }
 function reviewPanel(ticker){
  const rev=state.reviews[ticker]||{estado:"pendiente",nota:""};
