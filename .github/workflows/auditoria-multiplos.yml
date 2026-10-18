@@ -6,6 +6,9 @@ on:
       - 'docs/visor.html'
       - 'docs/research.html'
       - 'tests/auditoria-multiplos.test.cjs'
+      - 'tests/economic-multiples.test.cjs'
+      - 'docs/jmr-economic-multiples.js'
+      - 'docs/jmr-report-sheets.js'
       - '.github/workflows/auditoria-multiplos.yml'
   push:
     branches: [main]
@@ -26,4 +29,6 @@ jobs:
         with:
           node-version: '22'
       - run: node --check docs/auditoria-multiplos.js
+      - run: node --check docs/jmr-economic-multiples.js
+      - run: node --test tests/economic-multiples.test.cjs
       - run: node --test tests/auditoria-multiplos.test.cjs
