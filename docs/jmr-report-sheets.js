@@ -145,7 +145,7 @@
     var scenarios=['Conservador','Base','Optimista'];
     var selectionRows=Array.from({length:7},function(_,i){return lookup[223+i];}).filter(Boolean);
     var selection=selectionRows.length===7?'<details class="jmr-sheet-panel" open><summary>Múltiplos · ponderaciones vigentes y selección preliminar</summary>'+
-      '<div class="jmr-sheet-scroll"><table class="jmr-table"><thead><tr><th>Método</th><th>Rol sugerido</th><th>Peso vigente (total)</th><th>Peso propuesto (sin aplicar)</th><th>Estado de auditoría</th><th>Razón económica</tr></thead><tbody>'+
+      '<div class="jmr-sheet-scroll"><table class="jmr-table"><thead><tr><th>Método</th><th>Rol sugerido</th><th>Peso vigente (total)</th><th>Peso propuesto (sin aplicar)</th><th>Estado de auditoría</th><th>Razón económica</th></tr></thead><tbody>'+
       selectionRows.map(function(r){
         var c=r.cells,percent=function(x){var n=num(x);return n===null?'N/D':(n*100).toFixed(1)+'%';};
         return '<tr><th scope="row">'+esc(c[0])+'</th><td>'+esc(c[1])+'</td>'+
