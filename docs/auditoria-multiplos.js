@@ -7,7 +7,7 @@ const REPO="JuanMaRobledo/Modelo-JMR-datos";
 const RAW="https://raw.githubusercontent.com/"+REPO+"/main/";
 const API="https://api.github.com/repos/"+REPO+"/contents/";
 const STORAGE="jmr-revision-multiplos-local-v1";
-const state={audit:null,paths:{},record:null,ticker:"",filter:"todas",reviews:{}};
+const state={audit:null,paths:{},coverage:null,record:null,ticker:"",filter:"todas",reviews:{}};
 const $=id=>document.getElementById(id);
 function finite(x){return typeof x==="number"&&Number.isFinite(x);}
 function fmt(x,currency){return finite(x)?(currency==="COP"?"COP ":currency==="EUR"?"€":"US$")+x.toLocaleString("es-CO",{maximumFractionDigits:currency==="COP"?0:2,minimumFractionDigits:currency==="COP"?0:2}):"N/D";}
@@ -64,16 +64,47 @@ async function githubJSON(path){
  if(file.content){const txt=atob(file.content.replace(/\s/g,""));return JSON.parse(new TextDecoder().decode(Uint8Array.from(txt,c=>c.charCodeAt(0))));}
  return file;
 }
-async function listing(){
- const r=await fetch(API+"valoraciones?ref=main",{headers:apiHeaders(),cache:"no-store"});
- if(!r.ok)throw new Error("No se pudo listar valoraciones ("+r.status+")");
- const list=await r.json();if(!Array.isArray(list))throw new Error("Listado inesperado de valoraciones");
- const paths={};for(const f of list){const m=f.name.match(/^(.+)-\d{10,}\.json$/);if(m)paths[m[1]]=f.path;}
+async function listing(folder,pattern){
+ const r=await fetch(API+folder+"?ref=main",{headers:apiHeaders(),cache:"no-store"});
+ if(!r.ok)throw new Error("No se pudo listar "+folder+" ("+r.status+")");
+ const list=await r.json();if(!Array.isArray(list))throw new Error("Listado inesperado de "+folder);
+ const paths={};
+ for(const f of list){const m=String(f.name||"").match(pattern);if(m)paths[m[1].toUpperCase()]=f.path;}
  return paths;
+}
+function inventory(audit,valuationPaths,analysisPaths){
+ const valuation=Object.keys(valuationPaths).sort();
+ const auditList=Array.isArray(audit.entradas)?audit.entradas:[];
+ const audited=new Set(auditList.map(x=>x.ticker));
+ const analysis=analysisPaths?Object.keys(analysisPaths).sort():null;
+ const reportOnly=analysis?analysis.filter(x=>!valuationPaths[x]):null;
+ const valuationOnly=analysis?valuation.filter(x=>!analysisPaths[x]):null;
+ const unaudited=valuation.filter(x=>!audited.has(x));
+ const vanished=auditList.map(x=>x.ticker).filter(x=>!valuationPaths[x]);
+ return {valuation,analysis,reportOnly,valuationOnly,unaudited,vanished,
+  entries:[...auditList.filter(x=>valuationPaths[x]),...unaudited.map(ticker=>({
+   ticker,clasificacion:"SIN_AUDITORIA",observacion:"Valoración publicada después del corte de auditoría; requiere revisar sus múltiplos."
+  }))]};
+}
+function paintCoverage(c){
+ const node=$("coverage");if(!node)return;
+ const line=(label,tickers,linkPage)=>{
+  if(tickers===null)return "<p><strong>"+escapeHTML(label)+":</strong> inventario de informes temporalmente no accesible.</p>";
+  if(!tickers.length)return "<p><strong>"+escapeHTML(label)+":</strong> ninguna.</p>";
+  return "<p><strong>"+escapeHTML(label)+" ("+tickers.length+"):</strong> "+
+    tickers.map(t=>'<a href="'+linkPage+'?ticker='+encodeURIComponent(t)+'">'+escapeHTML(t)+'</a>').join(", ")+".</p>";
+ };
+ node.innerHTML="<strong>Control de cobertura de acciones</strong><p>"+
+  c.valuation.length+" valoraciones publicadas · "+(c.analysis?c.analysis.length:"N/D")+" informes · "+c.unaudited.length+" valoraciones sin auditoría del último corte.</p>"+
+  line("Informe sin valoración",c.reportOnly,"research.html")+
+  line("Valoración sin informe",c.valuationOnly,"visor.html")+
+  line("Valoración aún sin dictamen de múltiplos",c.unaudited,"auditoria-multiplos.html")+
+  (c.vanished.length?"<p><strong>Advertencia:</strong> "+c.vanished.length+" tickers constan en la auditoría, pero no en el catálogo vigente: "+escapeHTML(c.vanished.join(", "))+".</p>":"");
 }
 function setStatus(s){$("status").textContent=s;}
 function badge(entry){
  if(!entry)return"Pendiente de evidencia";
+ if(entry.clasificacion==="SIN_AUDITORIA")return"Sin dictamen de múltiplos";
  if(entry.clasificacion==="BRECHA_MATERIAL")return"Brecha material · revisar";
  if(entry.clasificacion==="BLOQUEO_O_MIGRACION")return"Reconciliación especial";
  return"Revisión económica pendiente";
@@ -210,17 +241,24 @@ async function init(){
  });
  $("exportReviews").addEventListener("click",exportReviews);
  try{
-  const [audit,paths]=await Promise.all([githubJSON("auditorias/ponderaciones-38-2026-10-18.json"),listing()]);
-  if(!Array.isArray(audit.entradas)||audit.entradas.length!==38)throw new Error("Inventario de 38 empresas incompleto");
-  state.audit=audit;state.paths=paths;
+  const [audit,paths,reports]=await Promise.all([
+   githubJSON("auditorias/ponderaciones-38-2026-10-18.json"),
+   listing("valoraciones",/^(.+)-\\d{10,}\\.json$/),
+   listing("analisis",/^(.+)-research-.+\\.json$/).catch(()=>null)
+  ]);
+  if(!Array.isArray(audit.entradas))throw new Error("Formato de auditoría inesperado");
+  const coverage=inventory(audit,paths,reports);
+  state.audit={...audit,entradas:coverage.entries};state.paths=paths;state.coverage=coverage;
   const totals=audit.resumen||{};
-  $("summary").textContent=audit.entradas.length+' valoraciones · '+(totals.brechaMaterial??'N/D')+' brechas materiales · '+(totals.especiales??'N/D')+' expedientes especiales · '+(totals.matricesDisponibles??'N/D')+'/'+(totals.matricesEsperadas??'N/D')+' centros conciliados. Revisión por empresa con salvedades.';
+  const auditedCount=coverage.entries.length-coverage.unaudited.length;
+  $("summary").textContent=coverage.valuation.length+' valoraciones publicadas · '+auditedCount+' incluidas en el dictamen · '+(totals.brechaMaterial??'N/D')+' brechas materiales en ese corte · '+(totals.especiales??'N/D')+' expedientes especiales. Los centros y sus cifras corresponden al corte del dictamen, no a nuevas valoraciones.';
+  paintCoverage(coverage);
   paintList();
   const wanted=new URLSearchParams(location.search).get("ticker")?.toUpperCase();
   const first=wanted&&paths[wanted]?wanted:audit.entradas.find(x=>paths[x.ticker])?.ticker;
   if(first)await selectCompany(first);else setStatus("No hay empresas publicadas en la carpeta de valoraciones");
  }catch(e){setStatus("No se pudo abrir el inventario: "+e.message+". Comprueba conexión y acceso GitHub.");}
 }
-root.JmrMultiplesAudit={METHODS,SCENARIOS,methodView,compare,reviewList,methodsTable,historyTable,summaryCards};
+root.JmrMultiplesAudit={METHODS,SCENARIOS,methodView,compare,reviewList,methodsTable,historyTable,summaryCards,inventory};
 if(typeof document!=="undefined")document.addEventListener("DOMContentLoaded",init);
 })(typeof window!=="undefined"?window:globalThis);
