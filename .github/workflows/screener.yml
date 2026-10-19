@@ -86,6 +86,26 @@ jobs:
             --max-cache-age-days 3 \
             --json-out docs/screener/resultados.json
 
+
+      # Auditoría sobre la corrida real. No equivale a certificación económica.
+      - name: Auditar JSON y cobertura antes de publicar
+        run: |
+          python -m unittest discover -s tests -p 'test_screener_audit.py'
+          python scripts/auditar_screener.py \
+            --json docs/screener/resultados.json \
+            --universe "${{ github.event.inputs.universe || 'sp1500' }}" \
+            --report "$RUNNER_TEMP/screener-audit.json"
+
+      - name: Guardar evidencia para revisión
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screener-audit-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/screener-audit.json
+            ${{ runner.temp }}/screener-audit.md
+          if-no-files-found: warn
+
       - name: Publicar resultados
         run: |
           git config user.name "github-actions[bot]"
