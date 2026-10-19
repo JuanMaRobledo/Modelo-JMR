@@ -79,3 +79,32 @@ test('tablas de cada empresa tienen rótulos móviles en cada columna de cada fi
   assert.equal((html.match(/<tr><th data-label="Método">/g)||[]).length,7,'siete múltiplos presentes');
  }
 });
+
+test('inventario vivo señala informes sin valoración, valoraciones sin informe y empresas sin dictamen',()=>{
+ const report=audit.inventory(
+  {entradas:[{ticker:'AAPL',clasificacion:'MANTENER_EN_REVISION'},{ticker:'YA_NO_EXISTE'}]},
+  {AAPL:'valoraciones/AAPL-1.json',EXTRA:'valoraciones/EXTRA-2.json'},
+  {EXTRA:'analisis/EXTRA-research-1.json','PFDAVIGRP.CL':'analisis/PFDAVIGRP.CL-research-1.json'}
+ );
+ assert.deepEqual(Array.from(report.reportOnly),['PFDAVIGRP.CL']);
+ assert.deepEqual(Array.from(report.valuationOnly),['AAPL']);
+ assert.deepEqual(Array.from(report.unaudited),['EXTRA']);
+ assert.deepEqual(Array.from(report.vanished),['YA_NO_EXISTE']);
+ assert.equal(report.entries.length,2);
+ assert.equal(report.entries.find(x=>x.ticker==='EXTRA').clasificacion,'SIN_AUDITORIA');
+});
+test('inventario no afirma que falten informes cuando falla su listado',()=>{
+ const report=audit.inventory({entradas:[{ticker:'AAPL'}]},{AAPL:'valoraciones/AAPL-1.json'},null);
+ assert.equal(report.reportOnly,null);
+ assert.equal(report.valuationOnly,null);
+ assert.equal(report.valuation.length,1);
+});
+test('aplicación expone la cobertura y no limita la lista a 38 valoraciones',()=>{
+ const js=fs.readFileSync(path.join(root,'docs/auditoria-multiplos.js'),'utf8');
+ const html=fs.readFileSync(path.join(root,'docs/auditoria-multiplos.html'),'utf8');
+ assert.match(html,/id="coverage"/);
+ assert.match(js,/listing\("analisis",/);
+ assert.match(js,/listing\("valoraciones",/);
+ assert.doesNotMatch(js,/audit\.entradas\.length!==38/);
+ assert.match(html,/Inventario actualizado autom/);
+});
