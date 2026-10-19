@@ -173,7 +173,7 @@ function paintCompany(rec){
  $("companyLinks").innerHTML=(sheet?'<a href="'+escapeHTML(sheet)+'" target="_blank" rel="noopener noreferrer">Hoja original ↗</a>':"")+
  '<a href="visor.html?'+(market?"mercado=colombia&":"")+'ticker='+encodeURIComponent(rec.ticker)+'">Visor JMR ↗</a>'+
  '<a href="research.html?ticker='+encodeURIComponent(rec.ticker)+market+'">Análisis fundamental ↗</a>';
- $("auditTechnical").textContent="Pesos publicados: DCF "+percent(c.pesoDcf)+", múltiplos "+percent(c.pesoMultiplos)+"; suma "+percent(c.weightSum)+". La aprobación personal no modifica las valoraciones ni se publica automáticamente.";
+ $("auditTechnical").textContent=rec.valoracionHolding ? "SOTP Base es el valor principal y la referencia del MOS. El DCF tiene peso cero. La combinación de métodos de holding permanece pendiente y no sustituye al SOTP." : "Pesos publicados: DCF "+percent(c.pesoDcf)+", múltiplos "+percent(c.pesoMultiplos)+"; suma "+percent(c.weightSum)+". La aprobación personal no modifica las valoraciones ni se publica automáticamente.";
  const choices=METHODS.map(m=>'<option value="'+escapeHTML(m)+'">'+escapeHTML(m)+'</option>').join("");
  $("matrixMethod").innerHTML=choices;
  $("matrixMethod").value="EV/EBITDA";$("matrixScenario").value="base";showBothMatrices();
