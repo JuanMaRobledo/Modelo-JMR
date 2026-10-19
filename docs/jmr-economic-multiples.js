@@ -81,7 +81,14 @@ function inputs(record,scenario){
  const h=record?.hojas?.valoracion||{};
  const val=dcfSection(rows(h['Valuation output']),scenario);
  const fm=section(rows(h['Financials Multiples']),scenario);
- if(!val||!fm.length)return {error:'No están completas las historias correspondientes de Valuation output y Financials Multiples.'};
+ if(!val||!fm.length){
+  const native=rows(h['Sensibilidad económica múltiplos']).find(r=>r.label.toLowerCase()===scenario);
+  if(native){
+   const params={};['g','roic','wacc','ke','tax','ebitEbitda','roe','margin','conversion'].forEach((name,i)=>params[name]=native.value(i+1));
+   if(finite(params.g)&&finite(params.ke))return {params,source:'Supuestos nativos de Sensibilidad económica múltiplos, historia '+scenario+'; valores sin redondear del mismo modelo'};
+  }
+  return {error:'No están completas las historias correspondientes de Valuation output y Financials Multiples.'};
+ }
  const get=(s)=>findIn(fm,s)?.value(6);
  const rGrowth=findIn(val,'Revenue growth rate'),rCost=findIn(val,'Terminal cost of capital'),
        rRoic=findIn(val,'ROIC'),rTax=findIn(val,'Tax rate');

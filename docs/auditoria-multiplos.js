@@ -10,7 +10,7 @@ const STORAGE="jmr-revision-multiplos-local-v1";
 const state={audit:null,paths:{},record:null,ticker:"",filter:"todas",reviews:{}};
 const $=id=>document.getElementById(id);
 function finite(x){return typeof x==="number"&&Number.isFinite(x);}
-function fmt(x,currency){return finite(x)?(currency==="COP"?"COP ":"US$")+x.toLocaleString("es-CO",{maximumFractionDigits:currency==="COP"?0:2,minimumFractionDigits:currency==="COP"?0:2}):"N/D";}
+function fmt(x,currency){return finite(x)?(currency==="COP"?"COP ":currency==="EUR"?"€":"US$")+x.toLocaleString("es-CO",{maximumFractionDigits:currency==="COP"?0:2,minimumFractionDigits:currency==="COP"?0:2}):"N/D";}
 function percent(x){return finite(x)?(x*100).toFixed(1).replace(".",",")+" %":"N/D";}
 function escapeHTML(x){return String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function byName(v,n){return (v||[]).find(x=>x.nombre===n);}
@@ -89,7 +89,7 @@ function paintList(){
  if(!entries.length)$("companies").textContent="No hay empresas con este filtro.";
 }
 function summaryCards(rec,c,e){
- const curr=currIsCOP(rec)?"COP":"USD";
+ const curr=rec.currency||(currIsCOP(rec)?"COP":"USD");
  const holding=rec.valoracionHolding;
  if(holding){
   const base=holding.nav?.base,threshold=finite(base)&&finite(rec.mos)?base*(1-rec.mos):null;
@@ -105,7 +105,7 @@ function summaryCards(rec,c,e){
  '</div><p class="small muted">Objetivo FY+3 combinado: <strong>'+fmt(c.fy3,curr)+'</strong> · Umbral de compra MOS: <strong>'+mos+'</strong> · matrices: '+escapeHTML(rec.sensibilidadMultiples?.controlesOK??"N/D")+' conciliadas / '+escapeHTML(rec.sensibilidadMultiples?.noDisponibles??"N/D")+' N/D. '+escapeHTML(e?.observacion||"")+'</p>';
 }
 function methodsTable(rec,c){
- const curr=(rec.currency==="COP"||rec.market==="BVC"||/^(GRUPO|PF)/.test(rec.ticker))?"COP":"USD";
+ const curr=rec.currency||((rec.market==="BVC"||/^(GRUPO|PF)/.test(rec.ticker))?"COP":"USD");
  return '<div class="table-wrap"><table class="audit-data-table audit-methods"><thead><tr><th>Método</th><th>Peso vigente</th><th>VP3 conserv.</th><th>VP3 base</th><th>VP3 optim.</th><th>Control / fundamento</th></tr></thead><tbody>'+
  c.metodos.map(m=>'<tr><th data-label="Método">'+escapeHTML(m.nombre)+'</th><td data-label="Peso vigente">'+percent(m.peso)+'</td>'+
  m.vp3.map((v,i)=>'<td data-label="'+['VP3 conservador','VP3 base','VP3 optimista'][i]+'">'+fmt(v,curr)+'</td>').join('')+
