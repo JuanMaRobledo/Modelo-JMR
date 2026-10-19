@@ -6,7 +6,9 @@ La calculadora y el informe comparten `model-sync.js`. El panel **Datos de la ho
 
 El informe actualiza la tarjeta de valoración y los anexos al abrirse, al volver a la ventana y cada 30 segundos mientras esté visible. El texto histórico del artículo y los cálculos escritos no se reescriben automáticamente: se avisa que requieren revisión. No se reemplazan cifras de prosa por coincidencia de números. Los informes SOTP conservan su flujo propio.
 
-## Activación en el servidor
+## Lectura pública y activación de escritura en el servidor
+
+El servidor puede leer la exportación pública de la hoja sin credenciales de Google. Esto activa la búsqueda por ticker y el refresco de cifras en modo de solo lectura, sin depender del CORS de Google. La credencial siguiente habilita la escritura.
 
 1. Mantener `APP_PASSWORD`, ya usado por la sesión privada de la app. El endpoint comprueba la firma de la sesión directamente y rechaza escrituras de otro origen.
 2. Configurar `GOOGLE_SERVICE_ACCOUNT_JSON_CONTENT` como secreto del servidor, con el JSON completo de la cuenta de servicio usada para las hojas. Nunca debe tener prefijo público ni incluirse en git.

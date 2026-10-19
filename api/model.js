@@ -1,5 +1,5 @@
 import { validSession } from '../sso-session.js';
-import { tickerKey, resolveCompany, readSheet, validateChanges, sheetsRequest } from '../lib/model-sheet.js';
+import { tickerKey, resolveCompany, readSheet, validateChanges, sheetsRequest, readPublicWorkbook } from '../lib/model-sheet.js';
 
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'private, no-store');
@@ -16,6 +16,12 @@ export default async function handler(req, res) {
     const ticker = tickerKey(req.query.ticker);
     const company = await resolveCompany(ticker);
     if (!company.id) return res.status(409).json({error:'Esta valoración no tiene una hoja de Google vinculada.', record:company.record, path:company.path});
+    if(!process.env.GOOGLE_SERVICE_ACCOUNT_JSON_CONTENT){
+      if(req.method==='PATCH')return res.status(503).json({error:'La lectura está activa; falta configurar el acceso de escritura a Google Sheets.'});
+      const publicSheet=await readPublicWorkbook(company.id);
+      const record={...company.record,hojas:undefined};
+      return res.json({record,path:company.path,...publicSheet});
+    }
     const snapshot = await readSheet(company.id);
     if(req.method === 'PATCH') {
       const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
