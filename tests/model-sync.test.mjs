@@ -69,3 +69,18 @@ test('API resolves the correct company, writes RAW inputs, rejects a stale revis
     res=response();await handler({method:'PATCH',query:{ticker:'AAPL'},headers,body:{revision:version,changes:[{sheet:'Input sheet',cell:'B26',previous:.12,value:.99}]}},res);assert.equal(res.statusCode,409);assert.equal(writes,1);
   }finally{global.fetch=oldFetch;delete process.env.APP_PASSWORD;delete process.env.GOOGLE_SERVICE_ACCOUNT_JSON_CONTENT;}
 });
+
+test('signed app reads public XLSX without Google credentials; writes stay disabled',async()=>{
+  const oldFetch=global.fetch;process.env.APP_PASSWORD='test-public-read';delete process.env.GOOGLE_SERVICE_ACCOUNT_JSON_CONTENT;
+  global.fetch=async url=>{
+    if(url.includes('/contents/valoraciones'))return {ok:true,json:async()=>[{type:'file',name:'AAPL-1791720000000.json',path:'valoraciones/AAPL-1791720000000.json'}]};
+    if(url.includes('raw.githubusercontent'))return {ok:true,json:async()=>({ticker:'AAPL',hojaGoogle:'https://docs.google.com/spreadsheets/d/public-test/edit',hojas:{large:'old'}})};
+    assert.ok(url.startsWith('https://docs.google.com/spreadsheets/d/public-test/export?format=xlsx'));
+    const bytes=Buffer.alloc(128);bytes.write('PK');return {ok:true,headers:new Headers(),arrayBuffer:async()=>bytes};
+  };
+  try{
+    const headers={cookie:'jmr_sso_session='+createSession(),origin:'https://app.example',host:'app.example','content-type':'application/json'};
+    let res=response();await handler({method:'GET',query:{ticker:'AAPL'},headers},res);assert.equal(res.statusCode,200);assert.equal(res.body.writable,false);assert.ok(res.body.publicWorkbook.startsWith('UEs'));assert.equal(res.body.record.hojas,undefined);
+    res=response();await handler({method:'PATCH',query:{ticker:'AAPL'},headers,body:{}},res);assert.equal(res.statusCode,503);
+  }finally{global.fetch=oldFetch;delete process.env.APP_PASSWORD;}
+});
