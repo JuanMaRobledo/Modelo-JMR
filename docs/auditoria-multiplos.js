@@ -243,8 +243,8 @@ async function init(){
  try{
   const [audit,paths,reports]=await Promise.all([
    githubJSON("auditorias/ponderaciones-38-2026-10-18.json"),
-   listing("valoraciones",/^(.+)-\\d{10,}\\.json$/),
-   listing("analisis",/^(.+)-research-.+\\.json$/).catch(()=>null)
+   listing("valoraciones",/^(.+)-\d{10,}\.json$/),
+   listing("analisis",/^(.+)-research-.+\.json$/).catch(()=>null)
   ]);
   if(!Array.isArray(audit.entradas))throw new Error("Formato de auditoría inesperado");
   const coverage=inventory(audit,paths,reports);
