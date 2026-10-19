@@ -98,6 +98,20 @@
       });
       metodos.push(m);
     }
+    // P/V and P/BV have their own native schedules; keep all seven methods on refresh.
+    [['P/V','PV'],['P/BV','PBV']].forEach(function(pair){
+      var extra=wb.Sheets[pair[1]],weight=pair[0]==='P/V'?num(cellVal(s,'B55')):0;
+      weight=weight===null?0:weight;
+      var total=num(cellVal(s,'B39'));
+      var method={nombre:pair[0],peso:weight,pesoMultiplos:total>0?weight/total:0};
+      DM_SCEN.forEach(function(sc,index){
+        var r=12+index*11,discountRow=41+index;
+        method[sc[0]]={fy:['F','G','H'].map(function(c){return num(cellVal(extra,c+r));}),
+          vp:['B','C','D'].map(function(c){return num(cellVal(extra,c+discountRow));}),
+          consolidado:num(cellVal(extra,'E'+discountRow)),chequeo:extra?'Fuente nativa':'N/D'};
+      });
+      metodos.push(method);
+    });
     var consolidado = {};
     DM_SCEN.forEach(function(sc){
       var r = sc[1] + 5;
@@ -106,7 +120,7 @@
                              consolidado: num(cellVal(s,'J'+r)) };
     });
     return {
-      version: 2, horizontes: [1, 2, 3], horizonteAnios: 3,
+      version: 3, horizontes: [1, 2, 3], horizonteAnios: 3,
       costoPatrimonio: cellVal(s,'B5'), criterio: cellVal(s,'B6') || 'Promedio 1-3 años',
       formula: 'VP_n = Precio FY+n / (1 + Ke)^n + suma(Dividendo FY+t / (1 + Ke)^t), t = 1..n',
       dcfHoy: trio(s, 38), multiplesHoy: trio(s, 39), ponderadoHoy: trio(s, 40),
@@ -144,6 +158,10 @@
     });
     // Native discount table uses the same schema as the viewer.
     rec.descuentoMultiples=readDescuentoMultiples(wb,wb.Sheets[rv]);
+    rec.descuentoMultiples.metodos && rec.descuentoMultiples.metodos.filter(function(m){return m.nombre==='P/V'||m.nombre==='P/BV';}).forEach(function(m){
+      rec.metodos.push({nombre:m.nombre,peso:m.peso,conservador:m.conservador.fy[2],base:m.base.fy[2],optimista:m.optimista.fy[2]});
+    });
+    rec.valorPrincipal=base;
     rec.sourcePath=snapshot.path;rec.liveModel={revision:snapshot.revision||null,fetchedAt:snapshot.fetchedAt};
     return rec;
   }

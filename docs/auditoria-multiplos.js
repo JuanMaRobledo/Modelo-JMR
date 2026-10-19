@@ -90,6 +90,11 @@ function paintList(){
 }
 function summaryCards(rec,c,e){
  const curr=currIsCOP(rec)?"COP":"USD";
+ const holding=rec.valoracionHolding;
+ if(holding){
+  const base=holding.nav?.base,threshold=finite(base)&&finite(rec.mos)?base*(1-rec.mos):null;
+  return '<div class="metrics"><article><small>SOTP Base · principal</small><strong>'+fmt(base,curr)+'</strong><span>NAV referencial · '+escapeHTML(holding.estado||'PRELIMINAR')+'</span></article><article><small>Umbral MOS sobre SOTP Base</small><strong>'+fmt(threshold,curr)+'</strong><span>MOS '+percent(rec.mos)+'</span></article></div><p class="small muted">Cotizadas a mercado y no cotizadas a libro. DCF opcional sin peso; no condiciona el SOTP. '+escapeHTML(holding.nota||'')+'</p>';
+ }
  const gap=finite(c.gap)?(c.gap>=0?"+":"")+(c.gap*100).toFixed(1).replace(".",",")+" %":"N/D";
  const mos=rec.baseMOS==="dcfBase"&&finite(c.dcf)&&finite(rec.mos)?fmt(c.dcf*(1-rec.mos),curr):"Pendiente de validar";
  return '<div class="metrics">'+
@@ -208,13 +213,14 @@ async function init(){
   const [audit,paths]=await Promise.all([githubJSON("auditorias/ponderaciones-38-2026-10-18.json"),listing()]);
   if(!Array.isArray(audit.entradas)||audit.entradas.length!==38)throw new Error("Inventario de 38 empresas incompleto");
   state.audit=audit;state.paths=paths;
-  $("summary").textContent="38 valoraciones · 11 brechas materiales · 7 expedientes especiales · 723/798 centros conciliados. Auditoría económica aún en curso.";
+  const totals=audit.resumen||{};
+  $("summary").textContent=audit.entradas.length+' valoraciones · '+(totals.brechaMaterial??'N/D')+' brechas materiales · '+(totals.especiales??'N/D')+' expedientes especiales · '+(totals.matricesDisponibles??'N/D')+'/'+(totals.matricesEsperadas??'N/D')+' centros conciliados. Revisión por empresa con salvedades.';
   paintList();
   const wanted=new URLSearchParams(location.search).get("ticker")?.toUpperCase();
   const first=wanted&&paths[wanted]?wanted:audit.entradas.find(x=>paths[x.ticker])?.ticker;
   if(first)await selectCompany(first);else setStatus("No hay empresas publicadas en la carpeta de valoraciones");
  }catch(e){setStatus("No se pudo abrir el inventario: "+e.message+". Comprueba conexión y acceso GitHub.");}
 }
-root.JmrMultiplesAudit={METHODS,SCENARIOS,methodView,compare,reviewList,methodsTable,historyTable};
+root.JmrMultiplesAudit={METHODS,SCENARIOS,methodView,compare,reviewList,methodsTable,historyTable,summaryCards};
 if(typeof document!=="undefined")document.addEventListener("DOMContentLoaded",init);
 })(typeof window!=="undefined"?window:globalThis);
