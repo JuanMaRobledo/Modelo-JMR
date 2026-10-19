@@ -1,4 +1,4 @@
-const CACHE = "modelo-jmr-v157-cartera-38";
+const CACHE = "modelo-jmr-v158-model-sync";
 const APP_SHELL = [
   "index.html",
   "colombia.html",
@@ -18,6 +18,7 @@ const APP_SHELL = [
   "calculadora.html",
   "research.html",
   "research.js",
+  "model-sync.js",
   "report-anchors.js",
   "method-details.js",
   "portafolio.html",
