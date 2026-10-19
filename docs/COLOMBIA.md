@@ -13,8 +13,8 @@ autorización explícita, en `Modelo-JMR-datos/colombia/expedientes/`.
   `Modelo-JMR-datos/valoraciones/` y `analisis/` (campo `currency: "COP"`), no en `colombia/expedientes`.
 - La pestaña «Colombia» es el visor y la biblioteca internacionales filtrados por mercado (`visor.html?mercado=colombia`,
   `fundamental.html?mercado=colombia`; filtro en `mercado.js`). `visor-colombia.html` y `fundamental-colombia.html` solo redirigen.
-- Valor principal = DCF Base intrínseco (FCFE en bancos y holdings financieras; FCFF en industriales/holdings), esperado por probabilidades,
-  precio de compra con MOS 35% sobre el esperado y ponderado secundario 40% DCF + 60% múltiplos.
+- **Valor principal sectorial:** DCF FCFF Base en operativas, FCFE Base en bancos una vez conciliado su capital regulatorio y SOTP Base en holdings. En Grupo Argos el SOTP es todavía **referencial** (no cotizadas a libro); en Grupo SURA y PFGRUPSURA el SOTP ya está calculado en la hoja, pero el catálogo aún conserva un modelo financiero **provisional**. Para PFDAVVNDA existe FCFE en la hoja, pendiente de validación prudencial. No convertir un modelo provisional en valor certificado por la sola presencia de fórmulas.
+- **MOS:** aplicar 35% al **valor intrínseco principal del escenario Base** (DCF Base/FCFE Base/SOTP Base según emisor), nunca al promedio ni al valor esperado. El promedio de conservador, base y optimista es informativo; la disrupción se reporta aparte. Los múltiplos son secundarios y solo reciben peso cuando el método sea económicamente interpretable y tenga dato válido.
 - Corte común: cierres BVC del 30-sep-2026, ERP implícita oct-2026 3,70% + prima país por ingresos, Rf COP = TES − spread soberano 1,75%,
   retorno terminal = costo de capital. Flujo y scripts: habilidad `valoracion-colombia` (JMR-valuation).
 - `colombia/expedientes` conserva solo el expediente de Davivienda Group (no rehecho en esta revisión); `colombia.html` sigue sirviéndolo.
