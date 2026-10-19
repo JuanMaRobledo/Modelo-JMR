@@ -196,12 +196,14 @@
 
 <div class="wrap">
   <h1>Calculadora Modelo JMR</h1>
-  <p class="subtitle">Reimplementación web del motor de tu Excel (DCF estilo Damodaran + 5 múltiplos relativos, ponderados por tipo de empresa). Los valores de ejemplo son los de ADBE.</p>
+  <p class="subtitle">Reimplementación web del motor de tu Excel (DCF estilo Damodaran + 5 múltiplos relativos, ponderados por tipo de empresa). Busca un ticker para cargar su hoja vigente. Los cambios de supuestos se comparten con el informe.</p>
   <div class="disclaimer">
-    <b>Dos simplificaciones deliberadas frente al Excel original:</b> (1) usa un único ingreso/EBIT/acciones base para el DCF y para los múltiplos (tu Excel a veces trae dos cifras ligeramente distintas si actualizaste hojas en momentos distintos); (2) las razones D&amp;A, CapEx, ΔNWC, etc. se piden como un solo porcentaje fijo en vez del promedio móvil de 3 años que usa el Excel. El motor del DCF en sí está validado celda por celda contra la plantilla real.<br><br>
-    <b>Autocompletado desde datos públicos:</b> al buscar un ticker, el navegador consulta directamente la API de <b>Financial Modeling Prep</b> (financialmodelingprep.com) — necesitas tu propia <b>API key gratuita</b> (se guarda solo en este navegador, en localStorage; nunca se envía a ningún servidor propio). El plan gratuito cubre miles de empresas listadas en EE.&nbsp;UU. y varios otros mercados, aunque limita cuántos años de historia se pueden pedir de una vez (por eso la referencia histórica llega hasta 5 años, no 10). El precio actual viene directo de la API, así que los 5 múltiplos base también se calculan automáticamente cuando hay suficientes datos, y bajo la tabla de escenarios y bajo los múltiplos base aparecen tablas de referencia (no entran al cálculo) con el promedio, mediana, mínimo y máximo históricos a 3 y 5 años de crecimiento de ingresos, margen EBIT y los 5 múltiplos — estos últimos calculados por cuenta propia combinando los estados financieros con precios de cierre históricos (también de FMP, endpoint "historical-price-eod"), ya que el endpoint que los trae ya calculados ("key-metrics") es de pago. No incluye promedio de industria: no encontré una fuente gratuita para eso. Todo campo llenado queda marcado en verde (dato reportado) o dorado (calculado a partir de esos datos) y se puede editar libremente — al escribir en un campo, la marca desaparece. El tipo de empresa, WACC, tasas de descuento, sales-to-capital y los escenarios Conservador/Optimista siguen siendo siempre tu criterio: no existen como "dato" en ningún reporte. Es un servicio de terceros fuera de nuestro control — puede fallar, cambiar sus términos o su cobertura. Contenido educativo — no es asesoría financiera.
+    <b>Simulación manual para empresas sin modelo guardado:</b> (1) usa un único ingreso/EBIT/acciones base para el DCF y para los múltiplos (el Excel puede contener bases distintas para DCF y múltiplos); (2) las razones D&amp;A, CapEx, ΔNWC, etc. se piden como un solo porcentaje fijo en vez del promedio móvil de 3 años que usa el Excel. El motor del DCF en sí está validado celda por celda contra la plantilla real.<br><br>
+    <b>Empresas con valoración guardada:</b> se recuperan de su hoja vigente, con las trayectorias y supuestos completos del modelo. El panel “Datos de la hoja” permite modificar las entradas numéricas; las fórmulas se conservan. La sincronización de escritura requiere la app con servidor y acceso a Google Sheets.<br><br>
+    <b>Autocompletado para empresas sin modelo guardado:</b> al buscar un ticker, el navegador consulta directamente la API de <b>Financial Modeling Prep</b> (financialmodelingprep.com) — necesitas tu propia <b>API key gratuita</b> (se guarda solo en este navegador, en localStorage; nunca se envía a ningún servidor propio). El plan gratuito cubre miles de empresas listadas en EE.&nbsp;UU. y varios otros mercados, aunque limita cuántos años de historia se pueden pedir de una vez (por eso la referencia histórica llega hasta 5 años, no 10). El precio actual viene directo de la API, así que los 5 múltiplos base también se calculan automáticamente cuando hay suficientes datos, y bajo la tabla de escenarios y bajo los múltiplos base aparecen tablas de referencia (no entran al cálculo) con el promedio, mediana, mínimo y máximo históricos a 3 y 5 años de crecimiento de ingresos, margen EBIT y los 5 múltiplos — estos últimos calculados por cuenta propia combinando los estados financieros con precios de cierre históricos (también de FMP, endpoint "historical-price-eod"), ya que el endpoint que los trae ya calculados ("key-metrics") es de pago. No incluye promedio de industria: no encontré una fuente gratuita para eso. Todo campo llenado queda marcado en verde (dato reportado) o dorado (calculado a partir de esos datos) y se puede editar libremente — al escribir en un campo, la marca desaparece. El tipo de empresa, WACC, tasas de descuento, sales-to-capital y los escenarios Conservador/Optimista siguen siendo siempre tu criterio: no existen como "dato" en ningún reporte. Es un servicio de terceros fuera de nuestro control — puede fallar, cambiar sus términos o su cobertura. Contenido educativo — no es asesoría financiera.
   </div>
 
+  <section id="companySync" style="margin-bottom:20px"></section>
   <form id="calcForm">
     <fieldset>
       <legend>Identificación</legend>
@@ -379,7 +381,9 @@
   </footer>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="jmr_engine.js"></script>
+<script src="model-sync.js?v=20261019"></script>
 <script src="market_data.js"></script>
 <script>
 (function(){
@@ -451,7 +455,8 @@
     }
   }
 
-  function runLookup(){
+  function runFmpLookup(){
+    var fmpSequence=lookupSequence;
     var ticker = document.getElementById('ticker').value.trim();
     if(!ticker){ setStatus('Escribe un ticker primero (ej. ADBE, AAPL, MSFT).', 'warn'); return; }
     MarketData.setApiKey(fmpKeyInput.value);
@@ -465,6 +470,7 @@
     clearSourceMarks();
 
     MarketData.buscar(ticker).then(function(r){
+      if(fmpSequence!==lookupSequence)return;
       if(!r.ok && r.notFound){
         setStatus('No se encontró "' + ticker + '" en Financial Modeling Prep. Revisa el ticker o completa los campos manualmente.', 'warn');
         renderHistorical(null);
@@ -488,6 +494,7 @@
       parts.push('Revisa todo antes de calcular: puedes editar cualquier campo.');
       setStatus(parts.join(' '), (r.partial || r.noStatements || (r.missing && r.missing.length > 5)) ? 'warn' : 'ok');
     }).catch(function(err){
+      if(fmpSequence!==lookupSequence)return;
       if(err && err.noApiKey){
         setStatus('Pega tu API key gratuita de Financial Modeling Prep arriba antes de buscar.', 'warn');
         return;
@@ -496,10 +503,49 @@
       setStatus('No se pudo consultar Financial Modeling Prep' + etapa + ' (' + (err && err.message ? err.message : 'error de red') + '). Revisa que la API key sea correcta y la pestaña Red/Network (F12) si se repite. Completa los campos manualmente mientras tanto.', 'err');
       renderHistorical(null);
     }).finally(function(){
+      if(fmpSequence!==lookupSequence)return;
       btn.disabled = false; btn.textContent = 'Buscar datos';
     });
   }
 
+  var linkedInputs=null, companySession=null, lookupSequence=0;
+  var originalReadInputs=readInputs;
+  var localIds=Array.from(document.querySelectorAll('#calcForm input[type="number"],#tipoEmpresa,#criterioConsolidacion')).map(function(el){return el.id;});
+  var pctIds=['mos','taxEffective','taxMarginal','probFailure','recoveryPct','wacc','costoPatrimonio','riskFreeRate','matureMarketERP','growthCons','marginCons','growthBase','marginBase','growthOpt','marginOpt','daPctRevenue','capexPctRevenue','nwcPctDeltaRevenue','interestOtherPctEBIT','netBorrowingPctRevenue','buybackRate'];
+  function applyCompany(snapshot){
+    var wb=JmrModelSync.workbook(snapshot);
+    linkedInputs=insumosDesdeHoja(function(h,a){return wb.Sheets[h]&&wb.Sheets[h][a]?wb.Sheets[h][a].v:null;});
+    localIds.forEach(function(id){var el=document.getElementById(id),v=linkedInputs[id];
+      // The native workbook retains the complete scenario paths and historical ratios.
+      if(v==null){el.value='';el.disabled=true;return;}
+      el.disabled=false;if(typeof v==='number'){el.value=String(v*(pctIds.indexOf(id)>=0?100:1));el.step='any';}else el.value=v;
+    });
+    localIds.forEach(function(id){document.getElementById(id).disabled=true;});
+    renderHistorical(null);clearSourceMarks();
+    var inp=readInputs(),canonical=JmrModelSync.record(snapshot);render(inp,JmrModelSync.calculatorResult(canonical),true);
+    setStatus(snapshot.record.ticker+' · modelo de la hoja vigente. El panel “Datos de la hoja” guarda los cambios compartidos. Los campos inferiores muestran los insumos del modelo; edita las entradas en el panel de la hoja.', 'ok');
+    document.getElementById('rPrecioMOS').textContent=fmtMoney(canonical.precioMOS);
+    document.getElementById('zMOS').textContent=fmtMoney(canonical.precioMOS);
+  }
+  readInputs=function(){return linkedInputs ? JSON.parse(JSON.stringify(linkedInputs)) : originalReadInputs();};
+  function runLookup(){
+    var key;try{key=JmrModelSync.ticker(document.getElementById('ticker').value);}catch(e){setStatus(e.message,'err');return;}
+    var sequence=++lookupSequence;
+    if(companySession)companySession.dispose();companySession=null;
+    linkedInputs=null;
+    document.getElementById('result').classList.remove('show');
+    document.getElementById('companySync').innerHTML='';
+    localIds.forEach(function(id){var el=document.getElementById(id);el.value='';el.disabled=true;});
+    setStatus('Buscando el modelo vigente de '+key+'…','warn');
+    JmrModelSync.load(key).then(function(initial){
+      if(sequence!==lookupSequence)return;
+      companySession=JmrModelSync.mount(document.getElementById('companySync'),key,function(s){if(sequence===lookupSequence&&document.getElementById('ticker').value.trim().toUpperCase()===key)applyCompany(s);},initial);
+    }).catch(function(e){
+      if(sequence!==lookupSequence)return;
+      if(e.status===404){localIds.forEach(function(id){document.getElementById(id).disabled=false;});runFmpLookup();}
+      else setStatus('No se pudo recuperar '+key+': '+e.message,'err');
+    });
+  }
   document.getElementById('lookupBtn').addEventListener('click', runLookup);
   document.getElementById('ticker').addEventListener('keydown', function(e){
     if(e.key === 'Enter'){ e.preventDefault(); runLookup(); }
@@ -582,7 +628,7 @@
       fmtMoney(v.chequeo.base.multiplosVP3) + ' vs ' + fmtMoney(v.chequeo.base.multiplosFY3SinDescontar) + '): ' + (ok ? 'OK' : 'REVISAR') + '.';
   }
 
-  function render(inp, r){
+  function render(inp, r, quiet){
     document.getElementById('rTicker').textContent = document.getElementById('ticker').value || 'Modelo JMR';
     document.getElementById('rPrice').textContent = fmtMoney(inp.precioActual);
     document.getElementById('rTipo').textContent = inp.tipoEmpresa;
@@ -616,16 +662,23 @@
     document.getElementById('zMOS').textContent = fmtMoney(r.precioConMOS.valor);
 
     document.getElementById('result').classList.add('show');
-    document.getElementById('result').scrollIntoView({behavior:'smooth', block:'start'});
+    if(!quiet)document.getElementById('result').scrollIntoView({behavior:'smooth', block:'start'});
   }
 
   document.getElementById('calcForm').addEventListener('submit', function(e){
     e.preventDefault();
+    if(linkedInputs){setStatus('Edita los supuestos en el panel “Datos de la hoja”; Google Sheets recalcula y actualiza el resultado.','ok');return;}
+    if(!linkedInputs && document.getElementById('revenue0').disabled){setStatus('Busca y carga una empresa primero.','warn');return;}
     var inp = readInputs();
     var r = calcularModeloJMR(inp);
     render(inp, r);
   });
 
+  document.getElementById('ticker').addEventListener('input',function(){++lookupSequence;document.getElementById('lookupBtn').disabled=false;document.getElementById('lookupBtn').textContent='Buscar datos';if(companySession)companySession.dispose();companySession=null;linkedInputs=null;document.getElementById('result').classList.remove('show');document.getElementById('companySync').innerHTML='';localIds.forEach(function(id){var el=document.getElementById(id);el.value='';el.disabled=true;});});
+  ['revenue0','ebit0','shares0','wacc','riskFreeRate','salesToCapital','taxEffective','taxMarginal','growthCons','marginCons','growthBase','marginBase','growthOpt','marginOpt'].forEach(function(id){document.getElementById(id).required=true;});
+  var initialTicker=new URLSearchParams(location.search).get('ticker');
+  if(initialTicker)document.getElementById('ticker').value=initialTicker;
+  runLookup();
   var savedTheme = 'system';
   try { savedTheme = localStorage.getItem('bitacora-theme') || 'system'; } catch(e){}
   if(savedTheme !== 'system'){ document.documentElement.setAttribute('data-theme', savedTheme); }

@@ -306,6 +306,7 @@
   }
 
   function renderPreview() {
+    if(liveModelSession&&liveModelOwner!==state){liveModelSession.dispose();liveModelSession=null;liveModelOwner=null;var panel=el("liveModelPanel");if(panel)panel.remove();}
     el('previewCompany').textContent = state.company || state.title || 'Nuevo análisis';
     el('previewTicker').textContent = state.ticker || '—';
     el('previewPrice').textContent = state.price != null ? new Intl.NumberFormat('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2}).format(state.price) : '—';
@@ -615,7 +616,28 @@
   // reciente del Visor para el mismo ticker. No lo actualiza solo (podría
   // pisar algo a propósito) — solo avisa, con el mismo botón de siempre
   // para refrescarlo si el usuario quiere.
+  var liveModelSession=null, liveModelOwner=null;
+  function startLiveModel(){
+    if(typeof JmrModelSync==='undefined'||!state.ticker)return;
+    if(liveModelSession&&liveModelOwner===state)return;
+    if(liveModelSession)liveModelSession.dispose();
+    liveModelOwner=state;
+    var owner=state,host=el('liveModelPanel');
+    if(!host){host=document.createElement('section');host.id='liveModelPanel';el('previewBody').parentNode.insertBefore(host,el('previewBody'));}
+    host.innerHTML='';
+    liveModelSession=JmrModelSync.mount(host,state.ticker,function(snapshot,changed){
+      if(state!==owner)return;
+      var rec=JmrModelSync.record(snapshot);
+      state.linkedValuation=rec;
+      renderPreview();
+      var note=el('liveModelEditorialNote');
+      if(!note){note=document.createElement('p');note.id='liveModelEditorialNote';host.appendChild(note);}
+      note.textContent='La tarjeta de valoración y los anexos usan la hoja vigente. Las cifras incluidas en el texto del artículo y en cálculos escritos son del informe publicado y requieren revisión si cambian los supuestos.';
+      if(changed)note.textContent='Cambió la hoja: tarjeta y anexos actualizados. Revisa las cifras y conclusiones del artículo y de los cálculos escritos antes de publicarlos.';
+    });
+  }
   function checkLinkedValuationFreshness() {
+    startLiveModel();
     if(!state.ticker)return;
     var origin=state,ticker=String(state.ticker).toUpperCase();
     var linked=state.linkedValuation||{};
@@ -624,7 +646,7 @@
       (state.valuationSync&&state.valuationSync.sourcePath)||'';
     function accept(rec,path){
       // Protección contra respuestas tardías y archivos de otra empresa.
-      if(state!==origin||!rec||String(rec.ticker||'').toUpperCase()!==ticker)return;
+      if(state!==origin||!rec||String(rec.ticker||'').toUpperCase()!==ticker||state.linkedValuation&&state.linkedValuation.liveModel)return;
       state.linkedValuation=Object.assign({},state.linkedValuation||{},{
         sourcePath:path,ticker:rec.ticker,precio:rec.precio,precioAnalisis:rec.precioAnalisis,
         fecha:rec.fecha,fechaValoracion:rec.fecha,zonas:rec.zonas,
