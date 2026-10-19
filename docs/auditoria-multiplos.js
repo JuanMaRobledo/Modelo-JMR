@@ -82,7 +82,7 @@ function inventory(audit,valuationPaths,analysisPaths){
  const unaudited=valuation.filter(x=>!audited.has(x));
  const vanished=auditList.map(x=>x.ticker).filter(x=>!valuationPaths[x]);
  return {valuation,analysis,reportOnly,valuationOnly,unaudited,vanished,
-  entries:[...auditList.filter(x=>valuationPaths[x]),...unaudited.map(ticker=>({
+  entries:[...auditList.filter(x=>valuationPaths[x.ticker]),...unaudited.map(ticker=>({
    ticker,clasificacion:"SIN_AUDITORIA",observacion:"Valoración publicada después del corte de auditoría; requiere revisar sus múltiplos."
   }))]};
 }
