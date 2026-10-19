@@ -35,6 +35,7 @@ footer{margin-top:30px;color:var(--sub);font-size:12px}
 @media(max-width:950px){.metrics{grid-template-columns:repeat(2,1fr)}.reference-grid{grid-template-columns:1fr}}
 @media(max-width:680px){.layout{display:block}.sidebar{position:static;max-height:350px;margin-bottom:15px}.metrics{grid-template-columns:1fr 1fr}.review-grid{grid-template-columns:1fr}.panel{padding:14px}}
 
+.coverage{width:100%;border:1px solid var(--line);border-radius:10px;background:var(--card);padding:12px 16px;margin:12px 0}.coverage p{margin:4px 0;overflow-wrap:anywhere}.coverage a{margin-right:3px}
 /* Auditoría a ancho completo: siempre una sola columna de contenido. */
 html,body{width:100%;min-width:0}
 body{overflow-x:clip}
@@ -85,12 +86,13 @@ table.sensitivity{width:100%;min-width:0;table-layout:fixed}
   .sensitivity{font-size:clamp(9px,2.3vw,12px)}
   .sensitivity th,.sensitivity td{padding:3px 2px;font-variant-numeric:tabular-nums}
 }
-</style><script src="gh_oauth.js" defer></script><script src="jmr-multiples-axes.js?v=20261018-realejes" defer></script><script src="jmr-economic-multiples.js?v=20261018-justificados" defer></script><script src="auditoria-multiplos.js?v=20261019-integridad" defer></script><link rel="stylesheet" href="jmr-fullwidth.css?v=20261018">
+</style><script src="gh_oauth.js" defer></script><script src="jmr-multiples-axes.js?v=20261018-realejes" defer></script><script src="jmr-economic-multiples.js?v=20261018-justificados" defer></script><script src="auditoria-multiplos.js?v=20261019-inventario" defer></script><link rel="stylesheet" href="jmr-fullwidth.css?v=20261018">
 </head>
 <body><header class="top"><strong>Modelo JMR · Auditoría de múltiplos</strong><nav><a href="index.html">Inicio</a><a href="visor.html">Valoraciones</a><a href="research.html">Análisis</a><a href="visor.html?mercado=colombia">Colombia</a></nav></header>
 <main class="wrap"><h1>Audita los múltiplos empresa por empresa</h1>
-<p class="lead muted">38 valoraciones. A: historia propia depurada; B: comparables por crecimiento, ROIC, margen y riesgo; C: múltiplo justificado por fundamentales. Inspirado en los criterios de Toro/Arena Alfa, McKinsey y Damodaran; ningún autor prescribe ponderaciones fijas para el Modelo JMR.</p>
+<p class="lead muted">Inventario actualizado automáticamente. A: historia propia depurada; B: comparables por crecimiento, ROIC, margen y riesgo; C: múltiplo justificado por fundamentales. Inspirado en los criterios de Toro/Arena Alfa, McKinsey y Damodaran; ningún autor prescribe ponderaciones fijas para el Modelo JMR.</p>
 <p id="summary" class="notice">Abriendo las valoraciones publicadas…</p>
+<section id="coverage" class="coverage" aria-live="polite"><strong>Control de cobertura</strong><p class="small">Comparando valoraciones, informes y auditorías del repositorio…</p></section>
 <div class="layout"><aside class="sidebar"><h2>Empresas</h2><div class="controls"><label for="search">Ticker</label><input id="search" type="search" placeholder="PYPL, NFLX, SHAK" autocomplete="off">
 <label for="filter">Filtrar revisiones</label><select id="filter"><option value="todas">Todas las empresas</option><option value="pendientes">Sin revisar</option><option value="revisar">Brechas y casos especiales</option><option value="aprobados">Marcadas conformes</option></select></div>
 <p id="count" class="small" aria-live="polite"></p><div id="companies" class="company-list"></div></aside>
