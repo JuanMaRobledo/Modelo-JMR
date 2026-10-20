@@ -176,6 +176,8 @@
 </style>
 <link rel="stylesheet" href="jmr-theme.css">
 <link rel="stylesheet" href="jmr-fullwidth.css?v=20261018">
+<link rel="stylesheet" href="jmr-report-sheets.css?v=20261020-consulta">
+<link rel="stylesheet" href="jmr-fullwidth.css?v=20261020-consulta">
 </head>
 <body>
 <script src="auth.js"></script>
@@ -204,6 +206,11 @@
   </div>
 
   <section id="companySync" style="margin-bottom:20px"></section>
+  <section class="calc-sheet-tools" aria-label="Consulta de hoja de valoración" style="margin:12px 0 22px;">
+    <button type="button" id="showWorkbookDetails" class="lookup-btn" disabled>Consultar hojas, escenarios y sensibilidades</button>
+    <span id="workbookDetailsStatus" role="status" style="display:block;margin-top:8px;font-size:.9rem;">Busca primero un ticker con valoración guardada.</span>
+    <div id="calcWorkbookDetails" hidden style="margin-top:16px"><div data-jmr-extended-sheets></div></div>
+  </section>
   <form id="calcForm">
     <fieldset>
       <legend>Identificación</legend>
@@ -384,6 +391,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="jmr_engine.js"></script>
 <script src="model-sync.js?v=20261019-siete"></script>
+<script src="jmr-multiples-axes.js?v=20261018-realejes"></script>
+<script src="jmr-economic-multiples.js?v=20261018-justificados"></script>
+<script src="jmr-report-sheets.js?v=20261020-consulta"></script>
 <script src="market_data.js"></script>
 <script>
 (function(){
@@ -508,7 +518,7 @@
     });
   }
 
-  var linkedInputs=null, companySession=null, lookupSequence=0;
+  var linkedInputs=null, companySession=null, lookupSequence=0, canonicalForSheets=null;
   var originalReadInputs=readInputs;
   var localIds=Array.from(document.querySelectorAll('#calcForm input[type="number"],#tipoEmpresa,#criterioConsolidacion')).map(function(el){return el.id;});
   var pctIds=['mos','taxEffective','taxMarginal','probFailure','recoveryPct','wacc','costoPatrimonio','riskFreeRate','matureMarketERP','growthCons','marginCons','growthBase','marginBase','growthOpt','marginOpt','daPctRevenue','capexPctRevenue','nwcPctDeltaRevenue','interestOtherPctEBIT','netBorrowingPctRevenue','buybackRate'];
@@ -523,6 +533,10 @@
     localIds.forEach(function(id){document.getElementById(id).disabled=true;});
     renderHistorical(null);clearSourceMarks();
     var inp=readInputs(),canonical=JmrModelSync.record(snapshot);render(inp,JmrModelSync.calculatorResult(canonical),true);
+    canonicalForSheets=canonical;
+    document.getElementById('showWorkbookDetails').disabled=false;
+    document.getElementById('workbookDetailsStatus').textContent='Modelo recuperado de la hoja vinculada · '+snapshot.record.ticker+'. Pulsa el botón para consultar sus tablas.';
+    if(!document.getElementById('calcWorkbookDetails').hidden)JmrReportSheets.mount(document.getElementById('calcWorkbookDetails'),canonical);
     setStatus(snapshot.record.ticker+' · modelo de la hoja vigente. El panel “Datos de la hoja” guarda los cambios compartidos. Los campos inferiores muestran los insumos del modelo; edita las entradas en el panel de la hoja.', 'ok');
     document.getElementById('rPrecioMOS').textContent=fmtMoney(canonical.precioMOS);
     document.getElementById('zMOS').textContent=fmtMoney(canonical.precioMOS);
@@ -532,7 +546,11 @@
     var key;try{key=JmrModelSync.ticker(document.getElementById('ticker').value);}catch(e){setStatus(e.message,'err');return;}
     var sequence=++lookupSequence;
     if(companySession)companySession.dispose();companySession=null;
-    linkedInputs=null;
+    linkedInputs=null;canonicalForSheets=null;
+    document.getElementById('showWorkbookDetails').disabled=true;
+    document.getElementById('calcWorkbookDetails').hidden=true;
+    document.querySelector('#calcWorkbookDetails [data-jmr-extended-sheets]').innerHTML='';
+    document.getElementById('workbookDetailsStatus').textContent='Buscando datos de la hoja vinculada…';
     document.getElementById('result').classList.remove('show');
     document.getElementById('companySync').innerHTML='';
     localIds.forEach(function(id){var el=document.getElementById(id);el.value='';el.disabled=true;});
@@ -547,6 +565,16 @@
     });
   }
   document.getElementById('lookupBtn').addEventListener('click', runLookup);
+  document.getElementById('showWorkbookDetails').addEventListener('click',function(){
+    if(!canonicalForSheets)return;
+    var panel=document.getElementById('calcWorkbookDetails');
+    panel.hidden=!panel.hidden;
+    this.textContent=panel.hidden?'Consultar hojas, escenarios y sensibilidades':'Ocultar hojas y cálculos';
+    if(!panel.hidden){
+      JmrReportSheets.mount(panel,canonicalForSheets);
+      document.getElementById('workbookDetailsStatus').textContent='Datos de la valoración vinculada: tablas completas a demanda. Comprueba fechas y fuentes antes de modificar supuestos.';
+    }
+  });
   document.getElementById('ticker').addEventListener('keydown', function(e){
     if(e.key === 'Enter'){ e.preventDefault(); runLookup(); }
   });
@@ -674,7 +702,7 @@
     render(inp, r);
   });
 
-  document.getElementById('ticker').addEventListener('input',function(){++lookupSequence;document.getElementById('lookupBtn').disabled=false;document.getElementById('lookupBtn').textContent='Buscar datos';if(companySession)companySession.dispose();companySession=null;linkedInputs=null;document.getElementById('result').classList.remove('show');document.getElementById('companySync').innerHTML='';localIds.forEach(function(id){var el=document.getElementById(id);el.value='';el.disabled=true;});});
+  document.getElementById('ticker').addEventListener('input',function(){++lookupSequence;document.getElementById('lookupBtn').disabled=false;document.getElementById('lookupBtn').textContent='Buscar datos';if(companySession)companySession.dispose();companySession=null;linkedInputs=null;document.getElementById('result').classList.remove('show');document.getElementById('companySync').innerHTML='';canonicalForSheets=null;document.getElementById('showWorkbookDetails').disabled=true;document.getElementById('calcWorkbookDetails').hidden=true;document.getElementById('showWorkbookDetails').textContent='Consultar hojas, escenarios y sensibilidades';document.querySelector('#calcWorkbookDetails [data-jmr-extended-sheets]').innerHTML='';document.getElementById('workbookDetailsStatus').textContent='Busca primero un ticker con valoración guardada.';localIds.forEach(function(id){var el=document.getElementById(id);el.value='';el.disabled=true;});});
   ['revenue0','ebit0','shares0','wacc','riskFreeRate','salesToCapital','taxEffective','taxMarginal','growthCons','marginCons','growthBase','marginBase','growthOpt','marginOpt'].forEach(function(id){document.getElementById(id).required=true;});
   var initialTicker=new URLSearchParams(location.search).get('ticker');
   if(initialTicker)document.getElementById('ticker').value=initialTicker;
