@@ -20,7 +20,7 @@ for (const file of ['index.html', 'visor.html', 'research.html', 'auditoria-mult
   assert.ok(body.includes('auditorias.html?ticker=PYPL'), file+' debe enlazar las auditorías');
 }
 const prompt=fs.readFileSync(path.join(root,'prompts','auditoria-economica-jmr-v1.md'),'utf8');
-const headings=[...prompt.matchAll(/^## (\\d+)\\. (.+)$/gm)];
+const headings=[...prompt.matchAll(/^## ([0-9]+)[.] (.+)$/gm)];
 assert.equal(headings.length,18,'Debe haber exactamente 18 secciones fijas');
 headings.forEach((match,i)=>assert.equal(Number(match[1]),i+1,'La numeración de las secciones debe ser consecutiva'));
 assert.ok(prompt.includes('### 10 reglas obligatorias'));
