@@ -264,7 +264,7 @@
       <div class="frow"><label for="criterioConsolidacion">Consolidar cada múltiplo con</label><select id="criterioConsolidacion"><option value="promedio">Promedio de 1, 2 y 3 años</option><option value="solo3">Solo el de 3 años</option></select></div>
       <div class="frow"><label for="riskFreeRate">Tasa libre de riesgo (= crecimiento terminal)</label><input id="riskFreeRate" type="number" step="0.01" value="4.62"></div>
       <div class="frow"><label for="matureMarketERP">Prima de riesgo de mercado maduro</label><input id="matureMarketERP" type="number" step="0.01" value="4.23"></div>
-      <div class="frow"><label for="salesToCapital">Sales-to-capital ratio (reinversión)</label><input id="salesToCapital" type="number" step="any" value="1.5432"></div>
+      <div class="frow"><label for="salesToCapital">Sales-to-capital ratio (reinversión)</label><input id="salesToCapital" type="number" step="0.01" value="1.54"></div>
       <p class="field-help">WACC terminal = tasa libre de riesgo + prima de mercado maduro. Tasas en %.</p>
     </fieldset>
 
@@ -524,7 +524,7 @@
       // El experimento es una copia; nunca escribe en Google Sheets.
       el.disabled=false;
       if(v==null){el.value='';return;}
-      if(typeof v==='number'){el.value=String(v*(pctIds.indexOf(id)>=0?100:1));el.step='any';}
+      if(typeof v==='number'){el.value=String(Math.round((v*(pctIds.indexOf(id)>=0?100:1)+Number.EPSILON)*100)/100);el.step='0.01';}
       else el.value=v;
     });
     document.getElementById('restoreSimulation').disabled=false;
@@ -534,7 +534,7 @@
     document.getElementById('rPrecioMOS').textContent=fmtMoney(canonical.precioMOS);
     document.getElementById('zMOS').textContent=fmtMoney(canonical.precioMOS);
     document.getElementById('simulationNotice').textContent='Base: '+snapshot.record.ticker+
-      ' · entradas copiadas de la hoja vinculada. Puedes modificar los campos y calcular escenarios alternativos; ningún cambio se guarda.';
+      ' · entradas mostradas con máximo dos decimales, sin alterar la hoja original. Puedes modificar los campos y calcular escenarios alternativos; ningún cambio se guarda.';
     setStatus('Modelo de '+snapshot.record.ticker+' importado como punto de partida. La calculadora es un simulador, NO el reporte publicado.','ok');
   }
   readInputs=function(){return originalReadInputs();};
