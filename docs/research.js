@@ -374,9 +374,11 @@
       '<div class="jmr-technical-content">'+technicalIntroduction+
       (linked?'<section class="jmr-valuation-summary" aria-label="Tarjeta de valoración"><h2>Resultado de valoración</h2>'+linked+'</section>':'')+
       extra+
+      '<details class="jmr-research-details jmr-calculation-appendix"><summary>Operaciones, fórmulas y conciliaciones del expediente</summary>'+
       (technical?technical.toc+technical.body:'<p>El expediente todavía no contiene un anexo de cálculos separado.</p>')+
-      linkedMultiplesLevel2(state.linkedValuation)+
-      '<div data-jmr-extended-sheets></div>'+
+      linkedMultiplesLevel2(state.linkedValuation)+'</details>'+
+      '<details class="jmr-research-details jmr-financial-appendix"><summary>Estados financieros, ratios, escenarios y matrices de sensibilidad</summary>'+
+      '<div data-jmr-extended-sheets></div></details>'+
       '</div></details>';
     var actions='<div class="jmr-research-navigation" role="navigation" aria-label="Navegación entre análisis y simulador">'+
       '<p>La tesis de inversión está en el Nivel 1. La valoración real y sus tablas están en el Nivel 2. La calculadora permite probar escenarios sin modificar el expediente.</p>'+
@@ -387,14 +389,13 @@
       actions+article.toc+'<div id="editableContent">'+article.body+'</div>'+renderNews()+
       '</section>'+level2+'</div>';
     markNumericCells(body);
-    var detail=el(detailsId),reportMounted=false;
+    var detail=el(detailsId),appendix=detail&&detail.querySelector('.jmr-financial-appendix'),reportMounted=false;
     function mountQuantitative(){
-      if(reportMounted||!detail||!detail.open)return;
+      if(reportMounted||!appendix||!appendix.open)return;
       reportMounted=true;
-      if(typeof JmrReportSheets!=='undefined'&&state.linkedValuation)JmrReportSheets.mount(detail,state.linkedValuation);
+      if(typeof JmrReportSheets!=='undefined'&&state.linkedValuation)JmrReportSheets.mount(appendix,state.linkedValuation);
     }
-    if(detail)detail.addEventListener('toggle',mountQuantitative);
-    if(detail&&detail.open)mountQuantitative();
+    if(appendix)appendix.addEventListener('toggle',mountQuantitative);
     renderEditorToolbar();
     body.onclick=function(event){window.JmrReportAnchors.navigate(event,body);};
   }
