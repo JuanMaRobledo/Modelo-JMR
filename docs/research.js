@@ -213,10 +213,19 @@
   function checkQuality() {
     var holder = el('qualityChips'); holder.innerHTML = '';
     if (state.articleHtml && state.calculationHtml) {
-      ['Nivel 1 · Análisis fundamental', 'Nivel 2 · Valoración y cálculos'].forEach(function (name) {
-        var chip = document.createElement('span'); chip.textContent = '✓ ' + name; chip.className = 'ok'; holder.appendChild(chip);
-      });
-      setStatus('analysisStatus', 'Documento en dos niveles. La edición de lectura no certifica las hipótesis financieras.', 'ok');
+      var matches=Array.from(state.articleHtml.matchAll(/<h2\\b[^>]*>\\s*(\\d+)\\.\\s*[^<]+<\\/h2>/gi));
+      var sections=new Set(matches.map(function(m){return Number(m[1]);}));
+      var complete=Array.from({length:18},function(_,i){return i+1;}).every(function(i){return sections.has(i);});
+      var c1=document.createElement('span');
+      c1.textContent=(complete?'✓ ':'⚠ ')+
+        'Nivel 1 · Análisis fundamental ('+sections.size+'/18 apartados)';
+      c1.className=complete?'ok':'';
+      holder.appendChild(c1);
+      var c2=document.createElement('span');
+      c2.textContent='✓ Nivel 2 · Valoración y cálculos';c2.className='ok';holder.appendChild(c2);
+      setStatus('analysisStatus',complete
+        ?'Dos niveles disponibles. Verifica fuentes e hipótesis económicas antes de considerar el informe auditado.'
+        :'El expediente incluye dos niveles, pero el artículo no conserva los 18 apartados del prompt: requiere restauración editorial.',complete?'ok':'bad');
       return;
     }
     if (!state.html) return;
