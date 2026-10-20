@@ -15,8 +15,14 @@
     if(dots&&commas){decimal=raw.lastIndexOf('.')>raw.lastIndexOf(',')?'.':',';}
     else if(dots>1){decimal=/\.\d{1,2}$/.test(raw)?'.':null;}
     else if(commas>1){decimal=/,\d{1,2}$/.test(raw)?',':null;}
-    else if(dots===1){decimal=/\.\d{3}$/.test(raw)?null:'.';}
-    else if(commas===1){decimal=/,\d{3}$/.test(raw)?null:',';}
+    else if(dots===1){
+      var groups=raw.split('.');
+      decimal=groups[1].length===3&&groups[0].length>=3?null:'.';
+    }
+    else if(commas===1){
+      var groupsComma=raw.split(',');
+      decimal=groupsComma[1].length===3&&groupsComma[0].length>=3?null:',';
+    }
     var normalized=decimal?
       raw.replace(new RegExp('\\'+(decimal==='.'?',':'.'),'g'),'').replace(decimal,'.'):
       raw.replace(/[,.]/g,'');
@@ -35,6 +41,17 @@
   function formatCell(cell){
     if(!cell)return '';
     var original=cell.w!=null&&cell.w!==''?cell.w:cell.v;
+    var n=typeof cell.raw?.numberValue==='number'?cell.raw.numberValue:
+      (typeof cell.v==='number'?cell.v:null);
+    if(n!==null){
+      var txt=String(original==null?'':original);
+      if(/%\s*$/.test(txt))return format(n*100)+'%';
+      if(/[×x]\s*$/.test(txt))return format(n)+'×';
+      var currency=/^\s*(US\$|COP\$|[$€£])/.exec(txt);
+      if(currency)return currency[1]+' '+format(n);
+      if(Number.isInteger(n)&&n>=1900&&n<=2100&&/^\d{4}$/.test(txt))return txt;
+      return format(n);
+    }
     return format(original);
   }
   function editValue(value,scale){
