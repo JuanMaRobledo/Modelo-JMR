@@ -12,13 +12,18 @@ on:
       - 'docs/research.html'
       - 'docs/auditoria-multiplos.html'
       - 'tests/test_auditorias_narrativas.cjs'
-      - 'tests/test_audit_links.cjs'
       - '.github/workflows/auditorias-narrativas.yml'
   push:
     branches: [main]
     paths:
       - 'docs/auditorias.html'
+      - 'docs/jmr-audit-links.js'
+      - 'docs/jmr-audit-links.css'
+      - 'docs/visor.html'
+      - 'docs/research.html'
+      - 'docs/research.js'
       - 'tests/test_auditorias_narrativas.cjs'
+      - 'tests/test_audit_links.cjs'
 jobs:
   validate:
     runs-on: ubuntu-latest
