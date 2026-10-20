@@ -75,6 +75,12 @@ body.research-page .wrap{max-width:none;padding-inline:clamp(16px,2.5vw,48px)}bo
 @media print{.research-document table:not(.jvb-table){box-shadow:none;border-radius:0}.research-document table:not(.jvb-table) tbody tr:hover>*{background:none}}
 .pdf-header .pdf-header-text strong{display:block;font-size:16px;color:var(--ink)}
 .pdf-header .pdf-header-text span{font-size:12px;color:var(--ink-faint)}
+.jmr-research-navigation{margin:12px 0 25px;padding:12px 0 15px;border-bottom:1px solid var(--border-soft);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.jmr-research-navigation p{flex:1 1 330px;margin:0;color:var(--ink-soft);font-size:13px;line-height:1.55}
+.jmr-open-calc{color:var(--accent-ink);background:var(--accent-soft);padding:9px 14px;border-radius:9px;font-weight:700;text-decoration:none;white-space:normal}
+.jmr-open-calc:hover{text-decoration:underline}
+.jmr-reading-view{max-width:none}
+@media print {.jmr-research-navigation{display:none!important}}
 </style>
 <link rel="stylesheet" href="jmr-theme.css">
 <style>
@@ -107,7 +113,7 @@ body.research-page .wrap{max-width:none;padding-inline:clamp(16px,2.5vw,48px)}bo
 @media(max-width:620px){.jmr-editorial-article{padding:0}.jmr-editorial-article p{font-size:14px;line-height:1.72}.jmr-research-details>summary{padding:15px 12px}.jmr-technical-content{padding:13px 8px}}
 @media print{.jmr-editorial-article{max-width:none}.jmr-research-details:not([open]){display:none!important}.jmr-editorial-label{color:#555}}
 </style>
-<link rel="stylesheet" href="jmr-report-sheets.css?v=20261016">
+
 <link rel="stylesheet" href="jmr-fullwidth.css?v=20261018">
 <link rel="stylesheet" href="jmr-audit-links.css?v=20261020">
 </head>
@@ -201,11 +207,11 @@ body.research-page .wrap{max-width:none;padding-inline:clamp(16px,2.5vw,48px)}bo
 <script src="method-details.js?v=20261014"></script>
 <script src="jmr-multiples-axes.js?v=20261018-realejes"></script>
 <script src="jmr-economic-multiples.js?v=20261018-justificados"></script>
-<script src="jmr-report-sheets.js?v=20261018-justificados"></script>
+
 <script src="report-anchors.js?v=20261014"></script>
 <script src="model-sync.js?v=20261019-siete"></script>
 <script src="jmr-audit-links.js?v=20261020"></script>
-<script src="research.js?v=20261016-cartera-38"></script>
+<script src="research.js?v=20261020-editorial-dcf-separados"></script>
 <script>
 if("serviceWorker" in navigator){
   window.addEventListener("load", function(){
