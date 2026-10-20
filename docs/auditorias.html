@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Auditorías narrativas · Modelo JMR</title>
+<link rel="icon" href="favicon.ico"><link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="jmr-theme.css"><link rel="stylesheet" href="jmr-fullwidth.css">
+<script src="gh_oauth.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js" defer></script>
+<style>
+:root{--bg:#f5f6f2;--card:#fff;--ink:#16231f;--sub:#51615a;--line:#dbe1d9;--soft:#edf1e9;--gold:#906b2b;--focus:#2368ad}
+@media(prefers-color-scheme:dark){:root{--bg:#101810;--card:#1b2820;--ink:#f3f5ee;--sub:#afc1b4;--line:#37453a;--soft:#28392b;--gold:#e2b975;--focus:#80b5ed}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.65 system-ui,-apple-system,"Segoe UI",sans-serif;overflow-x:hidden}
+header{padding:16px clamp(12px,2vw,32px);background:var(--card);border-bottom:1px solid var(--line)}
+header strong{font-family:Georgia,serif;font-size:20px}
+nav{display:flex;gap:15px;flex-wrap:wrap;margin-top:7px}
+a{color:var(--gold)}nav a{font-size:13px;text-decoration:none;font-weight:650}
+nav a[aria-current=page]{text-decoration:underline;text-underline-offset:5px}
+main{max-width:none;width:100%;padding:clamp(13px,2vw,32px)}
+h1,h2,h3,h4{font-family:Georgia,serif;line-height:1.25}
+h1{font-size:clamp(30px,4vw,49px);margin:7px 0 10px}h2{font-size:25px}h3{font-size:20px}
+p{margin:10px 0}.eyebrow{letter-spacing:.13em;font-size:11px;color:var(--gold);font-weight:800;text-transform:uppercase}
+.intro{max-width:1080px;color:var(--sub)}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:clamp(13px,2vw,26px);margin-top:18px}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{font:inherit;font-size:13px;border:1px solid var(--line);border-radius:9px;padding:9px 14px;background:var(--card);color:var(--ink);cursor:pointer;font-weight:650}
+.btn.primary{background:var(--ink);color:var(--card);border-color:var(--ink)}
+.btn:disabled{opacity:.5;cursor:not-allowed}.btn[aria-pressed=true]{border-color:var(--gold);background:var(--soft)}
+select{font:inherit;background:var(--card);color:var(--ink);padding:10px;border:1px solid var(--line);border-radius:9px;min-width:160px}
+button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+#status{color:var(--sub);min-height:24px}#status.error{color:#bd4e43}
+.meta{color:var(--sub);font-size:12px}
+.grid{display:grid;grid-template-columns:minmax(0,1fr);gap:18px}
+#editor{width:100%;display:block;font:14px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace;min-height:70vh;resize:vertical;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:12px;padding:18px;white-space:pre-wrap}
+#reader{max-width:none;width:100%;min-width:0;line-height:1.78;overflow-wrap:anywhere}
+#reader>*{max-width:100%}#reader p,#reader li{max-width:none}
+#reader h1{font-size:clamp(25px,3vw,38px);margin-top:12px}
+#reader h2{margin:34px 0 12px;padding-top:14px;border-top:1px solid var(--line)}
+#reader blockquote{margin:15px 0;padding:8px 20px;border-left:3px solid var(--gold);background:var(--soft)}
+#reader code{background:var(--soft);padding:2px 5px;border-radius:4px}
+#reader pre{max-width:100%;overflow-x:auto;padding:16px;background:var(--soft)}
+#reader .table-scroll{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+#reader table{border-collapse:collapse;width:100%;table-layout:fixed;margin:18px 0;font-size:13px}
+#reader td,#reader th{padding:11px;border:1px solid var(--line);text-align:left;overflow-wrap:anywhere;vertical-align:top}
+#reader th{background:var(--soft)}
+#reader img{max-width:100%;height:auto}
+#reader a{overflow-wrap:anywhere}
+.notice{padding:13px 18px;background:var(--soft);border-radius:10px;color:var(--sub);margin:15px 0}
+[hidden]{display:none!important}
+@media(max-width:700px){.panel{padding:12px}#reader table,#reader tbody,#reader tr,#reader td,#reader th{display:block;width:100%;min-width:0}
+#reader thead{display:none}#reader tbody tr{margin:12px 0;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+#reader td,#reader th{border:0;border-bottom:1px solid var(--line);display:block;padding:10px}
+#reader td:before{content:attr(data-label);display:block;font-weight:700;color:var(--sub);font-size:11px;margin-bottom:3px}
+#reader tbody tr td:last-child{border-bottom:0}#reader .table-scroll{overflow-x:visible}
+}
+@media print{header,.toolbar,.notice,#status,#editor,#editHelp{display:none!important}main{padding:0}.panel{border:0;padding:0}body{background:white;color:black}}
+</style>
+</head>
+<body>
+<script src="auth.js"></script>
+<header><strong>Modelo JMR · Auditorías narrativas</strong>
+<nav aria-label="Navegación principal">
+<a href="index.html">Inicio</a><a href="visor.html">Internacionales</a><a href="research.html">Análisis</a><a href="auditoria-multiplos.html">Múltiplos</a><a href="auditorias.html" aria-current="page">Auditorías narrativas</a>
+</nav></header>
+<main>
+<div class="eyebrow">Investigación independiente · Supuestos y evidencia</div>
+<h1>La historia detrás de los números</h1>
+<p class="intro">Cada informe contrasta el crecimiento, los márgenes, la reinversión, el costo de capital, el valor terminal y los múltiplos con la historia económica de la empresa y los datos históricos. <strong>Editar una auditoría no modifica la hoja DCF, sus cifras ni los análisis publicados.</strong></p>
+<div class="panel">
+<div class="toolbar">
+<label for="tickerSelect"><strong>Empresa</strong></label>
+<select id="tickerSelect" aria-label="Empresa"><option value="PYPL">PYPL · PayPal</option></select>
+<button class="btn" id="readBtn" type="button" aria-pressed="true">Leer informe</button>
+<button class="btn" id="editBtn" type="button" aria-pressed="false">Editar texto</button>
+<button class="btn primary" id="saveBtn" type="button" hidden>Guardar cambios</button>
+<button class="btn" id="cancelBtn" type="button" hidden>Cancelar edición</button>
+<button class="btn" id="connectBtn" type="button">Conectar GitHub</button>
+<button class="btn" id="downloadBtn" type="button">Descargar .md</button>
+<a class="btn" id="historyLink" target="_blank" rel="noopener noreferrer">Historial</a>
+</div>
+<p class="meta" id="fileMeta">Abriendo el informe vigente…</p>
+<p role="status" aria-live="polite" id="status">Cargando…</p>
+<div class="notice" id="editHelp" hidden>Los cambios se guardan en <strong>Modelo-JMR-datos/auditorias/narrativas</strong> con el historial de GitHub. Para guardarlos necesitas conectar tu cuenta con permiso de escritura. Si otro dispositivo modificó el mismo informe, se detecta el conflicto antes de sobrescribirlo.</div>
+</div>
+<section class="panel" aria-label="Informe">
+<article id="reader"></article>
+<textarea id="editor" hidden spellcheck="true" aria-label="Editor Markdown de la auditoría"></textarea>
+</section>
+<p class="meta">Documento narrativo independiente · Fuentes y escenarios sujetos a revisión · Uso personal de investigación financiera.</p>
+</main>
+<script>
+(function(){
+'use strict';
+var OWNER='JuanMaRobledo', REPO='Modelo-JMR-datos', BASE='auditorias/narrativas/';
+var API='https://api.github.com/repos/'+OWNER+'/'+REPO+'/contents/';
+var select=document.getElementById('tickerSelect'),reader=document.getElementById('reader'),editor=document.getElementById('editor');
+var status=document.getElementById('status'),meta=document.getElementById('fileMeta'),save=document.getElementById('saveBtn');
+var mode='read',loadedText='',loadedSha='',dirty=false,loading=false,currentTicker='PYPL';
+var esc=function(v){return String(v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});};
+function flash(msg,bad){status.textContent=msg;status.className=bad?'error':'';}
+function safeTicker(s){return /^[A-Z][A-Z0-9.]{0,11}$/.test(s);}
+function authHeaders(){return GhOAuth.ghHeaders(GhOAuth.getGhToken());}
+function filePath(){return BASE+currentTicker+'.md';}
+function showMode(next){
+ mode=next;
+ reader.hidden=next!=='read';editor.hidden=next!=='edit';
+ document.getElementById('readBtn').setAttribute('aria-pressed',next==='read');
+ document.getElementById('editBtn').setAttribute('aria-pressed',next==='edit');
+ document.getElementById('editHelp').hidden=next!=='edit';
+ save.hidden=next!=='edit';document.getElementById('cancelBtn').hidden=next!=='edit';
+ if(next==='read')render();
+ if(next==='edit')editor.focus();
+}
+function decorateTables(){
+ reader.querySelectorAll('table').forEach(function(t){
+  var h=Array.from(t.querySelectorAll('thead th')).map(function(x){return x.textContent.trim();});
+  t.querySelectorAll('tbody tr').forEach(function(tr){
+    Array.from(tr.children).forEach(function(td,i){td.setAttribute('data-label',h[i]||('Campo '+(i+1)));});
+  });
+  var wrap=document.createElement('div');wrap.className='table-scroll';t.parentNode.insertBefore(wrap,t);wrap.appendChild(t);
+ });
+}
+function render(){
+ var raw=loadedText.replace(/^---\s*\n[\s\S]*?\n---\s*\n/,'');
+ if(window.marked&&window.DOMPurify){
+   var html=window.marked.parse(raw,{gfm:true,breaks:false});
+   reader.innerHTML=window.DOMPurify.sanitize(html);
+   reader.querySelectorAll('a').forEach(function(a){if(/^https?:/.test(a.href)){a.target='_blank';a.rel='noopener noreferrer';}});
+   decorateTables();
+ }else{
+   reader.innerHTML='<p class="notice">Vista de texto: el renderizador no está disponible. Puedes leer el informe completo aquí.</p><pre style="white-space:pre-wrap;overflow-wrap:anywhere">'+esc(raw)+'</pre>';
+ }
+}
+async function requestFile(){
+ var url=API+filePath()+'?ref=main';
+ var response=await fetch(url,{headers:authHeaders(),cache:'no-store'});
+ if((response.status===401||response.status===403)&&GhOAuth.getGhToken())response=await fetch(url,{cache:'no-store'});
+ if(!response.ok)throw new Error('No se pudo leer el archivo de GitHub (HTTP '+response.status+').');
+ var data=await response.json();
+ if(typeof data.content!=='string'||!data.sha)throw new Error('Respuesta de GitHub incompleta.');
+ return {text:GhOAuth.b64DecodeUnicode(data.content.replace(/\s/g,'')),sha:data.sha};
+}
+async function load(ticker){
+ if(!safeTicker(ticker))return;
+ if(dirty&&!confirm('Hay cambios sin guardar. ¿Deseas descartarlos?')){select.value=currentTicker;return;}
+ currentTicker=ticker;loadedText='';loadedSha='';dirty=false;loading=true;
+ document.getElementById('historyLink').href='https://github.com/'+OWNER+'/'+REPO+'/commits/main/'+filePath();
+ flash('Cargando '+ticker+'…');meta.textContent='';editor.value='';reader.textContent='';
+ try{var f=await requestFile();loadedText=f.text;loadedSha=f.sha;editor.value=loadedText;render();flash('Informe vigente listo para lectura y edición.');meta.textContent=ticker+' · Fuente: GitHub · Versión '+loadedSha.slice(0,8)+' · El guardado no modifica la valoración.';}
+ catch(e){flash(e.message,true);reader.textContent='Informe no disponible.';}
+ finally{loading=false;showMode('read');}
+}
+async function loadTickers(){
+ try{
+  var r=await fetch(API+BASE+'?ref=main',{headers:authHeaders(),cache:'no-store'});
+  if(!r.ok)return;var list=await r.json();if(!Array.isArray(list))return;
+  var tickers=list.filter(function(f){return f.type==='file'&&/^[A-Z][A-Z0-9.]{0,11}\.md$/.test(f.name);}).map(function(f){return f.name.replace(/\.md$/,'');}).sort();
+  if(!tickers.length)return;
+  select.innerHTML='';
+  tickers.forEach(function(t){var o=document.createElement('option');o.value=t;o.textContent=t+(t==='PYPL'?' · PayPal':'');select.appendChild(o);});
+  if(tickers.indexOf(currentTicker)>=0)select.value=currentTicker;
+ }catch(e){}
+}
+function updateConnection(){
+ var connected=!!GhOAuth.getGhToken();
+ document.getElementById('connectBtn').textContent=connected?'GitHub conectado':'Conectar GitHub';
+ document.getElementById('connectBtn').disabled=connected;
+}
+async function saveChanges(){
+ if(mode!=='edit'||loading||!loadedSha)return;
+ var token=GhOAuth.getGhToken();
+ if(!token){flash('Conecta tu GitHub antes de guardar.',true);return;}
+ if(!editor.value.trim()){flash('No se puede guardar un informe vacío.',true);return;}
+ save.disabled=true;flash('Verificando versión y guardando cambios…');
+ try{
+  var latest=await requestFile();
+  if(latest.sha!==loadedSha){throw new Error('Hay una versión nueva en GitHub. Descarga primero tus cambios como respaldo y vuelve a abrir el informe. No se sobrescribió nada.');}
+  var body={message:'Editar auditoría narrativa '+currentTicker+' desde Modelo JMR',content:GhOAuth.b64EncodeUnicode(editor.value),sha:loadedSha,branch:'main'};
+  var response=await fetch(API+filePath(),{method:'PUT',headers:Object.assign({'Content-Type':'application/json'},authHeaders()),body:JSON.stringify(body)});
+  if(!response.ok){var error=await response.json().catch(function(){return{};});throw new Error(error.message||('No se pudo guardar (HTTP '+response.status+').'));}
+  var data=await response.json();
+  loadedSha=(data.content&&data.content.sha)||loadedSha;
+  loadedText=editor.value;dirty=false;showMode('read');
+  meta.textContent=currentTicker+' · Cambios guardados en GitHub · Versión '+loadedSha.slice(0,8);
+  flash('Cambios guardados. Se conservaron en el historial de GitHub.');
+ }catch(e){flash(e.message,true);}
+ finally{save.disabled=false;}
+}
+document.getElementById('editBtn').addEventListener('click',function(){if(!loadedSha)return;editor.value=loadedText;dirty=false;showMode('edit');flash('Modo edición: modifica el texto y pulsa Guardar cambios.');});
+document.getElementById('readBtn').addEventListener('click',function(){if(mode==='edit'&&dirty){if(!confirm('¿Descartar los cambios sin guardar?'))return;editor.value=loadedText;dirty=false;}showMode('read');});
+document.getElementById('cancelBtn').addEventListener('click',function(){if(dirty&&!confirm('¿Descartar cambios sin guardar?'))return;editor.value=loadedText;dirty=false;showMode('read');flash('Edición cancelada.');});
+document.getElementById('saveBtn').addEventListener('click',saveChanges);
+document.getElementById('connectBtn').addEventListener('click',function(){GhOAuth.startLogin();});
+document.getElementById('downloadBtn').addEventListener('click',function(){
+ var content=mode==='edit'?editor.value:loadedText;if(!content)return;
+ var blob=new Blob([content],{type:'text/markdown;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download='JMR-auditoria-'+currentTicker+'.md';a.click();setTimeout(function(){URL.revokeObjectURL(url);},500);
+});
+document.getElementById('tickerSelect').addEventListener('change',function(){load(select.value);});
+editor.addEventListener('input',function(){dirty=editor.value!==loadedText;});
+window.addEventListener('beforeunload',function(e){if(dirty){e.preventDefault();e.returnValue='';}});
+var requested=new URLSearchParams(location.search).get('ticker');if(requested&&safeTicker(requested.toUpperCase()))currentTicker=requested.toUpperCase();
+updateConnection();load(currentTicker);loadTickers();
+})();
+</script>
+</body></html>
