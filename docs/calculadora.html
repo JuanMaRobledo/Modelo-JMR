@@ -206,11 +206,6 @@
   </div>
 
   <section id="companySync" style="margin-bottom:20px"></section>
-  <section class="calc-sheet-tools" aria-label="Consulta de hoja de valoración" style="margin:12px 0 22px;">
-    <button type="button" id="showWorkbookDetails" class="lookup-btn" disabled>Consultar hojas, escenarios y sensibilidades</button>
-    <span id="workbookDetailsStatus" role="status" style="display:block;margin-top:8px;font-size:.9rem;">Busca primero un ticker con valoración guardada.</span>
-    <div id="calcWorkbookDetails" hidden style="margin-top:16px"><div data-jmr-extended-sheets></div></div>
-  </section>
   <form id="calcForm">
     <fieldset>
       <legend>Identificación</legend>
@@ -227,6 +222,12 @@
         </div>
       </div>
       <div id="lookupStatus" class="lookup-status"></div>
+  <section class="calc-sheet-tools" aria-label="Consulta de hoja de valoración" style="margin:12px 0 22px;">
+    <button type="button" id="showWorkbookDetails" class="lookup-btn" disabled>Consultar hojas, escenarios y sensibilidades</button>
+    <span id="workbookDetailsStatus" role="status" style="display:block;margin-top:8px;font-size:.9rem;">Busca primero un ticker con valoración guardada.</span>
+    <div id="calcWorkbookDetails" hidden style="margin-top:16px"><div data-jmr-extended-sheets></div></div>
+  </section>
+
       <div class="field-legend">
         <span><i class="auto"></i> dato reportado / precio de mercado</span>
         <span><i class="derived"></i> calculado a partir de esos datos</span>
@@ -705,8 +706,14 @@
   document.getElementById('ticker').addEventListener('input',function(){++lookupSequence;document.getElementById('lookupBtn').disabled=false;document.getElementById('lookupBtn').textContent='Buscar datos';if(companySession)companySession.dispose();companySession=null;linkedInputs=null;document.getElementById('result').classList.remove('show');document.getElementById('companySync').innerHTML='';canonicalForSheets=null;document.getElementById('showWorkbookDetails').disabled=true;document.getElementById('calcWorkbookDetails').hidden=true;document.getElementById('showWorkbookDetails').textContent='Consultar hojas, escenarios y sensibilidades';document.querySelector('#calcWorkbookDetails [data-jmr-extended-sheets]').innerHTML='';document.getElementById('workbookDetailsStatus').textContent='Busca primero un ticker con valoración guardada.';localIds.forEach(function(id){var el=document.getElementById(id);el.value='';el.disabled=true;});});
   ['revenue0','ebit0','shares0','wacc','riskFreeRate','salesToCapital','taxEffective','taxMarginal','growthCons','marginCons','growthBase','marginBase','growthOpt','marginOpt'].forEach(function(id){document.getElementById(id).required=true;});
   var initialTicker=new URLSearchParams(location.search).get('ticker');
-  if(initialTicker)document.getElementById('ticker').value=initialTicker;
-  runLookup();
+  if(initialTicker){
+    document.getElementById('ticker').value=initialTicker;
+    runLookup();
+  }else{
+    document.getElementById('ticker').value='';
+    localIds.forEach(function(id){var el=document.getElementById(id);el.value='';el.disabled=true;});
+    setStatus('Escribe un ticker y pulsa “Buscar datos” para abrir su modelo vigente.','warn');
+  }
   var savedTheme = 'system';
   try { savedTheme = localStorage.getItem('bitacora-theme') || 'system'; } catch(e){}
   if(savedTheme !== 'system'){ document.documentElement.setAttribute('data-theme', savedTheme); }
