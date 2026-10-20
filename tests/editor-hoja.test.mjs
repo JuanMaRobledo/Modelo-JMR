@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import {canEditCell,validateChanges} from '../lib/model-sheet.js';
 
+const formatter=fs.readFileSync(new URL('../docs/jmr-number-format.js',import.meta.url),'utf8');
 const source=fs.readFileSync(new URL('../docs/editor-hoja.js',import.meta.url),'utf8');
 const html=fs.readFileSync(new URL('../docs/editor-hoja.html',import.meta.url),'utf8');
 const sample=n=>({v:n,w:String(n),raw:{numberValue:n},formula:null});
@@ -17,6 +18,7 @@ const sheets={
 };
 test('editor nuevo expone utilidades y se inicia sin hacer escrituras',()=>{
   const context={};context.globalThis=context;
+  vm.runInNewContext(formatter,context);
   vm.runInNewContext(source,context);
   const editor=context.JmrSheetEditor;
   assert.ok(editor);
@@ -31,6 +33,12 @@ test('editor nuevo expone utilidades y se inicia sin hacer escrituras',()=>{
   assert.equal(editor.isEditable('Income Statement','A2',sample(10),true),false);
   assert.equal(editor.isEditable('Input sheet','B26',sample(.12),false),false);
   assert.equal(editor.formatNumber({w:'12.0%',raw:{numberValue:.12}},.12).value,12);
+  assert.equal(editor.formatNumber({w:'12.123456%',raw:{numberValue:.12123456}},.12123456).value,12.12);
+  assert.equal(context.JmrDisplayNumber.format('123.456789'),'123,46');
+  assert.equal(context.JmrDisplayNumber.format('18.234567%'),'18,23%');
+  assert.equal(context.JmrDisplayNumber.formatCell({w:'4,987654×',v:4.987654}),'4,99×');
+  assert.equal(context.JmrDisplayNumber.editValue(.1234567,100),12.35);
+
 });
 test('API guarda entradas y fuentes originales, sin editar fórmulas o resultados',()=>{
   const changes=[
