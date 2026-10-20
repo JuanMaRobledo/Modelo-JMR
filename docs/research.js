@@ -62,7 +62,7 @@
   function calculatorLink(ticker) {
     var code=String(ticker||'').trim().toUpperCase();
     var target=/^[A-Z0-9._-]{1,24}$/.test(code)?'calculadora.html?ticker='+encodeURIComponent(code):'calculadora.html';
-    return '<a class="jmr-open-calc" href="'+target+'">Consultar hojas y cálculos en Calculadora DCF ↗</a>';
+    return '<a class="jmr-open-calc" href="'+target+'">Abrir simulador de sensibilidad DCF ↗</a>';
   }
   function articleForReading(html, ticker) {
     var raw=String(html||'')
@@ -213,7 +213,7 @@
   function checkQuality() {
     var holder = el('qualityChips'); holder.innerHTML = '';
     if (state.articleHtml && state.calculationHtml) {
-      ['Artículo fundamental completo', 'Cálculos vinculados a Calculadora DCF'].forEach(function (name) {
+      ['Nivel 1 · Análisis fundamental', 'Nivel 2 · Valoración y cálculos'].forEach(function (name) {
         var chip = document.createElement('span'); chip.textContent = '✓ ' + name; chip.className = 'ok'; holder.appendChild(chip);
       });
       setStatus('analysisStatus', 'Documento en dos niveles. La edición de lectura no certifica las hipótesis financieras.', 'ok');
@@ -344,39 +344,57 @@
 
   function renderPreview() {
     if(liveModelSession&&liveModelOwner!==state){liveModelSession.dispose();liveModelSession=null;liveModelOwner=null;var panel=el("liveModelPanel");if(panel)panel.remove();}
-    el('previewCompany').textContent = state.company || state.title || 'Nuevo análisis';
-    el('previewTicker').textContent = state.ticker || '—';
-    JmrAuditLinks.mount(el('jmrAuditResearch'), state.ticker);
-    el('previewPrice').textContent = state.price != null ? new Intl.NumberFormat('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2}).format(state.price) : '—';
-    el('previewPriceNote').textContent = state.priceFetchedAt ? new Date(state.priceFetchedAt).toLocaleDateString('es-CO') : '';
-    var logo = el('previewLogo');
-    var logoSrc = logoForRecord(state);
-    if (logoSrc) { logo.src = logoSrc; logo.alt = 'Logo de ' + (state.company || state.ticker); logo.hidden = false; }
-    else { logo.hidden = true; logo.removeAttribute('src'); }
-    // Mientras se está editando el contenido a mano, no se toca el DOM
-    // editable — reconstruirlo desde state.html en cada tecla tipeada en
-    // otro campo (ticker, empresa, etc., que también llaman a
-    // renderPreview vía syncFields) borraría cualquier edición todavía
-    // no aplicada.
+    el('previewCompany').textContent=state.company||state.title||'Nuevo análisis';
+    el('previewTicker').textContent=state.ticker||'—';
+    JmrAuditLinks.mount(el('jmrAuditResearch'),state.ticker);
+    el('previewPrice').textContent=state.price!=null?new Intl.NumberFormat('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2}).format(state.price):'—';
+    el('previewPriceNote').textContent=state.priceFetchedAt?new Date(state.priceFetchedAt).toLocaleDateString('es-CO'):'';
+    var logo=el('previewLogo'),logoSrc=logoForRecord(state);
+    if(logoSrc){logo.src=logoSrc;logo.alt='Logo de '+(state.company||state.ticker);logo.hidden=false;}
+    else {logo.hidden=true;logo.removeAttribute('src');}
     renderDecision();
-    if (editing) return;
-    var body = el('previewBody');
-    el('editorToolbar').hidden = !(state.html || state.valuationHtml || state.linkedValuation || state.news);
-    if (!state.articleHtml && !state.html && !state.valuationHtml && !state.linkedValuation && !state.news) { body.innerHTML = '<div class="preview-empty">Sube un documento para ver aquí la versión normalizada.</div>'; renderEditorToolbar(); return; }
-    var baseHtml=state.articleHtml || state.html || '';
-    var tickerKey=String(state.ticker||'').trim().toUpperCase();
-    var editorial=editorialArticles[tickerKey];
-    if(!state.articleHtml && editorial && editorial.html)baseHtml=editorial.html;
-    var article=navigableAnalysis(articleForReading(baseHtml,state.ticker),'articulo');
-    var actions='<div class="jmr-research-navigation" role="navigation" aria-label="Consulta de cálculos">'+
-      '<p>Este informe desarrolla la tesis y las razones detrás de los supuestos. Las hojas, tablas, sensibilidades y cálculos técnicos se consultan por ticker en la calculadora.</p>'+
-      calculatorLink(state.ticker)+'</div>';
+    if(editing)return;
+    var body=el('previewBody');
+    el('editorToolbar').hidden=!(state.articleHtml||state.html||state.valuationHtml||state.linkedValuation||state.news);
+    if(!state.articleHtml&&!state.html&&!state.valuationHtml&&!state.linkedValuation&&!state.news){
+      body.innerHTML='<div class="preview-empty">Abre un análisis guardado para consultar tesis y valoración.</div>';
+      renderEditorToolbar();return;
+    }
+    var ticker=String(state.ticker||'').trim().toUpperCase();
+    var editorial=editorialArticles[ticker];
+    var rawArticle=state.articleHtml||(editorial&&editorial.html)||state.html||'';
+    var article=navigableAnalysis(articleForReading(rawArticle,ticker),'articulo');
+    var technical=state.calculationHtml?navigableAnalysis(state.calculationHtml,'calculos'):null;
+    var linked=state.linkedValuation?buildLinkedValuationHtml(state.linkedValuation):'';
+    var extra=state.valuationHtml?'<section class="valuation-block"><h3>Tablas vinculadas de valoración</h3>'+state.valuationHtml+'</section>':'';
+    var detailsId='jmrTechnicalLevel';
+    var technicalIntroduction='<p class="jmr-tech-intro">Información cuantitativa de la valoración publicada: estados financieros, ratios, supuestos, flujos, sensibilidad y múltiples. Es la referencia de la hoja, no una simulación hipotética.</p>';
+    var level2='<details class="jmr-research-details" id="'+detailsId+'">'+
+      '<summary>NIVEL 2 · VALORACIÓN, ESTADOS FINANCIEROS Y SENSIBILIDADES</summary>'+
+      '<div class="jmr-technical-content">'+technicalIntroduction+
+      (linked?'<section class="jmr-valuation-summary" aria-label="Tarjeta de valoración"><h2>Resultado de valoración</h2>'+linked+'</section>':'')+
+      extra+
+      (technical?technical.toc+technical.body:'<p>El expediente todavía no contiene un anexo de cálculos separado.</p>')+
+      linkedMultiplesLevel2(state.linkedValuation)+
+      '<div data-jmr-extended-sheets></div>'+
+      '</div></details>';
+    var actions='<div class="jmr-research-navigation" role="navigation" aria-label="Navegación entre análisis y simulador">'+
+      '<p>La tesis de inversión está en el Nivel 1. La valoración real y sus tablas están en el Nivel 2. La calculadora permite probar escenarios sin modificar el expediente.</p>'+
+      calculatorLink(ticker)+'</div>';
     body.innerHTML='<div class="research-document jmr-reading-view">'+
-      '<section class="jmr-editorial-article" id="jmrArticleLevel" aria-label="Análisis fundamental">'+
-      '<div class="jmr-editorial-label">ANÁLISIS FUNDAMENTAL · TESIS Y EVIDENCIA</div>'+
-      actions+article.toc+'<div id="editableContent">'+article.body+'</div>'+
-      renderNews()+'</section></div>';
+      '<section class="jmr-editorial-article" id="jmrArticleLevel" aria-label="Nivel 1 · Análisis fundamental">'+
+      '<div class="jmr-editorial-label">NIVEL 1 · ANÁLISIS FUNDAMENTAL</div>'+
+      actions+article.toc+'<div id="editableContent">'+article.body+'</div>'+renderNews()+
+      '</section>'+level2+'</div>';
     markNumericCells(body);
+    var detail=el(detailsId),reportMounted=false;
+    function mountQuantitative(){
+      if(reportMounted||!detail||!detail.open)return;
+      reportMounted=true;
+      if(typeof JmrReportSheets!=='undefined'&&state.linkedValuation)JmrReportSheets.mount(detail,state.linkedValuation);
+    }
+    if(detail)detail.addEventListener('toggle',mountQuantitative);
+    if(detail&&detail.open)mountQuantitative();
     renderEditorToolbar();
     body.onclick=function(event){window.JmrReportAnchors.navigate(event,body);};
   }
@@ -1371,7 +1389,7 @@
     var val = rec.valuationHtml ? '<section class="valuation-block"><h2>Valoración cuantitativa</h2>' + rec.valuationHtml + '</section>' : '';
     var title = rec.title ? '<h1>' + escapeHtml(rec.title) + '</h1>' : '';
     var analysis = navigableAnalysis(articleForReading(rec.articleHtml || rec.html || '',rec.ticker), 'comparar-' + String(rec.id).replace(/[^a-zA-Z0-9_-]/g, '-'));
-    // Las tablas y anexos cuantitativos no forman parte de la comparación editorial.
+    // La comparación es narrativa; cada expediente conserva su propio Nivel 2 en la biblioteca.
     var output = '<div class="compare-col"><div class="company-banner"><div class="identity">' + logo + '<div class="company-name"><h2>' + escapeHtml(rec.company || rec.title || rec.ticker || '—') + '</h2><div class="ticker">' + escapeHtml(rec.ticker || '—') + '</div></div></div></div>' +
       '<div class="preview-body"><div class="research-document" id="jmrArticleLevel">' + title + calculatorLink(rec.ticker) + analysis.toc + analysis.body + '</div></div></div>';
     var holder = document.createElement('div'); holder.innerHTML = output;
