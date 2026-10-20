@@ -1,0 +1,29 @@
+name: Separación editorial y calculadora DCF
+on:
+  pull_request:
+    paths:
+      - 'docs/research.js'
+      - 'docs/research.html'
+      - 'docs/calculadora.html'
+      - 'docs/model-sync.js'
+      - 'tests/separacion-editorial-calculadora.test.mjs'
+      - '.github/workflows/separacion-editorial-calculadora.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'docs/research.js'
+      - 'docs/research.html'
+      - 'docs/calculadora.html'
+      - 'docs/model-sync.js'
+      - 'tests/separacion-editorial-calculadora.test.mjs'
+      - '.github/workflows/separacion-editorial-calculadora.yml'
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts
+      - run: node --test tests/separacion-editorial-calculadora.test.mjs
