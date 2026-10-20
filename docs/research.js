@@ -84,7 +84,7 @@
     });
     doc.body.querySelectorAll('table').forEach(function(n){
       var rows=n.querySelectorAll('tr'),cells=Array.from(n.querySelectorAll('td'));
-      if(rows.length<3||cells.length<6)return;
+      if(rows.length<3||cells.length<4)return;
       var numeric=cells.filter(function(c){
         var txt=c.textContent.trim();
         return /\d/.test(txt) && txt.split(/\s+/).length<16;
@@ -355,7 +355,7 @@
     if(liveModelSession&&liveModelOwner!==state){liveModelSession.dispose();liveModelSession=null;liveModelOwner=null;var panel=el("liveModelPanel");if(panel)panel.remove();}
     el('previewCompany').textContent=state.company||state.title||'Nuevo análisis';
     el('previewTicker').textContent=state.ticker||'—';
-    JmrAuditLinks.mount(el('jmrAuditResearch'),state.ticker);
+    JmrAuditLinks.mount(el('jmrAuditResearch'), state.ticker);
     el('previewPrice').textContent=state.price!=null?new Intl.NumberFormat('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2}).format(state.price):'—';
     el('previewPriceNote').textContent=state.priceFetchedAt?new Date(state.priceFetchedAt).toLocaleDateString('es-CO'):'';
     var logo=el('previewLogo'),logoSrc=logoForRecord(state);
