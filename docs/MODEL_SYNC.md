@@ -1,10 +1,22 @@
-# Conexión DCF, hoja e informe
+# Conexión entre análisis, editor oficial y simulador DCF
 
-La calculadora busca el ticker exacto en las valoraciones vigentes de `Modelo-JMR-datos`. Usa la hoja vinculada como fuente de cifras, conserva sus fórmulas y lee los resultados nativos, incluidos el DCF Base y el MOS. Los datos FMP solo se consultan cuando la empresa no tiene un modelo guardado.
+La aplicación tiene **tres funciones distintas**:
 
-La calculadora y el informe comparten `model-sync.js`. El panel **Datos de la hoja** permite cambiar las entradas numéricas existentes y sin fórmula de la columna B de `Input sheet`, y D1. Las tasas formateadas en porcentaje se editan en porcentaje. Al salir del campo se guarda el valor numérico en la hoja con `valueInputOption: RAW`. Las demás celdas son de lectura.
+1. **Análisis fundamental** (`research.html`): Nivel 1 = 18 secciones de tesis; Nivel 2 = valoración oficial con estados financieros, ratios, insumos, cálculos y matrices de sensibilidad.
+2. **Calculadora DCF** (`calculadora.html`): importa parámetros de una empresa guardada para hacer **simulaciones locales**. Ningún cambio de la calculadora se escribe en la hoja ni modifica el expediente oficial.
+3. **Editor de hoja** (`editor-hoja.html?ticker=NKE`): importa todas las pestañas de la hoja vinculada por ticker, permite desplazarse por filas/columnas, prepara cambios en celdas numéricas literales del **Input sheet** y los estados `Income Statement`, `Balance Sheet`, `Cash Flow Statement`. Los resultados derivados, fórmulas, etiquetas, celdas nuevas y pestañas de sensibilidad no se alteran. La persona confirma los cambios y el servidor valida versión + valor anterior. Después de guardar, Google Sheets recalcula; el artículo NO se republica de forma automática.
 
-El informe actualiza la tarjeta de valoración y los anexos al abrirse, al volver a la ventana y cada 30 segundos mientras esté visible. El texto histórico del artículo y los cálculos escritos no se reescriben automáticamente: se avisa que requieren revisión. No se reemplazan cifras de prosa por coincidencia de números. Los informes SOTP conservan su flujo propio.
+## Requisitos de escritura
+
+- La app debe ejecutarse en **Vercel con sesión autenticada** (en GitHub Pages solo hay lectura de hojas accesibles).
+- La variable **`GOOGLE_SERVICE_ACCOUNT_JSON_CONTENT`** debe estar configurada de forma secreta en el servidor y esa cuenta debe tener permiso de Editor sobre la hoja.
+- `GET /api/model?ticker=<TICKER>` importa el libro; `PATCH /api/model?ticker=<TICKER>` guarda exclusivamente celdas numéricas de origen existentes mediante `valueInputOption: RAW` y verifica fórmula, revisión y valor anterior. El backend admite hasta 50 cambios por operación.
+- La edición directa es una operación real sobre la **hoja Google**, no sobre los JSON ya publicados. Tras modificar insumos, se deben volver a validar y publicar las valoraciones/análisis, con controles del modelo. No se debe afirmar sincronización editorial si no ocurrió.
+- Si falla el guardado o aparece un conflicto **409**, reimportar y comprobar los datos antes de reintentar; ningún error se interpreta como éxito.
+
+## Alcance y seguridad
+
+Todas las pestañas son navegables, pero las editables se limitan deliberadamente a datos fuente numéricos existentes. Para modificar fórmulas o estructura hay que abrir la hoja original en Google Sheets, con su propio historial de versiones. Se protegen los cálculos automáticos, los ratios y las matrices. No pegar claves en el navegador ni guardar credenciales en el código fuente.
 
 ## Lectura pública y activación de escritura en el servidor
 
