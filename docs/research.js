@@ -64,12 +64,19 @@
     var target=/^[A-Z0-9._-]{1,24}$/.test(code)?'calculadora.html?ticker='+encodeURIComponent(code):'calculadora.html';
     return '<a class="jmr-open-calc" href="'+target+'">Consultar hojas y cálculos en Calculadora DCF ↗</a>';
   }
-  function articleForReading(html) {
+  function articleForReading(html, ticker) {
     var raw=String(html||'')
       .replace(/<!--jmr-cierre-start-->[\s\S]*?<!--jmr-cierre-end-->/gi,'');
     var doc=new DOMParser().parseFromString(safeHtml(raw),'text/html');
     // Ocultar copias de matrices financieras y anexos, jamás borrar del expediente.
     doc.body.querySelectorAll('pre').forEach(function(n){n.remove();});
+    var code=String(ticker||'').trim().toUpperCase();
+    var calc=/^[A-Z0-9._-]{1,24}$/.test(code)?'calculadora.html?ticker='+encodeURIComponent(code):'calculadora.html';
+    doc.body.querySelectorAll('a[href^="#calculo-"],a[href^="#calculo_"]').forEach(function(n){
+      var p=n.closest('p');
+      if(p && p.textContent.trim().replace(/\s+/g,' ').toLowerCase()==='ver cálculo')p.remove();
+      else {n.setAttribute('href',calc);n.textContent='Consultar cálculo en Calculadora DCF ↗';}
+    });
     doc.body.querySelectorAll('details').forEach(function(n){
       var heading=n.querySelector('summary');
       var title=heading?normalizeText(heading.textContent):'';
@@ -360,7 +367,7 @@
     var tickerKey=String(state.ticker||'').trim().toUpperCase();
     var editorial=editorialArticles[tickerKey];
     if(!state.articleHtml && editorial && editorial.html)baseHtml=editorial.html;
-    var article=navigableAnalysis(articleForReading(baseHtml),'articulo');
+    var article=navigableAnalysis(articleForReading(baseHtml,state.ticker),'articulo');
     var actions='<div class="jmr-research-navigation" role="navigation" aria-label="Consulta de cálculos">'+
       '<p>Este informe desarrolla la tesis y las razones detrás de los supuestos. Las hojas, tablas, sensibilidades y cálculos técnicos se consultan por ticker en la calculadora.</p>'+
       calculatorLink(state.ticker)+'</div>';
@@ -1363,7 +1370,7 @@
     var linked = rec.linkedValuation ? buildLinkedValuationHtml(rec.linkedValuation) : '';
     var val = rec.valuationHtml ? '<section class="valuation-block"><h2>Valoración cuantitativa</h2>' + rec.valuationHtml + '</section>' : '';
     var title = rec.title ? '<h1>' + escapeHtml(rec.title) + '</h1>' : '';
-    var analysis = navigableAnalysis(articleForReading(rec.articleHtml || rec.html || ''), 'comparar-' + String(rec.id).replace(/[^a-zA-Z0-9_-]/g, '-'));
+    var analysis = navigableAnalysis(articleForReading(rec.articleHtml || rec.html || '',rec.ticker), 'comparar-' + String(rec.id).replace(/[^a-zA-Z0-9_-]/g, '-'));
     // Las tablas y anexos cuantitativos no forman parte de la comparación editorial.
     var output = '<div class="compare-col"><div class="company-banner"><div class="identity">' + logo + '<div class="company-name"><h2>' + escapeHtml(rec.company || rec.title || rec.ticker || '—') + '</h2><div class="ticker">' + escapeHtml(rec.ticker || '—') + '</div></div></div></div>' +
       '<div class="preview-body"><div class="research-document" id="jmrArticleLevel">' + title + calculatorLink(rec.ticker) + analysis.toc + analysis.body + '</div></div></div>';
