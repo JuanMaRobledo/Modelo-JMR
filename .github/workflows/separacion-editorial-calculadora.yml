@@ -14,6 +14,10 @@ on:
       - 'tests/editor-hoja.test.mjs'
       - 'tests/model-sync.test.mjs'
       - 'tests/separacion-editorial-calculadora.test.mjs'
+      - 'tests/prompts-triad.test.mjs'
+      - 'docs/prompts/valoracion-modelo-jmr-v4.md'
+      - 'docs/prompts/research-fundamental-jmr-v5.md'
+      - 'docs/prompts/auditoria-economica-jmr-v1.md'
       - '.github/workflows/separacion-editorial-calculadora.yml'
   push:
     branches: [main]
@@ -30,6 +34,10 @@ on:
       - 'tests/editor-hoja.test.mjs'
       - 'tests/model-sync.test.mjs'
       - 'tests/separacion-editorial-calculadora.test.mjs'
+      - 'tests/prompts-triad.test.mjs'
+      - 'docs/prompts/valoracion-modelo-jmr-v4.md'
+      - 'docs/prompts/research-fundamental-jmr-v5.md'
+      - 'docs/prompts/auditoria-economica-jmr-v1.md'
       - '.github/workflows/separacion-editorial-calculadora.yml'
 jobs:
   test:
@@ -40,4 +48,4 @@ jobs:
         with:
           node-version: '22'
       - run: npm ci --ignore-scripts
-      - run: node --test tests/separacion-editorial-calculadora.test.mjs tests/editor-hoja.test.mjs tests/model-sync.test.mjs
+      - run: node --test tests/separacion-editorial-calculadora.test.mjs tests/editor-hoja.test.mjs tests/model-sync.test.mjs tests/prompts-triad.test.mjs
