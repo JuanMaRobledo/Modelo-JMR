@@ -36,6 +36,17 @@ test('las tablas voluminosas son desplegables y se montan únicamente al abrirse
   assert.match(render,/appendix\.addEventListener\('toggle',mountQuantitative\)/);
 });
 
+test('Análisis nunca monta editor numérico: solo consulta y deriva al Editor de hoja',()=>{
+  const live=research.split('function startLiveModel()')[1].split('function checkLinkedValuationFreshness()')[0];
+  assert.match(live,/JmrModelSync\.load\(key\)/);
+  assert.doesNotMatch(live,/JmrModelSync\.mount\(/);
+  assert.doesNotMatch(live,/data-sync-cell|method:\s*['"]PATCH['"]|liveModelPanel/);
+  assert.match(research,/editor-hoja\.html\?ticker=/);
+  assert.match(researchPage,/editor-hoja\.html/);
+  assert.match(researchPage,/jmr-number-format\.js/);
+  assert.match(research,/JmrDisplayNumber\.formatTable\(body\)/);
+});
+
 test('la Calculadora DCF solo simula, sin montar un editor de la hoja',()=>{
   assert.match(calculator,/Simular sensibilidad \(no guarda\)/);
   assert.match(calculator,/id="restoreSimulation"/);
