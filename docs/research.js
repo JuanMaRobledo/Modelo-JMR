@@ -57,6 +57,36 @@
   }
   // El índice se construye al mostrar el documento: cubre los informes ya
   // guardados y los nuevos, sin alterar el texto original del análisis.
+  // Vista editorial no destructiva: conserva los documentos y las cifras en GitHub,
+  // pero deja los anexos numéricos para la Calculadora DCF.
+  function calculatorLink(ticker) {
+    var code=String(ticker||'').trim().toUpperCase();
+    var target=/^[A-Z0-9._-]{1,24}$/.test(code)?'calculadora.html?ticker='+encodeURIComponent(code):'calculadora.html';
+    return '<a class="jmr-open-calc" href="'+target+'">Consultar hojas y cálculos en Calculadora DCF ↗</a>';
+  }
+  function articleForReading(html) {
+    var raw=String(html||'')
+      .replace(/<!--jmr-cierre-start-->[\s\S]*?<!--jmr-cierre-end-->/gi,'');
+    var doc=new DOMParser().parseFromString(safeHtml(raw),'text/html');
+    // Ocultar copias de matrices financieras y anexos, jamás borrar del expediente.
+    doc.body.querySelectorAll('pre').forEach(function(n){n.remove();});
+    doc.body.querySelectorAll('details').forEach(function(n){
+      var heading=n.querySelector('summary');
+      var title=heading?normalizeText(heading.textContent):'';
+      if(/calcul|sensibilidad|auditoria|historica|historico|revision|metodologia/.test(title) && (n.querySelector('table')||title.indexOf('histor')>=0||title.indexOf('revision')>=0))n.remove();
+    });
+    doc.body.querySelectorAll('table').forEach(function(n){
+      var rows=n.querySelectorAll('tr'),cells=Array.from(n.querySelectorAll('td'));
+      if(rows.length<3||cells.length<6)return;
+      var numeric=cells.filter(function(c){
+        var txt=c.textContent.trim();
+        return /\d/.test(txt) && txt.split(/\s+/).length<16;
+      }).length;
+      if(numeric/cells.length>=0.35)n.remove();
+    });
+    return doc.body.innerHTML;
+  }
+
   function navigableAnalysis(html, scope) {
     var doc = new DOMParser().parseFromString(safeHtml(html), 'text/html');
     var headings = Array.from(doc.body.querySelectorAll('h2,h3'));
@@ -176,7 +206,7 @@
   function checkQuality() {
     var holder = el('qualityChips'); holder.innerHTML = '';
     if (state.articleHtml && state.calculationHtml) {
-      ['Nivel 1 · Artículo completo', 'Nivel 2 · Cálculos de valoración'].forEach(function (name) {
+      ['Artículo fundamental completo', 'Cálculos vinculados a Calculadora DCF'].forEach(function (name) {
         var chip = document.createElement('span'); chip.textContent = '✓ ' + name; chip.className = 'ok'; holder.appendChild(chip);
       });
       setStatus('analysisStatus', 'Documento en dos niveles. La edición de lectura no certifica las hipótesis financieras.', 'ok');
@@ -326,61 +356,22 @@
     var body = el('previewBody');
     el('editorToolbar').hidden = !(state.html || state.valuationHtml || state.linkedValuation || state.news);
     if (!state.html && !state.valuationHtml && !state.linkedValuation && !state.news) { body.innerHTML = '<div class="preview-empty">Sube un documento para ver aquí la versión normalizada.</div>'; renderEditorToolbar(); return; }
-    var title = state.title ? '<h1>' + escapeHtml(state.title) + '</h1>' : '';
-    var linked = state.linkedValuation ? buildLinkedValuationHtml(state.linkedValuation) : '';
-    var val = state.valuationHtml ? '<section class="valuation-block"><h2>Valoración cuantitativa (tabla subida)</h2>' + state.valuationHtml + '</section>' : '';
-    if (state.articleHtml && state.calculationHtml) {
-      var articleView = navigableAnalysis(state.articleHtml, 'articulo');
-      var calculationView = navigableAnalysis(state.calculationHtml, 'calculos');
-      body.innerHTML = '<div class="research-document">' +
-        '<section class="jmr-editorial-article" id="jmrArticleLevel" aria-label="Artículo completo">' +
-        '<div class="jmr-editorial-label">NIVEL 1 · ARTÍCULO DE ANÁLISIS E INVERSIÓN</div>' +
-        articleView.toc + '<div id="editableContent">' + articleView.body + '</div>' + renderNews() +
-        '<section class="jmr-valuation-summary" aria-label="Tarjeta de valoración"><h2>Tarjeta de valoración</h2>' + (linked || val) + '</section>' +
-        '<div data-jmr-extended-sheets></div></section>' +
-        '<details class="jmr-research-details" id="jmrTechnicalLevel"><summary>Ver nivel 2 · Cálculos de valoración</summary>' +
-        '<div class="jmr-technical-content">' + calculationView.toc + calculationView.body + linkedMultiplesLevel2(state.linkedValuation) + '</div></details></div>';
-      markNumericCells(body);
-      if (typeof JmrReportSheets !== 'undefined')
-        JmrReportSheets.mount(body, state.linkedValuation);
-      renderEditorToolbar();
-      body.onclick = function (event) {
-        window.JmrReportAnchors.navigate(event, body);
-      };
-      return;
-    }
-    var analysis = navigableAnalysis(state.html, 'principal');
-    var tickerKey = String(state.ticker || '').trim().toUpperCase();
-    var editorial = editorialArticles[tickerKey];
-    var articulo = editorial && editorial.html
-      ? '<section class="jmr-editorial-article" aria-label="Artículo principal de ' + escapeHtml(tickerKey) + '">' +
-        '<div class="jmr-editorial-label">NIVEL 1 · TESIS DE INVERSIÓN</div>' +
-        safeHtml(editorial.html) +
-        '<p class="jmr-editorial-source"><a href="' + escapeHtml(editorial.documento) + '" target="_blank" rel="noopener noreferrer">Abrir y compartir versión de Google Docs ↗</a></p>' +
-        '</section>'
-      : '';
-    var technicalStart = articulo
-      ? '<details class="jmr-research-details" id="jmrTechnicalLevel"><summary>Ver nivel 2 · Cálculos de valoración</summary><div class="jmr-technical-content">'
-      : '';
-    var technicalEnd = articulo ? '</div></details>' : '';
-    // La tarjeta de valoración debe acompañar siempre la tesis de inversión,
-    // también en el PDF. Antes quedaba dentro del nivel 2 (<details>), que
-    // el modo de impresión oculta cuando está cerrado.
-    // Con artículo: mover el tablero vinculado fuera del desplegable. Si no
-    // existe vínculo, usar la valoración adjunta, sin duplicarla.
-    // Sin artículo: conservar la ubicación original de ambos bloques.
-    var tarjetaValoracion = articulo && (linked || val)
-      ? '<section class="jmr-valuation-summary" aria-label="Tarjeta de valoración">' +
-        '<h2>Tarjeta de valoración</h2>' + (linked || val) + '</section>'
-      : '';
-    var valoracionDetalle = articulo ? (linked ? val : '') : linked + val;
-    body.innerHTML = '<div class="research-document">' + articulo + tarjetaValoracion + technicalStart + title + analysis.toc +
-      '<div id="editableContent">' + analysis.body + '</div>' + valoracionDetalle + renderNews() +
-      technicalEnd + '<div data-jmr-extended-sheets></div></div>';
+    var baseHtml=state.articleHtml || state.html || '';
+    var tickerKey=String(state.ticker||'').trim().toUpperCase();
+    var editorial=editorialArticles[tickerKey];
+    if(!state.articleHtml && editorial && editorial.html)baseHtml=editorial.html;
+    var article=navigableAnalysis(articleForReading(baseHtml),'articulo');
+    var actions='<div class="jmr-research-navigation" role="navigation" aria-label="Consulta de cálculos">'+
+      '<p>Este informe desarrolla la tesis y las razones detrás de los supuestos. Las hojas, tablas, sensibilidades y cálculos técnicos se consultan por ticker en la calculadora.</p>'+
+      calculatorLink(state.ticker)+'</div>';
+    body.innerHTML='<div class="research-document jmr-reading-view">'+
+      '<section class="jmr-editorial-article" id="jmrArticleLevel" aria-label="Análisis fundamental">'+
+      '<div class="jmr-editorial-label">ANÁLISIS FUNDAMENTAL · TESIS Y EVIDENCIA</div>'+
+      actions+article.toc+'<div id="editableContent">'+article.body+'</div>'+
+      renderNews()+'</section></div>';
     markNumericCells(body);
-    if (typeof JmrReportSheets !== 'undefined')
-      JmrReportSheets.mount(body, state.linkedValuation);
     renderEditorToolbar();
+    body.onclick=function(event){window.JmrReportAnchors.navigate(event,body);};
   }
 
   // Edición directa del análisis (incluye imágenes) sin tener que volver
@@ -395,7 +386,12 @@
   // guardar/limpiar/etc. para no dejar aplicar un guardado a mitad de
   // una edición sin aplicar.
   function setEditing(on) {
-    if (on) { var technical = el('jmrTechnicalLevel'); if (technical) technical.open = true; }
+    if (on) {
+      // El editor recibe siempre el HTML íntegro; la limpieza solo afecta lectura.
+      var complete=(state.articleHtml && state.calculationHtml)?state.articleHtml:state.html;
+      var area=el('editableContent');
+      if(area && complete)area.innerHTML=safeHtml(complete);
+    }
     editing = on;
     el('editorActions').hidden = on;
     var content = el('editableContent');
@@ -1367,10 +1363,10 @@
     var linked = rec.linkedValuation ? buildLinkedValuationHtml(rec.linkedValuation) : '';
     var val = rec.valuationHtml ? '<section class="valuation-block"><h2>Valoración cuantitativa</h2>' + rec.valuationHtml + '</section>' : '';
     var title = rec.title ? '<h1>' + escapeHtml(rec.title) + '</h1>' : '';
-    var analysis = navigableAnalysis(rec.articleHtml || rec.html || '', 'comparar-' + String(rec.id).replace(/[^a-zA-Z0-9_-]/g, '-'));
-    if (rec.calculationHtml) { var calculations = navigableAnalysis(rec.calculationHtml, 'comparar-calculos-' + rec.ticker); analysis.body += '<details class="jmr-research-details"><summary>Nivel 2 · Cálculos de valoración</summary>' + calculations.toc + calculations.body + '</details>'; }
+    var analysis = navigableAnalysis(articleForReading(rec.articleHtml || rec.html || ''), 'comparar-' + String(rec.id).replace(/[^a-zA-Z0-9_-]/g, '-'));
+    // Las tablas y anexos cuantitativos no forman parte de la comparación editorial.
     var output = '<div class="compare-col"><div class="company-banner"><div class="identity">' + logo + '<div class="company-name"><h2>' + escapeHtml(rec.company || rec.title || rec.ticker || '—') + '</h2><div class="ticker">' + escapeHtml(rec.ticker || '—') + '</div></div></div></div>' +
-      '<div class="preview-body"><div class="research-document" id="jmrArticleLevel">' + title + analysis.toc + analysis.body + linked + val + '</div></div></div>';
+      '<div class="preview-body"><div class="research-document" id="jmrArticleLevel">' + title + calculatorLink(rec.ticker) + analysis.toc + analysis.body + '</div></div></div>';
     var holder = document.createElement('div'); holder.innerHTML = output;
     var anchors = {}, prefix = 'comparar-' + String(rec.id).replace(/[^a-zA-Z0-9_-]/g, '-') + '-';
     holder.querySelectorAll('[id]').forEach(function (node) { var old = node.id; node.id = prefix + old; anchors[old] = node.id; });
