@@ -17,7 +17,7 @@
   function normalizedNumber(cell){return typeof cell.raw?.numberValue==='number'?cell.raw.numberValue:cell.v;}
   function formatNumber(cell,value){
     var percent=/%\s*$/.test(String(cell.w||''));
-    return {percent:percent,scale:percent?100:1,value:value*(percent?100:1)};
+    return {percent:percent,scale:percent?100:1,value:JmrDisplayNumber.editValue(value,percent?100:1)};
   }
   var snapshot=null,ticker='',selected='',firstRow=1,firstCol=1,pageRows=30,pageCols=9;
   var drafts=new Map(),busy=false,loader=0,dimensions={};
@@ -62,11 +62,12 @@
           var fmt=formatNumber(c,d?d.value:n);
           display+='<td class="editable-cell'+(d?' dirty':'')+'" title="'+esc(address)+' · dato editable">'+
             '<label class="cell-label" for="cell-'+esc(address)+'">'+esc(address)+'</label>'+
-            '<input id="cell-'+esc(address)+'" aria-label="'+esc(selected+' '+address)+'" type="number" step="any" '+
-            'data-address="'+esc(address)+'" data-scale="'+fmt.scale+'" value="'+esc(fmt.value)+'" '+(busy?'disabled':'')+'>'+
+            '<input id="cell-'+esc(address)+'" aria-label="'+esc(selected+' '+address)+'" type="number" step="0.01" '+
+            'data-address="'+esc(address)+'" data-scale="'+fmt.scale+'" data-initial-display="'+
+            esc(formatNumber(c,n).value)+'" value="'+esc(fmt.value)+'" '+(busy?'disabled':'')+'>'+
             (fmt.percent?'<span class="cell-unit">%</span>':'')+'</td>';
         }else{
-          var label=c.w||c.v; if(label==null)label='';
+          var label=JmrDisplayNumber.formatCell(c);
           display+='<td class="'+(c.formula?'formula-cell':'readonly-cell')+'" title="'+esc(address+(c.formula?' · fórmula protegida: '+c.formula:' · solo lectura'))+'">'+
             '<div class="cell-display">'+esc(label)+'</div>'+(c.formula?'<small>ƒx</small>':'')+'</td>';
         }
@@ -88,7 +89,7 @@
     var html=[];
     drafts.forEach(function(d){
       html.push('<li><strong>'+esc(d.sheet)+'!'+esc(d.cell)+'</strong> · '+
-        esc(d.previous)+' → <strong>'+esc(d.value)+'</strong></li>');
+        esc(JmrDisplayNumber.formatNumber?JmrDisplayNumber.formatNumber(d.previous):JmrDisplayNumber.format(d.previous))+' → <strong>'+esc(JmrDisplayNumber.format(d.value))+'</strong></li>');
     });
     byId('pendingList').innerHTML=html.join('');
   }
@@ -138,13 +139,17 @@
     if(!input.matches('input[data-address]')||busy||!snapshot?.writable)return;
     var address=input.dataset.address,cell=snapshot.sheets[selected]?.[address];
     if(!isEditable(selected,address,cell,!!snapshot.writable))return;
-    var value=Number(input.value)/Number(input.dataset.scale||1);
+    var rawInput=input.value.trim(),value=Number(rawInput)/Number(input.dataset.scale||1);
+    if(!rawInput||!/^-?\d+(?:\.\d{0,2})?$/.test(rawInput)||!Number.isFinite(value)||Math.abs(value)>1e15){
+      setStatus('Escribe como máximo dos decimales en '+selected+'!'+address+'. La precisión fuente no se altera hasta guardar.','error');
+      table();return;
+    }
     if(!input.value.trim()||!Number.isFinite(value)||Math.abs(value)>1e15){
       setStatus('Dato inválido en '+selected+'!'+address+'. Introduce un número finito.','error');
       table();return;
     }
     var id=selected+'!'+address,previous=cell.raw.numberValue;
-    if(Object.is(value,previous))drafts.delete(id);
+    if(rawInput===input.dataset.initialDisplay||Object.is(value,previous))drafts.delete(id);
     else drafts.set(id,{sheet:selected,cell:address,previous,value});
     pending();table();
     if(drafts.size)setStatus('Cambios preparados, todavía NO guardados en Google Sheets.','warn');
