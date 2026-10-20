@@ -213,7 +213,7 @@
   function checkQuality() {
     var holder = el('qualityChips'); holder.innerHTML = '';
     if (state.articleHtml && state.calculationHtml) {
-      var matches=Array.from(state.articleHtml.matchAll(/<h2\\b[^>]*>\\s*(\\d+)\\.\\s*[^<]+<\\/h2>/gi));
+      var matches=Array.from(state.articleHtml.matchAll(/<h2\b[^>]*>\s*(\d+)\.\s*[^<]+<\/h2>/gi))
       var sections=new Set(matches.map(function(m){return Number(m[1]);}));
       var complete=Array.from({length:18},function(_,i){return i+1;}).every(function(i){return sections.has(i);});
       var c1=document.createElement('span');
