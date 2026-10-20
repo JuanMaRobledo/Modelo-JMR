@@ -1,0 +1,25 @@
+name: Auditorías narrativas editables
+on:
+  pull_request:
+    paths:
+      - 'docs/auditorias.html'
+      - 'docs/index.html'
+      - 'docs/visor.html'
+      - 'docs/research.html'
+      - 'docs/auditoria-multiplos.html'
+      - 'tests/test_auditorias_narrativas.cjs'
+      - '.github/workflows/auditorias-narrativas.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'docs/auditorias.html'
+      - 'tests/test_auditorias_narrativas.cjs'
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: node tests/test_auditorias_narrativas.cjs
