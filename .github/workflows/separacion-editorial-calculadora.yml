@@ -9,6 +9,9 @@ on:
       - 'docs/editor-hoja.html'
       - 'docs/editor-hoja.js'
       - 'docs/editor-hoja.css'
+      - 'docs/jmr-number-format.js'
+      - 'docs/jmr-report-sheets.js'
+      - 'tests/number-format.test.mjs'
       - 'lib/model-sheet.js'
       - 'api/model.js'
       - 'tests/editor-hoja.test.mjs'
@@ -29,6 +32,9 @@ on:
       - 'docs/editor-hoja.html'
       - 'docs/editor-hoja.js'
       - 'docs/editor-hoja.css'
+      - 'docs/jmr-number-format.js'
+      - 'docs/jmr-report-sheets.js'
+      - 'tests/number-format.test.mjs'
       - 'lib/model-sheet.js'
       - 'api/model.js'
       - 'tests/editor-hoja.test.mjs'
@@ -48,4 +54,4 @@ jobs:
         with:
           node-version: '22'
       - run: npm ci --ignore-scripts
-      - run: node --test tests/separacion-editorial-calculadora.test.mjs tests/editor-hoja.test.mjs tests/model-sync.test.mjs tests/prompts-triad.test.mjs
+      - run: node --test tests/separacion-editorial-calculadora.test.mjs tests/editor-hoja.test.mjs tests/model-sync.test.mjs tests/prompts-triad.test.mjs tests/number-format.test.mjs
