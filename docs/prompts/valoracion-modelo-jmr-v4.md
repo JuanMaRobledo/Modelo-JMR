@@ -1,3 +1,15 @@
+## CONTRATO DE PRESENTACIÓN VIGENTE 20-OCT-2026 · ANÁLISIS FUNDAMENTAL ≠ CALCULADORA DCF
+
+**La narrativa NO se debe abreviar.** El Análisis Fundamental conserva las 18 secciones, las historias económicas, competencia, negocios, estrategia, retorno sobre capital, evidencia fechada, razones para cada supuesto, tesis bull/bear, riesgos, catalizadores, conclusión, fuentes y controles metodológicos. Mantener discusión e interpretación de DCF Base y MOS sin duplicar la contabilidad completa.
+
+**La hoja y la matemática viven en la Calculadora DCF:** estados financieros, LTM, Input sheet, Valuation output, WACC, ROIC, FCFF, escenarios anuales, historia de Disrupción, análisis de sensibilidad (DCF + ambos tipos de matrices de múltiplos), valor relativo, DCF inverso, opciones y dilución, tablas y vínculos de celdas. Por ticker, consultar estos anexos **solo cuando el usuario despliega “Consultar hojas, escenarios y sensibilidades”** y recuperar la versión vigente, sin asumir que el material histórico es actual. Conservar cálculos y datos en el registro origen, no copiarlos como tablas extensas en la ventana editorial. Mantener acceso desde el artículo a `calculadora.html?ticker=<TICKER>`.
+
+**Separación física vs. preservación:** la aplicación oculta anexos en la vista de lectura sin borrarlos de los registros existentes, y mantiene la edición del contenido fuente completo. Las ediciones en hoja recalculan vistas vinculadas únicamente cuando exista conexión real y el control de sincronización; jamás declarar sincronización por coexistencia de registros. No reducir las 18 secciones a 9 ni reemplazar una tesis sustantiva por tablas. Las pantallas de Visor, auditoría y exportes técnicos conservan sus cálculos según su propósito.
+
+**Precedencia:** este contrato sustituye *solo la ubicación de tablas y sensibilidades* exigidas en el artículo por versiones anteriores del prompt. **No elimina las sensibilidades, ni su validación, ni las cuatro historias, ni el DCF Base como principal, ni el MOS**.
+
+---
+
 ## CONTRATO VIGENTE 18-OCT-2026 · DOS FAMILIAS INDEPENDIENTES DE SENSIBILIDAD POR MÚLTIPLOS
 
 Para cada empresa, cada uno de los **siete métodos** (EV/EBITDA, EV/FCFF, P/E, P/FCFE, P/OCF, P/V y P/BV) y cada historia **Conservador, Base, Optimista** (total 21 matrices por familia):
