@@ -3,6 +3,10 @@ on:
   pull_request:
     paths:
       - 'docs/auditorias.html'
+      - 'docs/jmr-audit-links.js'
+      - 'docs/jmr-audit-links.css'
+      - 'docs/research.js'
+      - 'tests/test_audit_links.cjs'
       - 'docs/index.html'
       - 'docs/visor.html'
       - 'docs/research.html'
@@ -13,7 +17,13 @@ on:
     branches: [main]
     paths:
       - 'docs/auditorias.html'
+      - 'docs/jmr-audit-links.js'
+      - 'docs/jmr-audit-links.css'
+      - 'docs/visor.html'
+      - 'docs/research.html'
+      - 'docs/research.js'
       - 'tests/test_auditorias_narrativas.cjs'
+      - 'tests/test_audit_links.cjs'
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -23,3 +33,4 @@ jobs:
         with:
           node-version: '20'
       - run: node tests/test_auditorias_narrativas.cjs
+      - run: node tests/test_audit_links.cjs

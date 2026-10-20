@@ -1,0 +1,10 @@
+/* Enlace a la auditoría contextual en análisis y valoración. */
+.jmr-audit-context-slot{display:flex;gap:9px;flex-wrap:wrap;align-items:center;padding:10px 0 2px;min-width:0}
+.jmr-audit-context-link{display:inline-flex;align-items:center;min-height:36px;padding:8px 13px;
+ border:1px solid var(--accent,#a6791f);color:var(--accent,#a6791f);font-size:13px;font-weight:700;
+ text-decoration:none;border-radius:9px;background:var(--accent-soft,rgba(166,121,31,.09))}
+.jmr-audit-context-link:hover{text-decoration:underline}
+.jmr-audit-context-link:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.jmr-audit-context-link[hidden]{display:none!important}
+.jmr-audit-context-note{color:var(--ink-soft,#57665b);font-size:12px;line-height:1.5}
+@media print{.jmr-audit-context-slot{display:none!important}}
