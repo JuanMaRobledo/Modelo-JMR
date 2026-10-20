@@ -188,6 +188,7 @@
   <a href="visor.html?mercado=colombia">Colombia</a>
   <a href="screener.html">Screener</a>
   <a href="calculadora.html" class="active">Calculadora DCF</a>
+  <a href="editor-hoja.html">Editor de hoja</a>
   <a href="portafolio.html">Portafolio</a>
   <a href="damodaran.html">Damodaran</a>
   <a href="mi-bitacora.html">Mi bitácora</a>
@@ -263,7 +264,7 @@
       <div class="frow"><label for="criterioConsolidacion">Consolidar cada múltiplo con</label><select id="criterioConsolidacion"><option value="promedio">Promedio de 1, 2 y 3 años</option><option value="solo3">Solo el de 3 años</option></select></div>
       <div class="frow"><label for="riskFreeRate">Tasa libre de riesgo (= crecimiento terminal)</label><input id="riskFreeRate" type="number" step="0.01" value="4.62"></div>
       <div class="frow"><label for="matureMarketERP">Prima de riesgo de mercado maduro</label><input id="matureMarketERP" type="number" step="0.01" value="4.23"></div>
-      <div class="frow"><label for="salesToCapital">Sales-to-capital ratio (reinversión)</label><input id="salesToCapital" type="number" step="any" value="1.5432"></div>
+      <div class="frow"><label for="salesToCapital">Sales-to-capital ratio (reinversión)</label><input id="salesToCapital" type="number" step="0.01" value="1.54"></div>
       <p class="field-help">WACC terminal = tasa libre de riesgo + prima de mercado maduro. Tasas en %.</p>
     </fieldset>
 
@@ -322,7 +323,8 @@
       <p class="field-help hist-ref" id="histMultiplesHelp" style="display:none;">Calculado por cuenta propia (no es un dato reportado): usa hasta 5 años de tus estados financieros + el precio de cierre más cercano a cada fin de año fiscal (histórico de FMP). No hay columna de 10 años: el plan gratuito no permite pedir esa cantidad de historia. Es solo referencia, no entra al cálculo.</p>
     </fieldset>
 
-    <button type="submit" class="calc-btn">Calcular valoración</button>
+    <div class="frow"><button type="submit" class="calc-btn">Simular sensibilidad (no guarda)</button><button type="button" id="restoreSimulation" class="lookup-btn" disabled>Restaurar supuestos originales</button></div>
+  <p id="simulationNotice" role="status" style="font-weight:600;margin:12px 0;">La simulación se calcula localmente. No modifica los supuestos de la hoja, el informe ni los precios oficiales.</p>
   </form>
 
   <div id="result">
@@ -508,38 +510,52 @@
     });
   }
 
-  var linkedInputs=null, companySession=null, lookupSequence=0;
+  var linkedInputs=null, companySession=null, lookupSequence=0, baselineSnapshot=null;
   var originalReadInputs=readInputs;
   var localIds=Array.from(document.querySelectorAll('#calcForm input[type="number"],#tipoEmpresa,#criterioConsolidacion')).map(function(el){return el.id;});
   var pctIds=['mos','taxEffective','taxMarginal','probFailure','recoveryPct','wacc','costoPatrimonio','riskFreeRate','matureMarketERP','growthCons','marginCons','growthBase','marginBase','growthOpt','marginOpt','daPctRevenue','capexPctRevenue','nwcPctDeltaRevenue','interestOtherPctEBIT','netBorrowingPctRevenue','buybackRate'];
   function applyCompany(snapshot){
-    var wb=JmrModelSync.workbook(snapshot);
-    linkedInputs=insumosDesdeHoja(function(h,a){return wb.Sheets[h]&&wb.Sheets[h][a]?wb.Sheets[h][a].v:null;});
-    localIds.forEach(function(id){var el=document.getElementById(id),v=linkedInputs[id];
-      // The native workbook retains the complete scenario paths and historical ratios.
-      if(v==null){el.value='';el.disabled=true;return;}
-      el.disabled=false;if(typeof v==='number'){el.value=String(v*(pctIds.indexOf(id)>=0?100:1));el.step='any';}else el.value=v;
+    var wb=JmrModelSync.workbook(snapshot), values=insumosDesdeHoja(function(h,a){
+      return wb.Sheets[h]&&wb.Sheets[h][a]?wb.Sheets[h][a].v:null;
     });
-    localIds.forEach(function(id){document.getElementById(id).disabled=true;});
+    baselineSnapshot=snapshot;linkedInputs=null;
+    localIds.forEach(function(id){
+      var el=document.getElementById(id),v=values[id];
+      // El experimento es una copia; nunca escribe en Google Sheets.
+      el.disabled=false;
+      if(v==null){el.value='';return;}
+      if(typeof v==='number'){el.value=String(Math.round((v*(pctIds.indexOf(id)>=0?100:1)+Number.EPSILON)*100)/100);el.step='0.01';}
+      else el.value=v;
+    });
+    document.getElementById('restoreSimulation').disabled=false;
     renderHistorical(null);clearSourceMarks();
-    var inp=readInputs(),canonical=JmrModelSync.record(snapshot);render(inp,JmrModelSync.calculatorResult(canonical),true);
-    setStatus(snapshot.record.ticker+' · modelo de la hoja vigente. El panel “Datos de la hoja” guarda los cambios compartidos. Los campos inferiores muestran los insumos del modelo; edita las entradas en el panel de la hoja.', 'ok');
+    var inp=originalReadInputs(),canonical=JmrModelSync.record(snapshot);
+    render(inp,JmrModelSync.calculatorResult(canonical),true);
     document.getElementById('rPrecioMOS').textContent=fmtMoney(canonical.precioMOS);
     document.getElementById('zMOS').textContent=fmtMoney(canonical.precioMOS);
+    document.getElementById('simulationNotice').textContent='Base: '+snapshot.record.ticker+
+      ' · entradas mostradas con máximo dos decimales, sin alterar la hoja original. Puedes modificar los campos y calcular escenarios alternativos; ningún cambio se guarda.';
+    setStatus('Modelo de '+snapshot.record.ticker+' importado como punto de partida. La calculadora es un simulador, NO el reporte publicado.','ok');
   }
-  readInputs=function(){return linkedInputs ? JSON.parse(JSON.stringify(linkedInputs)) : originalReadInputs();};
+  readInputs=function(){return originalReadInputs();};
+  document.getElementById('restoreSimulation').addEventListener('click',function(){
+    if(baselineSnapshot)applyCompany(baselineSnapshot);
+  });
   function runLookup(){
     var key;try{key=JmrModelSync.ticker(document.getElementById('ticker').value);}catch(e){setStatus(e.message,'err');return;}
     var sequence=++lookupSequence;
     if(companySession)companySession.dispose();companySession=null;
-    linkedInputs=null;
+    linkedInputs=null;baselineSnapshot=null;
+    document.getElementById('restoreSimulation').disabled=true;
+    document.getElementById('simulationNotice').textContent='Cargando supuestos para una prueba local; no se guardará ninguna modificación.';
     document.getElementById('result').classList.remove('show');
     document.getElementById('companySync').innerHTML='';
     localIds.forEach(function(id){var el=document.getElementById(id);el.value='';el.disabled=true;});
     setStatus('Buscando el modelo vigente de '+key+'…','warn');
     JmrModelSync.load(key).then(function(initial){
       if(sequence!==lookupSequence)return;
-      companySession=JmrModelSync.mount(document.getElementById('companySync'),key,function(s){if(sequence===lookupSequence&&document.getElementById('ticker').value.trim().toUpperCase()===key)applyCompany(s);},initial);
+      // Solo lectura del punto de partida. No montar el editor sincronizado de la hoja.
+      applyCompany(initial);
     }).catch(function(e){
       if(sequence!==lookupSequence)return;
       if(e.status===404){localIds.forEach(function(id){document.getElementById(id).disabled=false;});runFmpLookup();}
@@ -667,18 +683,34 @@
 
   document.getElementById('calcForm').addEventListener('submit', function(e){
     e.preventDefault();
-    if(linkedInputs){setStatus('Edita los supuestos en el panel “Datos de la hoja”; Google Sheets recalcula y actualiza el resultado.','ok');return;}
+    
     if(!linkedInputs && document.getElementById('revenue0').disabled){setStatus('Busca y carga una empresa primero.','warn');return;}
     var inp = readInputs();
     var r = calcularModeloJMR(inp);
     render(inp, r);
+    document.getElementById('simulationNotice').textContent='Resultado de simulación local: no es la valoración oficial, no cambia la hoja ni se publica.';
+    setStatus('Prueba de sensibilidad realizada solo en este navegador. Para recuperar el modelo original pulsa “Restaurar supuestos originales”.','ok');
   });
 
-  document.getElementById('ticker').addEventListener('input',function(){++lookupSequence;document.getElementById('lookupBtn').disabled=false;document.getElementById('lookupBtn').textContent='Buscar datos';if(companySession)companySession.dispose();companySession=null;linkedInputs=null;document.getElementById('result').classList.remove('show');document.getElementById('companySync').innerHTML='';localIds.forEach(function(id){var el=document.getElementById(id);el.value='';el.disabled=true;});});
+  document.getElementById('ticker').addEventListener('input',function(){
+    ++lookupSequence;if(companySession)companySession.dispose();companySession=null;
+    linkedInputs=null;baselineSnapshot=null;
+    document.getElementById('restoreSimulation').disabled=true;
+    document.getElementById('result').classList.remove('show');
+    document.getElementById('companySync').innerHTML='';
+    localIds.forEach(function(id){var el=document.getElementById(id);el.value='';el.disabled=true;});
+    document.getElementById('simulationNotice').textContent='Busca el ticker para comenzar una nueva simulación.';
+  });
   ['revenue0','ebit0','shares0','wacc','riskFreeRate','salesToCapital','taxEffective','taxMarginal','growthCons','marginCons','growthBase','marginBase','growthOpt','marginOpt'].forEach(function(id){document.getElementById(id).required=true;});
   var initialTicker=new URLSearchParams(location.search).get('ticker');
-  if(initialTicker)document.getElementById('ticker').value=initialTicker;
-  runLookup();
+  if(initialTicker){
+    document.getElementById('ticker').value=initialTicker;
+    runLookup();
+  }else{
+    document.getElementById('ticker').value='';
+    localIds.forEach(function(id){var el=document.getElementById(id);el.value='';el.disabled=true;});
+    setStatus('Escribe un ticker y pulsa “Buscar datos” para abrir su modelo vigente.','warn');
+  }
   var savedTheme = 'system';
   try { savedTheme = localStorage.getItem('bitacora-theme') || 'system'; } catch(e){}
   if(savedTheme !== 'system'){ document.documentElement.setAttribute('data-theme', savedTheme); }

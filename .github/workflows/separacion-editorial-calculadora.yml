@@ -1,0 +1,57 @@
+name: Dos niveles, simulador y editor de hoja
+on:
+  pull_request:
+    paths:
+      - 'docs/research.js'
+      - 'docs/research.html'
+      - 'docs/calculadora.html'
+      - 'docs/model-sync.js'
+      - 'docs/editor-hoja.html'
+      - 'docs/editor-hoja.js'
+      - 'docs/editor-hoja.css'
+      - 'docs/jmr-number-format.js'
+      - 'docs/jmr-report-sheets.js'
+      - 'tests/number-format.test.mjs'
+      - 'lib/model-sheet.js'
+      - 'api/model.js'
+      - 'tests/editor-hoja.test.mjs'
+      - 'tests/model-sync.test.mjs'
+      - 'tests/separacion-editorial-calculadora.test.mjs'
+      - 'tests/prompts-triad.test.mjs'
+      - 'docs/prompts/valoracion-modelo-jmr-v4.md'
+      - 'docs/prompts/research-fundamental-jmr-v5.md'
+      - 'docs/prompts/auditoria-economica-jmr-v1.md'
+      - '.github/workflows/separacion-editorial-calculadora.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'docs/research.js'
+      - 'docs/research.html'
+      - 'docs/calculadora.html'
+      - 'docs/model-sync.js'
+      - 'docs/editor-hoja.html'
+      - 'docs/editor-hoja.js'
+      - 'docs/editor-hoja.css'
+      - 'docs/jmr-number-format.js'
+      - 'docs/jmr-report-sheets.js'
+      - 'tests/number-format.test.mjs'
+      - 'lib/model-sheet.js'
+      - 'api/model.js'
+      - 'tests/editor-hoja.test.mjs'
+      - 'tests/model-sync.test.mjs'
+      - 'tests/separacion-editorial-calculadora.test.mjs'
+      - 'tests/prompts-triad.test.mjs'
+      - 'docs/prompts/valoracion-modelo-jmr-v4.md'
+      - 'docs/prompts/research-fundamental-jmr-v5.md'
+      - 'docs/prompts/auditoria-economica-jmr-v1.md'
+      - '.github/workflows/separacion-editorial-calculadora.yml'
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts
+      - run: node --test tests/separacion-editorial-calculadora.test.mjs tests/editor-hoja.test.mjs tests/model-sync.test.mjs tests/prompts-triad.test.mjs tests/number-format.test.mjs

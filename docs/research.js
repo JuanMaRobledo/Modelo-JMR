@@ -57,6 +57,43 @@
   }
   // El índice se construye al mostrar el documento: cubre los informes ya
   // guardados y los nuevos, sin alterar el texto original del análisis.
+  // Vista editorial no destructiva: conserva los documentos y las cifras en GitHub,
+  // pero deja los anexos numéricos para la Calculadora DCF.
+  function calculatorLink(ticker) {
+    var code=String(ticker||'').trim().toUpperCase();
+    var target=/^[A-Z0-9._-]{1,24}$/.test(code)?'calculadora.html?ticker='+encodeURIComponent(code):'calculadora.html';
+    return '<a class="jmr-open-calc" href="'+target+'">Abrir simulador de sensibilidad DCF ↗</a>';
+  }
+  function articleForReading(html, ticker) {
+    var raw=String(html||'')
+      .replace(/<!--jmr-cierre-start-->[\s\S]*?<!--jmr-cierre-end-->/gi,'');
+    var doc=new DOMParser().parseFromString(safeHtml(raw),'text/html');
+    // Ocultar copias de matrices financieras y anexos, jamás borrar del expediente.
+    doc.body.querySelectorAll('pre').forEach(function(n){n.remove();});
+    var code=String(ticker||'').trim().toUpperCase();
+    var calc=/^[A-Z0-9._-]{1,24}$/.test(code)?'calculadora.html?ticker='+encodeURIComponent(code):'calculadora.html';
+    doc.body.querySelectorAll('a[href^="#calculo-"],a[href^="#calculo_"]').forEach(function(n){
+      var p=n.closest('p');
+      if(p && p.textContent.trim().replace(/\s+/g,' ').toLowerCase()==='ver cálculo')p.remove();
+      else {n.setAttribute('href',calc);n.textContent='Consultar cálculo en Calculadora DCF ↗';}
+    });
+    doc.body.querySelectorAll('details').forEach(function(n){
+      var heading=n.querySelector('summary');
+      var title=heading?normalizeText(heading.textContent):'';
+      if(/calcul|sensibilidad|auditoria|historica|historico|revision|metodologia/.test(title) && (n.querySelector('table')||title.indexOf('histor')>=0||title.indexOf('revision')>=0))n.remove();
+    });
+    doc.body.querySelectorAll('table').forEach(function(n){
+      var rows=n.querySelectorAll('tr'),cells=Array.from(n.querySelectorAll('td'));
+      if(rows.length<3||cells.length<4)return;
+      var numeric=cells.filter(function(c){
+        var txt=c.textContent.trim();
+        return /\d/.test(txt) && txt.split(/\s+/).length<16;
+      }).length;
+      if(numeric/cells.length>=0.35)n.remove();
+    });
+    return doc.body.innerHTML;
+  }
+
   function navigableAnalysis(html, scope) {
     var doc = new DOMParser().parseFromString(safeHtml(html), 'text/html');
     var headings = Array.from(doc.body.querySelectorAll('h2,h3'));
@@ -176,10 +213,19 @@
   function checkQuality() {
     var holder = el('qualityChips'); holder.innerHTML = '';
     if (state.articleHtml && state.calculationHtml) {
-      ['Nivel 1 · Artículo completo', 'Nivel 2 · Cálculos de valoración'].forEach(function (name) {
-        var chip = document.createElement('span'); chip.textContent = '✓ ' + name; chip.className = 'ok'; holder.appendChild(chip);
-      });
-      setStatus('analysisStatus', 'Documento en dos niveles. La edición de lectura no certifica las hipótesis financieras.', 'ok');
+      var matches=Array.from(state.articleHtml.matchAll(/<h2\b[^>]*>\s*(\d+)\.\s*[^<]+<\/h2>/gi))
+      var sections=new Set(matches.map(function(m){return Number(m[1]);}));
+      var complete=Array.from({length:18},function(_,i){return i+1;}).every(function(i){return sections.has(i);});
+      var c1=document.createElement('span');
+      c1.textContent=(complete?'✓ ':'⚠ ')+
+        'Nivel 1 · Análisis fundamental ('+sections.size+'/18 apartados)';
+      c1.className=complete?'ok':'';
+      holder.appendChild(c1);
+      var c2=document.createElement('span');
+      c2.textContent='✓ Nivel 2 · Valoración y cálculos';c2.className='ok';holder.appendChild(c2);
+      setStatus('analysisStatus',complete
+        ?'Dos niveles disponibles. Verifica fuentes e hipótesis económicas antes de considerar el informe auditado.'
+        :'El expediente incluye dos niveles, pero el artículo no conserva los 18 apartados del prompt: requiere restauración editorial.',complete?'ok':'bad');
       return;
     }
     if (!state.html) return;
@@ -306,81 +352,64 @@
   }
 
   function renderPreview() {
-    if(liveModelSession&&liveModelOwner!==state){liveModelSession.dispose();liveModelSession=null;liveModelOwner=null;var panel=el("liveModelPanel");if(panel)panel.remove();}
-    el('previewCompany').textContent = state.company || state.title || 'Nuevo análisis';
-    el('previewTicker').textContent = state.ticker || '—';
+    if(liveModelSession&&liveModelOwner!==state){liveModelSession.dispose();liveModelSession=null;liveModelOwner=null;}
+    el('previewCompany').textContent=state.company||state.title||'Nuevo análisis';
+    el('previewTicker').textContent=state.ticker||'—';
     JmrAuditLinks.mount(el('jmrAuditResearch'), state.ticker);
-    el('previewPrice').textContent = state.price != null ? new Intl.NumberFormat('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2}).format(state.price) : '—';
-    el('previewPriceNote').textContent = state.priceFetchedAt ? new Date(state.priceFetchedAt).toLocaleDateString('es-CO') : '';
-    var logo = el('previewLogo');
-    var logoSrc = logoForRecord(state);
-    if (logoSrc) { logo.src = logoSrc; logo.alt = 'Logo de ' + (state.company || state.ticker); logo.hidden = false; }
-    else { logo.hidden = true; logo.removeAttribute('src'); }
-    // Mientras se está editando el contenido a mano, no se toca el DOM
-    // editable — reconstruirlo desde state.html en cada tecla tipeada en
-    // otro campo (ticker, empresa, etc., que también llaman a
-    // renderPreview vía syncFields) borraría cualquier edición todavía
-    // no aplicada.
+    el('previewPrice').textContent=state.price!=null?new Intl.NumberFormat('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2}).format(state.price):'—';
+    el('previewPriceNote').textContent=state.priceFetchedAt?new Date(state.priceFetchedAt).toLocaleDateString('es-CO'):'';
+    var logo=el('previewLogo'),logoSrc=logoForRecord(state);
+    if(logoSrc){logo.src=logoSrc;logo.alt='Logo de '+(state.company||state.ticker);logo.hidden=false;}
+    else {logo.hidden=true;logo.removeAttribute('src');}
     renderDecision();
-    if (editing) return;
-    var body = el('previewBody');
-    el('editorToolbar').hidden = !(state.html || state.valuationHtml || state.linkedValuation || state.news);
-    if (!state.html && !state.valuationHtml && !state.linkedValuation && !state.news) { body.innerHTML = '<div class="preview-empty">Sube un documento para ver aquí la versión normalizada.</div>'; renderEditorToolbar(); return; }
-    var title = state.title ? '<h1>' + escapeHtml(state.title) + '</h1>' : '';
-    var linked = state.linkedValuation ? buildLinkedValuationHtml(state.linkedValuation) : '';
-    var val = state.valuationHtml ? '<section class="valuation-block"><h2>Valoración cuantitativa (tabla subida)</h2>' + state.valuationHtml + '</section>' : '';
-    if (state.articleHtml && state.calculationHtml) {
-      var articleView = navigableAnalysis(state.articleHtml, 'articulo');
-      var calculationView = navigableAnalysis(state.calculationHtml, 'calculos');
-      body.innerHTML = '<div class="research-document">' +
-        '<section class="jmr-editorial-article" id="jmrArticleLevel" aria-label="Artículo completo">' +
-        '<div class="jmr-editorial-label">NIVEL 1 · ARTÍCULO DE ANÁLISIS E INVERSIÓN</div>' +
-        articleView.toc + '<div id="editableContent">' + articleView.body + '</div>' + renderNews() +
-        '<section class="jmr-valuation-summary" aria-label="Tarjeta de valoración"><h2>Tarjeta de valoración</h2>' + (linked || val) + '</section>' +
-        '<div data-jmr-extended-sheets></div></section>' +
-        '<details class="jmr-research-details" id="jmrTechnicalLevel"><summary>Ver nivel 2 · Cálculos de valoración</summary>' +
-        '<div class="jmr-technical-content">' + calculationView.toc + calculationView.body + linkedMultiplesLevel2(state.linkedValuation) + '</div></details></div>';
-      markNumericCells(body);
-      if (typeof JmrReportSheets !== 'undefined')
-        JmrReportSheets.mount(body, state.linkedValuation);
-      renderEditorToolbar();
-      body.onclick = function (event) {
-        window.JmrReportAnchors.navigate(event, body);
-      };
-      return;
+    if(editing)return;
+    var body=el('previewBody');
+    el('editorToolbar').hidden=!(state.articleHtml||state.html||state.valuationHtml||state.linkedValuation||state.news);
+    if(!state.articleHtml&&!state.html&&!state.valuationHtml&&!state.linkedValuation&&!state.news){
+      body.innerHTML='<div class="preview-empty">Abre un análisis guardado para consultar tesis y valoración.</div>';
+      renderEditorToolbar();return;
     }
-    var analysis = navigableAnalysis(state.html, 'principal');
-    var tickerKey = String(state.ticker || '').trim().toUpperCase();
-    var editorial = editorialArticles[tickerKey];
-    var articulo = editorial && editorial.html
-      ? '<section class="jmr-editorial-article" aria-label="Artículo principal de ' + escapeHtml(tickerKey) + '">' +
-        '<div class="jmr-editorial-label">NIVEL 1 · TESIS DE INVERSIÓN</div>' +
-        safeHtml(editorial.html) +
-        '<p class="jmr-editorial-source"><a href="' + escapeHtml(editorial.documento) + '" target="_blank" rel="noopener noreferrer">Abrir y compartir versión de Google Docs ↗</a></p>' +
-        '</section>'
-      : '';
-    var technicalStart = articulo
-      ? '<details class="jmr-research-details" id="jmrTechnicalLevel"><summary>Ver nivel 2 · Cálculos de valoración</summary><div class="jmr-technical-content">'
-      : '';
-    var technicalEnd = articulo ? '</div></details>' : '';
-    // La tarjeta de valoración debe acompañar siempre la tesis de inversión,
-    // también en el PDF. Antes quedaba dentro del nivel 2 (<details>), que
-    // el modo de impresión oculta cuando está cerrado.
-    // Con artículo: mover el tablero vinculado fuera del desplegable. Si no
-    // existe vínculo, usar la valoración adjunta, sin duplicarla.
-    // Sin artículo: conservar la ubicación original de ambos bloques.
-    var tarjetaValoracion = articulo && (linked || val)
-      ? '<section class="jmr-valuation-summary" aria-label="Tarjeta de valoración">' +
-        '<h2>Tarjeta de valoración</h2>' + (linked || val) + '</section>'
-      : '';
-    var valoracionDetalle = articulo ? (linked ? val : '') : linked + val;
-    body.innerHTML = '<div class="research-document">' + articulo + tarjetaValoracion + technicalStart + title + analysis.toc +
-      '<div id="editableContent">' + analysis.body + '</div>' + valoracionDetalle + renderNews() +
-      technicalEnd + '<div data-jmr-extended-sheets></div></div>';
+    var ticker=String(state.ticker||'').trim().toUpperCase();
+    var editorial=editorialArticles[ticker];
+    var rawArticle=state.articleHtml||(editorial&&editorial.html)||state.html||'';
+    var article=navigableAnalysis(articleForReading(rawArticle,ticker),'articulo');
+    var technical=state.calculationHtml?navigableAnalysis(state.calculationHtml,'calculos'):null;
+    var linked=state.linkedValuation?buildLinkedValuationHtml(state.linkedValuation):'';
+    var extra=state.valuationHtml?'<section class="valuation-block"><h3>Tablas vinculadas de valoración</h3>'+state.valuationHtml+'</section>':'';
+    var detailsId='jmrTechnicalLevel';
+    var editHref=/^[A-Z0-9._-]{1,24}$/.test(ticker)?'editor-hoja.html?ticker='+encodeURIComponent(ticker):'editor-hoja.html';
+    var technicalIntroduction='<p class="jmr-tech-intro">Información cuantitativa de la valoración publicada: estados financieros, ratios, supuestos, flujos, sensibilidad y múltiplos. Es la referencia de la hoja, no una simulación hipotética.</p>'+
+      '<p><a class="jmr-open-calc" href="'+editHref+'">Editar datos fuente en la hoja ↗</a> · La edición no modifica el artículo automáticamente.</p>';
+    var level2='<details class="jmr-research-details" id="'+detailsId+'">'+
+      '<summary>NIVEL 2 · VALORACIÓN, ESTADOS FINANCIEROS Y SENSIBILIDADES</summary>'+
+      '<div class="jmr-technical-content">'+technicalIntroduction+
+      (linked?'<section class="jmr-valuation-summary" aria-label="Tarjeta de valoración"><h2>Resultado de valoración</h2>'+linked+'</section>':'')+
+      extra+
+      '<details class="jmr-research-details jmr-calculation-appendix"><summary>Operaciones, fórmulas y conciliaciones del expediente</summary>'+
+      (technical?technical.toc+technical.body:'<p>El expediente todavía no contiene un anexo de cálculos separado.</p>')+
+      linkedMultiplesLevel2(state.linkedValuation)+'</details>'+
+      '<details class="jmr-research-details jmr-financial-appendix"><summary>Estados financieros, ratios, escenarios y matrices de sensibilidad</summary>'+
+      '<div data-jmr-extended-sheets></div></details>'+
+      '</div></details>';
+    var actions='<div class="jmr-research-navigation" role="navigation" aria-label="Navegación entre análisis y simulador">'+
+      '<p>La tesis de inversión está en el Nivel 1. La valoración real y sus tablas están en el Nivel 2. La calculadora permite probar escenarios sin modificar el expediente.</p>'+
+      calculatorLink(ticker)+'</div>';
+    body.innerHTML='<div class="research-document jmr-reading-view">'+
+      '<section class="jmr-editorial-article" id="jmrArticleLevel" aria-label="Nivel 1 · Análisis fundamental">'+
+      '<div class="jmr-editorial-label">NIVEL 1 · ANÁLISIS FUNDAMENTAL</div>'+
+      actions+article.toc+'<div id="editableContent">'+article.body+'</div>'+renderNews()+
+      '</section>'+level2+'</div>';
     markNumericCells(body);
-    if (typeof JmrReportSheets !== 'undefined')
-      JmrReportSheets.mount(body, state.linkedValuation);
+    JmrDisplayNumber.formatTable(body);
+    var detail=el(detailsId),appendix=detail&&detail.querySelector('.jmr-financial-appendix'),reportMounted=false;
+    function mountQuantitative(){
+      if(reportMounted||!appendix||!appendix.open)return;
+      reportMounted=true;
+      if(typeof JmrReportSheets!=='undefined'&&state.linkedValuation)JmrReportSheets.mount(appendix,state.linkedValuation);
+    }
+    if(appendix)appendix.addEventListener('toggle',mountQuantitative);
     renderEditorToolbar();
+    body.onclick=function(event){window.JmrReportAnchors.navigate(event,body);};
   }
 
   // Edición directa del análisis (incluye imágenes) sin tener que volver
@@ -395,7 +424,12 @@
   // guardar/limpiar/etc. para no dejar aplicar un guardado a mitad de
   // una edición sin aplicar.
   function setEditing(on) {
-    if (on) { var technical = el('jmrTechnicalLevel'); if (technical) technical.open = true; }
+    if (on) {
+      // El editor recibe siempre el HTML íntegro; la limpieza solo afecta lectura.
+      var complete=(state.articleHtml && state.calculationHtml)?state.articleHtml:state.html;
+      var area=el('editableContent');
+      if(area && complete)area.innerHTML=safeHtml(complete);
+    }
     editing = on;
     el('editorActions').hidden = on;
     var content = el('editableContent');
@@ -618,24 +652,37 @@
   // pisar algo a propósito) — solo avisa, con el mismo botón de siempre
   // para refrescarlo si el usuario quiere.
   var liveModelSession=null, liveModelOwner=null;
+  // Sin formulario de edición aquí: la lectura es de solo consulta. El Editor de
+  // hoja es una página separada con guardado confirmado, no al salir del campo.
   function startLiveModel(){
     if(typeof JmrModelSync==='undefined'||!state.ticker)return;
     if(liveModelSession&&liveModelOwner===state)return;
     if(liveModelSession)liveModelSession.dispose();
-    liveModelOwner=state;
-    var owner=state,host=el('liveModelPanel');
-    if(!host){host=document.createElement('section');host.id='liveModelPanel';el('previewBody').parentNode.insertBefore(host,el('previewBody'));}
-    host.innerHTML='';
-    liveModelSession=JmrModelSync.mount(host,state.ticker,function(snapshot,changed){
-      if(state!==owner)return;
-      var rec=JmrModelSync.record(snapshot);
-      state.linkedValuation=rec;
-      renderPreview();
-      var note=el('liveModelEditorialNote');
-      if(!note){note=document.createElement('p');note.id='liveModelEditorialNote';host.appendChild(note);}
-      note.textContent='La tarjeta de valoración y los anexos usan la hoja vigente. Las cifras incluidas en el texto del artículo y en cálculos escritos son del informe publicado y requieren revisión si cambian los supuestos.';
-      if(changed)note.textContent='Cambió la hoja: tarjeta y anexos actualizados. Revisa las cifras y conclusiones del artículo y de los cálculos escritos antes de publicarlos.';
-    });
+    var owner=state,key=String(state.ticker).toUpperCase(),active=true,busy=false;
+    liveModelOwner=owner;
+    function refresh(){
+      if(!active||busy||state!==owner)return;
+      busy=true;
+      JmrModelSync.load(key).then(function(snapshot){
+        if(!active||state!==owner)return;
+        var rec=JmrModelSync.record(snapshot);
+        if(!rec)return;
+        var old=owner.linkedValuation||{};
+        var changed=JSON.stringify(old.liveModel||null)!==JSON.stringify(rec.liveModel||null);
+        owner.linkedValuation=rec;
+        renderPreview();
+        // No se modifica ninguna celda del libro, ni se república el informe.
+        if(changed) setStatus('linkVisorStatus',
+          'Valores actuales leídos de la hoja para '+key+'. Revisa el texto histórico antes de republicar.','ok');
+      }).catch(function(err){
+        if(active&&state===owner)setStatus('linkVisorStatus',
+          'La lectura de la hoja no se completó ('+err.message+'). Se conservan los datos publicados.','bad');
+      }).finally(function(){busy=false;});
+    }
+    function updated(e){if(e.detail&&e.detail.ticker===key)refresh();}
+    window.addEventListener('jmr-model-updated',updated);
+    liveModelSession={dispose:function(){active=false;window.removeEventListener('jmr-model-updated',updated);}};
+    refresh();
   }
   function checkLinkedValuationFreshness() {
     startLiveModel();
@@ -1367,10 +1414,10 @@
     var linked = rec.linkedValuation ? buildLinkedValuationHtml(rec.linkedValuation) : '';
     var val = rec.valuationHtml ? '<section class="valuation-block"><h2>Valoración cuantitativa</h2>' + rec.valuationHtml + '</section>' : '';
     var title = rec.title ? '<h1>' + escapeHtml(rec.title) + '</h1>' : '';
-    var analysis = navigableAnalysis(rec.articleHtml || rec.html || '', 'comparar-' + String(rec.id).replace(/[^a-zA-Z0-9_-]/g, '-'));
-    if (rec.calculationHtml) { var calculations = navigableAnalysis(rec.calculationHtml, 'comparar-calculos-' + rec.ticker); analysis.body += '<details class="jmr-research-details"><summary>Nivel 2 · Cálculos de valoración</summary>' + calculations.toc + calculations.body + '</details>'; }
+    var analysis = navigableAnalysis(articleForReading(rec.articleHtml || rec.html || '',rec.ticker), 'comparar-' + String(rec.id).replace(/[^a-zA-Z0-9_-]/g, '-'));
+    // La comparación es narrativa; cada expediente conserva su propio Nivel 2 en la biblioteca.
     var output = '<div class="compare-col"><div class="company-banner"><div class="identity">' + logo + '<div class="company-name"><h2>' + escapeHtml(rec.company || rec.title || rec.ticker || '—') + '</h2><div class="ticker">' + escapeHtml(rec.ticker || '—') + '</div></div></div></div>' +
-      '<div class="preview-body"><div class="research-document" id="jmrArticleLevel">' + title + analysis.toc + analysis.body + linked + val + '</div></div></div>';
+      '<div class="preview-body"><div class="research-document" id="jmrArticleLevel">' + title + calculatorLink(rec.ticker) + analysis.toc + analysis.body + '</div></div></div>';
     var holder = document.createElement('div'); holder.innerHTML = output;
     var anchors = {}, prefix = 'comparar-' + String(rec.id).replace(/[^a-zA-Z0-9_-]/g, '-') + '-';
     holder.querySelectorAll('[id]').forEach(function (node) { var old = node.id; node.id = prefix + old; anchors[old] = node.id; });

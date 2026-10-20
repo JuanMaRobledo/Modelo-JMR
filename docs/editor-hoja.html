@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0f172a">
+<title>Editor de hoja · Modelo JMR</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon.ico">
+<link rel="stylesheet" href="jmr-theme.css">
+<link rel="stylesheet" href="jmr-fullwidth.css">
+<link rel="stylesheet" href="editor-hoja.css?v=20261020">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body class="sheet-editor-page">
+<script src="auth.js"></script>
+<script src="mercado.js"></script>
+<nav class="appnav" aria-label="Navegación principal">
+  <a href="https://cartera-two-eta.vercel.app/">JMR</a>
+  <a href="index.html">Referencias</a>
+  <a href="visor.html">Internacionales</a>
+  <a href="visor.html?mercado=colombia">Colombia</a>
+  <a href="screener.html">Screener</a>
+  <a href="research.html">Análisis fundamental</a>
+  <a href="calculadora.html">Calculadora DCF</a>
+  <a href="editor-hoja.html" class="active" aria-current="page">Editor de hoja</a>
+  <a href="portafolio.html">Portafolio</a>
+  <a href="damodaran.html">Damodaran</a>
+  <a href="auditoria-multiplos.html">Auditoría de múltiplos</a>
+  <a href="auditorias.html?ticker=PYPL">Auditorías</a>
+</nav>
+<main class="editor-main">
+  <header class="editor-header">
+    <span class="eyebrow">MODELO JMR · HOJA OFICIAL</span>
+    <h1>Editor de hoja</h1>
+    <p>Importa la valoración guardada por ticker, consulta todas las pestañas y corrige los valores de entrada permitidos. Las fórmulas permanecen protegidas; ningún cambio se publica automáticamente en el análisis fundamental.</p>
+  </header>
+  <form id="lookup" class="lookup-grid">
+    <label for="ticker">Ticker de la empresa</label>
+    <div class="lookup-actions">
+      <input id="ticker" name="ticker" type="text" placeholder="NKE, AAPL, MSFT…" autocomplete="off" spellcheck="false" required>
+      <button id="load" type="submit">Importar hoja vigente</button>
+    </div>
+  </form>
+  <p id="status" role="status" data-kind="neutral">Busca un ticker para cargar su hoja de valoración.</p>
+  <section id="workbook" hidden>
+    <div class="workbook-head">
+      <div>
+        <span class="eyebrow">LIBRO IMPORTADO</span>
+        <h2 id="companyName">Empresa</h2>
+        <p id="sourceDate"></p>
+        <span id="editState" data-mode="neutral">Sin modelo</span>
+      </div>
+      <div class="quick-links">
+        <a id="nativeSheet" hidden target="_blank" rel="noopener noreferrer">Abrir en Google Sheets ↗</a>
+        <a id="researchLink">Análisis fundamental</a>
+        <a id="calcLink">Simular sensibilidad</a>
+      </div>
+    </div>
+    <div class="toolbar">
+      <label for="sheetPicker">Pestaña del libro</label>
+      <select id="sheetPicker" aria-label="Seleccionar pestaña del libro"></select>
+      <strong id="sheetName"></strong>
+    </div>
+    <div class="range-toolbar">
+      <div class="page-controls">
+        <button type="button" id="prevRows" aria-label="Filas anteriores">↑ Filas</button>
+        <button type="button" id="nextRows" aria-label="Filas siguientes">↓ Filas</button>
+        <button type="button" id="prevCols" aria-label="Columnas anteriores">← Columnas</button>
+        <button type="button" id="nextCols" aria-label="Columnas siguientes">→ Columnas</button>
+      </div>
+      <form id="gotoRange" class="goto-controls">
+        <label for="startRow">Fila</label><input id="startRow" type="number" min="1" step="1" value="1">
+        <label for="startCol">Columna</label><input id="startCol" type="text" value="A" pattern="[A-Za-z]{1,3}">
+        <button type="submit">Ir</button>
+      </form>
+    </div>
+    <p id="rangeLabel" class="range-label"></p>
+    <div class="sheet-grid" id="sheetTable" tabindex="0" aria-label="Vista de celdas de la hoja"></div>
+    <p class="editor-hint">Celdas con borde destacado: editables. <strong>ƒx</strong>: fórmula protegida. Los datos históricos numéricos de los estados y los supuestos autorizados pueden corregirse; otras celdas son de consulta. Las tasas porcentuales se muestran en % y se guardan con su escala original.</p>
+    <aside class="save-panel" aria-label="Cambios preparados">
+      <div>
+        <h3>Cambios de la hoja</h3>
+        <p id="pendingChanges" aria-live="polite">No hay cambios pendientes</p>
+        <ol id="pendingList"></ol>
+      </div>
+      <div class="save-buttons">
+        <button type="button" id="saveChanges" disabled>Guardar cambios en Google Sheets</button>
+        <button type="button" id="discardChanges" disabled class="secondary">Descartar cambios</button>
+      </div>
+      <p id="conflict" hidden>La hoja cambió desde tu lectura. Reimporta antes de volver a guardar.</p>
+    </aside>
+    <p class="disclaimer">La escritura requiere sesión autorizada en el despliegue con servidor y acceso de la cuenta de servicio a esa hoja. En GitHub Pages, la vista puede ser de solo lectura. Después de guardar, revisa y republica expresamente el análisis si corresponde: no se actualiza automáticamente el texto histórico.</p>
+  </section>
+</main>
+<script src="jmr-number-format.js?v=20261020-dos-decimales"></script>
+<script src="model-sync.js?v=20261020-editor"></script>
+<script src="editor-hoja.js?v=20261020-editor"></script>
+</body>
+</html>

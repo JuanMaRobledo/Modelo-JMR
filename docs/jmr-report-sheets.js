@@ -87,12 +87,12 @@
     rows.forEach(function(r){r.cells.slice(1,count+1).forEach(function(v){var x=num(v);if(x!==null)numbers.push(x);});});
     var low=Math.min.apply(null,numbers),high=Math.max.apply(null,numbers);
     var thead='<thead><tr><th scope="col">'+esc(header.cells[0]||'')+'</th>'+
-      header.cells.slice(1,count+1).map(function(c){return '<th scope="col">'+esc(c)+'</th>';}).join('')+'</tr></thead>';
+      header.cells.slice(1,count+1).map(function(c){return '<th scope="col">'+esc(JmrDisplayNumber.format(c))+'</th>';}).join('')+'</tr></thead>';
     var content=rows.map(function(r,ri){
       return '<tr><th scope="row">'+esc(r.cells[0])+'</th>'+r.cells.slice(1,count+1).map(function(v,ci){
         var value=num(v),center=ri===mid&&ci===mid,level=value===null||high===low?'mid':(value<(low+(high-low)*.42)?'low':value>(low+(high-low)*.58)?'high':'mid');
         var matchesBase=center&&typeof base==='number'&&Math.abs(value-base)<=Math.max(.02,base*.00035);
-        return '<td class="jmr-heat-'+level+(center?' jmr-matrix-base':'')+'">'+esc(v)+(center?'<span class="jmr-base-tag">'+(matchesBase?'Base':'Centro')+'</span>':'')+'</td>';
+        return '<td class="jmr-heat-'+level+(center?' jmr-matrix-base':'')+'">'+esc(JmrDisplayNumber.format(v))+(center?'<span class="jmr-base-tag">'+(matchesBase?'Base':'Centro')+'</span>':'')+'</td>';
       }).join('')+'</tr>';
     }).join('');
     return '<article class="jmr-matrix-card"><div class="jmr-matrix-heading"><span class="jmr-matrix-index">0'+idx+'</span><h4>'+esc(title)+'</h4></div>'+
@@ -200,7 +200,7 @@
       var first=i===0;out+='<tr>';
       r.cells.slice(0,maxCols).forEach(function(v,j){
         var tag=first?'th':j===0?'th':'td',cl=j>0&&num(v)!==null?' class="jmr-cell-number"':'';
-        out+='<'+tag+cl+(tag==='th'?' scope="'+(first?'col':'row')+'"':'')+'>'+esc(v)+'</'+tag+'>';
+        out+='<'+tag+cl+(tag==='th'?' scope="'+(first?'col':'row')+'"':'')+'>'+esc(JmrDisplayNumber.format(v))+'</'+tag+'>';
       });out+='</tr>';
     });
     return out+'</tbody></table></div>';
@@ -246,6 +246,7 @@
       (has?renderGallery(record):'<p class="jmr-sheet-note">No se publicaron hojas adicionales para esta valoración. Es necesario exportarlas desde su plantilla IA.</p>')+
       (record.hojaGoogle&&/^https:\/\/docs\.google\.com\/spreadsheets\/d\//.test(record.hojaGoogle)?
         '<p class="jmr-sheet-source"><a target="_blank" rel="noopener noreferrer" href="'+esc(record.hojaGoogle)+'">Abrir hoja de cálculo original ↗</a></p>':'')+'</section>';
+    JmrDisplayNumber.formatTable(destination);
     destination.querySelectorAll('.jmr-sheet-panel').forEach(function(panel){
       panel.addEventListener('toggle',function(){
         if(!panel.open)return;
@@ -255,6 +256,7 @@
         var found=get(index,holder.getAttribute('data-jmr-sheet'));
         holder.innerHTML=found?(holder.getAttribute('data-jmr-sheet')==='Sensibilidad por múltiplo'?multiplesSensitivity(record):safeTable(found.html,190)):'<p class="jmr-sheet-note">No se publicó esta tabla.</p>';
         holder.dataset.jmrFilled='1';
+        JmrDisplayNumber.formatTable(holder);
       });
     });
   }
