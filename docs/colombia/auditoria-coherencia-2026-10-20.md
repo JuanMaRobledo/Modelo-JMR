@@ -36,6 +36,14 @@ En las **cuatro hojas por clase**:
 - Grupo SURA: dividendos **COP 2.000 por acción en 2026** para ambas clases, según [sitio oficial](https://www.gruposura.com/relacion-con-inversionistas/accion/). El [reglamento preferencial](https://www.gruposura.com/documento/propuesta-de-actualizacion-al-reglamento-de-emision-y-colocacion-de-acciones-con-dividendo-preferencial-2017/) contiene un mínimo condicionado al dividendo ordinario; no se justifica sumar hoy una prima monetaria a NAV sin evaluar la materialidad futura.
 - **Paridad económica provisional** ord./PF = convención de NAV por acción y no equiparación de derechos políticos. No incorporar prima por voto ni descuento de liquidez sin fuente y valoración.
 
+## 3 bis. Seguimiento CET1/RWA y FCFE · 20-oct-2026
+
+Validación cruzada de la **nota oficial de solvencia pp. 56-57** del [EEFF consolidados 2T26](https://ir.davivienda.com/wp-content/uploads/2026/08/Banco-Davivienda-EEFF-Consolidados-2T26-2.pdf) con la hoja `PFDAVVNDA — Valoración JMR vigente`. Fuente real 30-jun-2026: RWA **COPm 145.082.745**, CET1 **COPm 17.605.250**; CET1/RWA **12,13%**, Tier I **13,33%** y solvencia total **16,08%**; mínimos reportados incl. colchones 7,00%, 8,50% y 11,50%. Estos datos **históricos sí están conciliados**; la previsión futura NO.
+
+Se añadieron, sin editar el DCF, las filas `'Auditoría capital prudencial 2T26'!A95:G104` (sensibilidad objetivos CET1) y `A108:J125` (serie diez años y diagnóstico). Resultado mecánico Base: CET1 si todas las retenciones se transformaran en capital elegible a año 10 **COPm 36.670.681,44**, RWA proforma **COPm 308.951.618,66**, ratio CET1/RWA **11,8694%**. Mantener constante el ratio 2T26 **12,1346%** exigiría CET1 **COPm 37.490.126,65**, brecha de retenciones de **−819.445,20 COPm** (caída **0,2652 puntos porcentuales** desde el ratio inicial bajo la trayectoria implícita). A target ilustrativo 12,0%, brecha **−403.512,79 COPm**; a 11,5%, diferencia **+1.141.245,30 COPm**, **que NO es capital distribuible**.
+
+El FCFE sumado (sin descuento) del modelo Base es **COPm 16.539.541,69**, versus proxy sujeto a conservar ratio 2T26 **COPm 15.720.096,48**, ambos antes de descuento. Esa diferencia no constituye valor intrínseco corregido: faltan política de colchones gerenciales, dividendos admisibles, tratamiento de OCI/deducciones/capital Tier y valor terminal consistente. **No publicar, no sustituir FCFE Base COP 29.633,45**. Se actualizó también la explicación en los informes de Davivienda niveles 1 y 2 en Google Docs, sin alterar Argos ni Sura.
+
 ## 4. Bloqueos económicos pendientes antes de certificar y publicar
 
 1. **Holdings:** fechar tenencias, caja/deuda atribuible, NCI, deuda residual de matriz, compra de acciones y perímetro después de escisión; no mezclar equity de subsidiaria ya neto de deuda con EV de otra subsidiaria.
