@@ -109,6 +109,7 @@ body.research-page .wrap{max-width:none;padding-inline:clamp(16px,2.5vw,48px)}bo
 </style>
 <link rel="stylesheet" href="jmr-report-sheets.css?v=20261016">
 <link rel="stylesheet" href="jmr-fullwidth.css?v=20261018">
+<link rel="stylesheet" href="jmr-audit-links.css?v=20261020">
 </head>
 <body class="research-page">
 <script src="auth.js"></script>
@@ -175,7 +176,7 @@ body.research-page .wrap{max-width:none;padding-inline:clamp(16px,2.5vw,48px)}bo
         <section class="box analysis-actions"><h3>Acciones del análisis</h3><details class="save-help"><summary>Cómo se guarda</summary><p class="help">Se guarda una copia local y, si conectaste GitHub, otra en <code>Modelo-JMR-datos/analisis</code>. Puedes recuperar versiones desde “Ver historial”.</p></details><div class="actions" id="editorActions"><button class="btn primary" id="saveBtn" type="button">Guardar análisis</button><button class="btn" id="newBtn" type="button">Limpiar</button><button class="btn" id="printBtn" type="button">Imprimir / PDF</button><button class="btn" id="downloadPdfBtn" type="button">Descargar PDF (rápido)</button><button class="btn" id="downloadRealPdfBtn" type="button" hidden>Descargar PDF</button><button class="btn" id="substackBtn" type="button">Copiar para Substack</button><button class="btn" id="historyBtn" type="button" hidden>Ver historial</button></div><p class="status" id="saveStatus"></p><p class="status" id="realPdfStatus"></p>
           <div id="historyPanel" hidden></div>
         </section>
-      <section class="box preview-shell"><div class="pdf-header"><img src="assets/jmr-sello-grabado.png" alt="JMR"><div class="pdf-header-text"><strong>Modelo JMR · Análisis Fundamental</strong><span id="pdfHeaderDate"></span></div></div><div class="company-banner"><div class="identity"><img class="company-logo" id="previewLogo" alt="" hidden><div class="company-name"><h2 id="previewCompany">Nuevo análisis</h2><div class="ticker" id="previewTicker">—</div></div></div><div class="live-price"><span>Precio consultado</span><strong id="previewPrice">—</strong><small id="previewPriceNote"></small></div></div><div id="decisionBox" class="no-print"></div><div class="editor-toolbar" id="editorToolbar" hidden></div><article class="preview-body" id="previewBody"><div class="preview-empty">Sube un documento para ver aquí la versión normalizada.</div></article></section>
+      <section class="box preview-shell"><div class="pdf-header"><img src="assets/jmr-sello-grabado.png" alt="JMR"><div class="pdf-header-text"><strong>Modelo JMR · Análisis Fundamental</strong><span id="pdfHeaderDate"></span></div></div><div class="company-banner"><div class="identity"><img class="company-logo" id="previewLogo" alt="" hidden><div class="company-name"><h2 id="previewCompany">Nuevo análisis</h2><div class="ticker" id="previewTicker">—</div></div></div><div class="live-price"><span>Precio consultado</span><strong id="previewPrice">—</strong><small id="previewPriceNote"></small></div></div><div id="jmrAuditResearch" class="jmr-audit-context-slot no-print" aria-live="polite" style="padding:12px 20px;"></div><div id="decisionBox" class="no-print"></div><div class="editor-toolbar" id="editorToolbar" hidden></div><article class="preview-body" id="previewBody"><div class="preview-empty">Sube un documento para ver aquí la versión normalizada.</div></article></section>
     </div>
   </section>
   <section class="panel" data-panel="compare">
@@ -203,6 +204,7 @@ body.research-page .wrap{max-width:none;padding-inline:clamp(16px,2.5vw,48px)}bo
 <script src="jmr-report-sheets.js?v=20261018-justificados"></script>
 <script src="report-anchors.js?v=20261014"></script>
 <script src="model-sync.js?v=20261019-siete"></script>
+<script src="jmr-audit-links.js?v=20261020"></script>
 <script src="research.js?v=20261016-cartera-38"></script>
 <script>
 if("serviceWorker" in navigator){
