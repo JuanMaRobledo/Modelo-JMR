@@ -309,6 +309,7 @@
     if(liveModelSession&&liveModelOwner!==state){liveModelSession.dispose();liveModelSession=null;liveModelOwner=null;var panel=el("liveModelPanel");if(panel)panel.remove();}
     el('previewCompany').textContent = state.company || state.title || 'Nuevo análisis';
     el('previewTicker').textContent = state.ticker || '—';
+    JmrAuditLinks.mount(el('jmrAuditResearch'), state.ticker);
     el('previewPrice').textContent = state.price != null ? new Intl.NumberFormat('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2}).format(state.price) : '—';
     el('previewPriceNote').textContent = state.priceFetchedAt ? new Date(state.priceFetchedAt).toLocaleDateString('es-CO') : '';
     var logo = el('previewLogo');
