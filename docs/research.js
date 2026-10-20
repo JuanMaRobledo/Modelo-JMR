@@ -355,7 +355,7 @@
     if (editing) return;
     var body = el('previewBody');
     el('editorToolbar').hidden = !(state.html || state.valuationHtml || state.linkedValuation || state.news);
-    if (!state.html && !state.valuationHtml && !state.linkedValuation && !state.news) { body.innerHTML = '<div class="preview-empty">Sube un documento para ver aquí la versión normalizada.</div>'; renderEditorToolbar(); return; }
+    if (!state.articleHtml && !state.html && !state.valuationHtml && !state.linkedValuation && !state.news) { body.innerHTML = '<div class="preview-empty">Sube un documento para ver aquí la versión normalizada.</div>'; renderEditorToolbar(); return; }
     var baseHtml=state.articleHtml || state.html || '';
     var tickerKey=String(state.ticker||'').trim().toUpperCase();
     var editorial=editorialArticles[tickerKey];
