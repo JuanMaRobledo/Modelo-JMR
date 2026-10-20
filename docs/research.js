@@ -352,7 +352,7 @@
   }
 
   function renderPreview() {
-    if(liveModelSession&&liveModelOwner!==state){liveModelSession.dispose();liveModelSession=null;liveModelOwner=null;var panel=el("liveModelPanel");if(panel)panel.remove();}
+    if(liveModelSession&&liveModelOwner!==state){liveModelSession.dispose();liveModelSession=null;liveModelOwner=null;}
     el('previewCompany').textContent=state.company||state.title||'Nuevo análisis';
     el('previewTicker').textContent=state.ticker||'—';
     JmrAuditLinks.mount(el('jmrAuditResearch'), state.ticker);
@@ -651,24 +651,37 @@
   // pisar algo a propósito) — solo avisa, con el mismo botón de siempre
   // para refrescarlo si el usuario quiere.
   var liveModelSession=null, liveModelOwner=null;
+  // Sin formulario de edición aquí: la lectura es de solo consulta. El Editor de
+  // hoja es una página separada con guardado confirmado, no al salir del campo.
   function startLiveModel(){
     if(typeof JmrModelSync==='undefined'||!state.ticker)return;
     if(liveModelSession&&liveModelOwner===state)return;
     if(liveModelSession)liveModelSession.dispose();
-    liveModelOwner=state;
-    var owner=state,host=el('liveModelPanel');
-    if(!host){host=document.createElement('section');host.id='liveModelPanel';el('previewBody').parentNode.insertBefore(host,el('previewBody'));}
-    host.innerHTML='';
-    liveModelSession=JmrModelSync.mount(host,state.ticker,function(snapshot,changed){
-      if(state!==owner)return;
-      var rec=JmrModelSync.record(snapshot);
-      state.linkedValuation=rec;
-      renderPreview();
-      var note=el('liveModelEditorialNote');
-      if(!note){note=document.createElement('p');note.id='liveModelEditorialNote';host.appendChild(note);}
-      note.textContent='La tarjeta de valoración y los anexos usan la hoja vigente. Las cifras incluidas en el texto del artículo y en cálculos escritos son del informe publicado y requieren revisión si cambian los supuestos.';
-      if(changed)note.textContent='Cambió la hoja: tarjeta y anexos actualizados. Revisa las cifras y conclusiones del artículo y de los cálculos escritos antes de publicarlos.';
-    });
+    var owner=state,key=String(state.ticker).toUpperCase(),active=true,busy=false;
+    liveModelOwner=owner;
+    function refresh(){
+      if(!active||busy||state!==owner)return;
+      busy=true;
+      JmrModelSync.load(key).then(function(snapshot){
+        if(!active||state!==owner)return;
+        var rec=JmrModelSync.record(snapshot);
+        if(!rec)return;
+        var old=owner.linkedValuation||{};
+        var changed=JSON.stringify(old.liveModel||null)!==JSON.stringify(rec.liveModel||null);
+        owner.linkedValuation=rec;
+        renderPreview();
+        // No se modifica ninguna celda del libro, ni se república el informe.
+        if(changed) setStatus('linkVisorStatus',
+          'Valores actuales leídos de la hoja para '+key+'. Revisa el texto histórico antes de republicar.','ok');
+      }).catch(function(err){
+        if(active&&state===owner)setStatus('linkVisorStatus',
+          'La lectura de la hoja no se completó ('+err.message+'). Se conservan los datos publicados.','bad');
+      }).finally(function(){busy=false;});
+    }
+    function updated(e){if(e.detail&&e.detail.ticker===key)refresh();}
+    window.addEventListener('jmr-model-updated',updated);
+    liveModelSession={dispose:function(){active=false;window.removeEventListener('jmr-model-updated',updated);}};
+    refresh();
   }
   function checkLinkedValuationFreshness() {
     startLiveModel();
