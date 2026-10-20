@@ -1,4 +1,4 @@
-const CACHE = "modelo-jmr-v161-auditoria-prompt-master";
+const CACHE = "modelo-jmr-v162-editor-hoja-20261020";
 const APP_SHELL = [
   "index.html",
   "colombia.html",
@@ -19,6 +19,9 @@ const APP_SHELL = [
   "damodaran/multiplos.json",
   "damodaran/valoraciones.json",
   "calculadora.html",
+  "editor-hoja.html",
+  "editor-hoja.js",
+  "editor-hoja.css",
   "research.html",
   "research.js",
   "model-sync.js",
