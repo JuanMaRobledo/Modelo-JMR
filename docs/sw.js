@@ -1,4 +1,4 @@
-const CACHE = "modelo-jmr-v159-auditorias-editables";
+const CACHE = "modelo-jmr-v160-auditorias-por-ticker";
 const APP_SHELL = [
   "index.html",
   "colombia.html",
@@ -10,6 +10,8 @@ const APP_SHELL = [
   "prompts/colombia-valuation-v1.md",
   "visor.html",
   "auditorias.html",
+  "jmr-audit-links.js",
+  "jmr-audit-links.css",
   "jmr-report-sheets.js",
   "jmr-report-sheets.css",
   "screener.html",
