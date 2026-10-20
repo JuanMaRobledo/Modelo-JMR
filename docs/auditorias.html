@@ -56,6 +56,11 @@ button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible
 #reader tbody tr td:last-child{border-bottom:0}#reader .table-scroll{overflow-x:visible}
 }
 @media print{header,.toolbar,.notice,#status,#editor,#editHelp{display:none!important}main{padding:0}.panel{border:0;padding:0}body{background:white;color:black}}
+
+#masterPromptPanel summary{font-weight:750;cursor:pointer;color:var(--gold);padding:2px 0 8px}
+#masterPromptText{width:100%;min-height:58vh;display:block;resize:vertical;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:14px;font:13px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace}
+#masterPromptStatus{color:var(--sub);font-size:12px}
+@media print{#masterPromptPanel{display:none!important}}
 </style>
 </head>
 <body>
@@ -78,12 +83,19 @@ button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible
 <button class="btn" id="cancelBtn" type="button" hidden>Cancelar edición</button>
 <button class="btn" id="connectBtn" type="button">Conectar GitHub</button>
 <button class="btn" id="downloadBtn" type="button">Descargar .md</button>
+<button class="btn" id="showMasterPromptBtn" type="button">Ver prompt maestro v1</button>
 <a class="btn" id="historyLink" target="_blank" rel="noopener noreferrer">Historial</a>
 </div>
 <p class="meta" id="fileMeta">Abriendo el informe vigente…</p>
 <p role="status" aria-live="polite" id="status">Cargando…</p>
 <div class="notice" id="editHelp" hidden>Los cambios se guardan en <strong>Modelo-JMR-datos/auditorias/narrativas</strong> con el historial de GitHub. Para guardarlos necesitas conectar tu cuenta con permiso de escritura. Si otro dispositivo modificó el mismo informe, se detecta el conflicto antes de sobrescribirlo.</div>
 </div>
+<details class="panel" id="masterPromptPanel" hidden><summary>Prompt maestro de auditoría JMR v1.0 · 18 secciones fijas</summary>
+<p class="meta">Versión única cargada desde el repositorio oficial. Este texto es de solo lectura; la auditoría de cada empresa sí es editable.</p>
+<div class="toolbar"><button class="btn primary" id="copyMasterPromptBtn" type="button">Copiar prompt completo</button><a class="btn" href="prompts/auditoria-economica-jmr-v1.md" target="_blank" rel="noopener noreferrer">Abrir archivo maestro</a></div>
+<p id="masterPromptStatus" role="status" aria-live="polite">Abre el panel para leer la versión vigente.</p>
+<textarea id="masterPromptText" aria-label="Prompt maestro de auditoría en formato Markdown" readonly spellcheck="false"></textarea>
+</details>
 <section class="panel" aria-label="Informe">
 <article id="reader"></article>
 <textarea id="editor" hidden spellcheck="true" aria-label="Editor Markdown de la auditoría"></textarea>
@@ -193,6 +205,41 @@ document.getElementById('readBtn').addEventListener('click',function(){if(mode==
 document.getElementById('cancelBtn').addEventListener('click',function(){if(dirty&&!confirm('¿Descartar cambios sin guardar?'))return;editor.value=loadedText;dirty=false;showMode('read');flash('Edición cancelada.');});
 document.getElementById('saveBtn').addEventListener('click',saveChanges);
 document.getElementById('connectBtn').addEventListener('click',function(){GhOAuth.startLogin();});
+var masterPromptText='',masterPromptPromise=null;
+var masterPromptPanel=document.getElementById('masterPromptPanel'),
+    masterPromptArea=document.getElementById('masterPromptText'),
+    masterPromptStatus=document.getElementById('masterPromptStatus');
+function loadMasterPrompt(){
+ if(!masterPromptPromise){
+  masterPromptStatus.textContent='Cargando prompt maestro del repositorio…';
+  masterPromptPromise=fetch('prompts/auditoria-economica-jmr-v1.md',{cache:'no-store'})
+   .then(function(res){if(!res.ok)throw new Error('HTTP '+res.status);return res.text();})
+   .then(function(md){
+     if(!md.includes('## 18. Fuentes primarias, limitaciones y registro de versión'))throw new Error('La versión obtenida está incompleta.');
+     masterPromptText=md;masterPromptArea.value=md;
+     masterPromptStatus.textContent='Prompt maestro v1.0 cargado; texto de solo lectura.';
+     return md;
+   })
+   .catch(function(err){masterPromptPromise=null;masterPromptStatus.textContent='No se pudo abrir el prompt maestro: '+err.message;throw err;});
+ }
+ return masterPromptPromise;
+}
+document.getElementById('showMasterPromptBtn').addEventListener('click',function(){
+ masterPromptPanel.hidden=false;masterPromptPanel.open=true;
+ masterPromptPanel.scrollIntoView({behavior:'smooth',block:'start'});
+ loadMasterPrompt().catch(function(){});
+});
+masterPromptPanel.addEventListener('toggle',function(){if(masterPromptPanel.open)loadMasterPrompt().catch(function(){});});
+document.getElementById('copyMasterPromptBtn').addEventListener('click',async function(){
+ var btn=this;btn.disabled=true;
+ try{
+   var md=await loadMasterPrompt();
+   if(navigator.clipboard&&navigator.clipboard.writeText){await navigator.clipboard.writeText(md);}
+   else{masterPromptArea.focus();masterPromptArea.select();if(!document.execCommand('copy'))throw new Error('el navegador no permitió copiar');}
+   masterPromptStatus.textContent='Prompt maestro copiado. Pégalo en tu nueva solicitud de auditoría.';
+ }catch(e){masterPromptStatus.textContent='No se pudo copiar: '+e.message+'. Selecciona el texto del recuadro para copiarlo.';}
+ finally{btn.disabled=false;}
+});
 document.getElementById('downloadBtn').addEventListener('click',function(){
  var content=mode==='edit'?editor.value:loadedText;if(!content)return;
  var blob=new Blob([content],{type:'text/markdown;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');
