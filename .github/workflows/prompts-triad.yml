@@ -1,0 +1,26 @@
+name: Tres prompts JMR independientes
+on:
+  pull_request:
+    paths:
+      - 'docs/prompts/valoracion-modelo-jmr-v4.md'
+      - 'docs/prompts/research-fundamental-jmr-v5.md'
+      - 'docs/prompts/auditoria-economica-jmr-v1.md'
+      - 'tests/prompts-triad.test.mjs'
+      - '.github/workflows/prompts-triad.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'docs/prompts/valoracion-modelo-jmr-v4.md'
+      - 'docs/prompts/research-fundamental-jmr-v5.md'
+      - 'docs/prompts/auditoria-economica-jmr-v1.md'
+      - 'tests/prompts-triad.test.mjs'
+      - '.github/workflows/prompts-triad.yml'
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/prompts-triad.test.mjs

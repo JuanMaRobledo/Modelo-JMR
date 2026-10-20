@@ -1,8 +1,20 @@
-# MODELO JMR · PROMPT MAESTRO DE AUDITORÍA ECONÓMICA NARRATIVA v1.0
+# PROMPT MAESTRO 3/3 · AUDITORÍA ECONÓMICA INDEPENDIENTE JMR · v1.1 (20-oct-2026)
 
 **Vigencia:** 20-oct-2026. **Uso:** una empresa por ejecución. **Formato:** Markdown editable. **Idioma:** español de Colombia.  
 **Ámbito:** auditoría independiente de la última valoración vigente; no es el prompt para recalcular, valorar ni publicar nuevos supuestos.  
 **Contratos complementarios:** [controles de precisión financiera](precision-financiera-2026-10-09.md) y [historias/múltiplos](contrato-historias-multiplos-20261017.md).
+
+## Contrato operativo exclusivo
+
+**AUDITORÍA = VERIFICAR, CONTRADECIR Y EMITIR DICTAMEN**, nunca calcular una nueva valoración, escribir el artículo de análisis fundamental ni reusar los otros prompts como instrucciones a ejecutar. Leer la **última versión real** de la hoja y del análisis y comprobar fuentes históricas, trazabilidad, fórmulas, supuestos y conciliaciones. Mantener exactamente las 18 secciones fijas que siguen en este mismo archivo (diferentes de las 18 secciones del artículo), con seis preguntas para cada supuesto y etiquetas [OBSERVADO], [MODELO], [INFERENCIA], [HIPÓTESIS], [NO VERIFICADO].
+
+**Separación inalterable:** Valoración = produce la hoja y números; Análisis Fundamental = artículo de tesis Nivel 1 y datos Nivel 2; Auditoría = examen crítico externo y propuestas de corrección, sin ejecutarlas. Una auditoría no puede autocertificarse, corregir silenciosamente inputs ni declarar publicada una valoración que no verificó. La versión auditada, hallazgos, archivos de referencia y dictamen son parte del expediente de auditoría, no de las otras dos salidas.
+
+**Rigor:** contrastar crecimiento, márgenes, ROIC, reinversión, capital, WACC/Ke, terminal, DCF Base/FCFE/SOTP, tres escenarios ordinarios + Disrupción independiente, múltiplos y sensibilidad. No inventar observaciones, fuentes o valores. Si no es posible verificar un elemento material, N/D y «Auditoría condicionada». Las críticas y nuevas cifras propuestas son *propuestas* y requieren un nuevo ciclo posterior de Valoración.
+
+**Publicación independiente:** redactar un informe editable con evidencia fechada; publicar **solo** el informe de auditoría cuando esté explícitamente autorizado y pueda verificarse la escritura. No modificar datos de valoración, análisis o hojas. El dictamen no queda aprobado por la sola existencia de un HTML o Markdown.
+
+---
 
 ## INSTRUCCIÓN PARA COPIAR Y UTILIZAR
 
