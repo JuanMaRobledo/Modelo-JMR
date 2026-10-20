@@ -1,4 +1,4 @@
-const CACHE = "modelo-jmr-v160-auditorias-por-ticker";
+const CACHE = "modelo-jmr-v161-auditoria-prompt-master";
 const APP_SHELL = [
   "index.html",
   "colombia.html",
@@ -35,6 +35,7 @@ const APP_SHELL = [
   "oauth-callback.html",
   "prompts/research-fundamental-jmr-v5.md",
   "prompts/valoracion-modelo-jmr-v4.md",
+  "prompts/auditoria-economica-jmr-v1.md",
   "auth.js",
   "jmr_engine.js",
   "market_data.js",
