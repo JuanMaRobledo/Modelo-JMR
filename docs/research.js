@@ -400,6 +400,7 @@
       actions+article.toc+'<div id="editableContent">'+article.body+'</div>'+renderNews()+
       '</section>'+level2+'</div>';
     markNumericCells(body);
+    JmrDisplayNumber.formatTable(body);
     var detail=el(detailsId),appendix=detail&&detail.querySelector('.jmr-financial-appendix'),reportMounted=false;
     function mountQuantitative(){
       if(reportMounted||!appendix||!appendix.open)return;
