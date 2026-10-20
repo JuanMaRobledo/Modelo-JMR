@@ -1,4 +1,4 @@
-name: Separación editorial y calculadora DCF
+name: Dos niveles, simulador y editor de hoja
 on:
   pull_request:
     paths:
@@ -6,11 +6,6 @@ on:
       - 'docs/research.html'
       - 'docs/calculadora.html'
       - 'docs/model-sync.js'
-      - 'docs/editor-hoja.html'
-      - 'docs/editor-hoja.js'
-      - 'docs/editor-hoja.css'
-      - 'lib/model-sheet.js'
-      - 'tests/editor-hoja.test.mjs'
       - 'docs/editor-hoja.html'
       - 'docs/editor-hoja.js'
       - 'docs/editor-hoja.css'
@@ -31,7 +26,9 @@ on:
       - 'docs/editor-hoja.js'
       - 'docs/editor-hoja.css'
       - 'lib/model-sheet.js'
+      - 'api/model.js'
       - 'tests/editor-hoja.test.mjs'
+      - 'tests/model-sync.test.mjs'
       - 'tests/separacion-editorial-calculadora.test.mjs'
       - '.github/workflows/separacion-editorial-calculadora.yml'
 jobs:
@@ -43,4 +40,4 @@ jobs:
         with:
           node-version: '22'
       - run: npm ci --ignore-scripts
-      - run: node --test tests/separacion-editorial-calculadora.test.mjs tests/editor-hoja.test.mjs tests/model-sync.test.mjs tests/editor-hoja.test.mjs tests/model-sync.test.mjs
+      - run: node --test tests/separacion-editorial-calculadora.test.mjs tests/editor-hoja.test.mjs tests/model-sync.test.mjs
