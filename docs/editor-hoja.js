@@ -89,7 +89,7 @@
     var html=[];
     drafts.forEach(function(d){
       html.push('<li><strong>'+esc(d.sheet)+'!'+esc(d.cell)+'</strong> · '+
-        esc(JmrDisplayNumber.formatNumber?JmrDisplayNumber.formatNumber(d.previous):JmrDisplayNumber.format(d.previous))+' → <strong>'+esc(JmrDisplayNumber.format(d.value))+'</strong></li>');
+        esc(JmrDisplayNumber.format(formatNumber(snapshot.sheets[d.sheet][d.cell],d.previous).value)+(formatNumber(snapshot.sheets[d.sheet][d.cell],d.previous).percent?'%':''))+' → <strong>'+esc(JmrDisplayNumber.format(formatNumber(snapshot.sheets[d.sheet][d.cell],d.value).value)+(formatNumber(snapshot.sheets[d.sheet][d.cell],d.value).percent?'%':''))+'</strong></li>');
     });
     byId('pendingList').innerHTML=html.join('');
   }
@@ -142,10 +142,6 @@
     var rawInput=input.value.trim(),value=Number(rawInput)/Number(input.dataset.scale||1);
     if(!rawInput||!/^-?\d+(?:\.\d{0,2})?$/.test(rawInput)||!Number.isFinite(value)||Math.abs(value)>1e15){
       setStatus('Escribe como máximo dos decimales en '+selected+'!'+address+'. La precisión fuente no se altera hasta guardar.','error');
-      table();return;
-    }
-    if(!input.value.trim()||!Number.isFinite(value)||Math.abs(value)>1e15){
-      setStatus('Dato inválido en '+selected+'!'+address+'. Introduce un número finito.','error');
       table();return;
     }
     var id=selected+'!'+address,previous=cell.raw.numberValue;
