@@ -182,7 +182,7 @@
   function mount(host,key,onSnapshot,initial){
     var active=true,busy=false,failedDraft=false,snapshot=null,previousRevision=null,lastPayload=null;
     key=ticker(key);
-    host.innerHTML='<details open><summary>Datos de la hoja · '+esc(key)+'</summary><p data-sync-status role="status">Cargando hoja vigente…</p><button type="button" data-sync-refresh>Actualizar ahora</button><div data-sync-fields></div></details>';
+    host.innerHTML='<details><summary>Datos de la hoja · '+esc(key)+'</summary><p data-sync-status role="status">Cargando hoja vigente…</p><button type="button" data-sync-refresh>Actualizar ahora</button><div data-sync-fields></div></details>';
     function status(text){host.querySelector('[data-sync-status]').textContent=text;}
     function fields(s){
       var cells=s.sheets['Input sheet']||{},body=host.querySelector('[data-sync-fields]');
