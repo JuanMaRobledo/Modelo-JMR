@@ -377,7 +377,9 @@
     var linked=state.linkedValuation?buildLinkedValuationHtml(state.linkedValuation):'';
     var extra=state.valuationHtml?'<section class="valuation-block"><h3>Tablas vinculadas de valoración</h3>'+state.valuationHtml+'</section>':'';
     var detailsId='jmrTechnicalLevel';
-    var technicalIntroduction='<p class="jmr-tech-intro">Información cuantitativa de la valoración publicada: estados financieros, ratios, supuestos, flujos, sensibilidad y múltiples. Es la referencia de la hoja, no una simulación hipotética.</p>';
+    var editHref=/^[A-Z0-9._-]{1,24}$/.test(ticker)?'editor-hoja.html?ticker='+encodeURIComponent(ticker):'editor-hoja.html';
+    var technicalIntroduction='<p class="jmr-tech-intro">Información cuantitativa de la valoración publicada: estados financieros, ratios, supuestos, flujos, sensibilidad y múltiplos. Es la referencia de la hoja, no una simulación hipotética.</p>'+
+      '<p><a class="jmr-open-calc" href="'+editHref+'">Editar datos fuente en la hoja ↗</a> · La edición no modifica el artículo automáticamente.</p>';
     var level2='<details class="jmr-research-details" id="'+detailsId+'">'+
       '<summary>NIVEL 2 · VALORACIÓN, ESTADOS FINANCIEROS Y SENSIBILIDADES</summary>'+
       '<div class="jmr-technical-content">'+technicalIntroduction+
