@@ -368,9 +368,9 @@ function fromRecord(rec, extra) {
     }).join('') + '</tbody></table></div>';
   }
   function mosBasis(d) {
-    var base = primaryValues(d).base;
-    var useBase = d.baseMOS === 'dcfBase' && base != null && base >= 0;
-    return { value: useBase ? base : (d.ve ? d.ve.valor : base), label: useBase ? 'DCF Base' : 'promedio de escenarios DCF' };
+    // Regla del 21-oct-2026: holdings sobre el SOTP Base; el resto sobre el DCF Base. Nunca sobre el esperado.
+    if (d.holding) return { value: num((d.holding.nav || {}).base), label: 'SOTP Base' };
+    return { value: primaryValues(d).base, label: 'DCF Base' };
   }
   function unifiedHtml(d) {
     var h = centralStory(d), values = d.ve.historias.map(function(x) { return x.valor; }), basis = mosBasis(d);

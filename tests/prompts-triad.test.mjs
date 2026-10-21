@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 const root=new URL('../docs/prompts/',import.meta.url);
 const docs=[
-  {file:'valoracion-modelo-jmr-v4.md',role:'1/3',title:'VALORACIÓN'},
+  {file:'valoracion-modelo-jmr-v5.md',role:'1/3',title:'VALORACIÓN'},
   {file:'research-fundamental-jmr-v5.md',role:'2/3',title:'ANÁLISIS FUNDAMENTAL'},
   {file:'auditoria-economica-jmr-v1.md',role:'3/3',title:'AUDITORÍA'}
 ].map(x=>({...x,s:fs.readFileSync(new URL(x.file,root),'utf8')}));
@@ -51,6 +51,6 @@ test('contratos depurados: una copia nueva, MOS Base y versión única de audito
   assert.match(docs[0].s,/margen de seguridad se aplica SOLO al DCF\/FCFE\/SOTP Base/i);
   assert.match(docs[1].s,/sin crear una valoración propia/i);
   assert.match(docs[1].s,/SOLO respecto al valor principal Base/i);
-  assert.match(docs[2].s,/prompt_version: auditoria-economica-jmr-v1\.1/i);
-  assert.doesNotMatch(docs[2].s,/auditoria-economica-jmr-v1\.0/i);
+  assert.match(docs[2].s,/prompt_version: auditoria-economica-jmr-v1\.2/i);
+  assert.doesNotMatch(docs[2].s,/auditoria-economica-jmr-v1\.[01]/i);
 });

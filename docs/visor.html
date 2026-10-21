@@ -1557,13 +1557,13 @@
     var expected = currentResumen.valorEsperado && Number(currentResumen.valorEsperado.valor);
     var mos = Number(currentResumen.mos);
     var dcfBase = currentResumen.valorEsperado && Number(currentResumen.valorEsperado.valorCentral || currentResumen.valorEsperado.dcfBase);
-    var mosReference = currentResumen.baseMOS === 'dcfBase' && dcfBase > 0 ? dcfBase : expected;
+    var mosReference = dcfBase > 0 ? dcfBase : null; // regla 21-oct-2026: MOS solo sobre DCF Base, nunca sobre el esperado
     if(expected > 0){
       zonas = {
         value: {min: expected * 0.65, max: expected * 0.70},
         deepValue: {min: expected * 0.55, max: expected * 0.60},
         historica: {min: expected * 0.45, max: expected * 0.50},
-        conMOS: isFinite(mos) ? {min: mosReference * (1-mos), max: mosReference * (1-mos)} : null
+        conMOS: isFinite(mos) && mosReference ? {min: mosReference * (1-mos), max: mosReference * (1-mos)} : null
       };
       currentResumen.zonas = zonas;
       document.getElementById('zonasTitle').textContent = 'Zonas de valor (sobre el promedio de escenarios DCF)';
@@ -1572,7 +1572,7 @@
         if(el && zone) el.textContent = zone.min === zone.max ? fmtMoney(zone.min) : fmtMoney(zone.min) + ' – ' + fmtMoney(zone.max);
       });
       var mosCard = document.getElementById('zMOS');
-      if(mosCard) mosCard.parentElement.querySelector('.lbl').textContent = currentResumen.baseMOS === 'dcfBase' ? 'Precio con MOS sobre DCF Base' : 'Precio con MOS sobre el promedio de escenarios DCF';
+      if(mosCard) mosCard.parentElement.querySelector('.lbl').textContent = 'Precio con MOS sobre DCF Base';
     }
     zEl.innerHTML = buildZonesChart(currentResumen.precio, zonas, sel.valores, sel.unified);
   }
@@ -1838,7 +1838,7 @@
         conMOS: { min: cellVal(res,'C19'), max: cellVal(res,'B19') }
       }
     };
-    if(currentResumen.valorEsperado && currentResumen.valorEsperado.escenariosUnificados){ var sobreBase=/DCF Base/i.test(String(cellVal(res,'A36')||'')); var referenciaMOS=sobreBase ? Number(currentResumen.valorEsperado.valorCentral) : Number(currentResumen.valorEsperado.valor); currentResumen.precioMOS=referenciaMOS*(1-mos); currentResumen.precioMOSMax=currentResumen.precioMOS; currentResumen.precioMOSHoy={conservador:currentResumen.precioMOS,base:currentResumen.precioMOS,optimista:currentResumen.precioMOS}; currentResumen.baseMOS=sobreBase?'dcfBase':'valorEsperado'; }
+    if(currentResumen.valorEsperado && currentResumen.valorEsperado.escenariosUnificados){ var referenciaMOS=Number(currentResumen.valorEsperado.valorCentral || currentResumen.valorEsperado.dcfBase); currentResumen.precioMOS=referenciaMOS*(1-mos); currentResumen.precioMOSMax=currentResumen.precioMOS; currentResumen.precioMOSHoy={conservador:currentResumen.precioMOS,base:currentResumen.precioMOS,optimista:currentResumen.precioMOS}; currentResumen.baseMOS='dcfBase'; }
     sheetHtmlCache = {};
     cualitativoOverride = null;
     fundamentalOverride = null;
@@ -3235,7 +3235,7 @@
     document.getElementById('rTipo').textContent = rec.tipo || '—';
     document.getElementById('rMOS').textContent = fmtPct(rec.mos);
     var mosHoy = rec.precioMOSHoy;
-    if(rec.valorEsperado && rec.valorEsperado.escenariosUnificados && typeof rec.valorEsperado.valor === 'number'){ var dcfMosBase=Number(rec.valorEsperado.valorCentral || rec.valorEsperado.dcfBase); var mosVal=rec.baseMOS==='dcfBase' && dcfMosBase>0 ? dcfMosBase : Number(rec.valorEsperado.valor); var pmRecalculado=mosVal*(1-(Number(rec.mos)||0)); mosHoy={conservador:pmRecalculado,base:pmRecalculado,optimista:pmRecalculado}; }
+    if(rec.valorEsperado && rec.valorEsperado.escenariosUnificados && typeof rec.valorEsperado.valor === 'number'){ var dcfMosBase=Number(rec.valorEsperado.valorCentral || rec.valorEsperado.dcfBase); var mosVal=dcfMosBase>0 ? dcfMosBase : NaN; var pmRecalculado=mosVal*(1-(Number(rec.mos)||0)); mosHoy={conservador:pmRecalculado,base:pmRecalculado,optimista:pmRecalculado}; }
     document.getElementById('rPrecioMOS').textContent = mosHoy ? fmtMoney(mosHoy.conservador) + ' – ' + fmtMoney(mosHoy.base) : fmtMoney(rec.precioMOS) + (rec.precioMOSMax != null ? ' – ' + fmtMoney(rec.precioMOSMax) : '');
     var tbody = document.getElementById('methodsBody');
     tbody.innerHTML = '';
@@ -3268,14 +3268,14 @@
     // si no, se muestran las de la hoja (sobre el objetivo FY+3 ponderado).
     var ve = rec.valorEsperado && Number(rec.valorEsperado.valor), mosZ = Number(rec.mos);
     var baseZ = rec.valorEsperado && Number(rec.valorEsperado.valorCentral || rec.valorEsperado.dcfBase);
-    var refMOS = rec.baseMOS === 'dcfBase' && baseZ > 0 ? baseZ : ve;
+    var refMOS = baseZ > 0 ? baseZ : null;
     var z = rec.zonas || {};
     if(ve > 0){
       var zz = function(a, b){ return { max: ve*a, min: ve*b }; };
-      z = { value: zz(0.70, 0.65), deepValue: zz(0.60, 0.55), historica: zz(0.50, 0.45), conMOS: isFinite(mosZ) ? { min: refMOS*(1-mosZ), max: refMOS*(1-mosZ) } : null };
+      z = { value: zz(0.70, 0.65), deepValue: zz(0.60, 0.55), historica: zz(0.50, 0.45), conMOS: isFinite(mosZ) && refMOS ? { min: refMOS*(1-mosZ), max: refMOS*(1-mosZ) } : null };
     }
     document.getElementById('zonasTitle').textContent = ve > 0
-      ? 'Zonas Value (bandas sobre el promedio de escenarios DCF); precio con MOS sobre ' + (rec.baseMOS === 'dcfBase' ? 'DCF Base' : 'DCF esperado')
+      ? 'Zonas Value (bandas sobre el promedio de escenarios DCF); precio con MOS sobre DCF Base'
       : 'Zonas de valor (escalonar entradas; sobre el objetivo FY+3 ponderado, lectura secundaria)';
     document.getElementById('zValue').textContent = zoneText(z.value);
     document.getElementById('zDeep').textContent = zoneText(z.deepValue);
