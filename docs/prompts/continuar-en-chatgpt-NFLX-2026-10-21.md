@@ -88,6 +88,29 @@ Conservador / Base / Optimista:
 **Alerta abierta:** EV/EBITDA y P/E de la Base y el Optimista quedan más de 25% sobre el múltiplo actual. Exige
 `justificacion_salto` con evidencia o una corrección.
 
+## Resultado de la última corrida del modelo (21-oct-2026, 15:56) · NO VALIDADA todavía
+
+| Historia | Probabilidad | DCF por acción |
+|---|---|---|
+| Base | 45% | US$56,52 |
+| Conservadora | 22,5% | US$46,09 |
+| Optimista | 22,5% | US$69,07 |
+| Disrupción (aparte) | 10% | US$23,92 |
+
+- **Promedio condicionado** de Conservadora, Base y Optimista: US$57,05.
+- **Precio con MOS** = 56,52 × 0,65 = US$36,74.
+- **Precio del corte:** US$69,58, un 23% sobre el DCF Base y cercano a la Optimista.
+
+Verifica estas cifras contra la hoja antes de usarlas.
+
+Hallazgos abiertos que impiden VALIDAR:
+- **Ventas/capital:** el capital nuevo rinde 22% en la Conservadora y 38% en la Optimista, más del doble de su ROIC
+  terminal (9% y 11%). Revisa el ventas/capital de esas historias (§3 y §4 del prompt v5).
+- **Múltiplos:** el P/E y el EV/EBITDA de la Base y el Optimista quedan más de 25% sobre el actual.
+- **Error en la hoja:** `POCF!F51` = #DIV/0!.
+- **Paso del modelo que falló:** un paso posterior a las historias falló (IndexError). Las pestañas de múltiplos o de
+  la app pueden estar desactualizadas: no las tomes como vigentes sin verificarlas.
+
 ## Lo que falta (en este orden)
 
 1. **DCF de las cuatro historias.** Con la hoja adjunta (pestañas «Escenarios e historias», «Valuation output»,
