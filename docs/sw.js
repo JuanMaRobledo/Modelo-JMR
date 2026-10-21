@@ -1,4 +1,4 @@
-const CACHE = "modelo-jmr-v168-historicos-restaurados-20261021";
+const CACHE = "modelo-jmr-v169-biblioteca-vacia-historicos-intactos-20261021";
 const APP_SHELL = [
   "catalog-reset.js",
   "index.html",

@@ -1,7 +1,7 @@
 /* Catálogo reiniciado por solicitud del usuario: conservar credenciales y preferencias. */
 (function(root){
 'use strict';
-var marker='jmr-catalog-reset-20261021-nflx-7168-v1';
+var marker='jmr-catalog-reset-20261021-vacio-v2';
 try{
  if(root.localStorage.getItem(marker)==='done')return;
  ['jmr-research-library-v1','jmr-revision-multiplos-local-v1','jmr-ultima-hoja-google'].forEach(function(key){root.localStorage.removeItem(key);});
