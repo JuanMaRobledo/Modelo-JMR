@@ -571,8 +571,7 @@ Seguí este proceso, en este orden:
      e) Tabla de resultado por escenario, separando HOY de FY+3:
         DCF Base hoy primero · métodos individuales y ponderado de múltiplos solos
         hoy y FY+3 · ponderado DCF + múltiplos hoy y FY+3 ·
-        precio con MOS hoy (sobre el valor esperado de las historias si el
-        análisis fundamental ya las tiene; si no, sobre el DCF) · precio objetivo FY+3 ponderado · precio actual y
+        precio con MOS hoy (calculado exclusivamente sobre el DCF/FCFE/SOTP Base principal, sin usar el esperado ni el ponderado de métodos) · precio objetivo FY+3 ponderado · precio actual y
         diferencia (valor hoy / precio − 1).
      f) Log breve de cualquier corrección estructural que hayas tenido que hacer
         (para que quede trazable qué se tocó y por qué).
