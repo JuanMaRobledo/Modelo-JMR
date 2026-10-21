@@ -62,7 +62,7 @@ Esta sección prevalece sobre cualquier instrucción que permita cerrar una revi
 
 ### Presentación vigente · 1 de octubre de 2026
 
-El **DCF Base** es el valor intrínseco principal y debe aparecer primero, con mayor destaque. Después presenta el **DCF esperado por probabilidades** como complemento y, por último, los múltiplos individuales, consolidados y ponderados como lecturas secundarias. Conserva el MOS sobre el esperado según la política vigente; la jerarquía visual no cambia esa fórmula.
+El **DCF Base** es el valor intrínseco principal y debe aparecer primero, con mayor destaque. Después presenta el **DCF esperado por probabilidades** como complemento y, por último, los múltiplos individuales, consolidados y ponderados como lecturas secundarias. El MOS se calcula sobre el DCF/FCFE/SOTP Base principal; el valor esperado es informativo y no modifica esta fórmula.
 
 Los nombres visibles son **Base, Conservadora, Disrupción y Optimista**, acompañados del título propio de cada historia. Usa **Disrupción · Deterioro de los fundamentales**. Las letras A/B/C/D solo son claves internas.
 
