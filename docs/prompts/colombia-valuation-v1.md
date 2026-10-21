@@ -9,6 +9,14 @@ Fuentes primarias: Damodaran, Price-Sales Multiples (https://pages.stern.nyu.edu
 
 
 
+<!-- JMR-CO-INPUT-AUTOCOMPLETE-20261020 -->
+## Ejecución autosuficiente Colombia · precisión de Ke/Kd y estados pendientes
+
+- **No solicitar al usuario tasas que el modelo debe calcular:** buscar fuentes oficiales del emisor/SFC/BVC, TES y prima soberana, beta bottom-up por negocio, ERP implícita y CRP según exposición operativa; construir Ke en COP nominal con fecha y fórmula. Estimar Kd solo donde es económicamente aplicable con deuda y gastos de intereses o curva de spreads fechada; no sumar CRP dos veces. Una estimación no es un dato observado.
+- **Bancos:** la ruta principal es FCFE/ingreso residual patrimonial, con proyección de RWA y capital requerido, CET1, OCI, AT1/Tier2, participación atribuible, distribuciones y retención; nunca valorar por FCFF/WACC industrial ni descontar depósitos como deuda adicional del accionista.
+- **Holdings:** obtener estados y notas de matriz y filiales, calcular valor patrimonial por filial (DCF FCFF o FCFE según actividad), aplicar porcentaje económico y descontar caja/deuda/NCI solo una vez en el perímetro correcto; añadir ajustes centrales de matriz aún no capturados. La ausencia de valor justo para minoritarios/filiales privadas requiere rango/sensibilidad y estado condicionado, no un cero ni un valor certificado.
+- **Control de cierre:** etiqueta separada por variable: verificado por fuente, derivado comprobable, supuesto analista, no verificable; conserva referencia fechada y efecto en valoración. Los faltantes materiales condicionan certificación, pero no impiden un informe honesto y reproducible. MOS siempre sobre el valor intrínseco Base y los cuatro escenarios conservan sus propios cálculos.
+
 <!-- JMR-FOUR-SCENARIOS-MOAT-20261015 -->
 ## Contrato JMR: exactamente cuatro escenarios y sensibilidad de duración de ventaja (15-oct-2026)
 
@@ -75,7 +83,7 @@ No incluir en el nivel 2 narrativa fundamental, tesis, noticias, discusión de c
 Esta regla sustituye la regla de holdings del 10-oct-2026 (Base = 60% SOTP económico + 40% SOTP de múltiplos) y cualquier otra que ponga un valor de mercado, contable o de múltiplos como valor principal.
 
 1. **Valor principal = DCF Base intrínseco (Damodaran).** Industriales: FCFF; bancos y aseguradoras: RE/DDM o FCFE después de capital regulatorio; holdings: SOTP **intrínseco** (cada filial por sus flujos; privadas sin flujos propios a valores fechados y verificables) menos deuda de la matriz y VP de gastos centrales. El precio de bolsa de una filial cotizada NO es su valor intrínseco.
-2. **Esperado y margen de seguridad.** Cuatro historias (Base, Conservadora, Optimista, Disrupción) con probabilidades que suman 100%; esperado = Σ probabilidad × valor; **precio de compra = esperado × (1 − 35%)**.
+2. **Esperado y margen de seguridad.** Cuatro historias (Base, Conservadora, Optimista, Disrupción) con probabilidades que suman 100%; esperado = Σ probabilidad × valor; **precio de compra con MOS 35% = valor intrínseco principal Base × (1 − 35%)**, nunca el esperado. El esperado es una lectura complementaria.
 3. **Secundarios.** Múltiplos sectoriales, SOTP de mercado, libro y el antiguo 60/40 se muestran como lectura secundaria; el ponderado secundario por defecto es **40% DCF + 60% múltiplos**.
 4. **Corte común con la cartera de EE.UU.** Mismo día de corte para precios (cierre BVC) y la misma prima madura (implícita de Damodaran del mes) + prima país de Colombia (archivo de países vigente); Rf COP = TES ~10 años al corte − spread soberano.
 5. **Consistencia de inflación.** Flujos en COP nominales con la inflación implícita en el diferencial de tasas libres de riesgo; crecimiento terminal ≤ Rf COP.
