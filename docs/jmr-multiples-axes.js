@@ -41,7 +41,7 @@ function axes(record,method,scenario){
  return {multiple,fundamental,denominator:DENOM[method]};
 }
 function fmt(x,mult){
- const digits=mult?(x<0.1?4:x<2?3:2):2;
+ const digits=2; // Regla global: máximo dos decimales visibles, sin redondear cálculos fuente.
  return x.toLocaleString("es-CO",{minimumFractionDigits:digits,maximumFractionDigits:digits})+(mult?"×":"");
 }
 function labels(record,method,scenario){
