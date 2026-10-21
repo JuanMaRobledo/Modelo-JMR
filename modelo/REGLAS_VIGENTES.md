@@ -1,6 +1,6 @@
 # Reglas vigentes del Modelo JMR
 
-**Versión 3 · 21-oct-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
+**Versión 4 · 21-oct-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
 (`docs/prompts/*.md`), `METODOLOGIA.md`, una habilidad o un comentario de código dice otra cosa, prevalece este
 documento. Una regla nueva no se agrega como «regla del día X» en un prompt: se cambia aquí, se sube la versión y se
 anota en el registro de cambios del final.
@@ -32,11 +32,14 @@ anota en el registro de cambios del final.
 
   | Etapa | Previa |
   |---|---|
-  | Madura estable | 50 / 25 / 15 / 10 |
-  | Crecimiento maduro | 45 / 25 / 20 / 10 |
-  | Crecimiento alto | 40 / 25 / 20 / 15 |
-  | Declive | 40 / 30 / 10 / 20 |
-  | Holding colombiano | 45 / 30 / 15 / 10 |
+  | Madura estable | 50 / 20 / 20 / 10 |
+  | Crecimiento maduro | 45 / 22,5 / 22,5 / 10 |
+  | Crecimiento alto | 40 / 22,5 / 22,5 / 15 |
+  | Declive | 40 / 25 / 15 / 20 |
+  | Holding | 45 / 22,5 / 22,5 / 10 |
+
+  Conservadora y Optimista son simétricas salvo en declive: sin evidencia, el promedio no cae bajo la Base por
+  construcción.
 
 - **Ajustes:** de 5 pp, cada uno atado a un indicador de la ficha que cruzó su umbral escrito, con evidencia y fecha
   (`ajustes_prob`). Máximo 15 pp de desvío por historia frente a la previa. Sin cruce de umbral, no se mueven.
@@ -90,10 +93,31 @@ Al cerrar cada corte: `scripts/foto_supuestos.py foto`. Con cada resultado anual
 `reference/fotos/realizados.json`, y `foto_supuestos.py comparar` mide qué historia acertó. Con suficientes
 observaciones, las frecuencias por etapa recalibran las previas del §3 (nueva versión de este documento).
 
+## 8. Proceso eficiente (lo mínimo que se exige y cuándo algo está listo)
+
+- **Un comando:** `bash scripts/valorar.sh <T> [hoja] [pares] [industria]`. Avanza por fases, salta lo hecho y se
+  detiene solo en el paso de juicio (la ficha de historias, generada con el prompt v5).
+- **Entregable mínimo obligatorio:**
+  - DCF de las cuatro historias;
+  - las tres sensibilidades del DCF Base (WACC × g, ROIC × g, crecimiento × margen) y el DCF inverso;
+  - múltiplos y su matriz solo para los métodos con peso > 0.
+
+  El resto (siete métodos, dos anclas, familias económicas) es opcional y no bloquea.
+- **Estados:**
+  - **VALIDADO** = `controles_todas.sh` sin fallas;
+  - **CON HALLAZGOS** = falla algún control.
+
+  Las salvedades son notas, no un estado. No existe «conciliado con salvedades» indefinido.
+- **Una auditoría por publicación.** No se re-audita sin un hecho nuevo (resultados, 8-K material, cambio de regla).
+  Una actualización trimestral solo toca lo que cambió (modo C de `actualizar-cartera`).
+- **Una regla, un lugar:** un cambio de método se hace aquí, sube la versión y se aplica a todas las empresas en una
+  sola pasada; nunca empresa por empresa ni como «contrato del día» en un prompt.
+
 ## Registro de cambios
 
 | Versión | Fecha | Cambio |
 |---|---|---|
+| 4 | 21-oct-2026 | Revisión del historial (38 valoraciones que nunca salieron de «conciliado con salvedades»): previas simétricas (antes la Conservadora pesaba más en todas las etapas), control de márgenes sin alertar lo ya demostrado (umbral 2,5× sector), §8 proceso eficiente (un comando, mínimo obligatorio, estado VALIDADO, una auditoría por publicación). |
 | 3 | 21-oct-2026 | Prompts de análisis fundamental (v5 corregido) y auditoría (v1.2) alineados y válidos para cualquier modelo: el análisis copia las cifras de la valoración oficial (no recalcula), MOS solo sobre la Base (el texto anterior decía «sobre el esperado»), promedio de tres historias, probabilidades por previa + indicadores; la auditoría busca sesgo en ambas direcciones (agresividad y prudencia duplicada) y verifica g, ajuste por tasas y ancla C. |
 | 2 | 21-oct-2026 | Prompt de valoración v5 (`docs/prompts/valoracion-modelo-jmr-v5.md`): autocontenido y válido para cualquier modelo de lenguaje, un solo método de múltiplos (el v4 mezclaba λ, ciclo y Toro), etiquetas [Dato]/[Cálculo]/[Juicio] y ficha JSON de salida. Calibración honesta (§2). Topes de Toro retirados (doble prudencia). |
 | 1 | 21-oct-2026 | Consolida las reglas dispersas en los prompts (17, 18 y 21-oct). MOS sobre DCF Base o SOTP Base (antes había código que lo calculaba sobre el esperado). Probabilidades por previa + indicadores. g terminal 4% (antes = tasa libre, 5,29%). Prima por país en la fecha del corte. Ajuste por tasas y tope del ancla C en los múltiplos por ciclo. Controles de razonabilidad y foto de supuestos. |

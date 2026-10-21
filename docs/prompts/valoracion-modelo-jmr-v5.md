@@ -88,10 +88,13 @@ reinversión (ventas/capital), ROIC, FCFF y valor terminal.
 
   | Etapa | Previa |
   |---|---|
-  | Madura estable | 50 / 25 / 15 / 10 |
-  | Crecimiento maduro | 45 / 25 / 20 / 10 |
-  | Crecimiento alto | 40 / 25 / 20 / 15 |
-  | Declive | 40 / 30 / 10 / 20 |
+  | Madura estable | 50 / 20 / 20 / 10 |
+  | Crecimiento maduro | 45 / 22,5 / 22,5 / 10 |
+  | Crecimiento alto | 40 / 22,5 / 22,5 / 15 |
+  | Declive | 40 / 25 / 15 / 20 |
+
+  Conservadora y Optimista son simétricas (salvo en declive): sin evidencia, el promedio no debe quedar bajo la Base
+  por construcción.
 
 - Define 6-8 indicadores observables, cada uno con su valor actual y el umbral que favorece a cada historia.
 - Cada indicador que ya cruzó su umbral mueve 5 pp de una historia a otra, con evidencia y fecha. Máximo 15 pp por
@@ -148,7 +151,11 @@ El valor relativo de cada método se calcula a FY+3 y se trae a hoy: VPₙ = pre
 descontados. Muestra hoy y FY+3 por separado; el ponderado DCF + múltiplos es lectura secundaria, con pesos por
 tipo de empresa, y **nunca se rotula como valor intrínseco**.
 
-## 6. Sensibilidad (solo sobre la Base)
+## 6. Sensibilidad (solo sobre la Base; lo mínimo obligatorio)
+
+Obligatorio: las tres sensibilidades del DCF Base y el DCF inverso, más una matriz por cada método de múltiplos con
+peso > 0. Más matrices son opcionales y nunca bloquean la entrega.
+
 
 - **DCF Base:**
   - matriz WACC ± 1 pp × g terminal ± 0,5 pp;
@@ -221,6 +228,7 @@ Si el precio contradice tu Base, no cambies la Base: explica la diferencia o ide
 {
  "ticker": "<T>", "fecha_corte": "AAAA-MM-DD", "industria_damodaran": "<industria>",
  "segmentos": {"<segmento>": <ingresos LTM>},
+ "margen_ltm": 0.00, "margen_max_hist": 0.00,
  "historias": [
   {"id": "A", "nombre": "Base · <frase>", "prob": 0.45, "margen": 0.00, "s2c": 0.0,
    "crec": {"<segmento>": [g1, g2, g3, g4, g5]}, "roic_terminal": 0.00},
