@@ -34,8 +34,9 @@
 ```
 Quiero que armes un modelo de valoración DCF completo para {TICKER} usando la
 plantilla Damodaran/Ginzu en Google Sheets [ID o nombre de la plantilla maestra].
-Como la plantilla probablemente ya tiene datos de otra empresa, sobreescribila en
-vez de duplicarla (a menos que haya cupo de Drive para copiar).
+La plantilla maestra debe estar completamente vacía de datos de cualquier emisor.
+Trabajá EXCLUSIVAMENTE en una copia nueva por ticker y clase. Si no se puede copiar,
+detente y registra el bloqueo: nunca sobrescribas la maestra ni una valoración previa.
 
 CONTRATO VIGENTE DE ESCENARIOS (revisión 30-sep-2026):
 Las historias SON los escenarios activos, no una segunda valoración paralela.
@@ -62,8 +63,8 @@ Asigná probabilidades no negativas que sumen 100%, con fundamento y límites:
 son juicio del analista, no frecuencias publicadas. Los desenlaces deben ser
 suficientemente distintos para no solaparse y cubrir los futuros materiales.
 DCF esperado hoy = suma(probabilidad de cada historia × su DCF por acción hoy).
-Mostrá juntos y con igual destaque DCF base hoy (historia A) y DCF esperado hoy.
-El margen de seguridad se aplica al esperado: precio MOS = esperado × (1 − MOS).
+Destacá DCF Base hoy (historia A) como valor principal; presenta el esperado como complemento.
+El margen de seguridad se aplica SOLO al DCF/FCFE/SOTP Base principal: precio MOS = principal Base × (1 − MOS).
 Si falta cuantificar una historia o justificar las probabilidades, indicá
 «DCF esperado pendiente»; no sustituyas el esperado por el base ni por múltiplos.
 Los múltiplos individuales, su consolidado y el ponderado con DCF son secundarios
@@ -579,8 +580,8 @@ Seguí este proceso, en este orden:
         dos enfoques (DCF o múltiplos) es más confiable para esta empresa.
      h) Historias con probabilidades y valor esperado (paso 5B).
 
-11. GUARDADO EN LA CARPETA DE ANÁLISIS DE LA EMPRESA (obligatorio, sin pedir permiso)
-   - La hoja del modelo queda donde está; no la muevas ni la dupliques.
+11. GUARDADO CONTROLADO (preparar borrador siempre; escribir o publicar únicamente con autorización explícita)
+   - No mover ni sustituir la hoja oficial. La única copia autorizada es una nueva hoja de trabajo por empresa, creada desde una maestra vacía.
    - Generá un resumen en Markdown llamado
      {TICKER}_Valoracion_Modelo_JMR_[AAAA-MM-DD].md con estas secciones, en este
      orden (el precio aparece recién en la sección 11):
@@ -625,8 +626,8 @@ Seguí este proceso, en este orden:
    - Guardalo en Google Drive en AAA Finanzas › Análisis › <empresa>. Buscá la
      subcarpeta por ticker y por nombre (por ticker o nombre de la empresa objetivo); usá la que ya
      tenga los análisis previos y creala con el ticker solo si no existe ninguna.
-     Si ya hay un archivo con el mismo nombre, actualizalo en vez de duplicarlo.
-   - Subilo como text/markdown sin convertir a Google Docs y a nombre de la cuenta
+     Si ya existe un archivo con ese nombre, conservar su versión en el archivo histórico; reemplazar solo con aprobación y trazabilidad.
+   - Solo después de autorización, subilo como text/markdown sin convertir a Google Docs y a nombre de la cuenta
      del usuario: si solo tenés la service account, creá primero el archivo vacío
      con el conector de Drive y después cargá el contenido actualizándolo con la
      service account.
