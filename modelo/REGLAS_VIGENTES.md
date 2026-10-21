@@ -100,9 +100,10 @@ observaciones, las frecuencias por etapa recalibran las previas del §3 (nueva v
 - **Entregable mínimo obligatorio:**
   - DCF de las cuatro historias;
   - las tres sensibilidades del DCF Base (WACC × g, ROIC × g, crecimiento × margen) y el DCF inverso;
-  - múltiplos y su matriz solo para los métodos con peso > 0.
+  - múltiplos de salida de los métodos con peso > 0 (sin matrices obligatorias);
+  - entradas completas y los 18 candados de la hoja listos (`inputs_completos.py`, `candados.py`).
 
-  El resto (siete métodos, dos anclas, familias económicas) es opcional y no bloquea.
+  El resto (matrices de múltiplos, siete métodos, dos anclas, familias económicas) es opcional y no bloquea.
 - **Estados:**
   - **VALIDADO** = `controles_todas.sh` sin fallas;
   - **CON HALLAZGOS** = falla algún control.

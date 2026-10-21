@@ -23,7 +23,7 @@ todo lo necesario está escrito aquí y las herramientas son opcionales. Reglas 
    historias, probabilidades ni textos de otra empresa; los comparables entran solo como comparables declarados.
 5. **Aritmética.** Muestra las fórmulas y verifica cada resultado clave dos veces (por ejemplo, el puente de valor
    operativo a valor por acción). Si un control no cuadra, dilo; no lo redondees para que cuadre.
-6. **Salida.** Entrega los bloques del paso 9 en el orden indicado. Al final, la ficha JSON del paso 9.6, que es la
+6. **Salida.** Entrega los bloques del paso 9 en el orden indicado. Al final, la ficha JSON del paso 9.10, que es la
    que leen los scripts del modelo.
 
 ## 1. Datos de entrada
@@ -57,7 +57,15 @@ patrimonio y deuda contable; caja; participaciones cruzadas y minoritarios; acci
 marginal; I+D (B17), arrendamientos (B18), opciones (B38-B42), preferentes (B76), NOL (B62), fracaso (B52) y cada
 pregunta de anulación (B46-B71) con su respuesta. En «Cost of capital worksheet»: método de beta, prima por regiones
 con las ventas de cada región, rating o spread, vencimiento, convertibles y preferentes. En «Option value»: precio,
-ejercicio, plazo, volatilidad y dividendo. El control `inputs_completos.py` debe dar 0 celdas vacías.
+ejercicio, plazo, volatilidad y dividendo. En «Financials Multiples», para cada historia: ΔNWC/ventas, otros
+netos/EBIT y cambio de acciones FY+1 a FY+4, calculados con la historia de la empresa (3 años; la recompra reduce
+acciones). El control `inputs_completos.py` debe dar 0 celdas vacías y los 18 candados de la hoja (`candados.py`) deben
+estar en LISTO/VALIDADO/CONCILIADO/NO APLICA: mientras uno falle, el WACC, las proyecciones o los múltiplos quedan en
+blanco.
+
+**Base de los márgenes:** los márgenes de las historias se escriben en base reportada (GAAP). Si la hoja capitaliza
+I+D o arrendamientos, la ficha lleva `iyd` y `arrendamientos` con `margen_pp` y `capital_ventas` para llevarlos a la base
+ajustada; sin eso, la valoración queda subestimada.
 
 Ajustes que se hacen siempre que apliquen (criterio Damodaran):
 - **I+D:** se capitaliza cuando la empresa gasta en I+D o en tecnología y desarrollo de forma recurrente. Damodaran
@@ -105,6 +113,10 @@ reinversión (ventas/capital), ROIC, FCFF y valor terminal.
   crecimiento de su año 5, con piso de 0%, y ROIC terminal = costo de capital.
 - **Un riesgo, un lugar:** cada riesgo va en los flujos, en la tasa o en la probabilidad, solo en uno de ellos.
 - **No ajustes nada para acercarte al precio.** El precio entra recién en el paso 8.
+- **Coherencia de la reinversión:** el rendimiento del capital nuevo (margen × (1 − t) × ventas/capital) debe ser
+  coherente con el ROIC histórico de la empresa. Si queda más del doble del ROIC terminal, explica la convergencia:
+  ventaja que se mantiene en los años 1-10 y regla de ventaja en la perpetuidad, o ajusta el ventas/capital de los
+  años 6-10.
 - Orden esperado: Conservadora ≤ Base ≤ Optimista en valor. Si una variable no sigue ese orden, explica el
   mecanismo en vez de forzarla.
 
@@ -178,8 +190,8 @@ tipo de empresa, y **nunca se rotula como valor intrínseco**.
 
 ## 6. Sensibilidad (solo sobre la Base; lo mínimo obligatorio)
 
-Obligatorio: las tres sensibilidades del DCF Base y el DCF inverso, más una matriz por cada método de múltiplos con
-peso > 0. Más matrices son opcionales y nunca bloquean la entrega.
+Obligatorio: las tres sensibilidades del DCF Base y el DCF inverso (contrato de abajo). Las matrices de múltiplos son
+opcionales y nunca bloquean la entrega.
 
 
 - **DCF Base:**
@@ -211,7 +223,7 @@ Responde Sí/No a cada punto y marca Sí solo si lo verificaste:
    las del último informe.
 2. g terminal ≤ tasa libre y g < costo de capital terminal; peso del valor terminal informado.
 3. El ROIC terminal sigue la regla de ventaja; ningún ROIC excedente perpetuo sin ventaja durable.
-4. Márgenes: ninguno supera 2× el del sector sin ventaja durable escrita; el Optimista no supera al de la Base en
+4. Márgenes: ninguno supera 2,5× el del sector sin ventaja durable escrita ni margen ya demostrado por la empresa; el Optimista no supera al de la Base en
    más de 10 pp sin evidencia.
 5. Probabilidades = previa + ajustes documentados, y suman 100%.
 6. Múltiplos: ninguno sobre su ancla C, ninguno derivado del DCF, atípicos listados.
@@ -255,6 +267,8 @@ Si el precio contradice tu Base, no cambies la Base: explica la diferencia o ide
  "ticker": "<T>", "fecha_corte": "AAAA-MM-DD", "industria_damodaran": "<industria>",
  "segmentos": {"<segmento>": <ingresos LTM>},
  "margen_ltm": 0.00, "margen_max_hist": 0.00,
+ "iyd": {"vida": 3, "margen_pp": 0.00, "capital_ventas": 0.00},
+ "arrendamientos": {"margen_pp": 0.00, "capital_ventas": 0.00},
  "historias": [
   {"id": "A", "nombre": "Base · <frase>", "prob": 0.45, "margen": 0.00, "s2c": 0.0,
    "crec": {"<segmento>": [g1, g2, g3, g4, g5]}, "roic_terminal": 0.00},
@@ -279,6 +293,8 @@ cambiar de opinión.
 
 Solo si tienes acceso al repositorio (cualquier modelo o persona puede correrlo; el flujo completo está en
 `docs/PROCESO.md`):
+- atajo: `bash scripts/valorar.sh <T> [hoja] ["pares"] ["industria"]` (todo en orden; se detiene solo en el juicio);
+- `completar_entradas.py`, `inputs_completos.py` y `candados.py` (entradas y candados de la hoja);
 - `datos_mercado.py` y `aplicar_corte.py` (corte);
 - `refresh_native_model.py` y `estados_completos.py` (estados);
 - `probabilidades.py --apply` (probabilidades);
