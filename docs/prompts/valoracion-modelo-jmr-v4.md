@@ -8,7 +8,7 @@
 
 **Historias:** Conservador, Base, Optimista y Disrupción; el promedio ordinario pondera solamente las primeras tres, con pesos verificables. La Disrupción se presenta independiente. El valor principal es DCF FCFF Base, FCFE Base en bancos o SOTP Base en holdings; MOS referido exclusivamente al principal.
 
-**Múltiplos y sensibilidad:** seleccionar con fundamento EV/EBITDA, EV/FCFF, P/E, P/FCFE, P/OCF, P/V y P/BV, calcular históricos depurados y FY+3 descontados. Sensibilidad DCF Base, terminal, duración de ventaja y dos familias de matrices por método: (1) VP por acción con ejes múltiplo de salida real y fundamental FY+3 real; (2) múltiplo económicamente justificado con drivers del negocio. DCF inverso con conciliación completa. No forzar la coincidencia con DCF.
+**Múltiplos y sensibilidad:** seleccionar con fundamento EV/EBITDA, EV/FCFF, P/E, P/FCFE, P/OCF, P/V y P/BV, calcular históricos depurados y FY+3 descontados. Sensibilidad DCF Base, terminal, duración de ventaja y dos familias de matrices por método, 21 cada una: (1) VP por acción con ejes múltiplo de salida real (veces) y fundamental FY+3 real (unidades de la hoja, nunca 0,8…1,2), que es la que se despliega en app, análisis y auditoría; (2) múltiplo económicamente justificado con drivers del negocio, que se conserva en la pestaña «Sensibilidad económica múltiplos» como soporte del ancla C y **no se despliega**. DCF inverso con conciliación completa. No forzar la coincidencia con DCF.
 
 **Entregables EXCLUSIVOS:** hoja y registros numéricos, ficha de justificación de supuestos, fuentes/fechas/unidades y pruebas de fórmulas, conciliaciones y trazabilidad; listados N/D. Una justificación económica breve no es el artículo de 18 secciones ni un dictamen de auditoría.
 
