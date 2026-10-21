@@ -1,4 +1,4 @@
-const CACHE = "modelo-jmr-v163-editor-hoja-2decimales-20261020";
+const CACHE = "modelo-jmr-v164-archivo-antiguas-20261021";
 const APP_SHELL = [
   "index.html",
   "colombia.html",
