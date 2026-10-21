@@ -1,19 +1,22 @@
-# Prompt para continuar en ChatGPT · Modelo JMR · NFLX · 21-oct-2026
+# Prompt para continuar en ChatGPT · Modelo JMR · NFLX · actualizado 21-oct-2026
 
-> Copia todo lo que está debajo de la línea en un chat nuevo de ChatGPT. Adjunta:
-> 1. la hoja «Modelo JMR - NFLX - prueba integral plantilla IA 2026-10-21» exportada a .xlsx;
+> Copia todo lo que está debajo de la línea en un chat nuevo de ChatGPT (sirve igual para cualquier otro modelo).
+> Adjunta:
+> 1. la hoja «Modelo JMR - NFLX» vigente (ID `163ra1unWvu6hhtkBa_hh-43emBsmNDDbCInllK6MC6w`), exportada a .xlsx;
 > 2. `JMR-valuation/reference/damodaran/NFLX.json` (la ficha de historias);
-> 3. `Modelo-JMR/docs/prompts/valoracion-modelo-jmr-v5.md` y `Modelo-JMR/modelo/REGLAS_VIGENTES.md`;
-> 4. para el análisis: `research-fundamental-jmr-v5.md`;
-> 5. opcional: el 10-Q de NFLX a jun-2026 y la carta del 3T26.
+> 3. `Modelo-JMR/modelo/REGLAS_VIGENTES.md`, `docs/prompts/valoracion-modelo-jmr-v5.md` y
+>    `docs/prompts/research-fundamental-jmr-v5.md`;
+> 4. `JMR-valuation/data/NFLX_Research_Fundamental_Modelo_JMR_2026-10-21.md` (el análisis publicado);
+> 5. para la actualización: la carta a accionistas del 3T26 (20-oct-2026) y el 10-Q del 3T26 cuando salga.
 
 ---
 
-Actúa como analista de valoración del **Modelo JMR**, con criterio Damodaran. Vas a continuar una valoración de
-**Netflix (NFLX)** que otro asistente dejó a medio camino. Los documentos adjuntos mandan, en este orden:
+Actúa como analista de valoración del **Modelo JMR**, con criterio Damodaran. La valoración de **Netflix (NFLX)**
+al corte del **30-sep-2026** está **VALIDADA y publicada**. Tu trabajo es mantenerla, no rehacerla. Los documentos
+adjuntos mandan, en este orden:
 1. `REGLAS_VIGENTES.md` (versión 4);
-2. `valoracion-modelo-jmr-v5.md` (cómo valorar);
-3. `research-fundamental-jmr-v5.md` (cómo escribir el análisis).
+2. `valoracion-modelo-jmr-v5.md`;
+3. `research-fundamental-jmr-v5.md`.
 
 Léelos completos antes de empezar. Si algo de este mensaje los contradice, prevalecen ellos.
 
@@ -23,123 +26,120 @@ Léelos completos antes de empezar. Si algo de este mensaje los contradice, prev
   - Cada cifra lleva una de tres etiquetas: [Dato] con fuente y fecha, [Cálculo] con su fórmula, o [Juicio] con la
     evidencia a favor y en contra.
   - Si no tienes un dato, escribe N/D y explica qué queda sin anclar. Nunca inventes cifras, fuentes ni enlaces.
-  - No uses información posterior al corte del **30-sep-2026**, salvo como «hecho posterior» rotulado (los
-    resultados del 3T26 salieron después del corte).
 - **Calibración honesta, no conservadora por sistema:**
   - La Base es el desenlace más probable, no el prudente; la prudencia vive solo en el margen de seguridad de 35%.
   - Conservadora y Optimista exigen la misma evidencia.
   - Cada riesgo va en un solo lugar: flujos, tasa o probabilidad.
   - Nada se ajusta para acercarse al precio.
-- **No modifiques la hoja.** Tú calculas, verificas y propones; el usuario aplica los cambios. Entrega cada cambio
-  propuesto como tabla: hoja, celda, valor actual, valor propuesto y motivo.
-- **Aritmética:** muestra las fórmulas y verifica dos veces los resultados clave (puente de valor operativo a valor
-  por acción, promedio de historias y MOS).
+- **Una auditoría por publicación.** No re-audites la valoración del 30-sep sin un hecho nuevo. Solo cambia lo que
+  un dato nuevo obliga a cambiar (modo C de actualización trimestral).
+- **No modifiques la hoja.** Propones y el usuario aplica. Entrega cada cambio como tabla: hoja, celda, valor actual,
+  valor propuesto y motivo.
+- **Aritmética:** muestra las fórmulas y verifica dos veces el puente al valor por acción, el promedio de las tres
+  historias y el MOS.
 
-## Estado al 21-oct-2026 (lo que ya está hecho y verificado)
+## Valoración vigente (corte del 30-sep-2026, VALIDADA el 21-oct-2026)
 
-**Corte de mercado (30-sep-2026):**
-- Precio NFLX US$69,58.
-- Treasury 10 años 5,29% y prima madura de Damodaran 3,70% (octubre de 2026, misma fecha).
-- Crecimiento terminal 4% nominal (techo: la tasa libre).
+**Mercado:**
+- Precio US$69,58.
+- Treasury a 10 años 5,29% y prima madura de Damodaran 3,70%, de la misma fecha.
+- Crecimiento terminal 4,0% nominal.
 - Costo de capital terminal 8,99%.
 
-**Estados financieros (LTM a jun-2026, conciliados con la SEC):**
-- Ingresos US$48.371 millones; EBIT GAAP US$14.354 millones (29,7%).
-- Se corrigieron 17 celdas: balance LTM al 10-Q, BPA ajustado por el split 10 a 1 y cambio neto de caja.
+**Estados (LTM a jun-2026, conciliados con la SEC):**
+- Ingresos US$48.371 millones.
+- EBIT GAAP US$14.354 millones (29,7%; 31,0% normalizado por el impuesto de Brasil).
 
-**Ajustes de Damodaran (todos validados en la hoja):**
-- **I+D capitalizado:** «Technology and development», vida de 3 años. Activo de US$6.947 millones, EBIT +US$714
-  millones (+1,48 pp de margen).
-- **Arrendamientos operativos como deuda:** VP de US$2.327 millones, EBIT +US$171 millones (+0,35 pp), sin doble
-  conteo (no están en la deuda del balance).
-- **Opciones de empleados:** 123,9 millones a US$39,21, plazo de 4,6 años, volatilidad de 33,8%, dividendo 0. Valor
-  de US$4.973 millones.
-- Margen base ajustado: 31,5%.
+**Ajustes de Damodaran:**
+- **I+D capitalizado:** vida de 3 años, +1,48 pp de margen.
+- **Arrendamientos operativos como deuda:** VP de US$2.327 millones, +0,35 pp de margen, sin doble conteo.
+- **Opciones de empleados:** US$4.973 millones, por Black-Scholes.
 
-**Costo de capital (validado):**
-- Método de beta «Single Business(Global)», con beta de 0,99.
-- Prima por regiones de 4,92% (ventas: UCAN 21.088, EMEA 15.604, LATAM 5.870, APAC 5.809).
-- Rating A3/A-, costo de la deuda antes de impuestos de 6,18%, tasa marginal de 25%.
-- Deuda contable de US$14.463 millones más arrendamientos.
-- **WACC: 10,02%.**
+**Costo de capital:**
+- WACC 10,02% y costo del patrimonio 10,33%.
+- Beta global reapalancada 1,02.
+- Prima por regiones 4,92%.
+- Rating A3/A-, costo de la deuda antes de impuestos 6,18%.
+- Tasa marginal 25%.
 
-**Ficha de historias** (ver `NFLX.json`; márgenes en base reportada, el modelo los lleva a la base ajustada):
+**ROIC terminal:**
+- 21,52% en Base, Conservadora y Optimista. Es el punto medio, decisión del usuario del 21-oct-2026.
+- En la Disrupción es igual al costo de capital (8,99%).
 
-| Historia | Probabilidad | Crecimiento años 1-5 | Margen objetivo |
+**Las cuatro historias** (probabilidades = previa de «crecimiento maduro», sin ajustes; márgenes en base reportada):
+
+| Historia | Probabilidad | Crecimiento | Margen objetivo | DCF por acción |
+|---|---|---|---|---|
+| Base | 45% | 11% el año 1, bajando ~1 pp por año (8,9% compuesto a 5 años) | 36% | **US$65,95** |
+| Conservadora | 22,5% | Precio por miembro a la mitad; publicidad ~US$6.000 M en 2031 | 32,5% | US$53,51 |
+| Optimista | 22,5% | Publicidad > US$12.000 M en 2031; precio sin rotación | 40% | US$80,87 |
+| Disrupción (aparte) | 10% | Año 1 contratado y luego estancamiento | 22% | US$23,92 |
+
+**Resultados:**
+- **Promedio de Conservadora, Base y Optimista** (pesos renormalizados, condicionado a que no ocurra la disrupción):
+  US$66,57.
+- **Precio con MOS** = DCF Base × 0,65 = **US$42,86**.
+- **DCF inverso:** US$69,58 exige un crecimiento compuesto de 9,9% en los años 1-5, frente a 8,9% en la Base. El
+  precio pide algo un poco mejor que la Base.
+
+**Sensibilidades del DCF Base:**
+- WACC ±1 pp: US$83,38 y US$54,31.
+- g terminal ±0,5 pp: US$70,23 y US$62,42.
+- ROIC terminal = costo de capital: US$52,11.
+- Crecimiento de los años 1-5 ±2 pp: US$73,09 y US$59,49.
+- Margen objetivo ±2 pp: US$69,54 y US$62,35.
+
+**Múltiplos de salida** (por ciclo, con ajuste por tasas y el ancla C como techo; secundarios, 60% de su bloque),
+en veces, Conservador / Base / Optimista:
+
+| Método (peso) | Conservador | Base | Optimista |
 |---|---|---|---|
-| Base | 45% | ~11% el año 1, bajando a ~7% | 36% |
-| Conservadora | 22,5% | ~9%, bajando a ~4,5% | 32,5% |
-| Optimista | 22,5% | ~12-16%, bajando a ~9% | 40% |
-| Disrupción | 10% | ~7%, luego estancamiento; ROIC terminal = costo de capital | 22% |
+| EV/EBITDA (20%) | 13,24 | 14,02 | 15,26 |
+| EV/FCFF (10%) | 19,51 | 22,28 | 25,49 |
+| P/E (20%) | 15,73 | 17,63 | 19,81 |
+| P/FCFE (5%) | 17,10 | 19,21 | 21,57 |
+| P/OCF (5%) | 17,50 | 20,23 | 23,16 |
 
-Las probabilidades son la previa de la etapa «crecimiento maduro», sin ajustes por indicadores todavía.
+Todos quedan bajo el múltiplo actual. No hay alerta de salto.
 
-**Múltiplos por ciclo** (última corrida, con el ajuste por tasas y el ancla C como techo), en veces,
-Conservador / Base / Optimista:
+**Controles:**
+- `controles_todas.sh NFLX` sin fallas.
+- Los 18 candados de la hoja listos.
+- Entradas completas.
+- Consistencia hoja = app = motor.
 
-| Método | Conservador | Base | Optimista |
-|---|---|---|---|
-| EV/EBITDA | 20,0 | 26,8 | 26,8 |
-| EV/FCFF | 19,5 | 22,3 | 25,5 |
-| P/E | 21,9 | 36,4 | 36,4 |
-| P/FCFE | 17,1 | 19,2 | 21,6 |
-| P/OCF | 24,2 | 26,0 | 26,0 |
+## Hecho posterior al corte (no entra en la valoración del 30-sep)
 
-**Alerta abierta:** EV/EBITDA y P/E de la Base y el Optimista quedan más de 25% sobre el múltiplo actual. Exige
-`justificacion_salto` con evidencia o una corrección.
-
-## Resultado de la última corrida del modelo (21-oct-2026, 15:56) · NO VALIDADA todavía
-
-| Historia | Probabilidad | DCF por acción |
-|---|---|---|
-| Base | 45% | US$56,52 |
-| Conservadora | 22,5% | US$46,09 |
-| Optimista | 22,5% | US$69,07 |
-| Disrupción (aparte) | 10% | US$23,92 |
-
-- **Promedio condicionado** de Conservadora, Base y Optimista: US$57,05.
-- **Precio con MOS** = 56,52 × 0,65 = US$36,74.
-- **Precio del corte:** US$69,58, un 23% sobre el DCF Base y cercano a la Optimista.
-
-Verifica estas cifras contra la hoja antes de usarlas.
-
-Hallazgos abiertos que impiden VALIDAR:
-- **Ventas/capital:** el capital nuevo rinde 22% en la Conservadora y 38% en la Optimista, más del doble de su ROIC
-  terminal (9% y 11%). Revisa el ventas/capital de esas historias (§3 y §4 del prompt v5).
-- **Múltiplos:** el P/E y el EV/EBITDA de la Base y el Optimista quedan más de 25% sobre el actual.
-- **Error en la hoja:** `POCF!F51` = #DIV/0!.
-- **Paso del modelo que falló:** un paso posterior a las historias falló (IndexError). Las pestañas de múltiplos o de
-  la app pueden estar desactualizadas: no las tomes como vigentes sin verificarlas.
+Carta a accionistas del 3T26, del 20-oct-2026:
+- ingresos LTM a septiembre de US$49.734,6 millones;
+- EBIT GAAP de US$15.564,9 millones (31,3%);
+- meta de publicidad de 2026 rebajada de ~US$3.000 a ~US$2.700 millones;
+- flujo libre de 2026 de ~US$12.000 millones (antes ~US$12.500 millones);
+- licencia ampliada con Disney.
 
 ## Lo que falta (en este orden)
 
-1. **DCF de las cuatro historias.** Con la hoja adjunta (pestañas «Escenarios e historias», «Valuation output»,
-   «Input sheet»):
-   - verifica que cada historia reproduzca su DCF anual a 10 años más la perpetuidad, y el puente al valor por acción
-     (deuda, arrendamientos, caja, opciones y acciones);
-   - informa el DCF Base;
-   - informa el promedio de Conservadora, Base y Optimista, con las probabilidades renormalizadas y rotulado
-     «condicionado a que no ocurra la disrupción»;
-   - informa la Disrupción aparte, en el recuadro «¿Qué pasaría si todo fallara?»;
-   - informa el precio con MOS = DCF Base × 0,65.
+1. **Lectura del 3T26 frente a los indicadores de la ficha.** Para cada indicador de `NFLX.json` con umbral escrito:
+   - di si cruzó su umbral, con [Dato] y fecha;
+   - si cruzó, propón el ajuste de 5 pp de probabilidad que corresponda (máximo 15 pp por historia frente a la
+     previa);
+   - si no cruzó, las probabilidades no se mueven.
 
-   Si la hoja exportada no trae los valores calculados (celdas con fórmulas sin evaluar), recalcula tú con los
-   supuestos de la ficha y la estructura del §4 del prompt v5, y dilo.
-2. **Revisa el margen con I+D en la perpetuidad.** El ajuste de +1,48 pp es el de hoy. En estado estable, con un
-   crecimiento de 4% y una vida de 3 años, el efecto es menor (≈ (I+D − amortización)/ventas). Calcúlalo y di cuánto
-   cambia el DCF Base si se usa el valor de estado estable.
-3. **Resuelve la alerta de múltiplos** (EV/EBITDA y P/E): justifica el salto con evidencia o propón el múltiplo
-   corregido.
-4. **Sensibilidades mínimas del DCF Base:** WACC terminal × g, ROIC terminal × g y crecimiento × margen. Agrega el
-   DCF inverso: qué crecimiento de los años 1-5 justifica US$69,58.
-5. **Controles del §7 del prompt v5:** responde Sí/No a cada uno. Si todos pasan, la valoración queda **VALIDADA**; si
-   no, lista los hallazgos.
-6. **Recién después, el análisis fundamental** de 18 secciones (`research-fundamental-jmr-v5.md`). Copia las cifras
-   de la valoración validada; no recalcules.
-7. **Entrega final:**
-   - resumen de valoración (DCF Base, promedio de tres, Disrupción, MOS y DCF inverso);
-   - tabla de cambios propuestos a la hoja;
-   - ficha JSON actualizada (formato del §9.10 del prompt v5);
-   - el análisis en Markdown.
+   Atención con la publicidad: la rebaja a ~US$2.700 millones es evidencia en contra de la Base y la Optimista.
+   Comprueba si alcanza el umbral, sin duplicar el riesgo en flujos y probabilidad a la vez.
+2. **Supuestos que el 3T26 obliga a revisar.** Lista solo esos (por ejemplo, el margen del año 1 o la trayectoria de
+   la publicidad). Para cada uno: valor vigente, valor propuesto, evidencia, y efecto aproximado sobre el DCF Base
+   usando las sensibilidades de arriba.
+3. **Nuevo corte (31-oct-2026), cuando lo haya.** Precio, Treasury y prima madura de la misma fecha. Recalcula el DCF
+   de las cuatro historias, el promedio de tres, la Disrupción aparte, el MOS sobre el DCF Base y el DCF inverso.
+4. **Controles del §7 del prompt v5.** Responde Sí/No a cada uno: VALIDADO si todos pasan, CON HALLAZGOS si falla
+   alguno.
+5. **Análisis fundamental:** actualiza solo las secciones afectadas (9, 12, 14, 15 y 18 como mínimo). Copia las
+   cifras de la valoración; no recalcules dentro del análisis.
+6. **Entrega:**
+   - resumen (DCF Base, promedio de tres, Disrupción, MOS y DCF inverso, cada uno frente al valor vigente);
+   - tabla de cambios a la hoja;
+   - ficha JSON actualizada (§9.10 del prompt v5);
+   - secciones del análisis reescritas, en Markdown.
 
 La decisión de comprar, mantener o vender la toma el usuario. No publiques nada; el usuario lo hace con autorización.
