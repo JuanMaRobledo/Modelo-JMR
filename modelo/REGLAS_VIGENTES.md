@@ -1,6 +1,6 @@
 # Reglas vigentes del Modelo JMR
 
-**Versión 1 · 21-oct-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
+**Versión 2 · 21-oct-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
 (`docs/prompts/*.md`), `METODOLOGIA.md`, una habilidad o un comentario de código dice otra cosa, prevalece este
 documento. Una regla nueva no se agrega como «regla del día X» en un prompt: se cambia aquí, se sube la versión y se
 anota en el registro de cambios del final.
@@ -15,6 +15,10 @@ anota en el registro de cambios del final.
   y `docs/visor.html`.
 
 ## 2. Historias y promedio
+
+- **Calibración honesta:** la Base es el desenlace más probable (la mediana), no el prudente; la prudencia vive solo
+  en el MOS. Conservadora y Optimista exigen la misma evidencia. Cada riesgo va en un solo lugar (flujos, tasa o
+  probabilidad). Nada se ajusta para acercarse al precio.
 
 - Cuatro historias: Base, Conservadora, Optimista y Disrupción, cada una con DCF completo.
 - El promedio y el rango ordinarios usan **solo Conservadora, Base y Optimista** (pesos renormalizados). Disrupción
@@ -57,8 +61,9 @@ anota en el registro de cambios del final.
   escenario en FY+3 (`scripts/multiples_by_cycle.py`).
 - **Ajuste por tasas:** cada múltiplo histórico × (k del cierre − g) / (k del corte − g), con k = Treasury +
   prima implícita del cierre (`reference/costo_capital_historico.json`); factor entre 0,6 y 1,4.
-- **Topes:** Conservador ≤ múltiplo actual; Base ≤ 0,78× y Optimista ≤ 0,92× el promedio propio; **ningún escenario
-  por encima del múltiplo justificado por sus fundamentales (ancla C)**. Comparables solo comprueban.
+- **Topes:** Conservador ≤ múltiplo actual; **ningún escenario por encima del múltiplo justificado por sus
+  fundamentales (ancla C)**. Sin descuentos generales adicionales: los factores de Toro (0,78× / 0,92×) quedan solo
+  como diagnóstico. Comparables solo comprueban.
 - Optimista más de 25% sobre el actual: solo con `justificacion_salto` en `<T>_ciclo.json`.
 
 ## 6. Controles de publicación
@@ -89,4 +94,5 @@ observaciones, las frecuencias por etapa recalibran las previas del §3 (nueva v
 
 | Versión | Fecha | Cambio |
 |---|---|---|
+| 2 | 21-oct-2026 | Prompt de valoración v5 (`docs/prompts/valoracion-modelo-jmr-v5.md`): autocontenido y válido para cualquier modelo de lenguaje, un solo método de múltiplos (el v4 mezclaba λ, ciclo y Toro), etiquetas [Dato]/[Cálculo]/[Juicio] y ficha JSON de salida. Calibración honesta (§2). Topes de Toro retirados (doble prudencia). |
 | 1 | 21-oct-2026 | Consolida las reglas dispersas en los prompts (17, 18 y 21-oct). MOS sobre DCF Base o SOTP Base (antes había código que lo calculaba sobre el esperado). Probabilidades por previa + indicadores. g terminal 4% (antes = tasa libre, 5,29%). Prima por país en la fecha del corte. Ajuste por tasas y tope del ancla C en los múltiplos por ciclo. Controles de razonabilidad y foto de supuestos. |

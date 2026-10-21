@@ -2,7 +2,7 @@ name: Tres prompts JMR independientes
 on:
   pull_request:
     paths:
-      - 'docs/prompts/valoracion-modelo-jmr-v4.md'
+      - 'docs/prompts/valoracion-modelo-jmr-v5.md'
       - 'docs/prompts/research-fundamental-jmr-v5.md'
       - 'docs/prompts/auditoria-economica-jmr-v1.md'
       - 'tests/prompts-triad.test.mjs'
@@ -10,7 +10,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'docs/prompts/valoracion-modelo-jmr-v4.md'
+      - 'docs/prompts/valoracion-modelo-jmr-v5.md'
       - 'docs/prompts/research-fundamental-jmr-v5.md'
       - 'docs/prompts/auditoria-economica-jmr-v1.md'
       - 'tests/prompts-triad.test.mjs'

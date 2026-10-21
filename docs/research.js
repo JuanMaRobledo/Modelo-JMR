@@ -1453,8 +1453,8 @@
       title: 'Prompt maestro v5 · 18 secciones · historias y escenarios', btn: 'promptKindResearch',
       help: 'Úsalo en ChatGPT o Claude junto con la tabla del Modelo JMR. El esquema fijo hace que ambos produzcan documentos comparables.',
       note: 'Adjunta la tabla JMR y los informes disponibles. Revisión 30-sep-2026: cuatro historias como escenarios activos, supuestos y resultados trazables, DCF Base principal y esperado complementario; sección 12 con cálculo explicado y control de congruencia.' },
-    valuation: { file: 'prompts/valoracion-modelo-jmr-v4.md', key: 'jmr-valuation-prompt-v4-integridad-20261001', download: 'JMR - PROMPT Valoracion VIGENTE v4.md',
-      title: 'Prompt de valoración v4 · historias y escenarios', btn: 'promptKindValuation',
+    valuation: { file: 'prompts/valoracion-modelo-jmr-v5.md', key: 'jmr-valuation-prompt-v5-20261021', download: 'JMR - PROMPT Valoracion VIGENTE v5.md',
+      title: 'Prompt de valoración v5 · cualquier modelo de lenguaje', btn: 'promptKindValuation',
       help: 'Arma el Modelo JMR de punta a punta (SEC EDGAR, costo de capital, supuestos anclados, bugs conocidos, guardado en Drive) y elige los múltiplos con tres anclas documentadas: historia depurada, peers ajustados y múltiplo justificado.',
       note: 'DCF Base al presente primero. Siempre muestra métodos individuales, ponderado de múltiplos solos y ponderado DCF + múltiplos, tanto al presente como a 3 años sin descontar; pesos y dividendos explícitos. Fórmula única en todas las hojas (maestra + contrato): solo cambian datos enlazados y supuestos. Cuatro historias: Base, Conservadora, Disrupción y Optimista. Precio al final.' }
   };

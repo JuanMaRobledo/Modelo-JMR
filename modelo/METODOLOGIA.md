@@ -174,8 +174,9 @@ estudio, y sobre cualquier ancla de comparables o de múltiplo justificado que l
    corte: factor = (k del cierre − g) / (k del corte − g), con k = Treasury 10 años + prima implícita de Damodaran
    de ese cierre (`JMR-valuation/reference/costo_capital_historico.json`) y g = crecimiento terminal del corte;
    factor acotado entre 0,6 y 1,4. Un múltiplo de 2020-2021 (tasas de 1-2%) no se aplica igual con tasas de 5%.
-9. **Topes de Toro en el código:** Conservador ≤ múltiplo actual; Base ≤ 0,78x y Optimista ≤ 0,92x el promedio histórico propio.
-   Se usan como topes, no como valores, cuando el promedio incluye una etapa de fundamentales distintos.
+9. **Topes:** Conservador ≤ múltiplo actual y ningún escenario sobre el ancla C. Los factores de Toro (Base ≤ 0,78× y
+   Optimista ≤ 0,92× el promedio histórico) se retiraron el 21-oct-2026: eran un descuento general apilado sobre el
+   ajuste por tasas y el ancla C (doble prudencia). Se informan solo como diagnóstico.
 
 Herramienta: `scripts/multiples_by_cycle.py <TICKER>` en JMR-valuation (lee `<T>_anclas.json` y
 `<T>_ciclo.json`). Ejemplo resuelto: `data/PYPL_Multiplos_por_ciclo_2026-10-18.md`.
@@ -366,7 +367,7 @@ tasa libre de riesgo + ERP maduro.
   objetivo depende de una re-valoración y hay que justificarlo en la Tesis.
 
 > **Desde el 29-sep-2026 los múltiplos de cada valoración se eligen con el prompt de valoración v3**
-> (hoy `docs/prompts/valoracion-modelo-jmr-v4.md`, también en la pestaña «Prompt maestro» de Análisis
+> (hoy `docs/prompts/valoracion-modelo-jmr-v5.md`, también en la pestaña «Prompt maestro» de Análisis
 > Fundamental). Cada múltiplo Conservador/Base/Optimista sale de tres anclas documentadas: la historia
 > de la empresa sin atípicos, la mediana de peers ajustada explícitamente por crecimiento, margen, ROIC
 > y riesgo, y el múltiplo justificado por fundamentales de Damodaran (EV/FCFF = (1+g)/(WACC−g),

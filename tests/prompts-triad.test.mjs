@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 const root=new URL('../docs/prompts/',import.meta.url);
 const docs=[
-  {file:'valoracion-modelo-jmr-v4.md',role:'1/3',title:'VALORACIÓN'},
+  {file:'valoracion-modelo-jmr-v5.md',role:'1/3',title:'VALORACIÓN'},
   {file:'research-fundamental-jmr-v5.md',role:'2/3',title:'ANÁLISIS FUNDAMENTAL'},
   {file:'auditoria-economica-jmr-v1.md',role:'3/3',title:'AUDITORÍA'}
 ].map(x=>({...x,s:fs.readFileSync(new URL(x.file,root),'utf8')}));

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
-const names = ['valoracion-modelo-jmr-v4.md', 'research-fundamental-jmr-v5.md', 'colombia-valuation-v1.md', 'colombia-research-v1.md'];
+const names = ['valoracion-modelo-jmr-v5.md', 'research-fundamental-jmr-v5.md', 'colombia-valuation-v1.md', 'colombia-research-v1.md'];
 const start = '<!-- JMR-WORK-BASE-INVERSE-SENSITIVITY-20261015 -->';
 const end = '<!-- /JMR-WORK-BASE-INVERSE-SENSITIVITY-20261015 -->';
 test('los cuatro prompts comparten el contrato cuantitativo vigente', () => {
