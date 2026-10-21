@@ -51,10 +51,10 @@ for(const filename of fs.readdirSync(path.join(root,'Modelo-JMR-datos/valoracion
   assert.equal(board.fromRecord(changed).ve.valor,d.ve.valor,'Stress must not change average: '+filename);
  }
 }
-assert.equal(records,38);
+assert.ok(records>=37, 'se esperan al menos 37 emisores activos; NKE queda fuera hasta pasar su puerta de publicación');
 // Parse every inline script as JavaScript, including the workbook importer.
 const visor=fs.readFileSync(path.join(root,'Modelo-JMR/docs/visor.html'),'utf8');
 for(const m of visor.matchAll(/<script\b(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)){
  if(m[1].trim())new vm.Script(m[1]);
 }
-console.log('PASS: seven methods, equity rollforward, zero-weight invariance, 38 records, stress exclusion, importer syntax');
+console.log('PASS: seven methods, equity rollforward, zero-weight invariance, '+records+' active records, stress exclusion, importer syntax');
