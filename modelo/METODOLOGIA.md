@@ -1,5 +1,7 @@
 # Metodología de valoración
 
+> Las reglas vigentes, con versión y registro de cambios, están en `REGLAS_VIGENTES.md`; si este documento lo contradice, prevalece aquel.
+
 Este proceso se reconstruyó a partir del análisis de 55 casos de estudio reales (2022-2026),
 buscando patrones repetidos en cómo se analizó cada empresa. No es una fórmula matemática única:
 es un **checklist de 8 pasos** que combina múltiplos relativos con calidad de negocio.
@@ -159,15 +161,20 @@ estudio, y sobre cualquier ancla de comparables o de múltiplo justificado que l
 4. **Los comparables solo comprueban.** Entran únicamente los que se parecen en crecimiento y margen,
    sin descuentos generales (como un −30% uniforme), con exclusión de atípicos igual en todos los
    métodos y con un conjunto suficiente (diez o más empresas, no tres o cuatro).
-5. **El múltiplo justificado por fundamentales también solo comprueba.** Hereda el crecimiento y el costo
-   de capital del DCF, así que no puede ser un ancla «independiente» ni fijar el techo del rango.
+5. **El múltiplo justificado por fundamentales es el techo (cambio del 21-oct-2026).** Hereda el crecimiento y
+   el costo de capital del DCF, así que no es un ancla independiente para fijar el valor, pero ningún escenario
+   puede tomar un múltiplo mayor que el justificado por sus propios fundamentales (`recortado_por_ancla_c`).
 6. **Cada múltiplo deja su evidencia:** cierres elegidos, crecimiento y margen de esos cierres frente a
    los del escenario, múltiplo actual, y qué dato nuevo lo haría cambiar.
 
 7. **El crecimiento del escenario sale del motor, no de las celdas de entrada.** Se toma el año 3 (FY+3) de la fila de
    crecimiento de cada historia en `Valuation output`. Las celdas `Input sheet` B27/B29 pueden quedar desalineadas del motor
    (en PYPL el Base figuraba como 3,5% y el motor usa ~5%).
-8. **Topes de Toro en el código:** Conservador ≤ múltiplo actual; Base ≤ 0,78x y Optimista ≤ 0,92x el promedio histórico propio.
+8. **Ajuste por tasas (21-oct-2026).** Antes de elegir, cada múltiplo histórico se lleva al costo de capital del
+   corte: factor = (k del cierre − g) / (k del corte − g), con k = Treasury 10 años + prima implícita de Damodaran
+   de ese cierre (`JMR-valuation/reference/costo_capital_historico.json`) y g = crecimiento terminal del corte;
+   factor acotado entre 0,6 y 1,4. Un múltiplo de 2020-2021 (tasas de 1-2%) no se aplica igual con tasas de 5%.
+9. **Topes de Toro en el código:** Conservador ≤ múltiplo actual; Base ≤ 0,78x y Optimista ≤ 0,92x el promedio histórico propio.
    Se usan como topes, no como valores, cuando el promedio incluye una etapa de fundamentales distintos.
 
 Herramienta: `scripts/multiples_by_cycle.py <TICKER>` en JMR-valuation (lee `<T>_anclas.json` y

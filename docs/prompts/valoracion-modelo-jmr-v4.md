@@ -1,5 +1,7 @@
 # PROMPT MAESTRO 1/3 — VALORACIÓN JMR · DEPURADO 20-OCT-2026
 
+> **Prevalencia (21-oct-2026):** si este prompt contradice `modelo/REGLAS_VIGENTES.md`, prevalece ese documento.
+
 **Alcance exclusivo:** VALORAR UNA EMPRESA. Este prompt no crea ni ejecuta el Análisis Fundamental ni la Auditoría. Sus instrucciones tienen prioridad sobre las reglas históricas que aparecen después.
 
 **Entrada:** ticker, emisor/clase, moneda, fecha de corte, última hoja JMR vigente y fuentes primarias de la empresa y sector. Una empresa y una versión; guardar anteriores en archivo. No copiar supuestos entre compañías.
@@ -59,12 +61,16 @@ misma trayectoria de tasa entre historias; cambios de beta o tasa son sensibilid
 separada, salvo evidencia de un cambio de riesgo sistemático explícitamente
 justificado. No cuentes el mismo riesgo en flujos, probabilidades y tasa.
 
-Asigná probabilidades no negativas que sumen 100%, con fundamento y límites:
-son juicio del analista, no frecuencias publicadas. Los desenlaces deben ser
+Probabilidades (regla del 21-oct-2026, `modelo/REGLAS_VIGENTES.md` §3): parten de la previa de la etapa del ciclo
+de vida (`JMR-valuation/reference/probabilidades_prior.json`) y solo se mueven 5 pp por ajuste, cada uno atado a un
+indicador escrito que cruzó su umbral, con evidencia y fecha (`ajustes_prob`; máximo 15 pp por historia). No son
+frecuencias publicadas; `scripts/probabilidades.py` debe dar 0 fallos. Los desenlaces deben ser
 suficientemente distintos para no solaparse y cubrir los futuros materiales.
 DCF esperado hoy = suma(probabilidad de cada historia × su DCF por acción hoy).
 Destacá DCF Base hoy (historia A) como valor principal; presenta el esperado como complemento.
-El margen de seguridad se aplica SOLO al DCF/FCFE/SOTP Base principal: precio MOS = principal Base × (1 − MOS).
+El margen de seguridad se aplica SOLO al DCF/FCFE/SOTP Base principal: DCF Base (FCFF o FCFE) en las empresas
+operativas, internacionales o colombianas, y SOTP Base en los holdings (Grupo Argos, Grupo Sura): precio MOS = Base × (1 − MOS).
+Nunca sobre el esperado ni sobre el ponderado de métodos.
 Si falta cuantificar una historia o justificar las probabilidades, indicá
 «DCF esperado pendiente»; no sustituyas el esperado por el base ni por múltiplos.
 Los múltiplos individuales, su consolidado y el ponderado con DCF son secundarios
@@ -341,15 +347,15 @@ Seguí este proceso, en este orden:
      activos, con DCF anual completo, hoja «Escenarios e historias» y motor
      reconciliados. Calibrar contra la plantilla técnica no convierte su antiguo
      Base en la historia A. No mantengas dos familias de escenarios principales.
-   - Asigná probabilidades justificadas (evidencia de hoy + tasas base) y calculá
-     el valor esperado por acción. Mostrá también una tabla de sensibilidad
+   - Probabilidades = previa de la etapa + ajustes por indicadores (ver arriba y
+     REGLAS_VIGENTES §3); calculá el valor esperado por acción. Mostrá también una tabla de sensibilidad
      crecimiento × margen del DCF Base.
    - Pre-mortem: si en 3 años la tesis falló, ¿por qué? (al menos cuatro causas),
      y la evidencia en contra de tu propia historia central.
    - Indicadores: 6-8 métricas observables con su valor actual y los umbrales que
-     reforzarían cada historia, y una regla para mover las probabilidades cada
-     trimestre (5-10 pp según la evidencia) sin cambiar el valor de cada historia
-     salvo que cambie un supuesto.
+     reforzarían cada historia. Cuando un indicador cruza su umbral se agrega un
+     ajuste de 5 pp en `ajustes_prob` (indicador, de, a, evidencia, fecha); sin
+     cruce de umbral, las probabilidades no se mueven.
 
 6. MÚLTIPLOS OBJETIVO (PRECIO RELATIVO) — SELECCIÓN RAZONADA E INDEPENDIENTE DEL DCF
    (hojas EVEBITDA, EVFCFF, PE, PFCFE, POCF; celdas J8 = Conservador,

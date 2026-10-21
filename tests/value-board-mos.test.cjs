@@ -24,10 +24,14 @@ test('saved records propagate baseMOS to the board',()=>{
   const d=board.fromRecord({mos:p.mos,baseMOS:p.baseMOS,precio:p.precio,descuentoMultiples:p.dm,valorEsperado:p.ve});
   assert.match(board.veHtml(d),/255,42/);
 });
-test('legacy expected-value records retain their explicit reference',()=>{
+test('legacy expected-value records are shown with MOS on DCF Base (rule of 21-oct-2026)',()=>{
   const html=board.veHtml(board.fromParts(parts('valorEsperado')));
-  assert.match(html,/218,36/);
-  assert.match(html,/MOS 35% sobre promedio de escenarios DCF/);
+  assert.match(html,/MOS 35% sobre DCF Base <b>US\$255,42/);
+  assert.doesNotMatch(html,/218,36/);
+});
+test('holdings apply MOS to the SOTP Base',()=>{
+  const src=fs.readFileSync(require('node:path').join(__dirname,'../docs/valuation-board.js'),'utf8');
+  assert.match(src,/if \(d\.holding\) return \{ value: num\(\(d\.holding\.nav \|\| \{\}\)\.base\), label: 'SOTP Base' \}/);
 });
 test('non-unified stories honor the Base reference too',()=>{
   const html=board.veHtml(board.fromParts(parts('dcfBase',false)));
