@@ -13,6 +13,19 @@ const $ = (id) => document.getElementById(id),
   KEY = "jmr-colombia-dossiers-v1";
 const GH =
   "https://api.github.com/repos/JuanMaRobledo/Modelo-JMR-datos/contents/colombia/expedientes/";
+// Migración única del catálogo: el archivo local anterior deja de ser activo.
+// Se guarda una copia recuperable bajo otra clave, que la aplicación no lee.
+try {
+  const archiveMarker = "jmr-colombia-reset-20261021-v1";
+  if (localStorage.getItem(archiveMarker) !== "done") {
+    const historic = localStorage.getItem(KEY);
+    if (historic) localStorage.setItem(KEY + "-archivo-20261021", historic);
+    localStorage.setItem(KEY, "[]");
+    localStorage.setItem(archiveMarker, "done");
+  }
+} catch (error) {
+  console.warn("No se pudo migrar la biblioteca Colombia anterior:", error);
+}
 let dossier = null,
   generation = 0,
   busy = false;
