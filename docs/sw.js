@@ -1,4 +1,4 @@
-const CACHE = "modelo-jmr-v166-reset-nflx-7168-20261021";
+const CACHE = "modelo-jmr-v167-catalogo-solo-nflx-20261021";
 const APP_SHELL = [
   "catalog-reset.js",
   "index.html",
