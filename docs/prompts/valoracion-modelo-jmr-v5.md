@@ -48,6 +48,31 @@ todo lo necesario está escrito aquí y las herramientas son opcionales. Reglas 
 4. Margen objetivo: anclado en un comparable maduro del mismo negocio, con margen normalizado (sin cargos únicos)
    en la misma base de la hoja (I+D y arrendamientos capitalizados si la hoja los capitaliza).
 
+## 2B. Ajustes contables de Damodaran e Input completo (obligatorio)
+
+**Todas las entradas de la hoja se llenan.** Ninguna celda de entrada queda vacía. Si un concepto no aplica, va «No»
+o 0 con una nota que diga por qué (por ejemplo «sin preferentes, 10-Q jun-2026»). Nunca se deja una celda vacía ni se
+pone un número sin fuente. Lista mínima de la Input sheet: ingresos y EBIT LTM y del último 10-K; gasto por intereses;
+patrimonio y deuda contable; caja; participaciones cruzadas y minoritarios; acciones diluidas; precio; tasa efectiva y
+marginal; I+D (B17), arrendamientos (B18), opciones (B38-B42), preferentes (B76), NOL (B62), fracaso (B52) y cada
+pregunta de anulación (B46-B71) con su respuesta. En «Cost of capital worksheet»: método de beta, prima por regiones
+con las ventas de cada región, rating o spread, vencimiento, convertibles y preferentes. En «Option value»: precio,
+ejercicio, plazo, volatilidad y dividendo. El control `inputs_completos.py` debe dar 0 celdas vacías.
+
+Ajustes que se hacen siempre que apliquen (criterio Damodaran):
+- **I+D:** se capitaliza cuando la empresa gasta en I+D o en tecnología y desarrollo de forma recurrente. Damodaran
+  lo trata como gasto de capital. La vida amortizable se elige por sector: 2-3 años en software y tecnología de
+  consumo, 5 en industria, 10 en farmacéuticas. El EBIT se ajusta (+ I+D del año − amortización del activo de I+D) y
+  el capital invertido suma el activo. Si no aplica (I+D inmaterial o inexistente), «No» con la razón.
+- **Arrendamientos operativos:** se convierten en deuda con el conversor: VP de los compromisos al costo de la deuda
+  antes de impuestos, y EBIT + gasto de arrendamiento − depreciación del activo. Bajo NIIF 16 ya están en la deuda.
+  Lo ya registrado como deuda no se resta dos veces.
+- **Opciones de empleados:** se valoran con Black-Scholes ajustado por dilución y se restan del patrimonio como una
+  reclamación. Se usan las acciones básicas, sin diluir otra vez, y la compensación en acciones se trata como gasto
+  en el EBIT.
+- **Otros (cuando apliquen):** participaciones cruzadas a valor de mercado, minoritarios, NOL, probabilidad de
+  fracaso, preferentes y convertibles. Un caso especial no se ignora: si no aplica, se marca «NO APLICA».
+
 ## 3. Costo de capital
 
 - **Ke** = tasa libre + beta × prima. La beta es la bottom-up: beta desapalancada del sector, reapalancada con la D/E
@@ -181,6 +206,7 @@ Este contrato precisa el DCF inverso y la sensibilidad; prevalece sobre instrucc
 ## 7. Controles antes de entregar
 
 Responde Sí/No a cada punto y marca Sí solo si lo verificaste:
+0. Input completo (`inputs_completos.py` = 0 vacías); I+D, arrendamientos y opciones tratados según §2B; candados de la hoja en VALIDADO/LISTO.
 1. Ingresos de los segmentos = total; CAGR con el número real de intervalos; la caja, la deuda y las acciones son
    las del último informe.
 2. g terminal ≤ tasa libre y g < costo de capital terminal; peso del valor terminal informado.
