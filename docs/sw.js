@@ -1,5 +1,6 @@
-const CACHE = "modelo-jmr-v165-prompt-v5-20261021";
+const CACHE = "modelo-jmr-v170-nflx-validada-prompt-v5-20261021";
 const APP_SHELL = [
+  "catalog-reset.js",
   "index.html",
   "colombia.html",
   "colombia/app.js",
