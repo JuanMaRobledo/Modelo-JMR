@@ -43,3 +43,14 @@ test('Auditoría no modifica hojas y conserva evaluación causal',()=>{
   assert.match(docs[2].s,/fuentes primarias/i);
   assert.match(docs[2].s,/18 SECCIONES/i);
 });
+
+
+test('contratos depurados: una copia nueva, MOS Base y versión única de auditoría',()=>{
+  assert.match(docs[0].s,/copia nueva por ticker y clase/i);
+  assert.doesNotMatch(docs[0].s,/El margen de seguridad se aplica al esperado/i);
+  assert.match(docs[0].s,/margen de seguridad se aplica SOLO al DCF\/FCFE\/SOTP Base/i);
+  assert.match(docs[1].s,/sin crear una valoración propia/i);
+  assert.match(docs[1].s,/SOLO respecto al valor principal Base/i);
+  assert.match(docs[2].s,/prompt_version: auditoria-economica-jmr-v1\.1/i);
+  assert.doesNotMatch(docs[2].s,/auditoria-economica-jmr-v1\.0/i);
+});
