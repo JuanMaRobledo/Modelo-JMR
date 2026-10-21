@@ -19,7 +19,7 @@ todo lo necesario está escrito aquí y las herramientas son opcionales. Reglas 
    - **[Cálculo]**: fórmula escrita y reproducible;
    - **[Juicio]**: supuesto del analista, con la evidencia a favor y en contra.
 3. **Corte.** No uses información posterior a la fecha de corte, salvo como «hecho posterior» rotulado.
-4. **Aislamiento.** Trabaja sobre una copia nueva por ticker y clase de la plantilla maestra vacía. No copies cifras,
+4. **Aislamiento.** Trabaja sobre una copia nueva por ticker y clase de la plantilla maestra vacía (la vigente está en `JMR-valuation/reference/plantillas.json`). La plantilla nunca se edita ni se llena: si no puedes copiarla, detente y pídele al usuario la copia; nunca escribas en la maestra ni sobre la valoración de otra empresa o una versión anterior. No copies cifras,
    historias, probabilidades ni textos de otra empresa; los comparables entran solo como comparables declarados.
 5. **Aritmética.** Muestra las fórmulas y verifica cada resultado clave dos veces (por ejemplo, el puente de valor
    operativo a valor por acción). Si un control no cuadra, dilo; no lo redondees para que cuadre.
