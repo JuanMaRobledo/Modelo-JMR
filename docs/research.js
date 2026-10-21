@@ -1555,22 +1555,7 @@
     return Object.keys(editorialArticles).length;
   });
 
-  // Reinicio de catálogo 2026-10-21: depurar UNA SOLA VEZ registros antiguos
-  // cacheados en el navegador; las nuevas valoraciones creadas después
-  // de esta migración continúan pudiendo guardarse normalmente.
-  (function resetHistoricLocalResearch() {
-    var resetKey = 'jmr-historic-reset-20261021-v1';
-    try {
-      if (localStorage.getItem(resetKey) === 'done') return;
-      var keep = getLocalLibrary().filter(function (record) {
-        return ['NKE', 'NFLX'].indexOf(String(record.ticker || '').toUpperCase()) >= 0;
-      });
-      setLocalLibrary(keep);
-      localStorage.setItem(resetKey, 'done');
-    } catch (error) {
-      console.warn('No fue posible limpiar la biblioteca histórica local:', error);
-    }
-  })();
+  // catalog-reset.js retira una sola vez las copias locales del catálogo anterior.
 
   renderGhBanner();
   el('compareOutput').innerHTML='<div class="compare-empty">Elegí dos empresas arriba para verlas lado a lado.</div>';

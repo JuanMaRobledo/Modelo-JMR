@@ -5,6 +5,7 @@
 <title>Auditorías narrativas · Modelo JMR</title>
 <link rel="icon" href="favicon.ico"><link rel="manifest" href="manifest.json">
 <link rel="stylesheet" href="jmr-theme.css"><link rel="stylesheet" href="jmr-fullwidth.css">
+<script src="catalog-reset.js?v=20261021-nflx-7168"></script>
 <script src="gh_oauth.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js" defer></script>
@@ -76,7 +77,7 @@ button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible
 <div class="panel">
 <div class="toolbar">
 <label for="tickerSelect"><strong>Empresa</strong></label>
-<select id="tickerSelect" aria-label="Empresa"><option value="PYPL">PYPL · PayPal</option></select>
+<select id="tickerSelect" aria-label="Empresa"><option value="">Sin auditorías guardadas</option></select>
 <button class="btn" id="readBtn" type="button" aria-pressed="true">Leer informe</button>
 <button class="btn" id="editBtn" type="button" aria-pressed="false">Editar texto</button>
 <button class="btn primary" id="saveBtn" type="button" hidden>Guardar cambios</button>
@@ -109,7 +110,7 @@ var OWNER='JuanMaRobledo', REPO='Modelo-JMR-datos', BASE='auditorias/narrativas/
 var API='https://api.github.com/repos/'+OWNER+'/'+REPO+'/contents/';
 var select=document.getElementById('tickerSelect'),reader=document.getElementById('reader'),editor=document.getElementById('editor');
 var status=document.getElementById('status'),meta=document.getElementById('fileMeta'),save=document.getElementById('saveBtn');
-var mode='read',loadedText='',loadedSha='',dirty=false,loading=false,currentTicker='PYPL';
+var mode='read',loadedText='',loadedSha='',dirty=false,loading=false,currentTicker='';
 var esc=function(v){return String(v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});};
 function flash(msg,bad){status.textContent=msg;status.className=bad?'error':'';}
 function safeTicker(s){return /^[A-Z][A-Z0-9.]{0,11}$/.test(s);}
@@ -166,14 +167,22 @@ async function load(ticker){
 }
 async function loadTickers(){
  try{
-  var r=await fetch(API+BASE+'?ref=main',{headers:authHeaders(),cache:'no-store'});
-  if(!r.ok)return;var list=await r.json();if(!Array.isArray(list))return;
+  var response=await fetch(API+BASE+'?ref=main',{headers:authHeaders(),cache:'no-store'});
+  if(!response.ok&&response.status!==404)throw new Error('HTTP '+response.status);
+  var list=response.status===404?[]:await response.json();
+  if(!Array.isArray(list))throw new Error('Inventario inválido');
   var tickers=list.filter(function(f){return f.type==='file'&&/^[A-Z][A-Z0-9.]{0,11}\.md$/.test(f.name);}).map(function(f){return f.name.replace(/\.md$/,'');}).sort();
-  if(!tickers.length)return;
   select.innerHTML='';
-  tickers.forEach(function(t){var o=document.createElement('option');o.value=t;o.textContent=t+(t==='PYPL'?' · PayPal':'');select.appendChild(o);});
-  if(tickers.indexOf(currentTicker)>=0)select.value=currentTicker;
- }catch(e){}
+  if(!tickers.length){
+   var empty=document.createElement('option');empty.value='';empty.textContent='Sin auditorías guardadas';select.appendChild(empty);select.disabled=true;
+   currentTicker='';loadedText='';loadedSha='';reader.textContent='No hay auditorías guardadas.';meta.textContent='';flash('Catálogo de auditorías vacío.');
+   ['editBtn','readBtn','downloadBtn','saveBtn'].forEach(function(id){document.getElementById(id).disabled=true;});
+   document.getElementById('historyLink').removeAttribute('href');return;
+  }
+  select.disabled=false;['editBtn','readBtn','downloadBtn'].forEach(function(id){document.getElementById(id).disabled=false;});
+  tickers.forEach(function(t){var option=document.createElement('option');option.value=t;option.textContent=t;select.appendChild(option);});
+  if(tickers.indexOf(currentTicker)<0)currentTicker=tickers[0];select.value=currentTicker;await load(currentTicker);
+ }catch(error){flash('No se pudo consultar el catálogo de auditorías: '+error.message,true);}
 }
 function updateConnection(){
  var connected=!!GhOAuth.getGhToken();
@@ -249,7 +258,7 @@ document.getElementById('tickerSelect').addEventListener('change',function(){loa
 editor.addEventListener('input',function(){dirty=editor.value!==loadedText;});
 window.addEventListener('beforeunload',function(e){if(dirty){e.preventDefault();e.returnValue='';}});
 var requested=new URLSearchParams(location.search).get('ticker');if(requested&&safeTicker(requested.toUpperCase()))currentTicker=requested.toUpperCase();
-updateConnection();load(currentTicker);loadTickers();
+updateConnection();loadTickers();
 })();
 </script>
 </body></html>
