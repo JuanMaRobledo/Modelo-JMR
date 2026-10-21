@@ -99,7 +99,7 @@ Mínimo cinco indicadores observables ligados a la historia: **métrica | nivel 
 Califica la tesis como **Sostenible / Plausible con reservas / Exigente / No sustentada / No evaluable**. Expón por separado **consistencia matemática**, **trazabilidad documental** y **razonabilidad económica**. Identifica el supuesto más frágil, el más defendible, el motor principal del precio y la decisión analítica sugerida (conservar hipótesis, revisarla o investigar). Cierra con **resumen oral de 90–150 palabras** comprensible al escuchar. Indica «No se modificó la valoración» salvo instrucción contraria autorizada.
 
 ## 18. Fuentes primarias, limitaciones y registro de versión
-Bibliografía trazable con URL, fuente, fecha de publicación, período, fecha consultada, dato respaldado y límites. Registra lo no verificado y las pruebas no ejecutadas, versión de auditoría, `prompt_version: auditoria-economica-jmr-v1.0`, hoja/JSON/commit auditados, fecha de corte y, si fue autorizado y confirmado, ruta `Modelo-JMR-datos/auditorias/narrativas/{TICKER}.md`, commit y estado de publicación verificado. Conserva historial de versiones previas.
+Bibliografía trazable con URL, fuente, fecha de publicación, período, fecha consultada, dato respaldado y límites. Registra lo no verificado y las pruebas no ejecutadas, versión de auditoría, `prompt_version: auditoria-economica-jmr-v1.1`, hoja/JSON/commit auditados, fecha de corte y, si fue autorizado y confirmado, ruta `Modelo-JMR-datos/auditorias/narrativas/{TICKER}.md`, commit y estado de publicación verificado. Conserva historial de versiones previas.
 
 ## CONTROL DE ENTREGA — OBLIGATORIO
 
@@ -109,7 +109,7 @@ Si un control es imposible de completar, mantén su sección con **N/D y razón*
 
 ## INVOCACIÓN ABREVIADA
 
-> Audita económicamente **{TICKER}** usando el **Prompt Maestro de Auditoría JMR v1.0**, la última valoración existente y fuentes primarias verificables. Explica la historia causal detrás de los números y compárala con histórico y pares, conserva las 18 secciones exactas y las cuatro historias, **no modifiques la valoración** y deja el informe narrativo editable.
+> Audita económicamente **{TICKER}** usando el **Prompt Maestro de Auditoría JMR v1.1**, la última valoración existente y fuentes primarias verificables. Explica la historia causal detrás de los números y compárala con histórico y pares, conserva las 18 secciones exactas y las cuatro historias, **no modifiques la valoración** y deja el informe narrativo editable.
 
 ---
 **Este prompt es la plantilla maestra fija de auditoría.** No contiene supuestos ni cifras particulares de ninguna empresa. La auditoría narrativa es independiente de los prompts de valoración y análisis fundamental.
