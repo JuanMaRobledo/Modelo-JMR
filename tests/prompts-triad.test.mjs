@@ -51,6 +51,6 @@ test('contratos depurados: una copia nueva, MOS Base y versión única de audito
   assert.match(docs[0].s,/margen de seguridad se aplica SOLO al DCF\/FCFE\/SOTP Base/i);
   assert.match(docs[1].s,/sin crear una valoración propia/i);
   assert.match(docs[1].s,/SOLO respecto al valor principal Base/i);
-  assert.match(docs[2].s,/prompt_version: auditoria-economica-jmr-v1\.1/i);
-  assert.doesNotMatch(docs[2].s,/auditoria-economica-jmr-v1\.0/i);
+  assert.match(docs[2].s,/prompt_version: auditoria-economica-jmr-v1\.2/i);
+  assert.doesNotMatch(docs[2].s,/auditoria-economica-jmr-v1\.[01]/i);
 });
