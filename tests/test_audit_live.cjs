@@ -25,7 +25,9 @@ const assert=require('node:assert/strict');
  assert.equal(result.sectionCount,18,'Narrativa editada con 18 secciones');
  assert.equal(result.methods.length,7,'Los siete múltiplos');
  assert.ok(result.historic[0].years>=10,'Diez años comparables');
- assert.ok(result.ltm.length>0,'Se debe poder recalcular el puente LTM');
+ assert.equal(result.ltm.length,34,'Solo las 34 filas FY2025/9M2025/9M2026/LTM con fuente SEC deben probarse');
+ assert.ok(result.ltm.every(x=>x.ok),'Los 34 puentes de flujo LTM deben conciliar con las cifras registradas');
+ assert.ok(!result.checks.some(x=>x.area==='LTM'&&x.status==='fail'),'No confundir tabla histórica con bloque LTM');
  assert.ok(result.assumptions.some(x=>x.label==='Margen EBIT objetivo'&&x.status==='Conciliado'&&Math.abs(x.model-.34)<1e-8),
    'El margen Base activo 34 % debe conciliar con la hoja; 21,30 % es solo histórico');
  assert.ok(result.assumptions.some(x=>x.label==='CAGR ingresos 1–5'&&x.status==='Conciliado'),
