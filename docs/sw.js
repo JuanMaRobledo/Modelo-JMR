@@ -1,4 +1,4 @@
-const CACHE = "modelo-jmr-v170-nflx-validada-prompt-v5-20261021";
+const CACHE = "modelo-jmr-v171-auditoria-integral-20261022";
 const APP_SHELL = [
   "catalog-reset.js",
   "index.html",
@@ -11,6 +11,7 @@ const APP_SHELL = [
   "prompts/colombia-valuation-v1.md",
   "visor.html",
   "auditorias.html",
+  "auditoria-integral.html",
   "jmr-audit-links.js",
   "jmr-audit-links.css",
   "jmr-report-sheets.js",
