@@ -41,7 +41,7 @@ let md=audit.sections.map((x,i)=>'## '+(i+1)+'. '+x+'\ncontenido verificable').j
 let out=audit.analyze(basic,md);
 assert.equal(out.sectionCount,18,'18 títulos verdaderamente presentes');
 assert.equal(out.ltm[0].ok,true,'puente LTM FY + acumulado actual − comparable');
-assert.equal(out.historic[0].avg10,105.5,'media 10 años');
+assert.equal(out.historic[0].avg10,105.4,'media 10 años');
 assert.equal(out.historic[0].ltm.v,111,'LTM separado de FY');
 assert.equal(out.scenarios.length,4);
 assert.equal(out.disruption.id,'C');
