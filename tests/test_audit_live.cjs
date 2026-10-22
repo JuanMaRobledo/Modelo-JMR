@@ -115,6 +115,45 @@ const assert=require('node:assert/strict');
  assert.ok(Math.abs(region.participaciones.reduce((a,b)=>a+b,0)-1)<1e-10,'Peso regional suma 100%');
  assert.ok(data.hojas.valoracion['Evidencia deuda y geografía'].includes('49734,633')||data.hojas.valoracion['Evidencia deuda y geografía'].includes('49.734,633'),'Regiones LTM publicadas en hoja canónica');
  console.log('OK: 14 matrices × 25 = 350 celdas verificadas, centros numéricos y 4 regiones LTM SEC');
+ const replay=data.auditoria.replayDCF4Historias;
+ assert.ok(replay&&replay.records?.length===4,'Cuatro replay DCF de valor y flujos independientes');
+ const nearDC=(observed,expected,detail)=>{assert.ok(typeof observed==='number'&&typeof expected==='number'&&Number.isFinite(observed)&&Number.isFinite(expected)&&Math.abs(observed-expected)<Math.max(1e-6,Math.abs(expected)*1e-10),detail+' calculado '+expected+' actual '+observed);};
+ let auditIdentities=0;
+ for(const record of replay.records){
+   const history=data.escenariosDCF.historias.find(x=>x.id===record.id);
+   assert.ok(history,'Historia registrada '+record.id);
+   let pv=0,factor=1;
+   for(let i=0;i<10;i++){
+     const previous=i?record.revenues[i-1]:record.baseRevenue;
+     const revenue=previous*(1+record.growth[i]);nearDC(record.revenues[i],revenue,'Ingresos '+record.id+' año'+(i+1));auditIdentities++;
+     const ebit=revenue*record.margin[i];nearDC(record.ebit[i],ebit,'EBIT '+record.id+' año'+(i+1));auditIdentities++;
+     const nopat=ebit*(1-record.tax[i]);nearDC(record.nopat[i],nopat,'NOPAT '+record.id+' año'+(i+1));auditIdentities++;
+     const ratio=i<5?record.s2cPrimero:record.s2cUltimo;
+     const reinvest=Math.max(0,(revenue-previous)/ratio);nearDC(record.reinvest[i],reinvest,'Reinversión '+record.id+' año'+(i+1));auditIdentities++;
+     const fcff=nopat-reinvest;nearDC(record.fcff[i],fcff,'FCFF '+record.id+' año'+(i+1));auditIdentities++;
+     factor/=1+record.wacc[i];nearDC(record.discountFactor[i],factor,'Factor descuento '+record.id+' año'+(i+1));auditIdentities++;
+     const p=fcff*factor;nearDC(record.pvFCFF[i],p,'PV FCFF '+record.id+' año'+(i+1));auditIdentities++;pv+=p;
+   }
+   const t=record.terminal,b=record.bridge;
+   nearDC(t.revenue,record.revenues[9]*(1+t.growth),'Ingreso terminal '+record.id);auditIdentities++;
+   nearDC(t.ebit,t.revenue*t.margin,'EBIT terminal '+record.id);auditIdentities++;
+   nearDC(t.nopat,t.ebit*(1-t.tax),'NOPAT terminal '+record.id);auditIdentities++;
+   nearDC(t.reinvest,t.nopat*t.growth/history.roicTerminal,'Reinversión terminal '+record.id);auditIdentities++;
+   nearDC(t.fcff,t.nopat-t.reinvest,'FCFF terminal '+record.id);auditIdentities++;
+   assert.ok(t.wacc>t.growth,'WACC > crecimiento terminal '+record.id);
+   nearDC(t.terminalValue,t.fcff/(t.wacc-t.growth),'Valor terminal '+record.id);auditIdentities++;
+   nearDC(t.pvTerminal,t.terminalValue*factor,'PV terminal '+record.id);auditIdentities++;
+   nearDC(b.pvExplicit,pv,'PV explícito '+record.id);auditIdentities++;
+   nearDC(b.ev,pv+t.pvTerminal,'EV '+record.id);auditIdentities++;
+   nearDC(b.equity,b.ev-b.debt-b.minority+b.cash+b.nonOperating,'Patrimonio '+record.id);auditIdentities++;
+   nearDC(b.commonEquity,b.equity-b.options,'Patrimonio común '+record.id);auditIdentities++;
+   nearDC(b.price,b.commonEquity/b.shares,'DCF por acción '+record.id);auditIdentities++;
+   nearDC(history.valor,b.price,'Expediente DCF '+record.id);auditIdentities++;
+ }
+ const h3=data.escenariosDCF.historias.filter(h=>h.id!=='C');
+ nearDC(data.valorEsperado.valor,h3.reduce((acc,h)=>acc+h.probabilidad*h.valor,0)/h3.reduce((acc,h)=>acc+h.probabilidad,0),'Promedio sin disrupción');auditIdentities++;
+ assert.ok(auditIdentities>=350,'Reconciliaciones independientes de cuatro DCF >=350');
+ console.log('OK: replay independiente de cuatro escenarios DCF con '+auditIdentities+' identidades numéricas (sin suplantar control SEC 124)');
  const newFailures=result.checks.filter(x=>x.status==='fail'&&['DCF','Escenarios','Múltiplos','Sensibilidad'].includes(x.area));
  assert.equal(newFailures.length,0,'Las conciliaciones de DCF/múltiplos no deben fallar: '+JSON.stringify(newFailures));
  console.log('OK: smoke test sobre expediente de Netflix publicado. La existencia de salvedades o diferencias se informa, no se convierte en certificación.');
