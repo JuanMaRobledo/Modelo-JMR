@@ -190,7 +190,12 @@ function analyze(v,markdown){
  // Comprobación LTM reproducible cuando la hoja de fuentes contiene FY + 9M actual − 9M comparable.
  var ltms=[],ltmRows=parseSheet(sheets["Fuentes SEC y LTM"]);
  var lh=ltmRows.find(function(r){return r.some(function(x){return /9M2026|9M2025/.test(x);});})||[];
- if(lh.length>=5)ltmRows.forEach(function(r){if(r[0]==="Rubro"||!r[0])return;
+ // Solo filas con fuente SEC explícita en columna F: el bloque inferior es una serie
+ // histórica de diez años y NO tiene columnas FY2025/9M2025/9M2026/LTM.
+ var headerIndex=ltmRows.findIndex(function(r){return (r[0]||"").trim()==="Rubro"&&
+  /FY2025/.test(r[1]||"")&&/9M2025/.test(r[2]||"")&&/9M2026/.test(r[3]||"")&&/LTM/.test(r[4]||"");});
+ if(lh.length>=5&&headerIndex>=0)ltmRows.slice(headerIndex+1).forEach(function(r){
+  if(!r[0]||!/sec\.gov\//i.test(r[5]||""))return;
   var x=decimal(r[1]),y=decimal(r[2]),z=decimal(r[3]),w=decimal(r[4]);
   if([x,y,z,w].every(num)){var match=near(x+z-y,w);ltms.push({name:r[0],actual:x+z-y,registered:w,ok:match});
    if(!match)issue("Alto","LTM: "+r[0],"FY anterior + acumulado actual − acumulado comparable no coincide con el LTM registrado.");}
