@@ -14,7 +14,7 @@ var SECTIONS=[
 "Dictamen económico y resumen para escuchar","Fuentes primarias, limitaciones y registro de versión"];
 var MULTS=["EV/EBITDA","EV/FCFF","P/E","P/FCFE","P/OCF","P/V","P/BV"];
 function num(v){return typeof v==="number"&&isFinite(v);}
-function near(a,b,strict){return num(a)&&num(b)&&Math.abs(a-b)<=(strict?0.000001:Math.max(0.02,Math.abs(a)*0.0001));}
+function near(a,b,strict){return num(a)&&num(b)&&Math.abs(a-b)<=(strict?0.000001:0.025);}
 function fmt(n,pct){return !num(n)?"N/D":(pct?(n*100).toFixed(2)+" %":n.toLocaleString("es-CO",{minimumFractionDigits:2,maximumFractionDigits:2}));}
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
 function decode(s){return String(s||"").replace(/&#x([0-9a-f]+);/gi,function(_,c){return String.fromCharCode(parseInt(c,16));})
