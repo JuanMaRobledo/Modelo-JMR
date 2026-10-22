@@ -37,7 +37,17 @@ table{width:100%;border-collapse:collapse;font-size:13px;margin:12px 0}th,td{bor
 .notice{padding:12px 14px;border-left:3px solid var(--gold);background:var(--soft);margin:14px 0}
 .anchorlinks a{margin-right:14px}.value{font-size:clamp(26px,4vw,40px);font-weight:750;font-variant-numeric:tabular-nums}
 @media(max-width:800px){.cards{grid-template-columns:1fr}table{display:block;overflow-x:auto}th,td{min-width:120px}}
-@media print{header,.anchorlinks,.no-print{display:none}body{background:white;color:black}.panel{border:0;break-inside:avoid}}
+.jmr-deep-report h3{font-size:19px;margin:27px 0 10px;border-top:1px solid var(--line);padding-top:15px}
+.jmr-deep-report h3:first-of-type{border-top:0;margin-top:15px}
+.jmr-deep-report .jmr-deep-scroll{width:100%;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.jmr-deep-report table{width:100%;min-width:720px;table-layout:auto}
+.jmr-deep-report table th{white-space:normal}
+.jmr-deep-report table td{min-width:0}
+.jmr-deep-report table td:last-child{min-width:270px}
+.jmr-deep-report .notice{margin:0 0 14px}
+.jmr-deep-report ol{padding-left:25px}
+@media(max-width:800px){.jmr-deep-report table{min-width:680px}}
+@media print{header,.anchorlinks,.no-print{display:none}body{background:white;color:black}.panel{border:0;break-inside:avoid}.jmr-deep-report table{font-size:10px;min-width:0}}
 </style>
 </head>
 <body>
@@ -62,7 +72,7 @@ table{width:100%;border-collapse:collapse;font-size:13px;margin:12px 0}th,td{bor
 <article class="card"><h3>3. Múltiplos</h3><strong id="sMult">Pendiente</strong><p id="dMult"></p></article>
 </div>
 <div class="links" id="links"></div>
-<div class="anchorlinks no-print"><a href="#tecnico">Revisión técnica ↓</a><a href="#economico">Informe económico ↓</a><a href="#multiplos">Múltiplos ↓</a></div>
+<div class="anchorlinks no-print"><a href="#tecnico">Revisión técnica ↓</a><a href="#economico">Informe económico ↓</a><a href="#multiplos">Múltiplos ↓</a><a href="#profundidad">Auditoría ampliada ↓</a></div>
 </section>
 <section class="panel" id="tecnico"><h2>1. Auditoría técnica del método principal</h2>
 <p class="muted">Conciliaciones reproducibles con el JSON vigente. Estas pruebas <strong>no sustituyen</strong> contrastar fórmulas, fuentes primarias y celdas directamente en la hoja.</p>
@@ -78,8 +88,13 @@ table{width:100%;border-collapse:collapse;font-size:13px;margin:12px 0}th,td{bor
 <p class="muted">Conciliaciones de ponderaciones y disponibilidad; la revisión de comparables, anclas históricas y matrices está en el módulo especializado. La existencia de cálculos no certifica la calidad de los pares.</p>
 <div id="multipleArea"><p>Cargando…</p></div>
 </section>
+<section class="panel" id="profundidad"><h2>4. Auditoría ampliada: evidencia, historia, escenarios y hallazgos</h2>
+<p class="muted">Revisión estructurada con comparaciones históricas 3/5/10 años y LTM, conciliaciones de DCF y múltiplos, trazabilidad, 18 secciones y tareas pendientes. Se distingue el cálculo ejecutado aquí de las cifras almacenadas y de la evidencia no verificada.</p>
+<div id="deepArea" aria-live="polite"><p>Cargando comprobaciones…</p></div>
+</section>
 <p class="small muted">Estado informativo sujeto a las fuentes y fecha de la valoración. No se convierte una prueba técnica aprobada en un dictamen económico sin reservas. Ninguna cifra o supuesto se modifica desde esta pantalla.</p>
 </main>
+<script src="jmr-audit-deep.js?v=20261022-1"></script>
 <script>
 (function(){
 "use strict";
@@ -100,6 +115,11 @@ async function getText(path){var r=await fetch(RAW+path,{cache:"no-store"}).catc
 function cell(label,pass,detail){var state=pass===true?"Concilia":pass===false?"Diferencia":"No verificable";var cls=pass===true?"row-good":pass===false?"row-warn":"row-missing";return "<tr><td>"+esc(label)+"</td><td class='"+cls+"'>"+state+"</td><td>"+esc(detail)+"</td></tr>";}
 function statusFromRecord(a){var s=String(a&&a.estado||"").toUpperCase();if(/SALVEDAD|RESERV|PENDIENT/.test(s))return "Con salvedades";if(/NO_CONFORME|RECHAZ|ERROR/.test(s))return "Requiere revisión";if(/VALIDAD|CERTIFICAD/.test(s))return "Validación técnica reportada";return "Sin dictamen técnico";}
 function classify(v){if(v.valoracionHolding||/SOTP/.test(v.metodoPrincipal||""))return "SOTP base";if(/FCFE|DDM|RESIDUAL/i.test(v.metodoPrincipal||""))return "FCFE / método financiero";return "DCF base";}
+function renderDeep(v,md){
+ var host=$("deepArea");
+ if(!window.JmrDeepAudit){host.textContent="El módulo ampliado no está disponible. Actualiza el navegador o comprueba la carga del archivo.";return;}
+ try{var a=JmrDeepAudit.analyze(v,md);host.innerHTML=JmrDeepAudit.render(a,v);}catch(e){host.textContent="No fue posible ejecutar la auditoría ampliada: "+e.message;}
+}
 function renderTech(v){
  var h=v.escenariosDCF&&v.escenariosDCF.historias,hasHist=Array.isArray(h)&&h.length>0, base=hasHist?h.find(function(x){return x.id==="A"||/base/i.test(x.nombre);}):null;
  var isDCF=classify(v)==="DCF base",main=n(v.valorPrincipal)?v.valorPrincipal:null,ref=v.valorEsperado&&v.valorEsperado.dcfBase;
@@ -155,7 +175,7 @@ async function renderNarrative(ticker){
   else{$("report").innerHTML="<pre style='white-space:pre-wrap'>"+esc(body)+"</pre>";}
   $("sEco").textContent=/con salvedades|con reservas|calculada con salvedades/i.test(md)?"Con salvedades":"Documento disponible";
   $("dEco").textContent="Informe narrativo publicado en GitHub; consultar su dictamen y limitaciones. No equivale a aprobación automática.";
-  return true;
+  return md;
  }catch(e){if(current!==ticker)return false;$("report").textContent="No se pudo leer el informe: "+e.message;$("sEco").textContent="No verificable";$("dEco").textContent="No se pudo recuperar evidencia narrativa.";return false;}
 }
 async function select(ticker){
@@ -174,10 +194,12 @@ async function select(ticker){
   $("source").textContent="Valoración del "+(v.fecha||"fecha N/D")+" · corte financiero "+(v.fechaCorteContable||"N/D")+" · fuente: "+nowPaths[ticker];
   $("links").innerHTML="<a href='visor.html?ticker="+encodeURIComponent(ticker)+"'>Valoración ↗</a><a href='research.html?ticker="+encodeURIComponent(ticker)+"'>Análisis nivel 1 ↗</a>"+(v.hojaGoogle&&/^https:\/\/docs\.google\.com\/spreadsheets\/d\//.test(v.hojaGoogle)?"<a href='"+esc(v.hojaGoogle)+"' target='_blank' rel='noopener noreferrer'>Hoja de cálculo ↗</a>":"");
   renderMultiples(v);
+  renderDeep(v,"");
   var risk=(v.salvedades||[]).length;
   $("auditVerdict").textContent=summary.failed?"INCONSISTENCIAS en la conciliación del registro; revisar antes de usar cifras.":("Dictamen del expediente: "+statusFromRecord(v.auditoria)+". "+risk+" salvedades documentadas. La verificación técnica parcial no acredita validación económica integral.");
   if(risk)$("riskNotes").textContent="Salvedades registradas: "+v.salvedades.join(" · ");
-  await renderNarrative(ticker);if(current!==ticker)return;
+  var narr=await renderNarrative(ticker);if(current!==ticker)return;
+  renderDeep(v,typeof narr==="string"?narr:"");
   status("Informe "+ticker+" cargado desde los datos vigentes de GitHub.");
  }catch(e){if(current!==ticker)return;status("Error para "+ticker+": "+e.message);$("auditVerdict").textContent="No fue posible recuperar evidencia suficiente. No se emite dictamen.";["sTech","sEco","sMult"].forEach(function(id){$(id).textContent="No verificable";});}
 }
