@@ -24,7 +24,7 @@ const basic={
  hojas:{financieros:{'Income Statement':sheet(yrs,rows)},analisis:{
  'Márgenes':sheet(yrs,[['Operating Margin',...Array(11).fill('30,00%')]]),
  'Eficiencia de capital':sheet(yrs,[['Return on Invested Capital',...Array(11).fill('12,00%')]])},
- valoracion:{'Fuentes SEC y LTM':sheet(['Rubro','FY2025','9M2025','9M2026','LTM Sep2026'],[['Ingresos','100,00','20,00','30,00','110,00']]),
+ valoracion:{'Fuentes SEC y LTM':sheet(['Rubro','FY2025','9M2025','9M2026','LTM Sep2026'],[['Ingresos','100,00','20,00','30,00','110,00'],['Flujo negativo','-10,00','-3,00','-4,00','-11,00']]),
  'Supuestos Recomendados':sheet(['a'],[['Supuesto']]),'Cost of capital worksheet':sheet(['a'],[['WACC']]),'Múltiplos históricos':sheet(['a'],[['EV/EBITDA']]),
  'Financials Multiples':sheet(['a'],[['FY+3']]),
  'Sensibilidad DCF e inverso':sheet(['a'],[['WACC terminal × crecimiento perpetuo'],['','3%','3,5%','4%','4,5%','5%'],['8%','101','102','103','104','105'],['9%','101','102','103','104','105'],['10%','101','102','100','104','105'],['11%','101','102','103','104','105']])}},
@@ -41,6 +41,8 @@ let md=audit.sections.map((x,i)=>'## '+(i+1)+'. '+x+'\ncontenido verificable').j
 let out=audit.analyze(basic,md);
 assert.equal(out.sectionCount,18,'18 títulos verdaderamente presentes');
 assert.equal(out.ltm[0].ok,true,'puente LTM FY + acumulado actual − comparable');
+assert.equal(out.ltm.length,2,'Flujos negativos no deben omitirse');
+assert.equal(out.ltm[1].actual,-11,'Número negativo preservado');
 assert.equal(out.historic[0].avg10,105.4,'media 10 años');
 assert.equal(out.historic[0].ltm.v,111,'LTM separado de FY');
 assert.equal(out.scenarios.length,4);
