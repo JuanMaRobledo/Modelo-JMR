@@ -83,6 +83,38 @@ const assert=require('node:assert/strict');
  assert.ok(Math.abs(bond.roicTerminal.industriaGlobalAfterTax-.1104082332093956)<1e-8,'Benchmark sectorial ROIC declarado');
  assert.ok(data.salvedades.some(x=>/peer|pares|comparables/i.test(x)),'No certificar comparables sin denominadores homogéneos');
 
+ const sensitivityHtml=data.hojas.valoracion['Sensibilidad 7 metodos x historias']||'';
+ assert.equal((sensitivityHtml.match(/#(?:ERROR|REF|VALUE|DIV\/0|N\/A)!/g)||[]).length,0,'Ninguna celda con error en matriz publicada');
+ const parseCells=html=>[...html.matchAll(/<td\\b[^>]*>([\\s\\S]*?)<\\/td>/gi)].map(m=>m[1].replace(/<[^>]+>/g,'').trim());
+ const gridRows=[...sensitivityHtml.matchAll(/<tr\\b[^>]*>([\\s\\S]*?)<\\/tr>/gi)].map(m=>parseCells(m[1]));
+ const asNum=x=>{const n=Number(String(x??'').replace(/\\./g,'').replace(',','.'));return Number.isFinite(n)?n:NaN;};
+ const multNames=['EV/EBITDA','EV/FCFF','P/E','P/FCFE','P/OCF','P/V','P/BV'];
+ let cellsChecked=0,centresChecked=0;
+ for(let method=0;method<7;method++)for(let sc=0;sc<2;sc++){
+   const scenario=sc?'optimista':'conservador',headerRow=6+(2*method+sc)*12;
+   const axesX=gridRows[headerRow-1].slice(1,6).map(asNum),axesY=Array.from({length:5},(_,i)=>asNum(gridRows[headerRow+i][0]));
+   assert.ok(axesX.every(Number.isFinite)&&axesY.every(Number.isFinite),'Cinco ejes numéricos no fraccionales '+method+' '+scenario);
+   for(let i=0;i<5;i++)for(let j=0;j<5;j++){
+      const cell=asNum(gridRows[headerRow+i][j+1]);
+      assert.ok(Number.isFinite(cell)&&cell>=0,'Matriz inválida '+multNames[method]+' '+scenario+' fila '+i+' columna '+j);
+      if(j>0) assert.ok(cell+0.025>=asNum(gridRows[headerRow+i][j]),'Múltiplo mayor no puede bajar el valor presente');
+      cellsChecked++;
+   }
+   const ctr=data.sensibilidadMultiples.controles.find(x=>x.metodo===multNames[method]&&x.escenario===scenario);
+   assert.ok(ctr&&ctr.estado==='OK','Control central no marcado OK');
+   const mid=asNum(gridRows[headerRow+2][3]);
+   assert.ok(Math.abs(mid-ctr.centro)<0.025,'Centro 5x5 conciliado a metodología '+multNames[method]+' '+scenario);
+   assert.equal(gridRows[headerRow+6][3],'OK','Control dentro de hoja no es OK');
+   centresChecked++;
+ }
+ assert.equal(cellsChecked,350,'350 salidas numéricas para catorce matrices');assert.equal(centresChecked,14,'14 centros distintos de escenario base');
+ assert.equal(data.auditoria.reparacionSensibilidad20261022.erroresDespues,0,'Resultado auditado cero errores');
+ const region=data.auditoria.evidenciaDeudaGeografia20261022.conciliacionLTMRegiones;
+ assert.ok(region,'Regional LTM reconciliado en expediente');
+ assert.ok(Math.abs(region.USDMillones.reduce((a,b)=>a+b,0)-49734.633)<1e-6,'Regiones suman LTM real USD 49.734,633 millones');
+ assert.ok(Math.abs(region.participaciones.reduce((a,b)=>a+b,0)-1)<1e-10,'Peso regional suma 100%');
+ assert.ok(data.hojas.valoracion['Evidencia deuda y geografía'].includes('49734,633')||data.hojas.valoracion['Evidencia deuda y geografía'].includes('49.734,633'),'Regiones LTM publicadas en hoja canónica');
+ console.log('OK: 14 matrices × 25 = 350 celdas verificadas, centros numéricos y 4 regiones LTM SEC');
  const newFailures=result.checks.filter(x=>x.status==='fail'&&['DCF','Escenarios','Múltiplos','Sensibilidad'].includes(x.area));
  assert.equal(newFailures.length,0,'Las conciliaciones de DCF/múltiplos no deben fallar: '+JSON.stringify(newFailures));
  console.log('OK: smoke test sobre expediente de Netflix publicado. La existencia de salvedades o diferencias se informa, no se convierte en certificación.');
