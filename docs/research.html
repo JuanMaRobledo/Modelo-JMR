@@ -93,6 +93,12 @@ body.research-page .wrap{max-width:none;padding-inline:clamp(16px,2.5vw,48px)}bo
 /* Lectura JMR en dos niveles, independiente del contenido técnico original. */
 .jmr-editorial-article{max-width:910px;margin:0 auto 22px;padding:0 3px 14px}
 .jmr-editorial-label{font-family:"IBM Plex Mono",monospace;font-weight:700;font-size:11px;letter-spacing:.11em;color:var(--accent);margin:0 0 18px}
+.jmr-intrinsic-base-card{display:flex;flex-direction:column;align-items:flex-start;gap:7px;margin:0 0 26px;padding:clamp(19px,3vw,30px);border:2px solid var(--accent);border-radius:16px;background:linear-gradient(120deg,var(--accent-soft),var(--surface) 75%);box-shadow:var(--shadow);break-inside:avoid;page-break-inside:avoid}
+.jmr-intrinsic-base-label{font-size:clamp(16px,2.1vw,21px);font-weight:750;color:var(--accent-ink)}
+.jmr-intrinsic-base-value{display:block;font:700 clamp(30px,5.5vw,52px)/1.2 "IBM Plex Mono",monospace;color:var(--ink);overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.jmr-intrinsic-base-note{font-size:12px;line-height:1.5;color:var(--ink-soft)}
+@media print{.jmr-intrinsic-base-card{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+
 .jmr-editorial-article h1{font-size:clamp(28px,4.5vw,38px);line-height:1.2;letter-spacing:-.015em;margin:0 0 15px}
 .jmr-editorial-article h2{font-size:clamp(18px,2.4vw,23px);line-height:1.34;border:0;padding:0;margin:26px 0 11px}
 .jmr-editorial-article p{font-size:15px;line-height:1.85;text-align:left;hyphens:none;margin-bottom:16px;max-width:85ch}
@@ -221,7 +227,7 @@ body.research-page .wrap{max-width:none;padding-inline:clamp(16px,2.5vw,48px)}bo
 <script src="report-anchors.js?v=20261014"></script>
 <script src="model-sync.js?v=20261019-siete"></script>
 <script src="jmr-audit-links.js?v=20261020"></script>
-<script src="research.js?v=20261020-sin-editor-embedded"></script>
+<script src="research.js?v=20261022-dcf-base-nivel1"></script>
 <script>
 if("serviceWorker" in navigator){
   window.addEventListener("load", function(){
