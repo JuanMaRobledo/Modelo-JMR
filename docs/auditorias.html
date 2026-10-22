@@ -68,7 +68,7 @@ button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible
 <script src="auth.js"></script>
 <header><strong>Modelo JMR · Auditorías narrativas</strong>
 <nav aria-label="Navegación principal">
-<a href="index.html">Inicio</a><a href="visor.html">Internacionales</a><a href="research.html">Análisis</a><a href="auditoria-multiplos.html">Múltiplos</a><a href="auditorias.html" aria-current="page">Auditorías narrativas</a>
+<a href="index.html">Inicio</a><a href="visor.html">Internacionales</a><a href="research.html">Análisis</a><a href="auditoria-multiplos.html">Múltiplos</a><a href="auditoria-integral.html">Auditoría integral</a><a href="auditorias.html" aria-current="page">Editar narrativa</a>
 </nav></header>
 <main>
 <div class="eyebrow">Investigación independiente · Supuestos y evidencia</div>
@@ -76,7 +76,7 @@ button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible
 <p class="intro">Cada informe contrasta el crecimiento, los márgenes, la reinversión, el costo de capital, el valor terminal y los múltiplos con la historia económica de la empresa y los datos históricos. <strong>Editar una auditoría no modifica la hoja DCF, sus cifras ni los análisis publicados.</strong></p>
 <div class="panel">
 <div class="toolbar">
-<label for="tickerSelect"><strong>Empresa</strong></label>
+<label for="tickerSelect"><strong>Empresa</strong></label><a class="btn" id="integralLink" href="auditoria-integral.html">Ver auditoría integral ↗</a>
 <select id="tickerSelect" aria-label="Empresa"><option value="">Sin auditorías guardadas</option></select>
 <button class="btn" id="readBtn" type="button" aria-pressed="true">Leer informe</button>
 <button class="btn" id="editBtn" type="button" aria-pressed="false">Editar texto</button>
@@ -159,6 +159,7 @@ async function load(ticker){
  if(!safeTicker(ticker))return;
  if(dirty&&!confirm('Hay cambios sin guardar. ¿Deseas descartarlos?')){select.value=currentTicker;return;}
  currentTicker=ticker;loadedText='';loadedSha='';dirty=false;loading=true;
+ document.getElementById("integralLink").href="auditoria-integral.html?ticker="+encodeURIComponent(ticker);
  document.getElementById('historyLink').href='https://github.com/'+OWNER+'/'+REPO+'/commits/main/'+filePath();
  flash('Cargando '+ticker+'…');meta.textContent='';editor.value='';reader.textContent='';
  try{var f=await requestFile();loadedText=f.text;loadedSha=f.sha;editor.value=loadedText;render();flash('Informe vigente listo para lectura y edición.');meta.textContent=ticker+' · Fuente: GitHub · Versión '+loadedSha.slice(0,8)+' · El guardado no modifica la valoración.';}
