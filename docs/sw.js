@@ -1,4 +1,4 @@
-const CACHE = "modelo-jmr-v172-auditoria-profunda-20261022";
+const CACHE = "modelo-jmr-v173-ebit-growth-20261022";
 const APP_SHELL = [
   "catalog-reset.js",
   "index.html",
