@@ -208,6 +208,29 @@ function analyze(v,markdown){
  var senNd=senControls.filter(function(c){return c.estado==="N/D";}).length;
  baseRows.forEach(function(m){if(m.center&&m.center.estado==="OK")check("Sensibilidad",m.name+": centro de matriz Base",m.center.centro,m.vp,"Centro calculado previamente, contrastado ahora contra consolidado VP.");});
  if(senNd>0)issue("Medio","Matrices de múltiplos incompletas",senNd+" controles de sensibilidad constan N/D; no se presume que se ejecutaron.");
+ // Además de centros A/B/D, comprobar las 350 celdas reales de los escenarios
+ // Conservador/Optimista. El validador anterior omitía errores fuera del centro.
+ var matrixRows=parseSheet(sheets['Sensibilidad 7 metodos x historias']);
+ if(matrixRows.length){
+  var validCells=0,badCells=0,validCenters=0;
+  var gridNames=['EV/EBITDA','EV/FCFF','P/E','P/FCFE','P/OCF','P/V','P/BV'];
+  for(var gm=0;gm<14;gm++){
+   var titleIndex=5+gm*12,methodName=gridNames[Math.floor(gm/2)],scenario=gm%2?'optimista':'conservador';
+   var expectedCenter=senControls.find(function(c){return c.metodo===methodName&&c.escenario===scenario;});
+   var centerValue=decimal((matrixRows[titleIndex+3]||[])[3]);
+   if(expectedCenter&&expectedCenter.estado==='OK'&&num(centerValue)&&near(centerValue,expectedCenter.centro))validCenters++;
+   for(var gi=0;gi<5;gi++)for(var gj=1;gj<=5;gj++){
+    var cell=decimal((matrixRows[titleIndex+1+gi]||[])[gj]);
+    if(num(cell)&&cell>=0)validCells++;else badCells++;
+   }
+  }
+  var allGood=validCells===350&&badCells===0&&validCenters===14;
+  checks.push({area:'Sensibilidad',label:'14 matrices × 25 celdas fuera del Base',status:allGood?'ok':'fail',actual:validCells,expected:350,detail:'Centro verificado '+validCenters+'/14; grilla con errores '+badCells+'. Revisión de la tabla publicada, no independencia SEC.'});
+  if(!allGood)issue('Alto','Matriz de múltiplos no íntegra','La matriz publicada contiene '+validCells+'/350 celdas válidas, '+badCells+' errores y '+validCenters+'/14 centros conciliados. No declarar sensibilidades completas.');
+ }else if(v.auditoria&&v.auditoria.reparacionSensibilidad20261022){
+  checks.push({area:'Sensibilidad',label:'Matriz de 14 historias ausente',status:'fail',actual:0,expected:350,detail:'Existe constancia de reparación, pero no existe snapshot.'});
+  issue('Alto','Matriz publicada ausente','Existe bitácora de 350 celdas, falta la tabla completa.');
+ }
  var secMatches=[...markdown.matchAll(/^##\s+(\d+)\.\s+(.+)\s*$/gm)],seen={};
  secMatches.forEach(function(m){seen[Number(m[1])]=m[2].trim();});
  var sectionDetail=SECTIONS.map(function(s,i){return {number:i+1,title:s,present:seen[i+1]===s,otherHeading:seen[i+1]||null};});
