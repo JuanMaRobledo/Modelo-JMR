@@ -351,6 +351,33 @@
       '</tr></thead><tbody>'+trs+'</tbody></table><p>'+note+'</p><p>No se modifica el DCF ni se asume que EV/FCF = EV/FCFF o P/FCF = P/FCFE. Los múltiplos LTM reales requieren fuente y fecha propias.</p></section>';
   }
 
+  // Destacado del Nivel 1: usar exactamente el valor Base que presenta
+  // el tablero oficial del Nivel 2, nunca el promedio ni los múltiplos.
+  function intrinsicBaseCard(lv) {
+    var value = null, currency = 'USD', method = 'DCF base hoy · por acción';
+    if (lv && typeof JmrValueBoard !== 'undefined' &&
+        typeof JmrValueBoard.fromRecord === 'function') {
+      var board = JmrValueBoard.fromRecord(lv);
+      currency = board.currency === 'COP' ? 'COP' : 'USD';
+      if (board.holding) {
+        // Las holdings se valoran por SOTP; no presentar su NAV como un DCF.
+        value = board.holding.nav && board.holding.nav.base;
+        method = 'SOTP base · por acción (holdings)';
+      } else if (typeof JmrValueBoard.primaryValues === 'function') {
+        value = JmrValueBoard.primaryValues(board).base;
+      }
+    }
+    var valid = typeof value === 'number' && Number.isFinite(value);
+    var amount = valid ? (currency === 'COP' ? 'COP ' : 'US$ ') +
+      value.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : 'N/D';
+    var note = valid ? method + ' · valoración vinculada' :
+      'Sin resultado Base verificable. Vincula una valoración del Visor para mostrarlo.';
+    return '<div class="jmr-intrinsic-base-card" role="group" aria-label="Valor intrínseco base">' +
+      '<span class="jmr-intrinsic-base-label">Valor intrínseco base:</span>' +
+      '<strong class="jmr-intrinsic-base-value">' + escapeHtml(amount) + '</strong>' +
+      '<span class="jmr-intrinsic-base-note">' + escapeHtml(note) + '</span></div>';
+  }
+
   function renderPreview() {
     if(liveModelSession&&liveModelOwner!==state){liveModelSession.dispose();liveModelSession=null;liveModelOwner=null;}
     el('previewCompany').textContent=state.company||state.title||'Nuevo análisis';
@@ -396,6 +423,7 @@
       calculatorLink(ticker)+'</div>';
     body.innerHTML='<div class="research-document jmr-reading-view">'+
       '<section class="jmr-editorial-article" id="jmrArticleLevel" aria-label="Nivel 1 · Análisis fundamental">'+
+      intrinsicBaseCard(state.linkedValuation)+
       '<div class="jmr-editorial-label">NIVEL 1 · ANÁLISIS FUNDAMENTAL</div>'+
       actions+article.toc+'<div id="editableContent">'+article.body+'</div>'+renderNews()+
       '</section>'+level2+'</div>';
