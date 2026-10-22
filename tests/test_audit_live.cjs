@@ -29,11 +29,20 @@ const assert=require('node:assert/strict');
  assert.ok(result.assumptions.some(x=>x.label==='Margen EBIT objetivo'&&x.status==='Conciliado'&&Math.abs(x.model-.34)<1e-8),
    'El margen Base activo 34 % debe conciliar con la hoja; 21,30 % es solo histórico');
  assert.ok(result.assumptions.some(x=>x.label==='CAGR ingresos 1–5'&&x.status==='Conciliado'),
-   'El CAGR de cinco años corresponde al 7,99 %');
- assert.ok(result.assumptions.some(x=>x.label==='CAGR ingresos 2–5'&&x.status==='Conciliado'&&Math.abs(x.model-.07494185688011479)<1e-7),
-   'El CAGR años 2–5 es 7,49 %, no 7,99 %');
+   'El CAGR de cinco años corresponde al 9,99 %');
+ assert.ok(result.assumptions.some(x=>x.label==='CAGR ingresos 2–5'&&x.status==='Conciliado'&&Math.abs(x.model-.0949429189823141)<1e-7),
+   'El CAGR años 2–5 es 9,49 %, no 9,99 %');
  assert.ok(result.assumptions.every(x=>x.status!=='Revisar origen'),
    'La documentación sincronizada no debe denunciar una falsa contradicción de supuestos');
  assert.equal(result.disruption.id,'C','Disrupción no entra en promedio ordinario');
+ assert.ok(Math.abs(data.valorPrincipal-52.028422816333226)<1e-7,'DCF Base actualizado US$52,03');
+ assert.deepEqual(Array.from(data.escenariosDCF.historias.find(h=>h.id==='A').crecimientoAnual),[.12,.11,.10,.09,.08],'Trayectoria Base acordada');
+ assert.ok(Math.abs(data.escenariosDCF.historias.find(h=>h.id==='A').crecimiento-.09990908189157444)<1e-8,'CAGR 1–5 = 9,99%');
+ assert.ok(Math.abs(data.valorEsperado.valor-49.671286099149796)<1e-7,'Promedio A/B/D excluye disrupción');
+ assert.ok(Math.abs(data.descuentoMultiples.multiplesHoy.base-51.56522810754277)<1e-7,'Múltiplos FY+3 VP recalculados');
+ assert.ok(Math.abs(data.precioMOS-data.valorPrincipal*(1-data.mos))<1e-7,'MOS sobre DCF Base');
+ assert.equal(data.baseMOS,'dcfBase','Mantener selector MOS original');
+ const newFailures=result.checks.filter(x=>x.status==='fail'&&['DCF','Escenarios','Múltiplos','Sensibilidad'].includes(x.area));
+ assert.equal(newFailures.length,0,'Las conciliaciones de DCF/múltiplos no deben fallar: '+JSON.stringify(newFailures));
  console.log('OK: smoke test sobre expediente de Netflix publicado. La existencia de salvedades o diferencias se informa, no se convierte en certificación.');
 })().catch(e=>{console.error(e);process.exitCode=1;});
