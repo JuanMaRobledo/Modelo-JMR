@@ -85,9 +85,9 @@ const assert=require('node:assert/strict');
 
  const sensitivityHtml=data.hojas.valoracion['Sensibilidad 7 metodos x historias']||'';
  assert.equal((sensitivityHtml.match(/#(?:ERROR|REF|VALUE|DIV\/0|N\/A)!/g)||[]).length,0,'Ninguna celda con error en matriz publicada');
- const parseCells=html=>[...html.matchAll(/<td\\b[^>]*>([\\s\\S]*?)<\\/td>/gi)].map(m=>m[1].replace(/<[^>]+>/g,'').trim());
- const gridRows=[...sensitivityHtml.matchAll(/<tr\\b[^>]*>([\\s\\S]*?)<\\/tr>/gi)].map(m=>parseCells(m[1]));
- const asNum=x=>{const n=Number(String(x??'').replace(/\\./g,'').replace(',','.'));return Number.isFinite(n)?n:NaN;};
+ const parseCells=html=>[...html.matchAll(/<td\b[^>]*>([\s\S]*?)<\/td>/gi)].map(m=>m[1].replace(/<[^>]+>/g,'').trim());
+ const gridRows=[...sensitivityHtml.matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi)].map(m=>parseCells(m[1]));
+ const asNum=x=>{const n=Number(String(x??'').replace(/\./g,'').replace(',','.'));return Number.isFinite(n)?n:NaN;};
  const multNames=['EV/EBITDA','EV/FCFF','P/E','P/FCFE','P/OCF','P/V','P/BV'];
  let cellsChecked=0,centresChecked=0;
  for(let method=0;method<7;method++)for(let sc=0;sc<2;sc++){
