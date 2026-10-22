@@ -30,6 +30,7 @@ on:
       - 'tests/test_audit_deep.cjs'
       - 'tests/test_auditorias_narrativas.cjs'
       - 'tests/test_audit_links.cjs'
+      - '.github/workflows/auditorias-narrativas.yml'
 jobs:
   validate:
     runs-on: ubuntu-latest
