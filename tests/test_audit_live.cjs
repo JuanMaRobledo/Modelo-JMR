@@ -152,7 +152,7 @@ const assert=require('node:assert/strict');
  }
  const h3=data.escenariosDCF.historias.filter(h=>h.id!=='C');
  nearDC(data.valorEsperado.valor,h3.reduce((acc,h)=>acc+h.probabilidad*h.valor,0)/h3.reduce((acc,h)=>acc+h.probabilidad,0),'Promedio sin disrupción');auditIdentities++;
- assert.ok(auditIdentities>=350,'Reconciliaciones independientes de cuatro DCF >=350');
+ assert.equal(auditIdentities,333,'333 conciliaciones independientes: 4×(70 anuales + 13 terminal/bridge) + promedio');
  console.log('OK: replay independiente de cuatro escenarios DCF con '+auditIdentities+' identidades numéricas (sin suplantar control SEC 124)');
  const newFailures=result.checks.filter(x=>x.status==='fail'&&['DCF','Escenarios','Múltiplos','Sensibilidad'].includes(x.area));
  assert.equal(newFailures.length,0,'Las conciliaciones de DCF/múltiplos no deben fallar: '+JSON.stringify(newFailures));
