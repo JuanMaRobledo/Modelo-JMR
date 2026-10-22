@@ -143,6 +143,8 @@ function analyze(v,markdown){
    dm.pesoDcf*dm.dcfHoy.base+dm.pesoMultiplos*ml:null;
  check("Múltiplos","Ponderado presente Base",recombined,dm.ponderadoHoy&&dm.ponderadoHoy.base,"Combinación secundaria; no reemplaza el valor intrínseco Base.");
  check("Múltiplos","Ponderado presente frente al tablero",recombined,v.valorPresentePonderado&&v.valorPresentePonderado.base);
+ var dcfFy3=ms.find(function(x){return /DCF/i.test(x.nombre||"");});
+ if(dcfFy3&&num(dcfFy3.peso)&&num(dcfFy3.base))fy3Weighted+=dcfFy3.peso*dcfFy3.base;
  if(ms.length)check("Múltiplos","Objetivo FY+3 ponderado",fy3Weighted,v.objetivoPonderado&&v.objetivoPonderado.base);
  if(num(k)&&k>0&&base&&num(base.valor)&&ms.some(function(x){return /DCF/i.test(x.nombre||"");})){
   var dcfRow=ms.find(function(x){return /DCF/i.test(x.nombre||"");});
