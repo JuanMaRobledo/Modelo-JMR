@@ -14,7 +14,7 @@ var SECTIONS=[
 "Dictamen económico y resumen para escuchar","Fuentes primarias, limitaciones y registro de versión"];
 var MULTS=["EV/EBITDA","EV/FCFF","P/E","P/FCFE","P/OCF","P/V","P/BV"];
 function num(v){return typeof v==="number"&&isFinite(v);}
-function near(a,b){return num(a)&&num(b)&&Math.abs(a-b)<=Math.max(0.02,Math.abs(a)*0.0001);}
+function near(a,b,strict){return num(a)&&num(b)&&Math.abs(a-b)<=(strict?0.000001:Math.max(0.02,Math.abs(a)*0.0001));}
 function fmt(n,pct){return !num(n)?"N/D":(pct?(n*100).toFixed(2)+" %":n.toLocaleString("es-CO",{minimumFractionDigits:2,maximumFractionDigits:2}));}
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
 function decode(s){return String(s||"").replace(/&#x([0-9a-f]+);/gi,function(_,c){return String.fromCharCode(parseInt(c,16));})
@@ -81,7 +81,7 @@ function analyze(v,markdown){
  v=v||{};markdown=String(markdown||"");
  var checks=[],issues=[],sheets=Object.assign({},v.hojas&&v.hojas.financieros,v.hojas&&v.hojas.valoracion,v.hojas&&v.hojas.analisis);
  function check(area,label,actual,expected,desc){
-  var status=!num(actual)||!num(expected)?"nd":near(actual,expected)?"ok":"fail";
+  var status=!num(actual)||!num(expected)?"nd":near(actual,expected,/probabilidades|Peso |pesos /i.test(label))?"ok":"fail";
   checks.push({area:area,label:label,status:status,actual:actual,expected:expected,detail:desc||""});
   if(status==="fail")issues.push({severity:"Alto",label:label,detail:"La cifra registrada no concilia con el recálculo disponible. "+(desc||"")});
  }
