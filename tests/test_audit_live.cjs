@@ -61,6 +61,13 @@ const assert=require('node:assert/strict');
  assert.ok(data.escenariosDCF.historias.every(h=>h.valor>0&&Number.isFinite(h.valor)),'Cuatro DCF vigentes positivos');
  assert.ok(Math.abs(data.crecimientoImplicito.cagrImplicito-.1358978789907006)<1e-8,'DCF inverso 13,59% actualizado');
  assert.ok(Math.abs(w.sensibilidades.valoresPorAccionUSD.crp05-data.valorPrincipal)<1e-7,'La sensibilidad geográfica central concilia');
+ assert.ok(w.sensibilidades.valoresPorAccionUSD.crp0>data.valorPrincipal && data.valorPrincipal>w.sensibilidades.valoresPorAccionUSD.crp1,'Riesgo geográfico en sensibilidad 0/50/100pb monotónico');
+ assert.ok(Math.abs(data.precioMOS-36.98595298503341)<1e-7,'Precio compra con MOS 35% reconstruido');
+ assert.ok(data.escenariosDCF.historias.find(h=>h.id==='C').valor>0 && data.escenariosDCF.historias.find(h=>h.id==='C').valor<20,'Caso de disrupción separado válido');
+ assert.ok(data.auditoria.revisionDocumental22102026.cierres.some(x=>x.codigo==='NFLX-12'),'Cerrar falso supuesto de error Rf tras reconstrucción');
+ assert.ok(!data.auditoria.revisionDocumental22102026.salvedadesAbiertas.some(x=>x.codigo==='NFLX-12'),'No reabrir contradicción ficticia Rf-Treasury');
+ assert.ok(/3,92%/.test(data.hojas.valoracion['Cost of capital worksheet']) && /9,16%/.test(data.hojas.valoracion['Cost of capital worksheet']),'Snapshot de WACC reconstruido visible');
+ assert.ok(md.includes('US$56,90') && md.includes('CRP') && md.includes('3,92%'),'Narrativa auditada concilia con nuevo WACC');
 
  const newFailures=result.checks.filter(x=>x.status==='fail'&&['DCF','Escenarios','Múltiplos','Sensibilidad'].includes(x.area));
  assert.equal(newFailures.length,0,'Las conciliaciones de DCF/múltiplos no deben fallar: '+JSON.stringify(newFailures));
