@@ -33,7 +33,7 @@ function parseSheet(html){
 function decimal(s){
  if(num(s))return s;
  s=String(s==null?"":s).trim();
- if(!s||/^(?:N\/D|N\/P|N\/A|—|-|#)/i.test(s))return null;
+ if(!s||/^(?:N\/D|N\/P|N\/A|—|#)/i.test(s))return null;
  s=s.replace(/[−–]/g,"-").replace(/[^0-9,.-]/g,"");
  if(!s||s==="-")return null;
  var comma=s.lastIndexOf(","),dot=s.lastIndexOf(".");
