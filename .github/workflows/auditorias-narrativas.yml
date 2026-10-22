@@ -6,6 +6,7 @@ on:
       - 'docs/auditoria-integral.html'
       - 'docs/jmr-audit-deep.js'
       - 'tests/test_audit_deep.cjs'
+      - 'tests/test_audit_live.cjs'
       - 'docs/jmr-audit-links.js'
       - 'docs/jmr-audit-links.css'
       - 'docs/research.js'
@@ -28,6 +29,7 @@ on:
       - 'docs/auditoria-integral.html'
       - 'docs/jmr-audit-deep.js'
       - 'tests/test_audit_deep.cjs'
+      - 'tests/test_audit_live.cjs'
       - 'tests/test_auditorias_narrativas.cjs'
       - 'tests/test_audit_links.cjs'
       - '.github/workflows/auditorias-narrativas.yml'
@@ -42,3 +44,4 @@ jobs:
       - run: node tests/test_auditorias_narrativas.cjs
       - run: node tests/test_audit_links.cjs
       - run: node tests/test_audit_deep.cjs
+      - run: node tests/test_audit_live.cjs
