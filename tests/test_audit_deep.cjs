@@ -24,7 +24,7 @@ const basic={
  hojas:{financieros:{'Income Statement':sheet(yrs,rows)},analisis:{
  'Márgenes':sheet(yrs,[['Operating Margin',...Array(11).fill('30,00%')]]),
  'Eficiencia de capital':sheet(yrs,[['Return on Invested Capital',...Array(11).fill('12,00%')]])},
- valoracion:{'Fuentes SEC y LTM':sheet(['Rubro','FY2025','9M2025','9M2026','LTM Sep2026'],[['Ingresos','100,00','20,00','30,00','110,00'],['Flujo negativo','-10,00','-3,00','-4,00','-11,00']]),
+ valoracion:{'Fuentes SEC y LTM':sheet(['Rubro','FY2025','9M2025','9M2026','LTM Sep2026','Fuentes'],[['Ingresos','100,00','20,00','30,00','110,00','https://www.sec.gov/example'],['Flujo negativo','-10,00','-3,00','-4,00','-11,00','https://www.sec.gov/example'],['Serie histórica 2016-2025','1','2','3','4','5']]),
  'Supuestos Recomendados':sheet(['a'],[['Supuesto']]),'Cost of capital worksheet':sheet(['a'],[['WACC']]),'Múltiplos históricos':sheet(['a'],[['EV/EBITDA']]),
  'Financials Multiples':sheet(['a'],[['FY+3']]),
  'Sensibilidad DCF e inverso':sheet(['a'],[['WACC terminal × crecimiento perpetuo'],['','3%','3,5%','4%','4,5%','5%'],['8%','101','102','103','104','105'],['9%','101','102','103','104','105'],['10%','101','102','100','104','105'],['11%','101','102','103','104','105']])}},
