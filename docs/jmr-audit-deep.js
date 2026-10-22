@@ -158,21 +158,31 @@ function analyze(v,markdown){
  var marketGap=num(v.precio)&&base&&num(base.valor)&&base.valor>0?v.precio/base.valor-1:null;
  var assumptions=[];
  var assumptionsSheet=parseSheet(sheets["Supuestos Recomendados"]);
+ var vo=parseSheet(sheets["Valuation output"]);
+ var mRow=findLine(vo,"EBIT (Operating) margin");
+ var firstYearMargin=mRow?decimal(mRow[2]):null;
+ var rates=base&&Array.isArray(base.crecimientoAnual)?base.crecimientoAnual:null;
+ var cagr25=rates&&rates.length>=5&&rates.slice(1,5).every(num)?
+   Math.pow(rates.slice(1,5).reduce(function(acc,g){return acc*(1+g);},1),1/4)-1:null;
  [
-  ["Revenue growth rate - año 1","Crecimiento año 1",base&&base.crecimientoAnual&&base.crecimientoAnual[0],true],
-  ["Revenue growth rate - años 2-5","Crecimiento 2–5 años",base&&base.crecimiento,true],
-  ["Target pre-tax operating margin (largo plazo)","Margen EBIT objetivo",base&&base.margen,true],
+  ["Revenue growth rate - año 1","Crecimiento año 1",rates&&rates[0],true],
+  ["CAGR ingresos efectivo años 1–5","CAGR ingresos 1–5",base&&base.crecimiento,true],
+  ["CAGR ingresos efectivo años 2–5","CAGR ingresos 2–5",cagr25,true],
+  ["Margen EBIT año 1 Base · ACTIVO","Margen EBIT año 1",num(firstYearMargin)?firstYearMargin/100:null,true],
+  ["Margen EBIT objetivo Base · ACTIVO","Margen EBIT objetivo",base&&base.margen,true],
   ["Sales to capital ratio - años 1-5","Sales-to-Capital",base&&(base.s2c||base.salesToCapital),false]
  ].forEach(function(row){
   var source=findLine(assumptionsSheet,row[0]),value=source?decimal(source[1]):null;
   if(num(value)&&row[3])value/=100;
   var status=!num(value)||!num(row[2])?"N/D":Math.abs(value-row[2])<=(row[3]?0.001:0.02)?"Conciliado":"Revisar origen";
   assumptions.push({label:row[1],source:value,model:row[2],pct:row[3],status:status});
-  if(status==="Revisar origen")issue("Alto","Diferencia de supuestos: "+row[1],
-   "Supuestos Recomendados (columna Valor actual/Input sheet): "+fmt(value,row[3])+
-   " frente a la historia DCF Base: "+fmt(row[2],row[3])+
-   ". Verificar celda, versión y derivación antes de modificar cualquier hipótesis.");
+  if(status==="Revisar origen")issue("Alto","Diferencia de supuestos activos: "+row[1],
+   "Hoja activa: "+fmt(value,row[3])+" frente al DCF publicado: "+fmt(row[2],row[3])+
+   ". Verificar fórmula, unidad, fecha y versión sin modificar hipótesis automáticamente.");
  });
+ var histReference=findLine(assumptionsSheet,"Referencia histórica EBIT (21,30 % · NO activa en DCF)");
+ if(histReference)assumptions.push({label:"Referencia histórica EBIT, no activa",source:decimal(histReference[1])/100,
+   model:null,pct:true,status:"Solo referencia"});
  var histori=historical(v);
  var rev=histori.find(function(x){return x.name==="Ingresos";}),growth=histori.find(function(x){return x.name==="Crecimiento interanual";}),margin=histori.find(function(x){return x.name==="Margen EBIT";}),roic=histori.find(function(x){return x.name==="ROIC";});
  if(rev&&rev.years<10)issue("Medio","Historia de ingresos insuficiente","Serie legible de "+rev.years+" años en hoja, máximo solicitado 10.");
@@ -242,8 +252,8 @@ function report(a,v){
  ["Sales-to-Capital",fmt(a.base&&(a.base.s2c||a.base.salesToCapital)),"Serie histórica comparable: N/D si no se reconstruye","¿Las ventas incrementales requieren la misma reinversión que la industria?"],
  ["Crecimiento a perpetuidad",fmt(a.base&&a.base.terminalGrowth,true),"Comparar con moneda, inflación, Rf y WACC terminal: verificación documental pendiente","¿Es sostenible g a perpetuidad y hay diferencial WACC−g positivo?"]
  ]);
- h+="<p class='small muted'>Comparación documental entre «Supuestos Recomendados» (columna Valor actual de Input sheet) y la historia Base publicada. La diferencia indica conflicto por investigar, no prueba por sí sola de error del DCF.</p>";
- h+=table(["Supuesto","Hoja Input","Historia Base","Control"],a.assumptions.map(function(x){return [x.label,fmt(x.source,x.pct),fmt(x.model,x.pct),x.status];}));
+ h+="<p class='small muted'>Comparación de los supuestos ACTIVOS entre hoja y DCF publicado. La referencia histórica EBIT se muestra aparte: no reemplaza el margen objetivo del escenario Base. CAGR 1–5 y 2–5 utilizan horizontes distintos.</p>";
+ h+=table(["Supuesto","Hoja de supuestos","Historia Base","Control"],a.assumptions.map(function(x){return [x.label,fmt(x.source,x.pct),fmt(x.model,x.pct),x.status];}));
  h+="<h3>4. Escenarios DCF y DCF inverso</h3>";
  h+=table(["Historia","Probabilidad publicada","Valor por acción","Crecimiento","Margen","ROIC terminal","g terminal"],(a.scenarios||[]).map(function(x){return [x.nombre||x.id,fmt(x.probabilidad,true),fmt(x.valor),fmt(x.crecimiento,true),fmt(x.margen,true),fmt(x.roicTerminal,true),fmt(x.terminalGrowth,true)];}));
  h+="<p>Promedio ordinario de tres historias = <strong>"+fmt(a.weighted)+"</strong>, normalizando las probabilidades conservador/base/optimista que suman "+fmt(a.ordinaryMass,true)+". Disrupción = <strong>"+fmt(a.disruption&&a.disruption.valor)+"</strong>, mostrada como estrés y excluida del promedio.</p>";
