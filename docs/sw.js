@@ -1,4 +1,4 @@
-const CACHE = "modelo-jmr-v171-auditoria-integral-20261022";
+const CACHE = "modelo-jmr-v172-auditoria-profunda-20261022";
 const APP_SHELL = [
   "catalog-reset.js",
   "index.html",
@@ -12,6 +12,7 @@ const APP_SHELL = [
   "visor.html",
   "auditorias.html",
   "auditoria-integral.html",
+  "jmr-audit-deep.js",
   "jmr-audit-links.js",
   "jmr-audit-links.css",
   "jmr-report-sheets.js",
