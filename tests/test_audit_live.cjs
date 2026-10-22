@@ -40,6 +40,7 @@ const assert=require('node:assert/strict');
  assert.ok(Math.abs(data.escenariosDCF.historias.find(h=>h.id==='A').crecimiento-.09990908189157444)<1e-8,'CAGR 1–5 = 9,99%');
  assert.ok(Math.abs(data.valorEsperado.valor-49.671286099149796)<1e-7,'Promedio A/B/D excluye disrupción');
  assert.ok(Math.abs(data.descuentoMultiples.multiplesHoy.base-51.56522810754277)<1e-7,'Múltiplos FY+3 VP recalculados');
+ assert.ok(Math.abs(data.objetivoPonderado.base-68.76116627495267)<1e-7,'FY+3 ponderado canónico 40% DCF y 60% siete múltiplos');
  assert.ok(Math.abs(data.precioMOS-data.valorPrincipal*(1-data.mos))<1e-7,'MOS sobre DCF Base');
  assert.equal(data.baseMOS,'dcfBase','Mantener selector MOS original');
  const newFailures=result.checks.filter(x=>x.status==='fail'&&['DCF','Escenarios','Múltiplos','Sensibilidad'].includes(x.area));
