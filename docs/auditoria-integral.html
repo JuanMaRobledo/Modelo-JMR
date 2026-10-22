@@ -55,7 +55,7 @@ table{width:100%;border-collapse:collapse;font-size:13px;margin:12px 0}th,td{bor
 <section class="panel" id="overview">
 <div class="eyebrow">Resumen de cobertura y dictamen</div><h2 id="companyName">Selecciona una empresa</h2>
 <div id="mainValue" class="value">—</div><p class="muted" id="valueMethod">Valor principal según expediente</p>
-<p id="auditVerdict" class="notice">Pendiente de cargar la evidencia.</p><p id="source" class="small muted"></p>
+<p id="auditVerdict" class="notice">Pendiente de cargar la evidencia.</p><p id="source" class="small muted"></p><p id="riskNotes" class="small muted"></p>
 <div class="cards">
 <article class="card"><h3>1. DCF / método principal</h3><strong id="sTech">Pendiente</strong><p id="dTech"></p></article>
 <article class="card"><h3>2. Supuestos económicos</h3><strong id="sEco">Pendiente</strong><p id="dEco"></p></article>
@@ -113,9 +113,12 @@ function renderTech(v){
  var probabilities=hasHist?h.map(function(x){return x.probabilidad;}):[];
  var sum=probabilities.reduce(function(s,x){return s+(n(x)?x:0);},0);
  add("Probabilidades de historias",hasHist&&probabilities.every(n)?near(sum,1):null,"Suma: "+pct(sum)+" · historias: "+(h?h.length:0));
- var weighted=hasHist&&h.every(function(x){return n(x.valor)&&n(x.probabilidad);})?h.reduce(function(s,x){return s+x.valor*x.probabilidad;},0):null;
+ var stressSeparate=!!(v.escenariosDCF&&v.escenariosDCF.disrupcionSeparada);
+ var active=stressSeparate&&hasHist?h.filter(function(x){return x.id!=="C"&&!/disrup/i.test(x.nombre||"");}):h;
+ var mass=active&&active.reduce(function(s,x){return s+(n(x.probabilidad)?x.probabilidad:0);},0);
+ var weighted=active&&active.length&&active.every(function(x){return n(x.valor)&&n(x.probabilidad);})&&mass>0?active.reduce(function(s,x){return s+x.valor*x.probabilidad;},0)/(stressSeparate?mass:1):null;
  var expected=v.valorEsperado&&v.valorEsperado.valor;
- add("Promedio ponderado de historias",n(weighted)&&n(expected)?near(weighted,expected):null,"Recalculado: "+money(weighted,v.moneda||v.currency)+" · registrado: "+money(expected,v.moneda||v.currency));
+ add("Promedio ponderado de historias",n(weighted)&&n(expected)?near(weighted,expected):null,(stressSeparate?"Tres historias normalizadas; disrupción fuera del promedio (estrés). ":"Cuatro historias. ")+"Recalculado: "+money(weighted,v.moneda||v.currency)+" · registrado: "+money(expected,v.moneda||v.currency));
  var mos=n(v.mos)?(v.mos>1?v.mos/100:v.mos):null, pMOS=v.precioMOS;
  add("Precio con margen de seguridad",n(main)&&n(mos)&&n(pMOS)?near(main*(1-mos),pMOS):null,"MOS "+pct(mos)+" · base × (1−MOS): "+money(n(main)&&n(mos)?main*(1-mos):null,v.moneda||v.currency)+" · registrado: "+money(pMOS,v.moneda||v.currency));
  var audit=v.auditoria||{};
@@ -158,7 +161,7 @@ async function renderNarrative(ticker){
 async function select(ticker){
  if(!valid(ticker)||!nowPaths[ticker]){status("No hay valoración publicada para "+ticker);return;}
  current=ticker;$("company").value=ticker;
- ["mainValue","companyName","source","links","testArea","historical","multipleArea","report","narrativeLinks"].forEach(function(id){$(id).textContent="";});
+ ["mainValue","companyName","source","links","testArea","historical","multipleArea","report","narrativeLinks","riskNotes"].forEach(function(id){$(id).textContent="";});
  ["sTech","sEco","sMult"].forEach(function(id){$(id).textContent="Cargando…";});
  status("Abriendo expediente "+ticker+"…");history.replaceState(null,"","?ticker="+encodeURIComponent(ticker));
  try{
@@ -173,7 +176,7 @@ async function select(ticker){
   renderMultiples(v);
   var risk=(v.salvedades||[]).length;
   $("auditVerdict").textContent=summary.failed?"INCONSISTENCIAS en la conciliación del registro; revisar antes de usar cifras.":("Dictamen del expediente: "+statusFromRecord(v.auditoria)+". "+risk+" salvedades documentadas. La verificación técnica parcial no acredita validación económica integral.");
-  if(risk){var note=document.createElement("p");note.className="small muted";note.textContent="Salvedades registradas: "+v.salvedades.join(" · ");$("overview").appendChild(note);}
+  if(risk)$("riskNotes").textContent="Salvedades registradas: "+v.salvedades.join(" · ");
   await renderNarrative(ticker);if(current!==ticker)return;
   status("Informe "+ticker+" cargado desde los datos vigentes de GitHub.");
  }catch(e){if(current!==ticker)return;status("Error para "+ticker+": "+e.message);$("auditVerdict").textContent="No fue posible recuperar evidencia suficiente. No se emite dictamen.";["sTech","sEco","sMult"].forEach(function(id){$(id).textContent="No verificable";});}
