@@ -26,8 +26,14 @@ const assert=require('node:assert/strict');
  assert.equal(result.methods.length,7,'Los siete múltiplos');
  assert.ok(result.historic[0].years>=10,'Diez años comparables');
  assert.ok(result.ltm.length>0,'Se debe poder recalcular el puente LTM');
- assert.ok(result.assumptions.some(x=>x.label==='Margen EBIT objetivo'&&x.status==='Revisar origen'),
-   'No esconder la discrepancia 21,30 % frente a 34,00 %');
+ assert.ok(result.assumptions.some(x=>x.label==='Margen EBIT objetivo'&&x.status==='Conciliado'&&Math.abs(x.model-.34)<1e-8),
+   'El margen Base activo 34 % debe conciliar con la hoja; 21,30 % es solo histórico');
+ assert.ok(result.assumptions.some(x=>x.label==='CAGR ingresos 1–5'&&x.status==='Conciliado'),
+   'El CAGR de cinco años corresponde al 7,99 %');
+ assert.ok(result.assumptions.some(x=>x.label==='CAGR ingresos 2–5'&&x.status==='Conciliado'&&Math.abs(x.model-.07494185688011479)<1e-7),
+   'El CAGR años 2–5 es 7,49 %, no 7,99 %');
+ assert.ok(result.assumptions.every(x=>x.status!=='Revisar origen'),
+   'La documentación sincronizada no debe denunciar una falsa contradicción de supuestos');
  assert.equal(result.disruption.id,'C','Disrupción no entra en promedio ordinario');
  console.log('OK: smoke test sobre expediente de Netflix publicado. La existencia de salvedades o diferencias se informa, no se convierte en certificación.');
 })().catch(e=>{console.error(e);process.exitCode=1;});
