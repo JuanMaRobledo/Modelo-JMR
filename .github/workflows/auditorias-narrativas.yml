@@ -3,6 +3,9 @@ on:
   pull_request:
     paths:
       - 'docs/auditorias.html'
+      - 'docs/auditoria-integral.html'
+      - 'docs/jmr-audit-deep.js'
+      - 'tests/test_audit_deep.cjs'
       - 'docs/jmr-audit-links.js'
       - 'docs/jmr-audit-links.css'
       - 'docs/research.js'
@@ -22,6 +25,9 @@ on:
       - 'docs/visor.html'
       - 'docs/research.html'
       - 'docs/research.js'
+      - 'docs/auditoria-integral.html'
+      - 'docs/jmr-audit-deep.js'
+      - 'tests/test_audit_deep.cjs'
       - 'tests/test_auditorias_narrativas.cjs'
       - 'tests/test_audit_links.cjs'
 jobs:
@@ -34,3 +40,4 @@ jobs:
           node-version: '20'
       - run: node tests/test_auditorias_narrativas.cjs
       - run: node tests/test_audit_links.cjs
+      - run: node tests/test_audit_deep.cjs
