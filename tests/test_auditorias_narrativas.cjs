@@ -17,7 +17,7 @@ assert.ok(inline.length >= 1, 'Debe existir script de la interfaz');
 for (const source of inline) new vm.Script(source, {filename: 'auditorias-inline.js'});
 for (const file of ['index.html', 'visor.html', 'research.html', 'auditoria-multiplos.html']) {
   const body=fs.readFileSync(path.join(root,file),'utf8');
-  assert.ok(body.includes('auditorias.html?ticker=PYPL'), file+' debe enlazar las auditorías');
+  assert.ok(body.includes('auditoria-integral.html'), file+' debe enlazar la auditoría integral');
 }
 const prompt=fs.readFileSync(path.join(root,'prompts','auditoria-economica-jmr-v1.md'),'utf8');
 const headings=[...prompt.matchAll(/^## ([0-9]+)[.] (.+)$/gm)];
@@ -26,6 +26,7 @@ headings.forEach((match,i)=>assert.equal(Number(match[1]),i+1,'La numeración de
 assert.ok(prompt.includes('### 10 reglas obligatorias'));
 assert.ok(prompt.includes('histórico') || prompt.includes('Histórico'));
 assert.ok(prompt.includes('No modifiques'));
+assert.ok(html.includes('id="integralLink"'), 'El editor debe regresar a la auditoría integral del ticker');
 assert.ok(html.includes('loadMasterPrompt()'),'La app debe cargar el prompt maestro');
 assert.ok(html.includes('id="copyMasterPromptBtn"'),'Debe ser posible copiar el prompt');
 assert.ok(html.includes('readonly spellcheck="false"'),'La copia maestra debe ser de solo lectura');
