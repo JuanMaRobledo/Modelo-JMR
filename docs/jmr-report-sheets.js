@@ -77,7 +77,7 @@
     });
   }
   function num(s){
-    var v=String(s||'').replace(/[$€%\s]/g,'');
+    var v=String(s==null?'':s).replace(/(?:US\$|USD|COP|€|\$|%|×|\s|\u00a0)/gi,'').replace(/[−–]/g,'-');
     if(!/^-?[\d.,]+$/.test(v))return null;
     if(v.indexOf(',')>=0&&v.indexOf('.')>=0)v=v.lastIndexOf(',')>v.lastIndexOf('.')?v.replace(/\./g,'').replace(',', '.'):v.replace(/,/g,'');
     else if(v.indexOf(',')>=0)v=v.replace(',', '.');
@@ -186,7 +186,7 @@
         body.every(function(r){return r.cells.length>=6&&r.cells.slice(1,6).every(function(v){return num(v)!==null;});});
       var center=valid?num(body[2].cells[3]):null,reported=ctl?num(ctl.cells[1]):null;
       if(!valid||center===null||reported===null||Math.abs(center-reported)>.06){
-        groups[t]='<article class="jmr-matrix-card"><h4>'+esc(t)+'</h4><p class="jmr-sheet-note jmr-sheet-warning">N/D — matriz ausente, celda inválida o centro no conciliado con su propio método.</p></article>';
+        groups[t]='<article class="jmr-matrix-card"><h4>'+esc(t)+'</h4><p class="jmr-sheet-note jmr-sheet-warning">N/D — no existe múltiplo de mercado homogéneo, hay denominador no válido o el centro de esta matriz no concilia. El método JMR permanece independiente.</p></article>';
         continue;
       }
       groups[t]=matrixTable(t,head,body,reported,++current);
