@@ -91,16 +91,18 @@
     var content=rows.map(function(r,ri){
       return '<tr><th scope="row">'+esc(r.cells[0])+'</th>'+r.cells.slice(1,count+1).map(function(v,ci){
         var value=num(v),center=ri===mid&&ci===mid,level=value===null||high===low?'mid':(value<(low+(high-low)*.42)?'low':value>(low+(high-low)*.58)?'high':'mid');
-        var matchesBase=center&&typeof base==='number'&&Math.abs(value-base)<=Math.max(.02,base*.00035);
+        var matchesBase=center&&value!==null&&typeof base==='number'&&isFinite(base)&&Math.abs(value-base)<=Math.max(.02,Math.abs(base)*.00035);
         return '<td class="jmr-heat-'+level+(center?' jmr-matrix-base':'')+'">'+esc(JmrDisplayNumber.format(v))+(center?'<span class="jmr-base-tag">'+(matchesBase?'Base':'Centro')+'</span>':'')+'</td>';
       }).join('')+'</tr>';
     }).join('');
     return '<article class="jmr-matrix-card"><div class="jmr-matrix-heading"><span class="jmr-matrix-index">0'+idx+'</span><h4>'+esc(title)+'</h4></div>'+
-      '<div class="jmr-sheet-scroll"><table class="jmr-table jmr-matrix"><caption>'+esc(title)+' · sensibilidad de valor/acción ('+count+' × '+count+')</caption>'+thead+'<tbody>'+content+'</tbody></table></div></article>';
+      '<div class="jmr-matrix-axis"><span><strong>Filas:</strong> '+esc(title.split('×')[0].trim())+'</span><span><strong>Columnas:</strong> '+esc(title.split('×').slice(1).join('×').trim()||'Supuesto alternativo')+'</span></div>'+
+      '<div class="jmr-sheet-scroll" role="region" tabindex="0" aria-label="Matriz '+esc(title)+'; desplazar horizontalmente en pantallas pequeñas"><table class="jmr-table jmr-matrix"><caption>'+esc(title)+' · valor por acción ('+count+' × '+count+')</caption>'+thead+'<tbody>'+content+'</tbody></table></div>'+
+      '<p class="jmr-matrix-footnote">Centro = hipótesis de referencia. Los demás valores son pruebas de sensibilidad, no escenarios publicados.</p></article>';
   }
   function sensitivity(record){
     var index=sheets(record);
-    var sens=get(index,'Sensibilidades');
+    var sens=get(index,'Sensibilidad DCF') || get(index,'Sensibilidad DCF e inverso') || get(index,'Sensibilidades');
     // La matriz relativa nunca reemplaza las sensibilidades del DCF.
     if(sens && norm(sens.name)===norm('Sensibilidad por múltiplo')) sens=null;
     if(!sens)return '<p class="jmr-sheet-note">Esta valoración no contiene una matriz de sensibilidad publicada. Consulta la hoja fuente; no se generan cifras aproximadas.</p>';
@@ -124,10 +126,14 @@
     if(blocks.length){
       // No presentar una instantánea histórica como DCF Base si sus cifras
       // no concilian con la valoración principal publicada.
-      var different=blocks.filter(function(b){return b.indexOf('>Centro</span>')>=0;}).length;
+      var different=typeof base==='number'&&isFinite(base)?blocks.filter(function(b){return b.indexOf('>Centro</span>')>=0;}).length:0;
       var warning=different?'<p class="jmr-sheet-note jmr-sheet-warning"><strong>Atención:</strong> '+
         different+' matriz(es) no tienen el centro conciliado con el DCF Base vigente. Son referencias históricas o escenarios condicionados; requieren revisión antes de usarlas para decidir.</p>':'';
-      return warning+'<div class="jmr-matrix-grid">'+blocks.join('')+'</div>';
+      var required=['WACC terminal × crecimiento perpetuo','ROIC terminal × crecimiento perpetuo','crecimiento × margen EBIT','Sales-to-Capital × margen EBIT','WACC inicial × crecimiento','ROIC terminal × reinversión'];
+      var remaining=required.slice(Math.min(blocks.length,required.length));
+      var coverage='<p class="jmr-sheet-note"><strong>Fuente:</strong> sensibilidad de la hoja oficial. '+blocks.length+' matrices recalculadas disponibles. Las nuevas matrices solamente se publican cuando su centro concilia con el DCF Base de la misma revisión.</p>';
+      if(remaining.length)coverage+='<p class="jmr-sheet-note jmr-sheet-warning">Otras sensibilidades por añadir desde el motor DCF (sin interpolar precios): '+esc(remaining.join(' · '))+'.</p>';
+      return warning+coverage+'<div class="jmr-matrix-grid">'+blocks.join('')+'</div>';
     }
     return '<div class="jmr-sheet-note">Matriz histórica conservada tal cual se publicó; no se interpreta como matriz estándar 5 × 5.</div>'+
       safeTable(sens.html,160);
@@ -238,7 +244,7 @@
     var has=Object.keys(index).length>0;
     destination.innerHTML='<section class="jmr-report-sheets" aria-label="Hojas y anexos de valoración">'+
       '<div class="jmr-sheets-head"><span class="jmr-overline">ANEXOS DE VALORACIÓN</span><h2>Matrices de sensibilidad</h2>'+
-      '<p>Impacto en el DCF Base al modificar dos hipótesis. La celda central identifica el escenario Base; el color refleja valores relativos, no recomendaciones de compra.</p></div>'+
+      '<p>Impacto sobre el valor por acción al modificar dos supuestos del DCF completo. Se muestran solo matrices de la hoja fuente cuyo centro puede comprobarse; en móvil se desplazan horizontalmente.</p></div>'+
       sensitivity(record)+'<div class="jmr-sheets-head"><span class="jmr-overline">VALORACIÓN RELATIVA</span><h2>Sensibilidad por múltiplo</h2><p>Eje vertical: múltiplo real (×). Eje horizontal: fundamental FY+3 en unidades de la hoja (±20%). Las cifras son valores presentes por acción; cada centro concilia contra su propio método y no contra el DCF. Disrupción se analiza por separado.</p></div>'+multiplesSensitivity(record)+
       '<div class="jmr-sheets-head"><span class="jmr-overline">MÚLTIPLO ECONÓMICAMENTE JUSTIFICADO</span><h2>Sensibilidad económica independiente</h2><p>Grillas de crecimiento sostenible, ROIC, ROE, margen, Ke, WACC o conversión de caja según el método. Cada celda es un <strong>múltiplo justificado (×)</strong>, NO un valor por acción. El centro no se fuerza a coincidir con el múltiplo elegido ni con el DCF. No incluye Disrupción.</p></div>'+
       economicSensitivity(record)+'<div class="jmr-sheets-head"><span class="jmr-overline">CONSULTA DE SOPORTE</span><h2>Estados, eficiencia y cálculos completos</h2>'+
