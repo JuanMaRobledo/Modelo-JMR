@@ -15,9 +15,9 @@ const p={
 };
 const official=runDCFDetalle(p,p.growthBase,p.marginBase,p.growthY1Base,p.marginY1Base).valuePerShare;
 
-test('las cuatro matrices reejecutan el DCF y concilian el Base en sus 25 centros',()=>{
+test('las cinco matrices reejecutan el DCF y concilian el Base en sus 25 centros',()=>{
  const v=build({ticker:'TEST',revision:'same-revision',dcfBase:official,inputs:p});
- assert.equal(v.matrices.length,4);
+ assert.equal(v.matrices.length,5);
  for(const m of v.matrices){
   assert.equal(m.rows.values.length,5);
   assert.equal(m.cols.values.length,5);
@@ -37,4 +37,24 @@ test('rechaza centros que no coinciden con el DCF oficial',()=>{
 });
 test('no aplica el motor FCFF bancario a un FCFE',()=>{
  assert.throws(()=>build({ticker:'BANCO',revision:'1',dcfBase:official,inputs:{...p,dcfFinanciero:{}}}),/FCFE/);
+});
+
+test('shock mecánico terminal: WACC y escala TV mueven el precio en el sentido esperado',()=>{
+ const v=build({ticker:'TEST',revision:'same-revision',dcfBase:official,inputs:p});
+ const grid=v.matrices.find(x=>x.id==='terminal-value-wacc-stress').values;
+ assert.ok(grid[2][0]<grid[2][2]&&grid[2][2]<grid[2][4]);
+ assert.ok(grid[0][2]>grid[4][2]);
+ const center=grid[2][2];
+ assert.ok(Math.abs(center-official)<1e-8);
+ const slopeUp=grid[2][4]-center,slopeDown=center-grid[2][0];
+ assert.ok(Math.abs(slopeUp-slopeDown)<1e-8);
+});
+test('el shock terminal respeta tratamiento de fracaso y exclusión de bancos',()=>{
+ const failing={...p,probFailure:.25,recoveryPct:.2,failureBookCapital:600};
+ const base=runDCFDetalle(failing,failing.growthBase,failing.marginBase,failing.growthY1Base,failing.marginY1Base).valuePerShare;
+ const sensitivity=build({ticker:'TEST',revision:'same-revision',dcfBase:base,inputs:failing}).matrices.find(x=>x.id==='terminal-value-wacc-stress').values;
+ const oldRun=runDCFDetalle(failing,failing.growthBase,failing.marginBase,failing.growthY1Base,failing.marginY1Base);
+ const disc=oldRun.wacc.slice(1,11).reduce((a,w)=>a/(1+w),1);
+ const expected=.2*oldRun.terminalValue*disc*(1-.25)/failing.shares0;
+ assert.ok(Math.abs(sensitivity[2][4]-base-expected)<1e-7);
 });
