@@ -14,7 +14,7 @@
     {id:'multiplos',title:'Múltiplos y otras tablas',desc:'Valoraciones secundarias, normalización histórica y métricas prospectivas.',names:[
       'Descuento de múltiplos','Múltiplos históricos','Múltiplos y mercado FY+3',
       'Financials Multiples','Trailing Valuation','Forward Valuation',
-      'EVEBITDA','EVFCFF','PE','PFCFE','POCF','PV','PBV','Control historias y múltiplos','Sensibilidad por múltiplo']}
+      'EVEBITDA','EVFCFF','PE','PFCFE','POCF','PV','PBV','Control historias y múltiplos','Sensibilidad por múltiplo','Sensibilidad múltiplos META']}
   ];
   var NAME_ALIASES = {
     'Income Statement':'Estado de resultados','Balance Sheet':'Balance general',
@@ -27,7 +27,8 @@
     'EVEBITDA':'EV/EBITDA','EVFCFF':'EV/FCFF','PE':'P/E','PFCFE':'P/FCFE','POCF':'P/OCF','PV':'P/V','PBV':'P/BV',
     'Auditoría económica PYPL':'Auditoría económica','Duración ventaja · FCFF':'Duración de ventaja competitiva',
     'Tesis de Inversión y Supuestos':'Tesis y justificación',
-    'Sensibilidad por múltiplo':'Sensibilidad por método · tres historias'
+    'Sensibilidad por múltiplo':'Sensibilidad por método · tres historias',
+    'Sensibilidad múltiplos META':'META R4 · siete métodos · Base · dos anclas'
   };
   function norm(v){ return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase().replace(/[^a-z0-9]+/g,''); }
   function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
@@ -135,7 +136,7 @@
     var index=sheets(record);
     var sens=get(index,'Sensibilidad DCF') || get(index,'Sensibilidad DCF e inverso') || get(index,'Sensibilidades');
     // La matriz relativa nunca reemplaza las sensibilidades del DCF.
-    if(sens && norm(sens.name)===norm('Sensibilidad por múltiplo')) sens=null;
+    if(sens && /multipl|economica/i.test(sens.name) && !/dcf/i.test(sens.name)) sens=null;
     if(!sens)return extendedDcfSensitivity(record)||'<p class="jmr-sheet-note">Esta valoración no contiene una matriz de sensibilidad publicada. Consulta la hoja fuente; no se generan cifras aproximadas.</p>';
     var rows=readRows(sens.html),blocks=[],base=record?.valorEsperado?.dcfBase ??
       record?.descuentoMultiples?.dcfHoy?.base;
@@ -167,11 +168,46 @@
       safeTable(sens.html,160);
   }
 
+  /* META R4: 7 métodos × 2 anclas (JMR/observado) × 2 familias
+     (tradicional/económica). Solo Base; N/D permanece explícito. */
+  function multiplesR4(record,source){
+    var rows=readRows(source.html),groups={},meth=['EV/EBITDA','EV/FCFF','P/E','P/FCFE','P/OCF','P/V','P/BV'];
+    var anchors=['JMR','Observado'],families=['Tradicional','Económica'];
+    var current=0;
+    for(var i=0;i<rows.length-7;i++){
+      var t=(rows[i].cells[0]||'').trim();
+      if(!meth.some(function(m){return t.indexOf(m+' · ')===0;}))continue;
+      if(!/ · (JMR|Observado) · (Tradicional|Económica)$/.test(t))continue;
+      var head=rows[i+1],body=rows.slice(i+2,i+7),ctl=rows[i+7];
+      var valid=head&&head.cells.length>=6&&body.length===5&&
+        body.every(function(r){return r.cells.length>=6&&r.cells.slice(1,6).every(function(v){return num(v)!==null;});});
+      var center=valid?num(body[2].cells[3]):null,reported=ctl?num(ctl.cells[1]):null;
+      if(!valid||center===null||reported===null||Math.abs(center-reported)>.06){
+        groups[t]='<article class="jmr-matrix-card"><h4>'+esc(t)+'</h4><p class="jmr-sheet-note jmr-sheet-warning">N/D — matriz ausente, celda inválida o centro no conciliado con su propio método.</p></article>';
+        continue;
+      }
+      groups[t]=matrixTable(t,head,body,reported,++current);
+    }
+    var sections=meth.map(function(method,idx){
+      var cards=anchors.flatMap(function(a){return families.map(function(f){
+        var title=method+' · '+a+' · '+f;
+        return groups[title]||'<article class="jmr-matrix-card"><h4>'+esc(title)+'</h4><p class="jmr-sheet-note jmr-sheet-warning">N/D — esta combinación no existe en la copia R4. Requiere completar la hoja; no se reemplaza con ceros.</p></article>';
+      });}).join('');
+      return '<details class="jmr-sheet-panel"'+(idx===0?' open':'')+'><summary>'+esc(method)+' · Base · cuatro matrices</summary><div class="jmr-matrix-grid">'+cards+'</div></details>';
+    }).join('');
+    return '<p class="jmr-sheet-note"><strong>META R4:</strong> siete métodos, dos anclas y dos familias. 28 matrices de <strong>valor presente por acción de Base</strong>, desde la hoja oficial; la familia económica aquí modifica el fundamental FY+3, no es el múltiplo justificado de madurez. Cada centro corresponde al propio método, no al DCF.</p>'+sections;
+  }
+
   /* Las matrices relativas usan el centro VP3 del propio múltiplo, no el DCF Base.
      Los 21 bloques mantienen 7 métodos × 3 escenarios y se presentan en
      tres desplegables para evitar tablas kilométricas. */
   function multiplesSensitivity(record){
-    var source=get(sheets(record),'Sensibilidad por múltiplo');
+    var all=sheets(record),newSource=all[norm('Sensibilidad múltiplos META')];
+    if(record&&String(record.ticker||'').toUpperCase()==='META'){
+      if(!newSource)return '<p class="jmr-sheet-note jmr-sheet-warning">META R4: no se importó la pestaña «Sensibilidad múltiplos META». No se sustituye por la matriz de una revisión anterior.</p>';
+      return multiplesR4(record,newSource);
+    }
+    var source=get(all,'Sensibilidad por múltiplo');
     if(!source)return '<p class="jmr-sheet-note">Las matrices por múltiplo aún no se han sincronizado en este análisis. Consulta la hoja fuente.</p>';
     var rows=readRows(source.html),lookup={};
     rows.forEach(function(r){if(r.row)lookup[r.row]=r;});
