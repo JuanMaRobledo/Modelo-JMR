@@ -31,11 +31,12 @@ function growthPath(growthY2to5, terminalGrowth, growthY1, anios){
   return g; // g[1..10]; terminal = terminalGrowth
 }
 // Margen: año 1 (Input B28) y convergencia lineal al objetivo en el año de convergencia (B31).
-function marginPath(marginY1, marginTarget, convergenceYear){
+function marginPath(marginY1, marginTarget, convergenceYear, anchoredYearOne){
   var c = (convergenceYear > 0) ? convergenceYear : 5;
   var m = new Array(11);
   m[1]=marginY1;
-  for(var n=2;n<=10;n++) m[n] = n > c ? marginTarget : marginTarget-((marginTarget-marginY1)/c)*(c-n);
+  var intervals = anchoredYearOne ? Math.max(1, c - 1) : c;
+  for(var n=2;n<=10;n++) m[n] = n > c ? marginTarget : marginTarget-((marginTarget-marginY1)/intervals)*(c-n);
   return m;
 }
 function taxPath(effective, marginal){
@@ -68,13 +69,20 @@ function runDCFDetalle(inp, growthY2to5, marginTarget, growthY1, marginY1){
   var terminalGrowth = num(inp.terminalGrowth, inp.riskFreeRate);
   var waccTerminal = num(inp.terminalWacc, inp.riskFreeRate + inp.matureMarketERP);
   var g = growthPath(growthY2to5, terminalGrowth, growthY1, inp.crecimientoAnios);
-  var m = marginPath(num(marginY1, inp.ebit0 / inp.revenue0), marginTarget, inp.convergenceYear);
+  var m = marginPath(num(marginY1, inp.ebit0 / inp.revenue0), marginTarget, inp.convergenceYear, inp.marginAnchoredYearOne);
   var tax = taxPath(inp.taxEffective, inp.taxMarginal);
   var wacc = waccPath(inp.wacc, waccTerminal);
   var roicTerminal = (inp.roicTerminal > 0) ? inp.roicTerminal : waccTerminal;
   // Optional JMR transition: capital per dollar of incremental revenue converges
   // over years 6-10. This does not force average book ROIC to equal incremental ROIC.
   var capitalIntensity = function(n){
+    if(inp.capitalRatioTransition){
+      if(n <= 5) return 1 / inp.salesToCapital;
+      var late = inp.terminalCapitalFromROIC
+        ? roicTerminal / (marginTarget * (1 - inp.taxMarginal) * (1 + terminalGrowth))
+        : num(inp.salesToCapital2, inp.salesToCapital);
+      return 1 / (inp.salesToCapital + (late - inp.salesToCapital) * (n - 5) / 5);
+    }
     var initial = 1 / (n <= 5 ? inp.salesToCapital : num(inp.salesToCapital2, inp.salesToCapital));
     if(!inp.smoothTerminalCapital || n <= 5) return initial;
     var alpha = (n - 5) / 5;
@@ -214,7 +222,7 @@ function calcularTrayectorias(inp){
   ['cons', 'base', 'opt'].forEach(function(s){
     var e = escenarioDe(inp, s);
     out[s] = {growth: growthPath(e.growth, num(inp.terminalGrowth, inp.riskFreeRate), e.growthY1),
-              margin: marginPath(e.marginY1, e.margin, inp.convergenceYear), tax: taxPath(inp.taxEffective, inp.taxMarginal)};
+              margin: marginPath(e.marginY1, e.margin, inp.convergenceYear, inp.marginAnchoredYearOne), tax: taxPath(inp.taxEffective, inp.taxMarginal)};
   });
   return out;
 }
@@ -228,7 +236,7 @@ function projectFinancials(inp, growthY2to5, marginTarget, growthY1, marginY1, e
            Object.keys(esc).forEach(function(k){ if(esc[k] != null) o[k] = esc[k]; }); inp = o; }
   var adj = function(a, n){ return (a && typeof a[n-1] === 'number' && isFinite(a[n-1])) ? a[n-1] : 0; };
   var g = growthPath(growthY2to5, num(inp.terminalGrowth, inp.riskFreeRate), growthY1);
-  var m = marginPath(num(marginY1, inp.ebit0/inp.revenue0), marginTarget, inp.convergenceYear);
+  var m = marginPath(num(marginY1, inp.ebit0/inp.revenue0), marginTarget, inp.convergenceYear, inp.marginAnchoredYearOne);
   var tax = taxPath(inp.taxEffective, inp.taxMarginal);
   for(var k=1;k<=3;k++){ g[k] += adj(inp.gAdj, k); m[k] += adj(inp.mAdj, k); tax[k] += adj(inp.tAdj, k); }
   // D&A: la hoja usa el promedio móvil de las 3 razones D&A/ingresos anteriores.
@@ -549,6 +557,19 @@ function insumosDesdeHoja(celda){
     bookEquity0: n('PBV','M6'),
     multiplos: {}
   };
+  // Infer the revised conventions only when the imported sheet demonstrates them.
+  // Legacy workbooks retain their existing interpolation and capital rules.
+  var m1 = n(VO,'C6'), m2 = n(VO,'D6'), target = n(VO,'C46'), cy = inp.convergenceYear;
+  var close = function(a,b){ return a != null && b != null && Math.abs(a-b) < 1e-10; };
+  inp.marginAnchoredYearOne = cy > 1 && close(m2, m1 + (target-m1)/(cy-1)) && !close(m1,target);
+  var sc0=n(VO,'C40'), sc6=n(VO,'H40'), sc10=n(VO,'L40');
+  inp.capitalRatioTransition = sc0 > 0 && sc10 > 0 && close(sc6, sc0+(sc10-sc0)/5) && !close(sc6,sc10);
+  if(inp.capitalRatioTransition){
+    inp.salesToCapital2=sc10;
+    var terminalReturn=n(VO,'M42');
+    if(terminalReturn > 0) inp.roicTerminal=terminalReturn;
+    inp.terminalCapitalFromROIC=close(sc10,inp.roicTerminal/(target*(1-inp.taxMarginal)*(1+inp.terminalGrowth)));
+  }
   if(celda('DCF FCFE financiero','A1')==='DCF FCFE financiero'){
     inp.dcfFinanciero={netIncome0:n('DCF FCFE financiero','B3'),roeCons:n('DCF FCFE financiero','C5'),
       roeBase:n('DCF FCFE financiero','D5'),roeOpt:n('DCF FCFE financiero','E5'),
