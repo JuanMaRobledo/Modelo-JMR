@@ -7,7 +7,7 @@
       'Income Statement','Balance Sheet','Cash Flow Statement','Trailing 12 month Worskheet','Por acción','Dividendos']},
     {id:'valoracion',title:'Modelo DCF y costo de capital',desc:'Supuestos y cálculos originales de la hoja; DCF Base como referencia principal.',names:[
       'Resumen de Valoración','Input sheet','Valuation output','Cost of capital worksheet',
-      'Escenarios e historias','Option value','Duración ventaja · FCFF','Crecimiento implícito',
+      'Escenarios e historias','Option value','Duración ventaja · FCFF','Crecimiento implícito','Sensibilidad DCF','Sensibilidad DCF e inverso',
       'Anexo Work 15-oct-2026','Sensibilidad','Sensitivity Analysis','Auditoría económica PYPL','Control Damodaran']},
     {id:'eficiencia',title:'Rentabilidad y eficiencia',desc:'Evolución de márgenes, capital y desempeño operativo.',names:[
       'Márgenes','Eficiencia de capital','Salud Financiera','Crecimiento y Márgenes','Estadísticas','Diagnostics','Cualitativo','Tesis de Inversión y Supuestos']},
