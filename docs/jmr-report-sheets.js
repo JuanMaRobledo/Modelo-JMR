@@ -100,12 +100,43 @@
       '<div class="jmr-sheet-scroll" role="region" tabindex="0" aria-label="Matriz '+esc(title)+'; desplazar horizontalmente en pantallas pequeñas"><table class="jmr-table jmr-matrix"><caption>'+esc(title)+' · valor por acción ('+count+' × '+count+')</caption>'+thead+'<tbody>'+content+'</tbody></table></div>'+
       '<p class="jmr-matrix-footnote">Centro = hipótesis de referencia. Los demás valores son pruebas de sensibilidad, no escenarios publicados.</p></article>';
   }
+  // Matrices económicas precalculadas durante la valoración, no en el visor.
+  // Nunca generar cifras en la página ni mezclar revisiones distintas.
+  function extendedDcfSensitivity(record){
+    var dataset=record&&record.sensibilidadDCF, mats=dataset&&dataset.matrices;
+    if(!Array.isArray(mats)||!mats.length)return '';
+    var official=record?.valorEsperado?.dcfBase??record?.descuentoMultiples?.dcfHoy?.base;
+    if(typeof official!=='number'||!isFinite(official) || !isFinite(dataset.dcfBaseOfficial) ||
+       Math.abs(dataset.dcfBaseOfficial-official)>Math.max(.05,Math.abs(official)*.0001) ||
+       record.ticker&&dataset.ticker!==record.ticker ||
+       record.revision&&dataset.revision!==record.revision){
+      return '<p class="jmr-sheet-note jmr-sheet-warning">Las matrices DCF adicionales se ocultaron: la revisión o el centro no concilian con el valor intrínseco vigente.</p>';
+    }
+    function axis(v,unit){
+      if(typeof v!=='number'||!isFinite(v))return 'N/D';
+      if(unit==='percent')return (100*v).toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2})+'%';
+      if(unit==='changepp')return ((v>=0?'+':'')+100*v.toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2})).replace('NaN','N/D')+' pp';
+      if(unit==='times')return v.toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2})+'×';
+      return v.toLocaleString('es-CO',{maximumFractionDigits:2});
+    }
+    var cards=mats.map(function(m,idx){
+      if(!m.validated||!m.rows||!m.cols||!Array.isArray(m.values)||m.values.length!==5||
+         !Array.isArray(m.rows.values)||m.rows.values.length!==5||
+         !Array.isArray(m.cols.values)||m.cols.values.length!==5||
+         m.values.some(function(r){return !Array.isArray(r)||r.length!==5||r.some(function(v){return typeof v!=='number'||!isFinite(v);});})||
+         typeof m.values[2][2]!=='number'||Math.abs(m.values[2][2]-official)>Math.max(.05,Math.abs(official)*.0001))return '';
+      var header={cells:[m.rows.label+' / '+m.cols.label].concat(m.cols.values.map(function(v){return axis(v,m.cols.unit);} ))};
+      var rows=m.values.map(function(values,i){return {cells:[axis(m.rows.values[i],m.rows.unit)].concat(values.map(function(v){return v.toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2});}))};});
+      return matrixTable(m.title,header,rows,official,idx+4);
+    }).filter(Boolean);
+    return cards.length?'<p class="jmr-sheet-note"><strong>Adicionales:</strong> '+cards.length+' matrices recalculadas con el motor DCF completo, desde el snapshot conciliado de esta revisión. '+esc(dataset.note||'')+'</p><div class="jmr-matrix-grid">'+cards.join('')+'</div>':'';
+  }
   function sensitivity(record){
     var index=sheets(record);
     var sens=get(index,'Sensibilidad DCF') || get(index,'Sensibilidad DCF e inverso') || get(index,'Sensibilidades');
     // La matriz relativa nunca reemplaza las sensibilidades del DCF.
     if(sens && norm(sens.name)===norm('Sensibilidad por múltiplo')) sens=null;
-    if(!sens)return '<p class="jmr-sheet-note">Esta valoración no contiene una matriz de sensibilidad publicada. Consulta la hoja fuente; no se generan cifras aproximadas.</p>';
+    if(!sens)return extendedDcfSensitivity(record)||'<p class="jmr-sheet-note">Esta valoración no contiene una matriz de sensibilidad publicada. Consulta la hoja fuente; no se generan cifras aproximadas.</p>';
     var rows=readRows(sens.html),blocks=[],base=record?.valorEsperado?.dcfBase ??
       record?.descuentoMultiples?.dcfHoy?.base;
     for(var i=0;i<rows.length-4;i++){
@@ -129,11 +160,8 @@
       var different=typeof base==='number'&&isFinite(base)?blocks.filter(function(b){return b.indexOf('>Centro</span>')>=0;}).length:0;
       var warning=different?'<p class="jmr-sheet-note jmr-sheet-warning"><strong>Atención:</strong> '+
         different+' matriz(es) no tienen el centro conciliado con el DCF Base vigente. Son referencias históricas o escenarios condicionados; requieren revisión antes de usarlas para decidir.</p>':'';
-      var required=['WACC terminal × crecimiento perpetuo','ROIC terminal × crecimiento perpetuo','crecimiento × margen EBIT','Sales-to-Capital × margen EBIT','WACC inicial × crecimiento','ROIC terminal × reinversión'];
-      var remaining=required.slice(Math.min(blocks.length,required.length));
-      var coverage='<p class="jmr-sheet-note"><strong>Fuente:</strong> sensibilidad de la hoja oficial. '+blocks.length+' matrices recalculadas disponibles. Las nuevas matrices solamente se publican cuando su centro concilia con el DCF Base de la misma revisión.</p>';
-      if(remaining.length)coverage+='<p class="jmr-sheet-note jmr-sheet-warning">Otras sensibilidades por añadir desde el motor DCF (sin interpolar precios): '+esc(remaining.join(' · '))+'.</p>';
-      return warning+coverage+'<div class="jmr-matrix-grid">'+blocks.join('')+'</div>';
+      var coverage='<p class="jmr-sheet-note"><strong>Fuente:</strong> hoja de sensibilidad oficial. '+blocks.length+' matrices con celdas publicadas. Las nuevas matrices se muestran solo si su centro concilia con el DCF de la misma revisión.</p>';
+      return warning+coverage+'<div class="jmr-matrix-grid">'+blocks.join('')+'</div>'+extendedDcfSensitivity(record);
     }
     return '<div class="jmr-sheet-note">Matriz histórica conservada tal cual se publicó; no se interpreta como matriz estándar 5 × 5.</div>'+
       safeTable(sens.html,160);
