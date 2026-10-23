@@ -4,6 +4,9 @@
 **Ámbito:** auditoría independiente de la última valoración vigente; no es el prompt para recalcular, valorar ni publicar nuevos supuestos.  
 **Contratos complementarios:** [controles de precisión financiera](precision-financiera-2026-10-09.md) y [historias/múltiplos](contrato-historias-multiplos-20261017.md).
 
+
+**Completitud del análisis — 23-oct-2026:** verificar `modelo/REGLAS_VIGENTES.md` §9 sin redactar ni modificar el artículo. Revisar sustantivamente las 18 secciones y sus subsecciones: evidencia, mecanismos económicos, cobertura sectorial y explicación de los supuestos. Contrastar con la última versión completa para detectar contenido perdido al actualizar. La presencia de títulos, extensión o enlaces no acredita completitud. Distinguir cobertura sustentada, inaplicabilidad justificada, limitación de evidencia y trabajo pendiente. Comprobar el recuadro inicial del valor base, el artículo íntegro en nivel 1, el detalle financiero en nivel 2 y la matriz de cobertura en la sección 18 del análisis. Registrar omisiones en las secciones existentes 14 (coherencia), 15 (hallazgos) y 17 (dictamen); conservar las 18 secciones propias de esta auditoría. No validar la completitud por aprobar únicamente controles numéricos ni añadir requisitos cuantitativos que §8 no exige.
+
 ## Contrato operativo exclusivo
 
 **AUDITORÍA = VERIFICAR, CONTRADECIR Y EMITIR DICTAMEN**, nunca calcular una nueva valoración, escribir el artículo de análisis fundamental ni reusar los otros prompts como instrucciones a ejecutar. Leer la **última versión real** de la hoja y del análisis y comprobar fuentes históricas, trazabilidad, fórmulas, supuestos y conciliaciones. Mantener exactamente las 18 secciones fijas que siguen en este mismo archivo (diferentes de las 18 secciones del artículo), con seis preguntas para cada supuesto y etiquetas [OBSERVADO], [MODELO], [INFERENCIA], [HIPÓTESIS], [NO VERIFICADO].

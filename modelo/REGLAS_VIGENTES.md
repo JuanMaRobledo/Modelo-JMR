@@ -1,6 +1,6 @@
 # Reglas vigentes del Modelo JMR
 
-**Versión 4 · 21-oct-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
+**Versión 5 · 23-oct-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
 (`docs/prompts/*.md`), `METODOLOGIA.md`, una habilidad o un comentario de código dice otra cosa, prevalece este
 documento. Una regla nueva no se agrega como «regla del día X» en un prompt: se cambia aquí, se sube la versión y se
 anota en el registro de cambios del final.
@@ -114,10 +114,31 @@ observaciones, las frecuencias por etapa recalibran las previas del §3 (nueva v
 - **Una regla, un lugar:** un cambio de método se hace aquí, sube la versión y se aplica a todas las empresas en una
   sola pasada; nunca empresa por empresa ni como «contrato del día» en un prompt.
 
+
+## 9. Análisis fundamental siempre completo
+
+**Regla permanente (23-oct-2026):** cada entrega de análisis fundamental debe desarrollar toda la información pertinente para comprender el negocio, evaluar su calidad y riesgo y juzgar la valoración. La eficiencia del §8 reduce trabajo repetido, no el alcance del artículo. Un resultado cuantitativo VALIDADO no demuestra que el análisis esté completo.
+
+- Mantener exactamente las 18 secciones y las subsecciones del prompt 2. Un título, un párrafo genérico, una tabla sin interpretación o un enlace al nivel 2 no cumplen una sección. Conservar los mínimos de profundidad ya establecidos, sin rellenar con repeticiones para alcanzar extensión.
+- La cobertura se adapta al emisor: modelo de negocio, unidades económicas, segmentos y geografía, clientes/proveedores y concentraciones; sector, tamaño y límites de mercado, ciclo, cinco fuerzas, rivales y sustitutos; ventaja competitiva, duración y evidencia contraria; dirección, gobierno, incentivos y asignación de capital.
+- Interpretar la historia financiera de hasta diez años y LTM, o máximo disponible: crecimiento y sus motores; márgenes y apalancamiento operativo; beneficios reportados/normalizados; caja y conversión; balance, deuda, vencimientos, liquidez, compromisos y contingencias; capital de trabajo, CAPEX, adquisiciones, ROIC/ROCE/ROE, reinversión y Sales-to-Capital según pertinencia. Incluir calidad contable, partidas no recurrentes, SBC, dilución, recompras y dividendos cuando sean materiales.
+- Explicar los supuestos de crecimiento, margen EBIT, impuestos, reinversión, ROIC, Sales-to-Capital, WACC/Ke, g y ROIC terminal: historia y evidencia → mecanismo económico → supuesto oficial → efecto sobre el valor → señales que lo refutarían. Si una variable no aplica, explicar el equivalente sectorial; bancos y holdings tienen sus módulos FCFE/capital regulatorio o SOTP/participaciones/doble conteo.
+- Desarrollar catalizadores con horizonte y confirmación, riesgos con mecanismos y mitigantes verificables, tesis alcista y bajista, cinco filosofías de inversión, novedades materiales, indicadores con umbrales y preguntas realmente no resueltas. La disrupción se presenta aparte; distinguir hechos, guía, hipótesis y proyecciones sin convertir esa distinción en etiquetas repetidas en la prosa.
+- Interpretar el valor base, los tres escenarios ordinarios, disrupción, promedio ordinario, MOS, métodos y múltiplos elegibles, sensibilidad e inverso aplicable usando la misma revisión oficial. No crear cifras nuevas para completar el texto. No convertir todos los múltiplos o matrices opcionales del §8 en requisitos nuevos de cálculo por esta regla editorial.
+
+**Dos niveles, ambos con contenido:** nivel 1 conserva el artículo completo y las cifras necesarias para entender sus argumentos; empieza con el recuadro visible «Valor intrínseco base:», método y fecha. Nivel 2 contiene estados, ratios, entradas, cálculos y matrices detalladas. Llevar una tabla extensa al nivel 2 no elimina su interpretación económica del nivel 1.
+
+**Actualizar sin recortar:** partir de la última versión completa identificada del artículo, actualizar las secciones afectadas, preservar las restantes y revisar su vigencia y referencias cruzadas. Una nota de cambios, resumen de auditoría o informe de avance se guarda como tal; nunca reemplaza al artículo completo. Si la versión previa es incompleta, recuperar su contenido pertinente y completar las omisiones. Si falta espacio o tiempo, guardar el avance y continuar desde el punto documentado; no presentar una versión abreviada como final.
+
+**Evidencia y límites:** investigar los vacíos materiales con las fuentes accesibles. Si la evidencia no existe o el acceso impide obtenerla, conservar el apartado y explicar qué falta, qué se consultó y qué consecuencia tiene. No inventar datos, citas, pares, catalizadores ni preguntas para llenar una cuota. Diferenciar «desarrollado y sustentado», «no aplicable con razón», «limitado por evidencia identificada» y «pendiente de trabajo». Solo los dos primeros acreditan cobertura resuelta; las limitaciones quedan explícitas y los pendientes no permiten llamar completo al artículo.
+
+**Control de entrega:** dentro de la sección 18 existente, registrar por apartado/subapartado la ubicación del desarrollo, evidencia, estado de cobertura y faltante concreto. La comprobación es semántica, no solo un conteo de títulos o palabras. El prompt 3 verifica este control dentro de sus secciones existentes de coherencia, hallazgos y dictamen. Esta revisión editorial no sustituye la auditoría financiera ni cambia sus controles. No declarar que artículos previos fueron ampliados sin haberlos editado y comprobado.
+
 ## Registro de cambios
 
 | Versión | Fecha | Cambio |
 |---|---|---|
+| 5 | 23-oct-2026 | §9: análisis fundamental completo como regla permanente; cobertura sustantiva de las 18 secciones, adaptación sectorial, dos niveles, preservación del artículo al actualizar y verificación editorial en auditoría. Sin cambios en fórmulas, ponderaciones ni mínimos cuantitativos del §8. |
 | 4 | 21-oct-2026 | Revisión del historial (38 valoraciones que nunca salieron de «conciliado con salvedades»): previas simétricas (antes la Conservadora pesaba más en todas las etapas), control de márgenes sin alertar lo ya demostrado (umbral 2,5× sector), §8 proceso eficiente (un comando, mínimo obligatorio, estado VALIDADO, una auditoría por publicación). |
 | 3 | 21-oct-2026 | Prompts de análisis fundamental (v5 corregido) y auditoría (v1.2) alineados y válidos para cualquier modelo: el análisis copia las cifras de la valoración oficial (no recalcula), MOS solo sobre la Base (el texto anterior decía «sobre el esperado»), promedio de tres historias, probabilidades por previa + indicadores; la auditoría busca sesgo en ambas direcciones (agresividad y prudencia duplicada) y verifica g, ajuste por tasas y ancla C. |
 | 2 | 21-oct-2026 | Prompt de valoración v5 (`docs/prompts/valoracion-modelo-jmr-v5.md`): autocontenido y válido para cualquier modelo de lenguaje, un solo método de múltiplos (el v4 mezclaba λ, ciclo y Toro), etiquetas [Dato]/[Cálculo]/[Juicio] y ficha JSON de salida. Calibración honesta (§2). Topes de Toro retirados (doble prudencia). |
