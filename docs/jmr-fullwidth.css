@@ -68,3 +68,13 @@
     min-width:220px!important;text-align:left
   }
 }
+
+/* Los estilos globales de ancho no deben romper las matrices 5×5 oficiales. */
+@media screen{
+ body .jmr-report-sheets .jmr-sheet-scroll>table.jmr-matrix{
+   width:100%!important;min-width:480px!important;max-width:none!important;table-layout:fixed!important
+ }
+}
+@media screen and (max-width:600px){
+ body .jmr-report-sheets .jmr-sheet-scroll>table.jmr-matrix{min-width:460px!important}
+}
