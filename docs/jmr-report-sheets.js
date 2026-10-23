@@ -27,7 +27,7 @@
     'EVEBITDA':'EV/EBITDA','EVFCFF':'EV/FCFF','PE':'P/E','PFCFE':'P/FCFE','POCF':'P/OCF','PV':'P/V','PBV':'P/BV',
     'Auditoría económica PYPL':'Auditoría económica','Duración ventaja · FCFF':'Duración de ventaja competitiva',
     'Tesis de Inversión y Supuestos':'Tesis y justificación',
-    'Sensibilidad por múltiplo':'Sensibilidad por método · tres historias',
+    'Sensibilidad por múltiplo':'Sensibilidad por método · Base',
     'Sensibilidad múltiplos META':'META R4 · siete métodos · Base · dos anclas'
   };
   function norm(v){ return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase().replace(/[^a-z0-9]+/g,''); }
@@ -152,20 +152,37 @@
         }
       }
       if(!length)continue;
-      blocks.push(matrixTable(title,header,body,base,blocks.length+1));
+      blocks.push({title:title,header:header,body:body});
       i+=length+1;
     }
     if(blocks.length){
-      // No presentar una instantánea histórica como DCF Base si sus cifras
-      // no concilian con la valoración principal publicada.
-      var different=typeof base==='number'&&isFinite(base)?blocks.filter(function(b){return b.indexOf('>Centro</span>')>=0;}).length:0;
+      // Reordenar por impacto económico sin mover fuentes ni alterar cálculos.
+      // Precedencia: denominador Gordon (WACC-g), ROIC de madurez y reinversión;
+      // luego crecimiento/márgenes y prueba mecánica de TV.
+      function priority(t){
+        var s=norm(t);
+        if(s.includes('waccterminal')&&s.includes('crecimientoperpetuo'))return 0;
+        if(s.includes('roicterminal')&&s.includes('crecimientoperpetuo'))return 1;
+        if(s.includes('roicterminal')&&s.includes('waccterminal'))return 2;
+        if(s.includes('crecimiento')&&s.includes('margenebit'))return 3;
+        if(s.includes('salestocapital')&&s.includes('margenebit'))return 4;
+        if(s.includes('escaladelvalorterminal'))return 5;
+        if(s.includes('waccinicial')&&s.includes('crecimiento'))return 6;
+        if(s.includes('impuesto')&&s.includes('salestocapital'))return 7;
+        return 99;
+      }
+      blocks.sort(function(a,b){return priority(a.title)-priority(b.title);});
+      var rendered=blocks.map(function(m,i){return matrixTable(m.title,m.header,m.body,base,i+1);});
+      var different=typeof base==='number'&&isFinite(base)?rendered.filter(function(b){return b.indexOf('>Centro</span>')>=0;}).length:0;
       var warning=different?'<p class="jmr-sheet-note jmr-sheet-warning"><strong>Atención:</strong> '+
-        different+' matriz(es) no tienen el centro conciliado con el DCF Base vigente. Son referencias históricas o escenarios condicionados; requieren revisión antes de usarlas para decidir.</p>':'';
-      var coverage='<p class="jmr-sheet-note"><strong>Fuente:</strong> hoja de sensibilidad oficial. '+blocks.length+' matrices con celdas publicadas. Las nuevas matrices se muestran solo si su centro concilia con el DCF de la misma revisión.</p>';
-      // La hoja R4 ya puede contener las cuatro ampliadas. No duplicarlas
-      // si llegan también como snapshot versionado en el JSON oficial.
+        different+' matriz(es) no tienen el centro conciliado con el DCF Base vigente. Requieren revisión antes de usarlas para decidir.</p>':'';
+      var term=rows.find(function(r){return norm(r.cells[0]).indexOf('pesovpterminalvpoperativo')===0;});
+      var share=term&&term.cells.length>1?num(term.cells[1]):null;
+      var exposure=share!==null&&share>=0&&share<=100?'<p class="jmr-sheet-note"><strong>Dependencia del valor terminal:</strong> '+(share<=1?share*100:share).toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2})+'% del valor presente operativo (NO del precio por acción). El crecimiento estable exige reinversión g/ROIC; no extrapolar retornos extraordinarios a perpetuidad.</p>':'';
+      var coverage='<p class="jmr-sheet-note"><strong>Prioridad:</strong> WACC terminal × g, ROIC terminal × g y ROIC × WACC terminal; después, desempeño operativo y reinversión. <strong>'+rendered.length+' matrices Base</strong> con precios por acción; los extremos son pruebas, no probabilidades.</p>';
+      var stress='<p class="jmr-sheet-note">La matriz de escala del valor terminal (+/−10% y +/−20%) es una prueba de estrés mecánica, distinta de cambiar el crecimiento g. Nunca se incorpora como múltiplo de salida.</p>';
       var add=blocks.length>=7?'':extendedDcfSensitivity(record);
-      return warning+coverage+'<div class="jmr-matrix-grid">'+blocks.join('')+'</div>'+add;
+      return warning+coverage+exposure+stress+'<div class="jmr-matrix-grid">'+rendered.join('')+'</div>'+add;
     }
     return '<div class="jmr-sheet-note">Matriz histórica conservada tal cual se publicó; no se interpreta como matriz estándar 5 × 5.</div>'+
       safeTable(sens.html,160);
@@ -215,7 +232,8 @@
     var rows=readRows(source.html),lookup={};
     rows.forEach(function(r){if(r.row)lookup[r.row]=r;});
     var methods=['EV/EBITDA','EV/FCFF','P/E','P/FCFE','P/OCF','P/V','P/BV'];
-    var scenarios=['Conservador','Base','Optimista'];
+    // Unica sensibilidad de valoracion relativa: Base; las otras historias siguen en la valoracion.
+    var scenarios=['Base'];
     var selectionRows=Array.from({length:7},function(_,i){return lookup[223+i];}).filter(Boolean);
     var selection=selectionRows.length===7?'<details class="jmr-sheet-panel" open><summary>Múltiplos · ponderaciones vigentes y selección preliminar</summary>'+
       '<div class="jmr-sheet-scroll"><table class="jmr-table"><thead><tr><th>Método</th><th>Rol sugerido</th><th>Peso vigente (total)</th><th>Peso propuesto (sin aplicar)</th><th>Estado de auditoría</th><th>Razón económica</th></tr></thead><tbody>'+
@@ -228,7 +246,7 @@
       '<p class="jmr-sheet-note">El peso vigente es el registrado en la valoración; el peso propuesto es orientativo y no modifica el cálculo. Falta certificar comparables, fecha, beneficios sostenibles y ajustes sectoriales antes de adoptarlo.</p></details>':'';
     return selection+scenarios.map(function(scenario,si){
       var cards=methods.map(function(method,mi){
-        var first=6+(si*7+mi)*10,head=lookup[first+2],body=[];
+        var first=6+(7+mi)*10,head=lookup[first+2],body=[];
         for(var y=0;y<5;y++)if(lookup[first+3+y])body.push(lookup[first+3+y]);
         var ctl=lookup[first+8],status=ctl&&ctl.cells[8]||'N/D';
         if(status!=='OK'||!head||body.length!==5||
@@ -251,7 +269,8 @@
      NO valor por acción. Un panel por historia y siete métodos independientes. */
   function economicSensitivity(record){
     if(typeof JmrEconomicMultiples==='undefined')return '<p class="jmr-sheet-note">No se cargó el motor de múltiplos justificados.</p>';
-    return JmrEconomicMultiples.SCENARIOS.map(function(scenario){
+    // Los multiples justificados tambien presentan solo sensibilidad Base.
+    return ['base'].map(function(scenario){
       var methods=JmrEconomicMultiples.METHODS.map(function(method){
         var result=JmrEconomicMultiples.matrix(record,method,scenario);
         var center=result.center==null?'N/D':result.center.toLocaleString('es-CO',{maximumFractionDigits:2,minimumFractionDigits:2})+'×';
@@ -310,10 +329,10 @@
     var index=sheets(record);
     var has=Object.keys(index).length>0;
     destination.innerHTML='<section class="jmr-report-sheets" aria-label="Hojas y anexos de valoración">'+
-      '<div class="jmr-sheets-head"><span class="jmr-overline">ANEXOS DE VALORACIÓN</span><h2>Matrices de sensibilidad</h2>'+
+      '<div class="jmr-sheets-head"><span class="jmr-overline">ANEXOS DE VALORACIÓN</span><h2>DCF Base · sensibilidades principales</h2>'+
       '<p>Impacto sobre el valor por acción al modificar dos supuestos del DCF completo. Se muestran solo matrices de la hoja fuente cuyo centro puede comprobarse; en móvil se desplazan horizontalmente.</p></div>'+
-      sensitivity(record)+'<div class="jmr-sheets-head"><span class="jmr-overline">VALORACIÓN RELATIVA</span><h2>Sensibilidad por múltiplo</h2><p>Eje vertical: múltiplo real (×). Eje horizontal: fundamental FY+3 en unidades de la hoja (±20%). Las cifras son valores presentes por acción; cada centro concilia contra su propio método y no contra el DCF. Disrupción se analiza por separado.</p></div>'+multiplesSensitivity(record)+
-      '<div class="jmr-sheets-head"><span class="jmr-overline">MÚLTIPLO ECONÓMICAMENTE JUSTIFICADO</span><h2>Sensibilidad económica independiente</h2><p>Grillas de crecimiento sostenible, ROIC, ROE, margen, Ke, WACC o conversión de caja según el método. Cada celda es un <strong>múltiplo justificado (×)</strong>, NO un valor por acción. El centro no se fuerza a coincidir con el múltiplo elegido ni con el DCF. No incluye Disrupción.</p></div>'+
+      sensitivity(record)+'<div class="jmr-sheets-head"><span class="jmr-overline">VALORACIÓN RELATIVA</span><h2>Múltiplos · sensibilidad Base únicamente</h2><p>Conservador y Optimista se conservan como valoraciones, sin matrices de sensibilidad. Eje vertical: múltiplo real (×). Eje horizontal: fundamental FY+3 en unidades de la hoja (±20%). Las cifras son valores presentes por acción; cada centro concilia contra su propio método y no contra el DCF. Disrupción se analiza por separado.</p></div>'+multiplesSensitivity(record)+
+      '<div class="jmr-sheets-head"><span class="jmr-overline">MÚLTIPLO ECONÓMICAMENTE JUSTIFICADO</span><h2>Múltiplos justificados · sensibilidad Base</h2><p>Grillas de crecimiento sostenible, ROIC, ROE, margen, Ke, WACC o conversión de caja según el método. Cada celda es un <strong>múltiplo justificado (×)</strong>, NO un valor por acción. El centro no se fuerza a coincidir con el múltiplo elegido ni con el DCF. Solo se presenta Base.</p></div>'+
       economicSensitivity(record)+'<div class="jmr-sheets-head"><span class="jmr-overline">CONSULTA DE SOPORTE</span><h2>Estados, eficiencia y cálculos completos</h2>'+
       '<p>Las mismas categorías del Visor, con tablas por empresa y acceso a su hoja original. Los faltantes se identifican expresamente.</p></div>'+
       (has?renderGallery(record):'<p class="jmr-sheet-note">No se publicaron hojas adicionales para esta valoración. Es necesario exportarlas desde su plantilla IA.</p>')+
@@ -327,7 +346,7 @@
         if(!holder)return; // Los nuevos paneles de matrices económicas no son pestañas crudas.
         if(holder.dataset.jmrFilled)return;
         var found=get(index,holder.getAttribute('data-jmr-sheet'));
-        holder.innerHTML=found?(holder.getAttribute('data-jmr-sheet')==='Sensibilidad por múltiplo'?multiplesSensitivity(record):safeTable(found.html,190)):'<p class="jmr-sheet-note">No se publicó esta tabla.</p>';
+        holder.innerHTML=found?(holder.getAttribute('data-jmr-sheet')===(/Sensibilidad (?:por múltiplo|múltiplos META)/.test(holder.getAttribute('data-jmr-sheet'))?multiplesSensitivity(record):safeTable(found.html,190))):'<p class="jmr-sheet-note">No se publicó esta tabla.</p>';
         holder.dataset.jmrFilled='1';
         JmrDisplayNumber.formatTable(holder);
       });
