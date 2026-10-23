@@ -116,10 +116,10 @@ observaciones, las frecuencias por etapa recalibran las previas del §3 (nueva v
 - **Entregable mínimo obligatorio:**
   - DCF de las cuatro historias;
   - las tres sensibilidades del DCF Base (WACC × g, ROIC × g, crecimiento × margen) y el DCF inverso;
-  - múltiplos de salida de los métodos con peso > 0 (sin matrices obligatorias);
+  - **Cobertura completa de múltiplos:** evaluar los siete métodos elegibles (EV/EBITDA, EV/FCFF, P/E, P/FCFE, P/OCF, P/V, P/BV); para cada uno dejar los tres valores de salida y valor presente por historia, o NO APLICA con razón económica y denominador documentado. Un peso cero no exime de comprobar la cobertura. Los seleccionados con peso positivo deben tener resultados calculados, anclas suficientes y controles de conciliación antes de considerarlos verificados;
   - entradas **materiales/aplicables** completas y los 18 candados de cálculo listos (`inputs_completos.py`, `candados.py`); faltantes secundarios solo si su impacto es acotado y quedan anotados según §4B. Ningún hallazgo menor debe bloquear por defecto una valoración, pero un candado real de fórmula o coherencia nunca se evade inventando datos.
 
-  El resto (matrices de múltiplos, siete métodos, dos anclas, familias económicas) es opcional y no bloquea.
+  Las matrices adicionales y las familias económicas de múltiplos pueden omitirse si no son materiales; **el inventario de siete métodos y sus tres historias nunca se omite**. No se presentan celdas vacías como ceros ni se reutilizan anclas de una revisión anterior. Cuando falten datos externos de un método con peso cero, rotular N/D y salvedad; cuando falten insumos de un método seleccionado, su precio relativo permanece PENDIENTE, sin publicar un ponderado como validado. Esto no invalida el DCF Base conciliado si la materialidad de la brecha relativa es secundaria, conforme §4B.
 - **Estados:**
   - **VERIFICADO** = controles estructurales/financieros aprobados y solo salvedades no bloqueantes con prueba de materialidad (§4B);
   - **VERIFICADO CON RESERVA MATERIAL** = límites cuantificados con impacto material; requiere resolverlos antes de tratar el valor como definitivo sin reserva;
