@@ -162,7 +162,10 @@
       var warning=different?'<p class="jmr-sheet-note jmr-sheet-warning"><strong>Atención:</strong> '+
         different+' matriz(es) no tienen el centro conciliado con el DCF Base vigente. Son referencias históricas o escenarios condicionados; requieren revisión antes de usarlas para decidir.</p>':'';
       var coverage='<p class="jmr-sheet-note"><strong>Fuente:</strong> hoja de sensibilidad oficial. '+blocks.length+' matrices con celdas publicadas. Las nuevas matrices se muestran solo si su centro concilia con el DCF de la misma revisión.</p>';
-      return warning+coverage+'<div class="jmr-matrix-grid">'+blocks.join('')+'</div>'+extendedDcfSensitivity(record);
+      // La hoja R4 ya puede contener las cuatro ampliadas. No duplicarlas
+      // si llegan también como snapshot versionado en el JSON oficial.
+      var add=blocks.length>=7?'':extendedDcfSensitivity(record);
+      return warning+coverage+'<div class="jmr-matrix-grid">'+blocks.join('')+'</div>'+add;
     }
     return '<div class="jmr-sheet-note">Matriz histórica conservada tal cual se publicó; no se interpreta como matriz estándar 5 × 5.</div>'+
       safeTable(sens.html,160);
