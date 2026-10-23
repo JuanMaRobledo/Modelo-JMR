@@ -50,16 +50,16 @@ todo lo necesario está escrito aquí y las herramientas son opcionales. Reglas 
 
 ## 2B. Ajustes contables de Damodaran e Input completo (obligatorio)
 
-**Todas las entradas de la hoja se llenan.** Ninguna celda de entrada queda vacía. Si un concepto no aplica, va «No»
-o 0 con una nota que diga por qué (por ejemplo «sin preferentes, 10-Q jun-2026»). Nunca se deja una celda vacía ni se
-pone un número sin fuente. Lista mínima de la Input sheet: ingresos y EBIT LTM y del último 10-K; gasto por intereses;
+**Toda entrada relevante para el cálculo se diligencia y verifica.** Las limitaciones documentales secundarias no bloquean por estar incompletas si una prueba independiente demuestra que cumplen `modelo/REGLAS_VIGENTES.md` §4B (impacto individual <2 %, agregado <3 % y sin alterar decisión, identidades ni fórmulas). Nunca se presume que un dato desconocido vale cero. Las celdas que activan cálculo y los candados genuinos se completan sin excepciones. Si un concepto no aplica, va «No»
+o 0 con una nota que diga por qué (por ejemplo «sin preferentes, 10-Q jun-2026»). Nunca se deja vacía una entrada esencial ni se
+pone un número sin fuente; las omisiones estrictamente documentales se rigen por el límite cuantitativo del §4B. Lista mínima de la Input sheet: ingresos y EBIT LTM y del último 10-K; gasto por intereses;
 patrimonio y deuda contable; caja; participaciones cruzadas y minoritarios; acciones diluidas; precio; tasa efectiva y
 marginal; I+D (B17), arrendamientos (B18), opciones (B38-B42), preferentes (B76), NOL (B62), fracaso (B52) y cada
 pregunta de anulación (B46-B71) con su respuesta. En «Cost of capital worksheet»: método de beta, prima por regiones
 con las ventas de cada región, rating o spread, vencimiento, convertibles y preferentes. En «Option value»: precio,
 ejercicio, plazo, volatilidad y dividendo. En «Financials Multiples», para cada historia: ΔNWC/ventas, otros
 netos/EBIT y cambio de acciones FY+1 a FY+4, calculados con la historia de la empresa (3 años; la recompra reduce
-acciones). El control `inputs_completos.py` debe dar 0 celdas vacías y los 18 candados de la hoja (`candados.py`) deben
+acciones). El control `inputs_completos.py` debe dar 0 entradas esenciales vacías o una salvedad individual cuantificada y admitida por §4B; los 18 candados de cálculo (`candados.py`) deben
 estar en LISTO/VALIDADO/CONCILIADO/NO APLICA: mientras uno falle, el WACC, las proyecciones o los múltiplos quedan en
 blanco.
 
@@ -81,8 +81,11 @@ Ajustes que se hacen siempre que apliquen (criterio Damodaran):
 - **Otros (cuando apliquen):** participaciones cruzadas a valor de mercado, minoritarios, NOL, probabilidad de
   fracaso, preferentes y convertibles. Un caso especial no se ignora: si no aplica, se marca «NO APLICA».
 
+**Prueba de tres conversiones antes de cerrar:** (1) `R& D converter`: ¿I+D/tecnología representa inversión plurianual? Comprobar vida, historial, activo, amortización, EBIT e inversión; si `Input sheet!B17=No` y el conversor arroja un activo, explicar explícitamente por qué NO se incorpora (y medir sensibilidad si podría ser material). (2) `Operating lease converter`: reconciliar deuda reconocida vs. obligaciones incrementales, `Input sheet!B18`, `B78:B81`, EBIT y WACC sin duplicación ASC 842/NIIF 16. (3) `Option value`: conciliar stock options/RSU, plazo, ejercicio, volatilidad, valor total, gasto SBC y denominador básico/diluido; no confiar solo en el rótulo 'dilution adjusted'. Registrar el efecto de cada ajuste en el valor Base y los supuestos comparables.
+
 ## 3. Costo de capital
 
+- **WACC oficial**: `Cost of capital worksheet!B12=Detailed` salvo excepción económica expresamente justificada. Para un negocio: `B22=Single Business(US/Global)`; para varios negocios materiales: `B22=Multibusiness(US/Global)` con mezcla y beta por segmento. `B26=Operating regions/countries` cuando haya ventas regionales confiables, o `Will Input` con ERP geográfico previamente calculado y documentado. El histograma/distribución es control externo. Verifica `B14=E63=Input sheet!B36`, pesos de mercado al 100 %, Kd, Ke y fecha/moneda coherentes. No son tres enfoques mutuamente excluyentes: segmentación y geografía se combinan dentro de Detailed.
 - **Ke** = tasa libre + beta × prima. La beta es la bottom-up: beta desapalancada del sector, reapalancada con la D/E
   de mercado. La beta de regresión solo sirve como referencia.
 - **Prima** = prima madura del corte + prima de riesgo país ponderada por ventas. Nunca uses el ERP total de una
