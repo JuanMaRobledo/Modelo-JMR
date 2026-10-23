@@ -22,6 +22,7 @@ function calculate(input,changes){
   if(Object.prototype.hasOwnProperty.call(ch,'roicTerminal'))p.roicTerminal=ch.roicTerminal;
   if(Object.prototype.hasOwnProperty.call(ch,'salesToCapital'))p.salesToCapital=ch.salesToCapital;
   if(Object.prototype.hasOwnProperty.call(ch,'taxMarginal'))p.taxMarginal=ch.taxMarginal;
+  const terminalValueFactor=Object.prototype.hasOwnProperty.call(ch,'terminalValueFactor')?ch.terminalValueFactor:1;
   if(Object.prototype.hasOwnProperty.call(ch,'marginTarget'))margin=ch.marginTarget;
   if(Object.prototype.hasOwnProperty.call(ch,'growthDelta')){
     growth+=ch.growthDelta;
@@ -35,9 +36,19 @@ function calculate(input,changes){
   if(![p.revenue0,p.ebit0,p.wacc,p.terminalWacc,p.terminalGrowth,p.taxMarginal,
       p.salesToCapital,p.shares0,growth,margin].every(FIN) ||
      !(p.shares0>0&&p.salesToCapital>0&&waccTerminal>terminalGrowth+.00001&&roic>terminalGrowth+.00001&&
-       p.wacc>0&&p.taxMarginal>=0&&p.taxMarginal<1&&margin>0&&margin<1&&growth>-.5))return null;
+       p.wacc>0&&p.taxMarginal>=0&&p.taxMarginal<1&&margin>0&&margin<1&&growth>-.5&&
+       terminalValueFactor>0&&terminalValueFactor<3))return null;
   const result=runDCFDetalle(p,growth,margin,first,p.marginY1Base);
-  const n=result&&result.valuePerShare;
+  let n=result&&result.valuePerShare;
+  // Prueba mecánica del valor terminal, no un supuesto de crecimiento ni un
+  // múltiplo de salida. Recalcular primero el DCF para cada WACC del eje.
+  if(FIN(n)&&terminalValueFactor!==1){
+    const pvDiscount=result.wacc.slice(1,11).reduce((factor,w)=>factor/(1+w),1);
+    const pvTerminal=result.terminalValue*pvDiscount;
+    const probFailure=p.probFailure||0,recovery=p.recoveryPct||0;
+    const economicExposure=(1-probFailure)+(p.failureBookCapital==null?recovery*probFailure:0);
+    n+=(terminalValueFactor-1)*pvTerminal*economicExposure/p.shares0;
+  }
   return FIN(n)?n:null;
 }
 const specs=[
@@ -50,6 +61,9 @@ const specs=[
  {id:'roic-wacc-terminal',title:'ROIC terminal × WACC terminal',
   row:{key:'roicTerminal',name:'ROIC terminal del capital nuevo',factor:.10,base:p=>p.roicTerminal,unit:'percent'},
   col:{key:'waccTerminal',name:'WACC terminal',delta:.005,base:p=>p.terminalWacc,unit:'percent'}},
+ {id:'terminal-value-wacc-stress',title:'WACC terminal × escala del valor terminal (estrés mecánico)',
+  row:{key:'waccTerminal',name:'WACC terminal',delta:.005,base:p=>p.terminalWacc,unit:'percent'},
+  col:{key:'terminalValueFactor',name:'Escala del valor terminal, no crecimiento',delta:.10,base:()=>1,unit:'percent'}},
  {id:'impuestos-capital',title:'Impuesto marginal × Sales-to-Capital',
   row:{key:'taxMarginal',name:'Impuesto marginal terminal',delta:.015,base:p=>p.taxMarginal,unit:'percent'},
   col:{key:'salesToCapital',name:'Sales-to-Capital inicial',factor:.10,base:p=>p.salesToCapital,unit:'times'}}
@@ -78,7 +92,7 @@ function build(snapshot){
   });
   return {ticker,revision,dcfBaseOfficial:dcfBase,dcfBaseRecalculated:recalculated,
     method:'FCFF 10 años + valor terminal; recálculo completo con runDCFDetalle del mismo modelo JMR',
-    note:'Los cambios son variaciones aisladas del escenario Base y no modifican el registro oficial. No sumarlos como efectos independientes.',
+    note:'Los cambios son variaciones aisladas del escenario Base y no modifican el registro oficial. La prueba de escala TV (+/-20%) es un estrés mecánico, no una nueva tasa de crecimiento ni otro múltiplo. No sumar efectos independientes.',
     matrices};
 }
 module.exports={build,calculate,specs};
