@@ -51,8 +51,8 @@ todo lo necesario está escrito aquí y las herramientas son opcionales. Reglas 
 ## 2B. Ajustes contables de Damodaran e Input completo (obligatorio)
 
 **Toda entrada relevante para el cálculo se diligencia y verifica.** Las limitaciones documentales secundarias no bloquean por estar incompletas si una prueba independiente demuestra que cumplen `modelo/REGLAS_VIGENTES.md` §4B (impacto individual <2 %, agregado <3 % y sin alterar decisión, identidades ni fórmulas). Nunca se presume que un dato desconocido vale cero. Las celdas que activan cálculo y los candados genuinos se completan sin excepciones. Si un concepto no aplica, va «No»
-o 0 con una nota que diga por qué (por ejemplo «sin preferentes, 10-Q jun-2026»). Nunca se deja una celda vacía ni se
-pone un número sin fuente. Lista mínima de la Input sheet: ingresos y EBIT LTM y del último 10-K; gasto por intereses;
+o 0 con una nota que diga por qué (por ejemplo «sin preferentes, 10-Q jun-2026»). Nunca se deja vacía una entrada esencial ni se
+pone un número sin fuente; las omisiones estrictamente documentales se rigen por el límite cuantitativo del §4B. Lista mínima de la Input sheet: ingresos y EBIT LTM y del último 10-K; gasto por intereses;
 patrimonio y deuda contable; caja; participaciones cruzadas y minoritarios; acciones diluidas; precio; tasa efectiva y
 marginal; I+D (B17), arrendamientos (B18), opciones (B38-B42), preferentes (B76), NOL (B62), fracaso (B52) y cada
 pregunta de anulación (B46-B71) con su respuesta. En «Cost of capital worksheet»: método de beta, prima por regiones
