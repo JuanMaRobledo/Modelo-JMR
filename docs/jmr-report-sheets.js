@@ -115,7 +115,7 @@
     function axis(v,unit){
       if(typeof v!=='number'||!isFinite(v))return 'N/D';
       if(unit==='percent')return (100*v).toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2})+'%';
-      if(unit==='changepp')return ((v>=0?'+':'')+100*v.toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2})).replace('NaN','N/D')+' pp';
+      if(unit==='changepp')return (v>=0?'+':'')+(100*v).toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2})+' pp';
       if(unit==='times')return v.toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2})+'×';
       return v.toLocaleString('es-CO',{maximumFractionDigits:2});
     }
