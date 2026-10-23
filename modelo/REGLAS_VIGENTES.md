@@ -1,6 +1,6 @@
 # Reglas vigentes del Modelo JMR
 
-**Versión 5 · 23-oct-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
+**Versión 6 · 23-oct-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
 (`docs/prompts/*.md`), `METODOLOGIA.md`, una habilidad o un comentario de código dice otra cosa, prevalece este
 documento. Una regla nueva no se agrega como «regla del día X» en un prompt: se cambia aquí, se sube la versión y se
 anota en el registro de cambios del final.
@@ -58,6 +58,22 @@ anota en el registro de cambios del final.
   = punto medio (`reference/moat_2026-09-30.json`).
 - Impuesto: efectivo al principio, marginal a perpetuidad (AFYA 34% desde el 4-oct-2026).
 
+### 4A. WACC: una fuente y método económico
+
+- Para empresas operativas, el **WACC oficial se calcula en `Cost of capital worksheet`**, nunca se escribe manualmente en `Input sheet`. El camino normal es **`B12 = Detailed`**, porque permite estimar cada componente. Elegir **`B22 = Multibusiness(US/Global)`** solo cuando existan líneas de negocio económicamente distintas, con ventas y betas bottom-up trazables; si la firma es esencialmente un único negocio, usar **`Single Business(US/Global)`**. Para riesgo país, **`B26 = Operating regions/countries`** si las ventas por exposición están verificadas; `Will Input` únicamente cuando esa prima ponderada ya se haya calculado con las mismas fuentes y fecha y se deje la conciliación. Nunca interpretar `Detailed`, `Multibusiness` y `Operating regions` como tres alternativas excluyentes: los dos últimos son submétodos del primero. La distribución/histograma es comprobación externa, no WACC principal sin justificación económica.
+- Obtener Rf y ERP del mismo corte y moneda, beta desapalancada y reapalancada, Ke, Kd antes de impuestos de deuda/rating, tasa marginal y pesos de **mercado** para patrimonio, deuda y preferentes. Arrendamientos únicamente incrementales entran como deuda. Verificar `Cost of capital worksheet!B14 = E63 = Input sheet!B36`, suma de pesos = 100 % y registro del método, supuestos y fuentes. En financieras el método primario es FCFE/Ke; en holdings SOTP, usando tasas congruentes para cada negocio, no WACC consolidado mecánico.
+- Capitalizar **I+D recurrente** cuando corresponda con `R& D converter`: vida útil explícita, gastos históricos, activo creado, amortización y EBIT ajustado; sumar activo a capital invertido y revisar reinversión/Sales-to-Capital. No mezclar margen GAAP con margen ajustado. Si se descarta, fundamentar por qué el gasto no representa inversión separable o por qué el efecto cuantificado es inmaterial.
+- Revisar **arrendamientos** con `Operating lease converter`: obligaciones fuera de balance → VP, deuda, EBIT, capital y reinversión; los pasivos ya reconocidos por ASC 842/NIIF 16 se reconcilian con el balance y **nunca se capitalizan/restan por segunda vez**. `B18=No` puede ser correcto si significa 'sin conversión adicional', no que no existan arrendamientos.
+- Revisar **`Option value`** cuando haya opciones/warrants: cantidad, precio de ejercicio, vida remanente, volatilidad y dividendos, valoración reproducible, valor total y resta **una sola vez** del patrimonio. Conciliar acciones básicas vs. diluidas actuales y el gasto por SBC; no usar simultáneamente acciones diluidas que ya incorporan ese derecho y volver a restarlo. La etiqueta 'dilution adjusted' de la plantilla NO acredita por sí sola dilución económica: verificar la fórmula efectiva, no el título. Otras RSU/SBC se evalúan por el método económicamente apropiado y sin doble conteo.
+
+### 4B. Materialidad de hallazgos y límites
+
+- Un hallazgo solo bloquea si cambia sustancialmente el valor Base o la decisión, invalida una fórmula/puente, afecta integridad crítica del dato o **no permite acotar** una incertidumbre potencialmente material. No confundir una falta documental secundaria con un error matemático.
+- Para cada limitación comparar **valor Base oficial** con el valor alternativo o el peor caso razonable, manteniendo los demás supuestos: `impacto_individual_% = 100 × |V_alternativo − V_base| / |V_base|`. Documentar fuente, método y rango probado. Para resultados adversos conjuntos, usar un límite acumulado conservador; no sumar porcentajes con signos opuestos para cancelar riesgos. Si no hay base positiva o no se puede calcular/acotar, evaluar estructura y marcar pendiente.
+- **Salvedad NO bloqueante:** impacto máximo individual **<2 %** y total conservador **<3 %** del valor principal, sin cruzar la decisión/MOS y sin defecto crítico de identidades, fórmulas, unidades, moneda, fechas, deuda, acciones, tasas, escenarios o doble conteo. Los umbrales son política operativa JMR, no criterio estadístico ni aval a inventar ceros.
+- **Revisión material:** impacto igual o mayor a 2 % individual o 3 % acumulado, cruce de decisión, o efecto plausible sin límite verificable: no declarar completamente verificado; recalcular o corregir. Una incertidumbre cuantificada y material puede figurar como «VERIFICADO CON RESERVA MATERIAL», nunca como validado sin reserva. Un error estructural o de fuente crítica es **PENDIENTE**, aunque la estimación puntual dé impacto pequeño.
+- Estados por empresa y versión: **VERIFICADO**, **VERIFICADO CON RESERVA MATERIAL** o **PENDIENTE**. Las salvedades inmateriales son hallazgos *dentro* de VERIFICADO (no un estado eterno). Cada auditoría registra ID, causa, evidencia, `V_base`, alternativa, impacto individual y acumulado, decisión, si bloquea, motivo, responsable y prueba ejecutada/no ejecutada. No se marca «NO APLICA» algo que aplica, ni «VALIDADO» un candado cuyos requisitos técnicos sigan fallando. El dictamen distingue certificación aritmética, fuentes y juicio económico.
+
 ## 5. Múltiplos de salida
 
 - Por ciclo: el múltiplo del escenario es el que la empresa tuvo cuando sus fundamentales se parecían a los del
@@ -101,12 +117,13 @@ observaciones, las frecuencias por etapa recalibran las previas del §3 (nueva v
   - DCF de las cuatro historias;
   - las tres sensibilidades del DCF Base (WACC × g, ROIC × g, crecimiento × margen) y el DCF inverso;
   - múltiplos de salida de los métodos con peso > 0 (sin matrices obligatorias);
-  - entradas completas y los 18 candados de la hoja listos (`inputs_completos.py`, `candados.py`).
+  - entradas **materiales/aplicables** completas y los 18 candados de cálculo listos (`inputs_completos.py`, `candados.py`); faltantes secundarios solo si su impacto es acotado y quedan anotados según §4B. Ningún hallazgo menor debe bloquear por defecto una valoración, pero un candado real de fórmula o coherencia nunca se evade inventando datos.
 
   El resto (matrices de múltiplos, siete métodos, dos anclas, familias económicas) es opcional y no bloquea.
 - **Estados:**
-  - **VALIDADO** = `controles_todas.sh` sin fallas;
-  - **CON HALLAZGOS** = falla algún control.
+  - **VERIFICADO** = controles estructurales/financieros aprobados y solo salvedades no bloqueantes con prueba de materialidad (§4B);
+  - **VERIFICADO CON RESERVA MATERIAL** = límites cuantificados con impacto material; requiere resolverlos antes de tratar el valor como definitivo sin reserva;
+  - **PENDIENTE** = control estructural/material fallido o incertidumbre material sin cuantificar.
 
   Las salvedades son notas, no un estado. No existe «conciliado con salvedades» indefinido.
 - **Una auditoría por publicación.** No se re-audita sin un hecho nuevo (resultados, 8-K material, cambio de regla).
@@ -138,7 +155,7 @@ observaciones, las frecuencias por etapa recalibran las previas del §3 (nueva v
 
 | Versión | Fecha | Cambio |
 |---|---|---|
-| 5 | 23-oct-2026 | §9: análisis fundamental completo como regla permanente; cobertura sustantiva de las 18 secciones, adaptación sectorial, dos niveles, preservación del artículo al actualizar y verificación editorial en auditoría. Sin cambios en fórmulas, ponderaciones ni mínimos cuantitativos del §8. |
+| 6 | 23-oct-2026 | §§4A–4B, 8: capitalización de I+D, leases, opciones, cálculo WACC Detailed con beta multi-negocio y ERP geográfico, límites de materialidad y estados de verificación. No se modifican valores de empresas. |\n| 5 | 23-oct-2026 | §9: análisis fundamental completo como regla permanente; cobertura sustantiva de las 18 secciones, adaptación sectorial, dos niveles, preservación del artículo al actualizar y verificación editorial en auditoría. Sin cambios en fórmulas, ponderaciones ni mínimos cuantitativos del §8. |
 | 4 | 21-oct-2026 | Revisión del historial (38 valoraciones que nunca salieron de «conciliado con salvedades»): previas simétricas (antes la Conservadora pesaba más en todas las etapas), control de márgenes sin alertar lo ya demostrado (umbral 2,5× sector), §8 proceso eficiente (un comando, mínimo obligatorio, estado VALIDADO, una auditoría por publicación). |
 | 3 | 21-oct-2026 | Prompts de análisis fundamental (v5 corregido) y auditoría (v1.2) alineados y válidos para cualquier modelo: el análisis copia las cifras de la valoración oficial (no recalcula), MOS solo sobre la Base (el texto anterior decía «sobre el esperado»), promedio de tres historias, probabilidades por previa + indicadores; la auditoría busca sesgo en ambas direcciones (agresividad y prudencia duplicada) y verifica g, ajuste por tasas y ancla C. |
 | 2 | 21-oct-2026 | Prompt de valoración v5 (`docs/prompts/valoracion-modelo-jmr-v5.md`): autocontenido y válido para cualquier modelo de lenguaje, un solo método de múltiplos (el v4 mezclaba λ, ciclo y Toro), etiquetas [Dato]/[Cálculo]/[Juicio] y ficha JSON de salida. Calibración honesta (§2). Topes de Toro retirados (doble prudencia). |
