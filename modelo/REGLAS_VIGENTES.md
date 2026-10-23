@@ -1,6 +1,6 @@
 # Reglas vigentes del Modelo JMR
 
-**Versión 6 · 23-oct-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
+**Versión 7 · 23-oct-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
 (`docs/prompts/*.md`), `METODOLOGIA.md`, una habilidad o un comentario de código dice otra cosa, prevalece este
 documento. Una regla nueva no se agrega como «regla del día X» en un prompt: se cambia aquí, se sube la versión y se
 anota en el registro de cambios del final.
@@ -85,6 +85,17 @@ anota en el registro de cambios del final.
   como diagnóstico. Comparables solo comprueban.
 - Optimista más de 25% sobre el actual: solo con `justificacion_salto` en `<T>_ciclo.json`.
 
+### 5A. Cálculo obligatorio con las fórmulas de la plantilla
+
+- Calcular siempre los siete métodos: EV/EBITDA, EV/FCFF, P/E, P/FCFE, P/OCF, P/S (P/Ventas; pestaña `PV`) y P/BV (Precio/Valor en Libros; pestaña `PBV`). Un peso cero o la exclusión del ponderado no autoriza a omitir su cálculo.
+- Usar las fórmulas existentes de `Financials Multiples`, de las pestañas de cada método y de `Descuento de múltiplos`. Los cinco métodos originales conservan su mecánica; no reconstruirlos por empresa ni reemplazar resultados o fórmulas por cifras escritas por la IA.
+- El trabajo del analista consiste en escoger y justificar los supuestos en las celdas de entrada de `Financials Multiples`, los múltiplos de salida por historia (actualmente `J8/J19/J30`) y la selección/ponderación de métodos. Las métricas proyectadas, precios, dividendos y valores presentes los calculan las fórmulas. Conservar las conexiones y selectores de la plantilla.
+- Las versiones Maestra, IA y Manual deben incluir P/S y P/BV con la misma cadena de cálculo de los originales: históricos → supuestos/métrica proyectada por historia → múltiplo de salida → precio por acción FY+1/FY+2/FY+3 → dividendos → descuento al presente → ponderación. No crear un cálculo paralelo ni tomar precios objetivo de terceros como resultado del modelo.
+- P/S = capitalización bursátil / ventas = precio por acción / ventas por acción; precio objetivo = múltiplo de salida P/S × ventas proyectadas / acciones compatibles. P/BV = capitalización bursátil / patrimonio común = precio por acción / valor libro común por acción; precio objetivo = múltiplo de salida P/BV × patrimonio común proyectado / acciones compatibles. P/BV exige conciliar patrimonio inicial + utilidad atribuible al común − dividendos + emisiones − recompras ± otros movimientos de patrimonio; los ajustes se documentan, y un cero precargado no demuestra ausencia de movimientos. Estos dos métodos son de equity: no restar de nuevo la deuda neta.
+- Aplicar a los siete métodos las reglas de selección del §5 y la justificación económica propia del negocio. El cálculo no obliga a asignar peso positivo: documentar la selección y los pesos.
+- Si un método es económicamente inaplicable, mostrar N/A con causa; si falta un dato, mostrar N/D con dato pendiente, fuente consultada y efecto. Nunca dejar un método sin evaluar, usar cero para fingir que está calculado, ni completar denominadores no interpretables. Buscar los datos necesarios; el cierre de hallazgos usa la materialidad del §4B, sin ocultar pendientes.
+- Antes de entregar, comprobar integridad de fórmulas contra la versión de plantilla, las siete salidas o sus excepciones justificadas, puentes EV/equity, unidades y acciones, dividendos sin duplicar y descuento por fecha. Hoja, valoración y análisis deben usar la misma revisión. La auditoría registra estos controles también para métodos con peso cero.
+
 ## 6. Controles de publicación
 
 `bash scripts/controles_todas.sh` sin fallas antes de publicar o fusionar:
@@ -116,10 +127,10 @@ observaciones, las frecuencias por etapa recalibran las previas del §3 (nueva v
 - **Entregable mínimo obligatorio:**
   - DCF de las cuatro historias;
   - las tres sensibilidades del DCF Base (WACC × g, ROIC × g, crecimiento × margen) y el DCF inverso;
-  - múltiplos de salida de los métodos con peso > 0 (sin matrices obligatorias);
+  - cálculo con fórmulas de los siete múltiplos y salidas por historia, incluso con peso cero, o excepción N/A/N/D justificada según §5A (sin matrices obligatorias);
   - entradas **materiales/aplicables** completas y los 18 candados de cálculo listos (`inputs_completos.py`, `candados.py`); faltantes secundarios solo si su impacto es acotado y quedan anotados según §4B. Ningún hallazgo menor debe bloquear por defecto una valoración, pero un candado real de fórmula o coherencia nunca se evade inventando datos.
 
-  El resto (matrices de múltiplos, siete métodos, dos anclas, familias económicas) es opcional y no bloquea.
+  Las matrices de múltiplos, dos anclas y familias económicas son opcionales y no bloquean. El cálculo de los siete métodos se rige por §5A y no es opcional.
 - **Estados:**
   - **VERIFICADO** = controles estructurales/financieros aprobados y solo salvedades no bloqueantes con prueba de materialidad (§4B);
   - **VERIFICADO CON RESERVA MATERIAL** = límites cuantificados con impacto material; requiere resolverlos antes de tratar el valor como definitivo sin reserva;
@@ -141,7 +152,7 @@ observaciones, las frecuencias por etapa recalibran las previas del §3 (nueva v
 - Interpretar la historia financiera de hasta diez años y LTM, o máximo disponible: crecimiento y sus motores; márgenes y apalancamiento operativo; beneficios reportados/normalizados; caja y conversión; balance, deuda, vencimientos, liquidez, compromisos y contingencias; capital de trabajo, CAPEX, adquisiciones, ROIC/ROCE/ROE, reinversión y Sales-to-Capital según pertinencia. Incluir calidad contable, partidas no recurrentes, SBC, dilución, recompras y dividendos cuando sean materiales.
 - Explicar los supuestos de crecimiento, margen EBIT, impuestos, reinversión, ROIC, Sales-to-Capital, WACC/Ke, g y ROIC terminal: historia y evidencia → mecanismo económico → supuesto oficial → efecto sobre el valor → señales que lo refutarían. Si una variable no aplica, explicar el equivalente sectorial; bancos y holdings tienen sus módulos FCFE/capital regulatorio o SOTP/participaciones/doble conteo.
 - Desarrollar catalizadores con horizonte y confirmación, riesgos con mecanismos y mitigantes verificables, tesis alcista y bajista, cinco filosofías de inversión, novedades materiales, indicadores con umbrales y preguntas realmente no resueltas. La disrupción se presenta aparte; distinguir hechos, guía, hipótesis y proyecciones sin convertir esa distinción en etiquetas repetidas en la prosa.
-- Interpretar el valor base, los tres escenarios ordinarios, disrupción, promedio ordinario, MOS, métodos y múltiplos elegibles, sensibilidad e inverso aplicable usando la misma revisión oficial. No crear cifras nuevas para completar el texto. No convertir todos los múltiplos o matrices opcionales del §8 en requisitos nuevos de cálculo por esta regla editorial.
+- Interpretar el valor base, los tres escenarios ordinarios, disrupción, promedio ordinario, MOS, métodos y múltiplos elegibles, sensibilidad e inverso aplicable usando la misma revisión oficial. No crear cifras nuevas para completar el texto. Los siete cálculos se rigen por §5A; esta regla editorial no añade matrices opcionales del §8.
 
 **Dos niveles, ambos con contenido:** nivel 1 conserva el artículo completo y las cifras necesarias para entender sus argumentos; empieza con el recuadro visible «Valor intrínseco base:», método y fecha. Nivel 2 contiene estados, ratios, entradas, cálculos y matrices detalladas. Llevar una tabla extensa al nivel 2 no elimina su interpretación económica del nivel 1.
 
@@ -155,6 +166,7 @@ observaciones, las frecuencias por etapa recalibran las previas del §3 (nueva v
 
 | Versión | Fecha | Cambio |
 |---|---|---|
+| 7 | 23-oct-2026 | §5A y §8: cálculo obligatorio de siete múltiplos con fórmulas existentes; P/S y P/BV en Maestra/IA/Manual; juicio limitado a entradas, múltiplos de salida y pesos; controles también con peso cero. Sin recálculo ni publicación de empresas. |
 | 6 | 23-oct-2026 | §§4A–4B, 8: capitalización de I+D, leases, opciones, cálculo WACC Detailed con beta multi-negocio y ERP geográfico, límites de materialidad y estados de verificación. No se modifican valores de empresas. |\n| 5 | 23-oct-2026 | §9: análisis fundamental completo como regla permanente; cobertura sustantiva de las 18 secciones, adaptación sectorial, dos niveles, preservación del artículo al actualizar y verificación editorial en auditoría. Sin cambios en fórmulas, ponderaciones ni mínimos cuantitativos del §8. |
 | 4 | 21-oct-2026 | Revisión del historial (38 valoraciones que nunca salieron de «conciliado con salvedades»): previas simétricas (antes la Conservadora pesaba más en todas las etapas), control de márgenes sin alertar lo ya demostrado (umbral 2,5× sector), §8 proceso eficiente (un comando, mínimo obligatorio, estado VALIDADO, una auditoría por publicación). |
 | 3 | 21-oct-2026 | Prompts de análisis fundamental (v5 corregido) y auditoría (v1.2) alineados y válidos para cualquier modelo: el análisis copia las cifras de la valoración oficial (no recalcula), MOS solo sobre la Base (el texto anterior decía «sobre el esperado»), promedio de tres historias, probabilidades por previa + indicadores; la auditoría busca sesgo en ambas direcciones (agresividad y prudencia duplicada) y verifica g, ajuste por tasas y ancla C. |
