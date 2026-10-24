@@ -1,6 +1,6 @@
 # Reglas vigentes del Modelo JMR
 
-**Versión 8 · 23-oct-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
+**Versión 9 · 24-oct-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
 (`docs/prompts/*.md`), `METODOLOGIA.md`, una habilidad o un comentario de código dice otra cosa, prevalece este
 documento. Una regla nueva no se agrega como «regla del día X» en un prompt: se cambia aquí, se sube la versión y se
 anota en el registro de cambios del final.
@@ -165,10 +165,29 @@ observaciones, las frecuencias por etapa recalibran las previas del §3 (nueva v
 
 **Control de entrega:** dentro de la sección 18 existente, registrar por apartado/subapartado la ubicación del desarrollo, evidencia, estado de cobertura y faltante concreto. La comprobación es semántica, no solo un conteo de títulos o palabras. El prompt 3 verifica este control dentro de sus secciones existentes de coherencia, hallazgos y dictamen. Esta revisión editorial no sustituye la auditoría financiera ni cambia sus controles. No declarar que artículos previos fueron ampliados sin haberlos editado y comprobado.
 
+## 10. Una valoración vigente por empresa y archivo de revisiones
+
+- Al pedir una **valoración nueva**, crearla en una copia limpia de la plantilla vigente y archivar las valoraciones anteriores de esa misma empresa, con sus análisis, auditorías, exportaciones y revisiones sustituidas. Conservar una sola valoración de trabajo vigente por empresa; sus cuatro historias no son cuatro expedientes distintos.
+- Usar la carpeta de Drive [Valoraciones antiguas](https://drive.google.com/drive/folders/10ZCGoZ4hKVqtg6ekcyYHsm8IHPZOBVLq). Los expedientes retirados el 24-oct-2026 están en [Revisiones sustituidas](https://drive.google.com/drive/folders/1M2sWqAR60HBIBx0JbRn057kawpD9ZsZG). Archivar conserva los archivos e identificadores; no borrar el historial.
+- El archivo histórico queda **excluido de las entradas automáticas, selección de valoración vigente, importación a la app y recuperación de supuestos**. Un título antiguo que diga «vigente», «final» o «publicada» no acredita vigencia. Resolver siempre por empresa, revisión e identificador de la hoja actual.
+- No copiar supuestos, resultados, dictámenes ni narrativa de otra revisión como si pertenecieran al expediente nuevo. Los documentos financieros primarios pueden reutilizarse únicamente tras verificar fuente, fecha, período y pertinencia; no confundir un estado histórico con una valoración anterior.
+- La valoración, análisis y auditoría activos deben pertenecer a la misma revisión. Si falta una pieza actual, queda pendiente: no usar la pieza archivada para aparentar completitud. La nueva revisión conserva su estado real y archivar la previa no equivale a validar ni publicar la nueva.
+- Mantener un registro de movimientos y comprobar origen, destino y hoja conservada. Una actualización ordinaria conserva la identidad del expediente y su historial de versiones; una valoración nueva sustituye la anterior en el catálogo activo.
+
+Hojas de trabajo conservadas tras el archivo del 24-oct-2026 (identidad documental; no certifica publicación ni validación):
+
+| Empresa | Revisión de trabajo | ID de la hoja |
+|---|---|---|
+| NKE | R4 · 23-oct-2026 | `1wWS0qNCWvSrYCI53kk7H1zBshn-RJWjeKFu10sHCNWw` |
+| NFLX | v7 · 23-oct-2026 | `18JpUSeyJ9i7MOqHJ3-yB3Kz4BuwTXIwlIwoJvdlbfnE` |
+| META | R4 · 23-oct-2026 | `1Ap5ylZGNdW_qyEIH5dVy22jTfHSy1TNB5bFsiW1IXsg` |
+| NVDA | R1 · 23-oct-2026 | `1hvlfGunORzgup0OyxyW0QRBcosZ_xooLI-gMH1kixpE` |
+
 ## Registro de cambios
 
 | Versión | Fecha | Cambio |
 |---|---|---|
+| 9 | 24-oct-2026 | §10: una sola valoración vigente por empresa; las nuevas valoraciones archivan las anteriores con sus documentos asociados; archivo excluido de selección e importación automática. Se identifican las cuatro hojas actuales sin certificar su validación ni publicación. |
 | 8 | 23-oct-2026 | §5A: el analista/IA elige y justifica el peso de cada múltiplo según el tipo de empresa y su modelo de negocio; sin pesos universales ni omisión de cálculos por peso cero. |
 | 7 | 23-oct-2026 | §5A y §8: cálculo obligatorio de siete múltiplos con fórmulas existentes; P/S y P/BV en Maestra/IA/Manual; juicio limitado a entradas, múltiplos de salida y pesos; controles también con peso cero. Sin recálculo ni publicación de empresas. |
 | 6 | 23-oct-2026 | §§4A–4B, 8: capitalización de I+D, leases, opciones, cálculo WACC Detailed con beta multi-negocio y ERP geográfico, límites de materialidad y estados de verificación. No se modifican valores de empresas. |\n| 5 | 23-oct-2026 | §9: análisis fundamental completo como regla permanente; cobertura sustantiva de las 18 secciones, adaptación sectorial, dos niveles, preservación del artículo al actualizar y verificación editorial en auditoría. Sin cambios en fórmulas, ponderaciones ni mínimos cuantitativos del §8. |
