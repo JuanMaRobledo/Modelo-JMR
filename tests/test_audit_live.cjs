@@ -118,7 +118,7 @@ const assert = require('node:assert/strict');
       near(rec.dcf,story.valor,'DCF 20 años '+rec.historia,.002);
       assert.ok(/^L\\d+$/.test(rec.continuacion),'Celda de continuación 11–20 '+rec.historia);
     }
-    assert.match(replay.validacion||'',/4\\/4 controles VALIDADO/);
+    assert.ok(String(replay.validacion||'').includes('4/4 controles VALIDADO'),'validación 4/4 del DCF v7');
     near(data.valorEsperado.valor,expected,'media sin disrupción');
   } else {
     for(const rec of replay.records) {
