@@ -116,7 +116,7 @@ const assert = require('node:assert/strict');
       const story=stories.find(s=>s.id===ids[rec.historia]);
       assert.ok(story,'historia v7 '+rec.historia);
       near(rec.dcf,story.valor,'DCF 20 años '+rec.historia,.002);
-      assert.ok(/^L\\d+$/.test(rec.continuacion),'Celda de continuación 11–20 '+rec.historia);
+      assert.ok(/^L[0-9]+$/.test(String(rec.continuacion)), 'Celda de continuación 11–20 '+rec.historia);
     }
     assert.ok(String(replay.validacion||'').includes('4/4 controles VALIDADO'),'validación 4/4 del DCF v7');
     near(data.valorEsperado.valor,expected,'media sin disrupción');
