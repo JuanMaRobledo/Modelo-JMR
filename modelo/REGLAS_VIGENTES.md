@@ -1,6 +1,6 @@
 # Reglas vigentes del Modelo JMR
 
-**Versión 7 · 23-oct-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
+**Versión 8 · 23-oct-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
 (`docs/prompts/*.md`), `METODOLOGIA.md`, una habilidad o un comentario de código dice otra cosa, prevalece este
 documento. Una regla nueva no se agrega como «regla del día X» en un prompt: se cambia aquí, se sube la versión y se
 anota en el registro de cambios del final.
@@ -93,6 +93,7 @@ anota en el registro de cambios del final.
 - Las versiones Maestra, IA y Manual deben incluir P/S y P/BV con la misma cadena de cálculo de los originales: históricos → supuestos/métrica proyectada por historia → múltiplo de salida → precio por acción FY+1/FY+2/FY+3 → dividendos → descuento al presente → ponderación. No crear un cálculo paralelo ni tomar precios objetivo de terceros como resultado del modelo.
 - P/S = capitalización bursátil / ventas = precio por acción / ventas por acción; precio objetivo = múltiplo de salida P/S × ventas proyectadas / acciones compatibles. P/BV = capitalización bursátil / patrimonio común = precio por acción / valor libro común por acción; precio objetivo = múltiplo de salida P/BV × patrimonio común proyectado / acciones compatibles. P/BV exige conciliar patrimonio inicial + utilidad atribuible al común − dividendos + emisiones − recompras ± otros movimientos de patrimonio; los ajustes se documentan, y un cero precargado no demuestra ausencia de movimientos. Estos dos métodos son de equity: no restar de nuevo la deuda neta.
 - Aplicar a los siete métodos las reglas de selección del §5 y la justificación económica propia del negocio. El cálculo no obliga a asignar peso positivo: documentar la selección y los pesos.
+- **Ponderación por tipo de empresa:** El analista/IA elegirá y justificará el peso de cada múltiplo según el tipo de empresa y su modelo de negocio: rentabilidad y madurez, intensidad de capital, ciclicidad, apalancamiento, relevancia del patrimonio contable y calidad/comparabilidad de las métricas. No aplicar pesos iguales ni una distribución universal por defecto, ni copiar pesos de otra compañía. Documentar por método el porcentaje, la razón económica y cualquier exclusión con peso cero; normalizar al 100 % dentro del bloque de múltiplos seleccionados, distinguiéndolo del peso global de ese bloque frente al método principal. El usuario podrá modificar los pesos. Calcular siempre los siete métodos aunque alguno tenga peso cero.
 - Si un método es económicamente inaplicable, mostrar N/A con causa; si falta un dato, mostrar N/D con dato pendiente, fuente consultada y efecto. Nunca dejar un método sin evaluar, usar cero para fingir que está calculado, ni completar denominadores no interpretables. Buscar los datos necesarios; el cierre de hallazgos usa la materialidad del §4B, sin ocultar pendientes.
 - Antes de entregar, comprobar integridad de fórmulas contra la versión de plantilla, las siete salidas o sus excepciones justificadas, puentes EV/equity, unidades y acciones, dividendos sin duplicar y descuento por fecha. Hoja, valoración y análisis deben usar la misma revisión. La auditoría registra estos controles también para métodos con peso cero.
 
@@ -168,6 +169,7 @@ observaciones, las frecuencias por etapa recalibran las previas del §3 (nueva v
 
 | Versión | Fecha | Cambio |
 |---|---|---|
+| 8 | 23-oct-2026 | §5A: el analista/IA elige y justifica el peso de cada múltiplo según el tipo de empresa y su modelo de negocio; sin pesos universales ni omisión de cálculos por peso cero. |
 | 7 | 23-oct-2026 | §5A y §8: cálculo obligatorio de siete múltiplos con fórmulas existentes; P/S y P/BV en Maestra/IA/Manual; juicio limitado a entradas, múltiplos de salida y pesos; controles también con peso cero. Sin recálculo ni publicación de empresas. |
 | 6 | 23-oct-2026 | §§4A–4B, 8: capitalización de I+D, leases, opciones, cálculo WACC Detailed con beta multi-negocio y ERP geográfico, límites de materialidad y estados de verificación. No se modifican valores de empresas. |\n| 5 | 23-oct-2026 | §9: análisis fundamental completo como regla permanente; cobertura sustantiva de las 18 secciones, adaptación sectorial, dos niveles, preservación del artículo al actualizar y verificación editorial en auditoría. Sin cambios en fórmulas, ponderaciones ni mínimos cuantitativos del §8. |
 | 4 | 21-oct-2026 | Revisión del historial (38 valoraciones que nunca salieron de «conciliado con salvedades»): previas simétricas (antes la Conservadora pesaba más en todas las etapas), control de márgenes sin alertar lo ya demostrado (umbral 2,5× sector), §8 proceso eficiente (un comando, mínimo obligatorio, estado VALIDADO, una auditoría por publicación). |
