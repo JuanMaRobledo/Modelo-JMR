@@ -301,6 +301,7 @@ function fromRecord(rec, extra) {
     var result = fromParts({ dm: rec.descuentoMultiples, vp: rec.valorPresentePonderado, metodosFY3: rec.metodos, objetivoFY3: rec.objetivoPonderado,
       precio: extra.precio != null ? extra.precio : rec.precio, precioLbl: extra.precioLbl, mos: extra.mos != null ? extra.mos : rec.mos, hoja: rec.hojaGoogle,
       ve: rec.valorEsperado, baseMOS: rec.baseMOS, currency: rec.currency, holding: rec.valoracionHolding });
+    completeMultiplesView(rec, result);
     var applied = appliedMultiples(rec);
     result.metodos.forEach(function (m) { m.aplicados = applied[String(m.nombre).toUpperCase()] || null; });
     // Precio de compra de la posición (opcional, 6-oct-2026): si se pasa, las tarjetas principales muestran también
@@ -327,6 +328,41 @@ function fromRecord(rec, extra) {
     result.marketComparison = isChanged ? deriveMarketComparison(rec, result.impliedMultiples, effectivePrice) :
       (savedMarket || deriveMarketComparison(rec, result.impliedMultiples, effectivePrice));
     return result;
+  }
+
+  // No calcular precios en el visor. Recuperar únicamente salidas ya guardadas
+  // de la misma revisión/hoja, y mantener visibles los métodos pendientes.
+  function completeMultiplesView(rec, result) {
+    var required = ['EV/EBITDA','EV/FCFF','P/E','P/FCFE','P/OCF','P/V','P/BV'];
+    function key(name) {
+      return /^P\/(?:S(?:\s|$|\()|VENTAS)/i.test(name || '') ? 'P/V' : String(name || '').toUpperCase();
+    }
+    var enforce = /^(NKE|NFLX|META)$/.test(String(rec.ticker || '').toUpperCase());
+    var snapshot = rec.multiplesRelativosInformativos;
+    var sheetId = (String(rec.hojaGoogle || '').match(/\/spreadsheets\/d\/([^/]+)/) || [])[1];
+    var sameSource = snapshot && rec.revisionId && snapshot.revisionId === rec.revisionId &&
+      sheetId && snapshot.sourceSheetId === sheetId;
+    if (sameSource && Array.isArray(snapshot.methods)) snapshot.methods.forEach(function (saved) {
+      var method = result.metodos.find(function (m) { return key(m.nombre) === key(saved.nombre); });
+      if (!method) {
+        method = { nombre: key(saved.nombre), peso: 0, hoy: null, fy3: null };
+        result.metodos.push(method);
+      }
+      var stored = method.hoy || {};
+      method.hoy = {};
+      K.forEach(function (k) { method.hoy[k] = num(stored[k]) != null ? stored[k] : num(saved[k]); });
+      method.pesoRelativo = num(saved.pesoRelativo);
+    });
+    if (!enforce) return;
+    required.forEach(function (name) {
+      if (!result.metodos.some(function (m) { return key(m.nombre) === name; }))
+        result.metodos.push({ nombre: name, peso: 0, hoy: null, fy3: null });
+    });
+    var pending = required.filter(function (name) {
+      var method = result.metodos.find(function (m) { return key(m.nombre) === name; });
+      return !method.hoy || K.some(function (k) { return num(method.hoy[k]) == null; });
+    });
+    result.multiplesCoverage = { calculated: 7 - pending.length, pending: pending };
   }
   // Bloque del valor esperado, junto al DCF. d = resultado de fromParts/fromRecord.
   function unified(d) { return !!(d && d.ve && d.ve.escenariosUnificados && d.ve.historias.length); }
@@ -461,7 +497,7 @@ function fromRecord(rec, extra) {
   function rowsFor(d, h) {
     var r = [];
     if (!unified(d)) r.push({ g: 'dcf', cls: 'dcf', label: h === 'hoy' ? 'DCF · valor intrínseco hoy' : 'DCF llevado a FY+3', sub: h === 'hoy' ? 'flujos de caja descontados' : '× (1 + Ke)³', peso: d.dcf.peso, t: d.dcf[h] });
-    d.metodos.forEach(function (m) { r.push({ g: 'met', cls: 'met', label: m.nombre, peso: m.peso, t: m[h], aplicados: m.aplicados }); });
+    d.metodos.forEach(function (m) { r.push({ g: 'met', cls: 'met', label: m.nombre, peso: m.peso, pesoRelativo: m.pesoRelativo, t: m[h] || {base:null,conservador:null,optimista:null}, aplicados: m.aplicados }); });
     r.push({ g: 'mult', cls: 'mult', label: 'Múltiplos consolidados', sub: h === 'hoy' ? 'promedio de 1, 2 y 3 años, traído a hoy' : 'precio FY+3 + dividendos', peso: d.mult.peso, t: d.mult[h] });
     r.push({ g: 'pond', cls: 'pond', label: 'Ponderado DCF + múltiplos', sub: unified(d) ? 'DCF de la historia del mismo caso + múltiplos; secundario' : 'pesos del tipo de empresa', peso: (num(d.dcf.peso) != null && num(d.mult.peso) != null) ? d.dcf.peso + d.mult.peso : null, t: d.pond[h] });
     return r.filter(function (x) { return x.t; });
@@ -478,9 +514,10 @@ function fromRecord(rec, extra) {
         out += '<tr class="jvb-grp g-' + g + '"><td colspan="6"><span class="jvb-tag ' + (g === 'dcf' ? 'main' : '') + '">' + hd[0] + '</span>' + esc(hd[1]) + '</td></tr>';
       }
       out += '<tr class="jvb-row ' + x.cls + '" data-g="' + x.g + '"><td class="lbl"><span class="nm">' + esc(x.label) + '</span>' +
-        (x.sub ? '<span class="sb">' + esc(x.sub) + '</span>' : '') + '<span class="pw">peso ' + pct(x.peso) + '</span></td>' +
+        (x.sub ? '<span class="sb">' + esc(x.sub) + '</span>' : '') + '<span class="pw">peso ' + pct(x.peso) + '</span>' +
+        (num(x.pesoRelativo) != null ? '<span class="sb">Peso dentro del bloque relativo: ' + pct(x.pesoRelativo) + '</span>' : '') + '</td>' +
         '<td class="n w">' + pct(x.peso) + '</td>' +
-        K.map(function (k) { return '<td class="n' + (k === 'base' ? ' b' : '') + '">' + n2(x.t[k]) + (x.g === 'met' ? '<span class="jvb-applied">' + (x.aplicados && x.aplicados[k] ? 'Múltiplo FY+1–3: ' + (x.aplicados[k].every(function(v) { return v === x.aplicados[k][0]; }) ? n2(x.aplicados[k][0]) + '×' : x.aplicados[k].map(function(v,i) { return 'FY+' + (i+1) + ': ' + n2(v) + '×'; }).join(' · ')) : 'Múltiplo aplicado: no disponible') + '</span>' : '') + (k === 'base' ? '<span class="vsm">' + vsPrecio(x.t.base, d.precio) + '</span>' : '') + '</td>'; }).join('') +
+        K.map(function (k) { return '<td class="n' + (k === 'base' ? ' b' : '') + '">' + (x.g === 'met' && num(x.t[k]) == null ? 'N/D · pendiente de cálculo' : n2(x.t[k])) + (x.g === 'met' ? '<span class="jvb-applied">' + (x.aplicados && x.aplicados[k] ? 'Múltiplo FY+1–3: ' + (x.aplicados[k].every(function(v) { return v === x.aplicados[k][0]; }) ? n2(x.aplicados[k][0]) + '×' : x.aplicados[k].map(function(v,i) { return 'FY+' + (i+1) + ': ' + n2(v) + '×'; }).join(' · ')) : 'Múltiplo aplicado: no disponible') + '</span>' : '') + (k === 'base' ? '<span class="vsm">' + vsPrecio(x.t.base, d.precio) + '</span>' : '') + '</td>'; }).join('') +
         '<td class="n vs">' + vsPrecio(x.t.base, d.precio) + '</td></tr>';
     });
     return '<div class="jvb-tw"><table class="jvb-table"><thead><tr><th>Método <small>' + (DISPLAY_CURRENCY === 'COP' ? 'COP por acción' : 'US$ por acción') + '</small></th><th class="n w">Peso</th><th class="n b">Base</th><th class="n">Conservadora</th><th class="n">Optimista</th><th class="n vs">Base vs. precio</th></tr></thead><tbody>' + out + '</tbody></table></div>';
@@ -488,7 +525,7 @@ function fromRecord(rec, extra) {
 
   // Rango Conservador–Optimista de cada fila frente al precio («football field»).
   function rangeHtml(d, h) {
-    var rows = rowsFor(d, h);
+    var rows = rowsFor(d, h).filter(function (r) { return num(r.t.base) != null; });
     if (!rows.length) return '';
     var vals = [];
     rows.forEach(function (x) { K.forEach(function (k) { if (num(x.t[k]) != null) vals.push(x.t[k]); }); });
@@ -608,7 +645,10 @@ function fromRecord(rec, extra) {
     var note = (unified(d) ? 'Los casos Conservador/Base/Optimista de los múltiplos son supuestos auxiliares de precio relativo; los cuatro escenarios DCF activos son Base, Conservadora, Disrupción y Optimista. ' : '') + (DISPLAY_CURRENCY === 'COP' ? 'COP por acción. ' : 'US$ por acción. ') + (d.ke != null ? 'Costo del patrimonio (Ke) ' + pct(d.ke, 1) + '. ' : '') +
       'Hoy: el DCF ya está a valor presente; cada múltiplo es el precio a FY+1, FY+2 y FY+3 más dividendos, traído a hoy con Ke y promediado. ' +
       'FY+3: el DCF de hoy × (1 + Ke)³ y los múltiplos al cierre FY+3 con dividendos. El ponderado es opcional: sirve de contraste, no reemplaza al DCF.';
-    var secondary = bar + (DISPLAY_CURRENCY === 'COP' ? '' : weightedSelectorHtml(d)) +
+    var coverage = d.multiplesCoverage;
+    var coverageNote = coverage ? '<p class="jvb-note"><strong>Múltiplos calculados: ' + coverage.calculated + '/7</strong> · Conservador, Base y Optimista a valor presente. ' +
+      (coverage.pending.length ? 'Pendientes: ' + esc(coverage.pending.join(', ')) + '. Un peso cero no completa un cálculo pendiente.' : 'Incluye los métodos con peso cero. La cobertura de cálculo no certifica los supuestos económicos.') + '</p>' : '';
+    var secondary = coverageNote + bar + (DISPLAY_CURRENCY === 'COP' ? '' : weightedSelectorHtml(d)) +
       '<div class="jvb-hz" data-hz="hoy">' + (d.dcf.hoy ? tableHtml(d, 'hoy') + rangeHtml(d, 'hoy') : '') + '</div>' +
       '<div class="jvb-hz" data-hz="fy3">' + (d.dcf.fy3 ? tableHtml(d, 'fy3') + rangeHtml(d, 'fy3') : '') + '</div>';
     if (opts.compactMethods) secondary = '<details class="jvb-secondary"><summary>Ver otros métodos · múltiplos y ponderado</summary>' + secondary + '</details>';
