@@ -161,9 +161,9 @@
       // luego crecimiento/márgenes y prueba mecánica de TV.
       function priority(t){
         var s=norm(t);
-        if(s.includes('waccterminal')&&s.includes('crecimientoperpetuo'))return 0;
-        if(s.includes('roicterminal')&&s.includes('crecimientoperpetuo'))return 1;
-        if(s.includes('roicterminal')&&s.includes('waccterminal'))return 2;
+        if(s.includes('wacc')&&(s.includes('crecimientoperpetuo')||s.includes('waccterminalg')))return 0;
+        if(s.includes('roic')&&(s.includes('crecimientoperpetuo')||s.includes('crecimientoterminal')))return 1;
+        if(s.includes('roic')&&s.includes('wacc'))return 2;
         if(s.includes('crecimiento')&&s.includes('margenebit'))return 3;
         if(s.includes('salestocapital')&&s.includes('margenebit'))return 4;
         if(s.includes('escaladelvalorterminal'))return 5;
@@ -316,7 +316,7 @@
           /multipl|ev\/|evebit|evfcf|p\/|trailing|forward/i.test(x.name)?'multiplos':'valoracion';
         if(group.id===classify){used[key]=true;contents.push(x);}
       });
-      var panels=contents.map(function(tab,i){return '<details class="jmr-sheet-panel"><summary><span>'+esc(NAME_ALIASES[tab.name]||tab.name)+'</span><span class="jmr-sheet-action">Ver tabla</span></summary><div class="jmr-sheet-body" data-jmr-sheet="'+esc(tab.name)+'"></div></details>';}).join('');
+      var panels=contents.filter(function(tab){return !(/sensibilidad/i.test(tab.name)&&/múltiplo|multipl|7 metodos x historias/i.test(tab.name));}).map(function(tab,i){return '<details class="jmr-sheet-panel"><summary><span>'+esc(NAME_ALIASES[tab.name]||tab.name)+'</span><span class="jmr-sheet-action">Ver tabla</span></summary><div class="jmr-sheet-body" data-jmr-sheet="'+esc(tab.name)+'"></div></details>';}).join('');
       var absent=missing.length?'<p class="jmr-sheet-missing">Sin datos publicados: '+esc(missing.join(' · '))+'. No se sustituyen con datos de otras empresas.</p>':'';
       body+='<section class="jmr-sheet-section"><div class="jmr-sheet-group-heading"><h3>'+esc(group.title)+'</h3><p>'+esc(group.desc)+'</p></div>'+panels+absent+'</section>';
     });
