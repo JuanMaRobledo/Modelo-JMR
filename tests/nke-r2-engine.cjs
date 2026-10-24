@@ -1,6 +1,8 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
-const engine=require('../docs/jmr_engine.js'),f=require('./fixtures/nke-r2.json');
+const fs=require('node:fs'),vm=require('node:vm'),scope={module:{exports:{}},console};
+vm.runInNewContext(fs.readFileSync(__dirname+'/../docs/jmr_engine.js','utf8'),scope);
+const engine=scope.module.exports,f=require('./fixtures/nke-r2.json');
 function near(a,b){assert.ok(Number.isFinite(a)&&Math.abs(a-b)<1e-8,`${a} != ${b}`);}
 function input(s){return {...f.inputs,crecimientoAnios:s.growth.slice(0,5),salesToCapital:s.s2c,salesToCapital2:s.s2c_late,roicTerminal:s.roic_terminal,terminalGrowth:s.g_terminal};}
 function run(i,s){return engine.runDCFDetalle(i,i.crecimientoAnios[1],s.margin_adjusted,i.crecimientoAnios[0],i.marginY1Base);}
