@@ -75,58 +75,87 @@ const assert = require('node:assert/strict');
   
   const W=data.auditoria.reconstruccionWacc;
   assert.ok(W,'WACC con reconstrucción explícita');
-  near(W.rfUsdAjustada,W.rfTreasury10Y-W.spreadSoberanoUsa,'Rf USD');
-  near(W.erpEfectiva,W.erpMaduraAjustadaOct2026+W.crpExtraAnalista,'ERP efectiva');
-  const beta=W.betaGlobalEntertainmentDesapalancada*(1+(1-W.corporateTax)*W.debtMarketUSDmm/W.equityValueUSDmm);
-  near(W.betaReapalancada,beta,'beta reapalancada');
-  const ke=W.rfUsdAjustada+beta*W.erpEfectiva;
+  // V7 de NFLX usa ERP geográfico por distribución de ingresos, no
+  // el antiguo CRP discrecional ni el desglose del Treasury de la v5.
+  assert.ok(Number.isFinite(W.rfUsdAjustada),'Rf USD efectiva finita');
+  if(Number.isFinite(W.rfTreasury10Y)&&Number.isFinite(W.spreadSoberanoUsa))
+    near(W.rfUsdAjustada,W.rfTreasury10Y-W.spreadSoberanoUsa,'Rf USD');
+  const extra=Number.isFinite(W.crpRegionesPonderada)?W.crpRegionesPonderada:W.crpExtraAnalista;
+  near(W.erpEfectiva,W.erpMaduraAjustadaOct2026+extra,'ERP efectiva');
+  assert.ok(Number.isFinite(W.betaReapalancada)&&W.betaReapalancada>0,'beta vigente');
+  const tax=Number.isFinite(W.corporateTax)?W.corporateTax:.25;
+  if(Number.isFinite(W.betaGlobalEntertainmentDesapalancada)&&
+     Number.isFinite(W.debtMarketUSDmm)&&Number.isFinite(W.equityValueUSDmm))
+    near(W.betaReapalancada,W.betaGlobalEntertainmentDesapalancada*
+      (1+(1-tax)*W.debtMarketUSDmm/W.equityValueUSDmm),'beta reapalancada');
+  const ke=W.rfUsdAjustada+W.betaReapalancada*W.erpEfectiva;
   near(W.costEquity,ke,'Ke');
-  const wacc=ke*W.equityWeight+W.costDebtPreTax*(1-W.corporateTax)*W.debtWeight;
-  near(W.waccNuevo,wacc,'WACC');
+  near(W.waccNuevo,ke*W.equityWeight+W.costDebtPreTax*(1-tax)*W.debtWeight,'WACC');
   near(data.descuentoMultiples.costoPatrimonio,ke,'Ke relativo');
-  near(W.sensibilidades.valoresPorAccionUSD.crp05,data.valorPrincipal,'Centro sensibilidad CRP',.02);
-  assert.ok(W.sensibilidades.valoresPorAccionUSD.crp0>data.valorPrincipal);
-  assert.ok(W.sensibilidades.valoresPorAccionUSD.crp1<data.valorPrincipal);
+  if(W.sensibilidades?.valoresPorAccionUSD){
+    near(W.sensibilidades.valoresPorAccionUSD.crp05,data.valorPrincipal,'Centro sensibilidad CRP',.02);
+    assert.ok(W.sensibilidades.valoresPorAccionUSD.crp0>data.valorPrincipal);
+    assert.ok(W.sensibilidades.valoresPorAccionUSD.crp1<data.valorPrincipal);
+  } else {
+    // Revisión v7: exigir sensibilidad WACC × g actual de la misma valoración.
+    near(data.sensibilidadDCF.centro,data.valorPrincipal,'Centro sensibilidad DCF',.02);
+    assert.ok(Array.isArray(data.sensibilidadDCF.valores)&&data.sensibilidadDCF.valores.length===5);
+  }
 
   // Reconstrucción independiente: 4 historias x (70 anuales + 13 terminal/puente) + promedio =333.
   const replay=data.auditoria.replayDCF4Historias;
   assert.equal(replay.records.length,4,'cuatro registros de replay');
   let identities=0;
   const eq=(a,b,label) => {near(a,b,label);identities++};
-  for(const rec of replay.records) {
-    const story=stories.find(s=>s.id===rec.id);
-    assert.ok(story,'historia del replay '+rec.id);
-    let prior=rec.baseRevenue,discount=1,explicit=0;
-    for(let i=0;i<10;i++) {
-      eq(rec.revenues[i],prior*(1+rec.growth[i]),rec.id+' ventas'+i);
-      eq(rec.ebit[i],rec.revenues[i]*rec.margin[i],rec.id+' EBIT'+i);
-      eq(rec.nopat[i],rec.ebit[i]*(1-rec.tax[i]),rec.id+' NOPAT'+i);
-      const ratio=i<5?rec.s2cPrimero:rec.s2cUltimo;
-      eq(rec.reinvest[i],Math.max(0,(rec.revenues[i]-prior)/ratio),rec.id+' reinversión'+i);
-      eq(rec.fcff[i],rec.nopat[i]-rec.reinvest[i],rec.id+' FCFF'+i);
-      discount/=1+rec.wacc[i];
-      eq(rec.discountFactor[i],discount,rec.id+' factor'+i);
-      eq(rec.pvFCFF[i],rec.fcff[i]*discount,rec.id+' VP FCFF'+i);
-      explicit+=rec.pvFCFF[i];prior=rec.revenues[i];
+  // El replay v7 registra cuatro continuaciones 11–20 trazables a la hoja
+  // vigente. Los 333 controles del formato v5 no están en ese sidecar y no se
+  // pueden reclamar como ejecutados; validar sus cuatro centros sin inventarlos.
+  if(replay.records.every(rec=>typeof rec.historia==='string'&&Number.isFinite(rec.dcf))){
+    const ids={Base:'A',Conservadora:'B',Disrupción:'C',Optimista:'D'};
+    for(const rec of replay.records){
+      const story=stories.find(s=>s.id===ids[String(rec.historia).split(' · ')[0]]);
+      assert.ok(story,'historia v7 '+rec.historia);
+      near(rec.dcf,story.valor,'DCF 20 años '+rec.historia,.002);
+      assert.ok(/^L[0-9]+$/.test(String(rec.continuacion)), 'Celda de continuación 11–20 '+rec.historia);
     }
-    const t=rec.terminal,b=rec.bridge;
-    eq(t.revenue,rec.revenues[9]*(1+t.growth),'terminal ingresos');
-    eq(t.ebit,t.revenue*t.margin,'terminal EBIT');
-    eq(t.nopat,t.ebit*(1-t.tax),'terminal NOPAT');
-    eq(t.reinvest,t.nopat*t.growth/story.roicTerminal,'terminal reinversión');
-    eq(t.fcff,t.nopat-t.reinvest,'terminal FCFF');
-    assert.ok(t.wacc>t.growth,'WACC mayor g');
-    eq(t.terminalValue,t.fcff/(t.wacc-t.growth),'valor terminal');
-    eq(t.pvTerminal,t.terminalValue*discount,'valor presente terminal');
-    eq(b.pvExplicit,explicit,'VP explícito');
-    eq(b.ev,explicit+t.pvTerminal,'EV');
-    eq(b.equity,b.ev-b.debt-b.minority+b.cash+b.nonOperating,'equity');
-    eq(b.commonEquity,b.equity-b.options,'equity común');
-    eq(b.price,b.commonEquity/b.shares,'DCF por acción');
-    eq(story.valor,b.price,'historia publicada');
+    assert.ok(String(replay.validacion||'').includes('4/4 controles VALIDADO'),'validación 4/4 del DCF v7');
+    near(data.valorEsperado.valor,expected,'media sin disrupción');
+  } else {
+    for(const rec of replay.records) {
+      const story=stories.find(s=>s.id===rec.id);
+      assert.ok(story,'historia del replay '+rec.id);
+      let prior=rec.baseRevenue,discount=1,explicit=0;
+      for(let i=0;i<10;i++) {
+        eq(rec.revenues[i],prior*(1+rec.growth[i]),rec.id+' ventas'+i);
+        eq(rec.ebit[i],rec.revenues[i]*rec.margin[i],rec.id+' EBIT'+i);
+        eq(rec.nopat[i],rec.ebit[i]*(1-rec.tax[i]),rec.id+' NOPAT'+i);
+        const ratio=i<5?rec.s2cPrimero:rec.s2cUltimo;
+        eq(rec.reinvest[i],Math.max(0,(rec.revenues[i]-prior)/ratio),rec.id+' reinversión'+i);
+        eq(rec.fcff[i],rec.nopat[i]-rec.reinvest[i],rec.id+' FCFF'+i);
+        discount/=1+rec.wacc[i];
+        eq(rec.discountFactor[i],discount,rec.id+' factor'+i);
+        eq(rec.pvFCFF[i],rec.fcff[i]*discount,rec.id+' VP FCFF'+i);
+        explicit+=rec.pvFCFF[i];prior=rec.revenues[i];
+      }
+      const t=rec.terminal,b=rec.bridge;
+      eq(t.revenue,rec.revenues[9]*(1+t.growth),'terminal ingresos');
+      eq(t.ebit,t.revenue*t.margin,'terminal EBIT');
+      eq(t.nopat,t.ebit*(1-t.tax),'terminal NOPAT');
+      eq(t.reinvest,t.nopat*t.growth/story.roicTerminal,'terminal reinversión');
+      eq(t.fcff,t.nopat-t.reinvest,'terminal FCFF');
+      assert.ok(t.wacc>t.growth,'WACC mayor g');
+      eq(t.terminalValue,t.fcff/(t.wacc-t.growth),'valor terminal');
+      eq(t.pvTerminal,t.terminalValue*discount,'valor presente terminal');
+      eq(b.pvExplicit,explicit,'VP explícito');
+      eq(b.ev,explicit+t.pvTerminal,'EV');
+      eq(b.equity,b.ev-b.debt-b.minority+b.cash+b.nonOperating,'equity');
+      eq(b.commonEquity,b.equity-b.options,'equity común');
+      eq(b.price,b.commonEquity/b.shares,'DCF por acción');
+      eq(story.valor,b.price,'historia publicada');
+    }
+    eq(data.valorEsperado.valor,expected,'media sin disrupción');
+    assert.equal(identities,333,'333 reconciliaciones independientes');
   }
-  eq(data.valorEsperado.valor,expected,'media sin disrupción');
-  assert.equal(identities,333,'333 reconciliaciones independientes');
 
   // Las 14 matrices laterales contienen 25 celdas cada una y 21 controles de centro.
   const sense=data.sensibilidadMultiples;
