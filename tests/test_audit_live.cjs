@@ -113,7 +113,7 @@ const assert = require('node:assert/strict');
   if(replay.records.every(rec=>typeof rec.historia==='string'&&Number.isFinite(rec.dcf))){
     const ids={Base:'A',Conservadora:'B',Disrupción:'C',Optimista:'D'};
     for(const rec of replay.records){
-      const story=stories.find(s=>s.id===ids[rec.historia]);
+      const story=stories.find(s=>s.id===ids[String(rec.historia).split(' · ')[0]]);
       assert.ok(story,'historia v7 '+rec.historia);
       near(rec.dcf,story.valor,'DCF 20 años '+rec.historia,.002);
       assert.ok(/^L[0-9]+$/.test(String(rec.continuacion)), 'Celda de continuación 11–20 '+rec.historia);
