@@ -75,18 +75,32 @@ const assert = require('node:assert/strict');
   
   const W=data.auditoria.reconstruccionWacc;
   assert.ok(W,'WACC con reconstrucción explícita');
-  near(W.rfUsdAjustada,W.rfTreasury10Y-W.spreadSoberanoUsa,'Rf USD');
-  near(W.erpEfectiva,W.erpMaduraAjustadaOct2026+W.crpExtraAnalista,'ERP efectiva');
-  const beta=W.betaGlobalEntertainmentDesapalancada*(1+(1-W.corporateTax)*W.debtMarketUSDmm/W.equityValueUSDmm);
-  near(W.betaReapalancada,beta,'beta reapalancada');
-  const ke=W.rfUsdAjustada+beta*W.erpEfectiva;
+  // V7 de NFLX usa ERP geográfico por distribución de ingresos, no
+  // el antiguo CRP discrecional ni el desglose del Treasury de la v5.
+  assert.ok(Number.isFinite(W.rfUsdAjustada),'Rf USD efectiva finita');
+  if(Number.isFinite(W.rfTreasury10Y)&&Number.isFinite(W.spreadSoberanoUsa))
+    near(W.rfUsdAjustada,W.rfTreasury10Y-W.spreadSoberanoUsa,'Rf USD');
+  const extra=Number.isFinite(W.crpRegionesPonderada)?W.crpRegionesPonderada:W.crpExtraAnalista;
+  near(W.erpEfectiva,W.erpMaduraAjustadaOct2026+extra,'ERP efectiva');
+  assert.ok(Number.isFinite(W.betaReapalancada)&&W.betaReapalancada>0,'beta vigente');
+  const tax=Number.isFinite(W.corporateTax)?W.corporateTax:.25;
+  if(Number.isFinite(W.betaGlobalEntertainmentDesapalancada)&&
+     Number.isFinite(W.debtMarketUSDmm)&&Number.isFinite(W.equityValueUSDmm))
+    near(W.betaReapalancada,W.betaGlobalEntertainmentDesapalancada*
+      (1+(1-tax)*W.debtMarketUSDmm/W.equityValueUSDmm),'beta reapalancada');
+  const ke=W.rfUsdAjustada+W.betaReapalancada*W.erpEfectiva;
   near(W.costEquity,ke,'Ke');
-  const wacc=ke*W.equityWeight+W.costDebtPreTax*(1-W.corporateTax)*W.debtWeight;
-  near(W.waccNuevo,wacc,'WACC');
+  near(W.waccNuevo,ke*W.equityWeight+W.costDebtPreTax*(1-tax)*W.debtWeight,'WACC');
   near(data.descuentoMultiples.costoPatrimonio,ke,'Ke relativo');
-  near(W.sensibilidades.valoresPorAccionUSD.crp05,data.valorPrincipal,'Centro sensibilidad CRP',.02);
-  assert.ok(W.sensibilidades.valoresPorAccionUSD.crp0>data.valorPrincipal);
-  assert.ok(W.sensibilidades.valoresPorAccionUSD.crp1<data.valorPrincipal);
+  if(W.sensibilidades?.valoresPorAccionUSD){
+    near(W.sensibilidades.valoresPorAccionUSD.crp05,data.valorPrincipal,'Centro sensibilidad CRP',.02);
+    assert.ok(W.sensibilidades.valoresPorAccionUSD.crp0>data.valorPrincipal);
+    assert.ok(W.sensibilidades.valoresPorAccionUSD.crp1<data.valorPrincipal);
+  } else {
+    // Revisión v7: exigir sensibilidad WACC × g actual de la misma valoración.
+    near(data.sensibilidadDCF.centro,data.valorPrincipal,'Centro sensibilidad DCF',.02);
+    assert.ok(Array.isArray(data.sensibilidadDCF.valores)&&data.sensibilidadDCF.valores.length===5);
+  }
 
   // Reconstrucción independiente: 4 historias x (70 anuales + 13 terminal/puente) + promedio =333.
   const replay=data.auditoria.replayDCF4Historias;
