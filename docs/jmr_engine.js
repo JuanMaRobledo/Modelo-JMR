@@ -517,7 +517,11 @@ function insumosDesdeHoja(celda){
   // control de arrendamientos (12-oct-2026) lo tenían en B78, que ahora es el solapamiento de arrendamientos (un
   // número), así que B78 solo cuenta si todavía contiene el texto Yes/Sí. Ver scripts/migrar_interruptor_s2c.py.
   var capitalGradual = si(IS, 'B120') || si(IS, 'B78');
-  var e4 = n(FM, 'E4'), d4 = n(FM, 'D4'), dRev = (e4 != null && d4 != null) ? e4 - d4 : null;
+  var e4 = n(FM, 'E4'), d4 = n(FM, 'D4'), firstGrowth = n(FM, 'E5');
+  // El año previo mostrado puede ser FY mientras la proyección parte de LTM.
+  // Usar la misma base E4/(1+g1) para ventas, NWC y endeudamiento neto.
+  var revenueStart = e4 != null && firstGrowth != null && 1 + firstGrowth !== 0 ? e4 / (1 + firstGrowth) : d4;
+  var dRev = e4 != null && revenueStart != null ? e4 - revenueStart : null;
   var inp = {
     precioActual: n(IS, 'D1') || n(IS, 'B23'),
     tipoEmpresa: celda(RV, 'G3'),
@@ -543,7 +547,7 @@ function insumosDesdeHoja(celda){
     growthY1Base: n(VO, 'C4'),  growthBase: n(VO, 'D4'),  marginY1Base: n(VO, 'C6'),  marginBase: n(VO, 'C46'),
     growthY1Opt: n(VO, 'C106'), growthOpt: n(VO, 'D106'), marginY1Opt: n(VO, 'C108'), marginOpt: n(VO, 'C47'),
     // Múltiplos ('Financials Multiples', bloque Conservador; las razones históricas son las mismas en los tres).
-    revenueFY0: d4,
+    revenueFY0: revenueStart,
     interestOtherPctEBIT: z(n(FM, 'E11')),
     daRatiosHist: [n(FM, 'B20') / n(FM, 'B4'), n(FM, 'C20') / n(FM, 'C4'), n(FM, 'D20') / n(FM, 'D4')],
     daPctRevenue: e4 ? z(n(FM, 'E20')) / e4 : 0,
@@ -586,7 +590,9 @@ function insumosDesdeHoja(celda){
   [['cons', 0], ['base', 39], ['opt', 79]].forEach(function(b){
     var r = function(row){ return row + b[1]; };
     var c = function(col, row){ return n(FM, col + r(row)); };
-    var E4 = c('E', 4), D4 = c('D', 4), dR = (E4 != null && D4 != null) ? E4 - D4 : null, g1 = c('E', 5);
+    var E4 = c('E', 4), D4 = c('D', 4), g1 = c('E', 5);
+    var revenueStart = E4 != null && g1 != null && 1 + g1 !== 0 ? E4 / (1 + g1) : D4;
+    var dR = E4 != null && revenueStart != null ? E4 - revenueStart : null;
     var da = [c('B', 20) / c('B', 4), c('C', 20) / c('C', 4), c('D', 20) / c('D', 4)];
     var t = tmp[b[0]];
     // Variante de algunas hojas: ΔCapital de trabajo = D&A + CapEx + reinversión del DCF (el FCFF de los
@@ -595,7 +601,7 @@ function insumosDesdeHoja(celda){
     var nwcDcf = e22 != null && e20 != null && e21 != null && vr != null && Math.abs(e22 - (e20 + e21 + vr)) <= 1e-6 * Math.max(1, Math.abs(e22));
     inp.porEscenario[b[0]] = {
       nwcModo: nwcDcf ? 'reinversionDCF' : null,
-      revenueFY0: (E4 != null && g1 != null && 1 + g1 !== 0) ? E4 / (1 + g1) : null,
+      revenueFY0: revenueStart,
       gAdj: ['E', 'F', 'G'].map(function(col, k){ var v = c(col, 5); return v == null ? 0 : v - t.growth[k+1]; }),
       mAdj: ['E', 'F', 'G'].map(function(col, k){ var v = c(col, 8); return v == null ? 0 : v - t.margin[k+1]; }),
       tAdj: ['E', 'F', 'G'].map(function(col, k){ var v = c(col, 14); return v == null ? 0 : v - t.tax[k+1]; }),

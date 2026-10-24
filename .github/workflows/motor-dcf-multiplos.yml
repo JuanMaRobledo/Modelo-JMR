@@ -1,0 +1,28 @@
+name: Motor DCF y múltiplos contra hojas verificadas
+on:
+  pull_request:
+    paths:
+      - 'docs/jmr_engine.js'
+      - 'tests/nvda-r2-engine.cjs'
+      - 'tests/nke-r2-engine.cjs'
+      - 'tests/fixtures/nvda-r2.json'
+      - '.github/workflows/motor-dcf-multiplos.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'docs/jmr_engine.js'
+      - 'tests/nvda-r2-engine.cjs'
+      - 'tests/nke-r2-engine.cjs'
+      - 'tests/fixtures/nvda-r2.json'
+      - '.github/workflows/motor-dcf-multiplos.yml'
+permissions:
+  contents: read
+jobs:
+  formulas:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --test tests/nvda-r2-engine.cjs tests/nke-r2-engine.cjs tests/terminal-capital.cjs tests/seven-method-refresh.test.cjs
