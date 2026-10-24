@@ -126,9 +126,11 @@ observaciones, las frecuencias por etapa recalibran las previas del §3 (nueva v
   detiene solo en el paso de juicio (la ficha de historias, generada con el prompt v5).
 - **Entregable mínimo obligatorio:**
   - DCF de las cuatro historias;
-  - las tres sensibilidades del DCF Base (WACC × g, ROIC × g, crecimiento × margen) y el DCF inverso;
+  - **sensibilidad DCF Base prioritaria:** como mínimo WACC terminal × crecimiento perpetuo, ROIC terminal × crecimiento perpetuo y crecimiento explícito × margen EBIT, todas 5 × 5 con **precio por acción en cada celda**, y centro exactamente conciliado al DCF Base. Cuando hay motor congruente de la misma revisión, ampliar a ROIC terminal × WACC terminal, Sales-to-Capital × margen EBIT, WACC inicial × crecimiento explícito, tasa marginal × reinversión y WACC terminal × escala mecánica del valor terminal (80–120%). Nunca reutilizar motor FCFF de 10 años en NFLX si su DCF principal utiliza transición ROIC de 20 años; generar precios únicamente con el horizonte real de cada empresa. No inventar celdas no verificadas. El crecimiento perpetuo exige reinversión sostenible g/ROIC; WACC > g y ROIC > g. Distinguir escala mecánica del TV de una variación de g o un múltiplo de salida; publicar la contribución del VP terminal al VP operativo, y el DCF inverso;
   - cálculo con fórmulas de los siete múltiplos y salidas por historia, incluso con peso cero, o excepción N/A/N/D justificada según §5A (sin matrices obligatorias);
   - entradas **materiales/aplicables** completas y los 18 candados de cálculo listos (`inputs_completos.py`, `candados.py`); faltantes secundarios solo si su impacto es acotado y quedan anotados según §4B. Ningún hallazgo menor debe bloquear por defecto una valoración, pero un candado real de fórmula o coherencia nunca se evade inventando datos.
+
+  - **Sensibilidad de múltiplos solo en historia Base.** No crear ni mostrar matrices Conservadora, Optimista o Disrupción, pero conservar todas las valoraciones, supuestos y precios por escenario, incluidos los siete métodos aunque tengan peso cero. Dar prioridad visual al DCF sobre cualquier múltiplo.
 
   Las matrices de múltiplos, dos anclas y familias económicas son opcionales y no bloquean. El cálculo de los siete métodos se rige por §5A y no es opcional.
 - **Estados:**
