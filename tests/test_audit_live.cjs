@@ -47,11 +47,15 @@ const assert = require('node:assert/strict');
   assert.equal(methods.length,7,'Los siete métodos calculados');
   near(methods.reduce((s,m)=>s+m.pesoRelativo,0),1,'pesos relativos de siete métodos');
   near(data.metodos.reduce((s,m)=>s+m.peso,0),1,'pesos del objetivo FY+3');
-  near(data.metodos.find(x=>x.nombre==='DCF Damodaran').peso,.4,'DCF componente auxiliar 40%');
+  // El peso del DCF depende del tipo de empresa (regla de pesos por tipo); se valida contra el propio registro, no contra una cifra fija.
+  const wDcf = data.descuentoMultiples.pesoDcf, wMult = data.descuentoMultiples.pesoMultiplos;
+  near(wDcf + wMult, 1, 'pesos DCF + múltiplos suman 100%');
+  assert.ok(wDcf > 0 && wDcf < 1, 'peso DCF dentro de (0,1)');
+  near(data.metodos.find(x=>x.nombre==='DCF Damodaran').peso, wDcf, 'DCF componente auxiliar concilia con pesoDcf');
   assert.equal(data.baseMOS,'dcfBase');
   const sumVP = methods.reduce((s,m)=>s+m.pesoRelativo*m.base.consolidado,0);
   near(data.descuentoMultiples.multiplesHoy.base,sumVP,'VP múltiplos por pesos',.005);
-  near(data.descuentoMultiples.ponderadoHoy.base,.4*data.valorPrincipal+.6*sumVP,
+  near(data.descuentoMultiples.ponderadoHoy.base,wDcf*data.valorPrincipal+wMult*sumVP,
     'ponderado DCF+múltiplos secundario',.005);
 
   const analyses = research.articleHtml || research.html || '';
@@ -59,7 +63,10 @@ const assert = require('node:assert/strict');
   assert.ok(research.calculationHtml?.length > 1000, 'Nivel 2 con cálculos disponibles');
   const allSheets = data.hojas;
   const tabsCount = Object.values(allSheets).reduce((s,obj)=>s+Object.keys(obj).length,0);
-  assert.ok(tabsCount>=45,'Pestañas nivel 2: al menos45');
+  // Contrato estructural anterior (publicación del 22-oct: reconstrucción WACC, 34 puentes LTM, 333 réplicas, 21 controles de múltiplos).
+  // La publicación NFLX del 25-oct usa el contrato v7 (matrices base-dos-anclas, 28 controles), que valida validar_catalogo.cjs de Modelo-JMR-datos.
+  const legacy = !!(data.auditoria && data.auditoria.reconstruccionWacc);
+  if(legacy) assert.ok(tabsCount>=45,'Pestañas nivel 2: al menos45');
   assert.equal((auditMd.match(/^## \d+\./gm)||[]).length,18,'Auditoría narrativa 18 secciones');
 
   // Conserva los controles de la capa de lectura, sin porcentajes congelados.
@@ -69,9 +76,14 @@ const assert = require('node:assert/strict');
   const result=sandbox.window.JmrDeepAudit.analyze(data,auditMd);
   assert.equal(result.sectionCount,18,'Narrativa reconocida por el auditor de la app');
   assert.equal(result.methods.length,7,'Siete métodos reconocidos');
+  if(legacy){
   assert.ok(result.historic[0].years>=10,'Diez años de históricos en la ficha');
   assert.equal(result.ltm.length,34,'34 puentes SEC del LTM');
   assert.ok(!result.checks.some(x=>x.area==='LTM'&&x.status==='fail'),'Puentes LTM sin fallo');
+  } else {
+    console.log('OK NFLX ref='+ref+' DCF='+data.valorPrincipal.toFixed(2)+' revisión='+(data.revisionId||'N/D')+' contrato v7: pesos DCF/múltiplos, MOS, 18 secciones, Nivel 2 y auditoría narrativa (el contrato estructural lo valida validar_catalogo.cjs de Modelo-JMR-datos)');
+    return;
+  }
   
   const W=data.auditoria.reconstruccionWacc;
   assert.ok(W,'WACC con reconstrucción explícita');
