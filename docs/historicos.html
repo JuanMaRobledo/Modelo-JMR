@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Estudios recuperados · Modelo JMR</title>
+<link rel="icon" href="favicon.ico"><link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="jmr-theme.css"><link rel="stylesheet" href="jmr-fullwidth.css">
+<script src="gh_oauth.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js" defer></script>
+<style>
+:root{--bg:#f5f6f2;--card:#fff;--ink:#16231f;--sub:#51615a;--line:#dbe1d9;--soft:#edf1e9;--gold:#906b2b;--ok:#1f7a4d;--warn:#9a5b00;--focus:#2368ad}
+@media(prefers-color-scheme:dark){:root{--bg:#101810;--card:#1b2820;--ink:#f3f5ee;--sub:#afc1b4;--line:#37453a;--soft:#28392b;--gold:#e2b975;--ok:#6fd3a0;--warn:#f0b866;--focus:#80b5ed}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif;overflow-x:hidden}
+header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--card)}
+header nav{display:flex;flex-wrap:wrap;gap:12px}
+a{color:var(--focus)}
+main{max-width:1180px;margin:0 auto;padding:18px 16px 48px}
+.notice{background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin:12px 0}
+.tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0}
+input,select{font:inherit;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink)}
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line)}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--soft);font-size:13px}
+td.n{text-align:right;white-space:nowrap}
+.badge{display:inline-block;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:600;border:1px solid currentColor;white-space:nowrap}
+.badge.ok{color:var(--ok)}.badge.warn{color:var(--warn)}
+.links a{margin-right:10px;white-space:nowrap}
+#viewer{margin-top:20px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 18px;overflow-x:auto}
+#viewer table{min-width:640px}
+.small{font-size:13px;color:var(--sub)}
+</style>
+</head>
+<body>
+<script src="auth.js"></script>
+<header><strong>Modelo JMR · Estudios recuperados y actualizados</strong>
+<nav aria-label="Navegación principal"><a href="index.html">Inicio</a><a href="visor.html">Valoraciones</a><a href="research.html">Análisis fundamental</a><a href="auditorias.html">Editor de auditorías</a><a href="auditoria-integral.html">Auditoría integral</a><a href="historicos.html">Estudios recuperados</a></nav>
+</header>
+<main>
+<h1>Estudios anteriores al 21 de octubre de 2026</h1>
+<p class="notice"><strong>Dos estados.</strong> <span class="badge warn">Recuperado · pendiente de auditoría</span> es el estudio histórico tal como estaba el 21-oct-2026: no se ha revisado económicamente y sus cifras no son las vigentes. <span class="badge ok">Actualizado y auditado</span> es el estudio rehecho con el proceso JMR del 26-oct-2026, con análisis de 18 secciones, Nivel 2 y auditoría económica v1.3 de la misma revisión; la auditoría es <em>con reservas</em> (no es certificación). Los cinco estudios activos del catálogo vigente (NFLX, NKE, NVDA, META y XP) no se tocan.</p>
+<div id="disclaimer" class="small"></div>
+<div class="tools"><label for="q"><strong>Buscar</strong></label><input id="q" type="search" placeholder="Ticker" aria-label="Buscar ticker"><label for="f"><strong>Estado</strong></label><select id="f" aria-label="Filtrar por estado"><option value="">Todos</option><option value="act">Actualizado y auditado</option><option value="rec">Recuperado · pendiente</option></select><span id="count" class="small" role="status"></span></div>
+<div class="tablewrap"><table><thead><tr><th>Empresa</th><th>Estado</th><th>Región</th><th class="n">Valor principal</th><th class="n">Precio con MOS</th><th class="n">Precio</th><th>Fecha</th><th>Consultar</th></tr></thead><tbody id="rows"><tr><td colspan="8">Cargando…</td></tr></tbody></table></div>
+<section id="viewer" hidden aria-live="polite"></section>
+</main>
+<script>
+(function(){
+"use strict";
+var DATA="JuanMaRobledo/Modelo-JMR-datos";
+var $=function(x){return document.getElementById(x);};
+function esc(x){return String(x==null?"":x).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function n(x){return typeof x==="number"&&isFinite(x);}
+function money(v,c){return n(v)?(c==="COP"?"COP $":c==="EUR"?"€":"US$ ")+v.toLocaleString("es-CO",{maximumFractionDigits:2,minimumFractionDigits:2}):"N/D";}
+function raw(ref,path){return "https://raw.githubusercontent.com/"+DATA+"/"+ref+"/"+path;}
+async function getJSON(url){var r=await fetch(url,{cache:"no-store"});if(!r.ok)throw Error("HTTP "+r.status);return r.json();}
+var snapshot="", rows=[];
+function badge(r){return r.act?"<span class='badge ok'>Actualizado y auditado</span>":"<span class='badge warn'>Recuperado · pendiente de auditoría</span>";}
+function render(){
+  var q=$("q").value.trim().toUpperCase(),f=$("f").value;
+  var vis=rows.filter(function(r){return (!q||r.ticker.indexOf(q)>=0)&&(!f||(f==="act")===r.act);});
+  $("count").textContent=vis.length+" de "+rows.length+" estudios";
+  $("rows").innerHTML=vis.map(function(r){
+    var v=r.v||{},cur=v.moneda||v.currency;
+    var links="<a href='#' data-ver='"+esc(r.ticker)+"'>Ver análisis</a>"
+      +"<a href='auditoria-integral.html?ticker="+encodeURIComponent(r.ticker)+(r.act?"":"&historico=1")+"'>Auditar</a>"
+      +(r.sheet?"<a href='"+esc(r.sheet)+"' target='_blank' rel='noopener'>Hoja</a>":"")
+      +(r.doc?"<a href='"+esc(r.doc)+"' target='_blank' rel='noopener'>Documento archivado</a>":"");
+    return "<tr><td><strong>"+esc(r.ticker)+"</strong></td><td>"+badge(r)+"</td><td>"+esc(r.region||"")+"</td><td class='n'>"+money(v.valorPrincipal,cur)+"</td><td class='n'>"+money(v.precioMOS,cur)+"</td><td class='n'>"+money(v.precio,cur)+"</td><td>"+esc(r.act?"2026-10-26":(typeof v.fecha==="string"?v.fecha:"21-oct-2026"))+"</td><td class='links'>"+links+"</td></tr>";
+  }).join("")||"<tr><td colspan='8'>Sin resultados.</td></tr>";
+}
+async function ver(t){
+  var r=rows.find(function(x){return x.ticker===t;}),box=$("viewer");box.hidden=false;box.innerHTML="Cargando "+esc(t)+"…";
+  try{
+    var a=await getJSON(raw(r.act?"main":snapshot,r.analysisPath)),h=a.articleHtml||a.html||"";
+    var head="<h2>"+esc(t)+" · "+badge(r)+"</h2><p class='small'>"+(r.act?"Revisión 26-oct-2026. Auditoría con reservas.":"Versión histórica del 21-oct-2026; NO es la valoración vigente y no ha pasado auditoría económica.")+"</p>";
+    box.innerHTML=head+(window.DOMPurify?DOMPurify.sanitize(h):"<p>No se pudo cargar el sanitizador; consulta el JSON enlazado.</p>");
+    box.scrollIntoView({behavior:"smooth",block:"start"});
+  }catch(e){box.innerHTML="<p>No fue posible cargar el análisis de "+esc(t)+": "+esc(e.message)+".</p>";}
+}
+async function init(){
+  try{
+    var m=await getJSON("recuperacion/manifest-20261021.json");
+    snapshot=m.snapshot.commit;$("disclaimer").textContent=m.disclaimer+" Instantánea: "+snapshot.slice(0,10)+".";
+    var act={};try{var u=await getJSON(raw("main","recuperacion/estudios-actualizados.json"));u.records.forEach(function(x){act[x.ticker]=x;});}catch(e){}
+    var list=m.records.map(function(x){var a=act[x.ticker];return {ticker:x.ticker,region:x.region,act:!!a,
+      valuationPath:a?a.valuationPath:x.valuationPath,analysisPath:a?a.analysisPath:x.analysisPath,sheet:a?a.sheetUrl:x.archivedSheetUrl,doc:a?null:x.archivedAnalysisUrl};});
+    await Promise.all(list.map(async function(r){try{r.v=await getJSON(raw(r.act?"main":snapshot,r.valuationPath));}catch(e){r.v=null;}}));
+    rows=list.sort(function(a,b){return a.ticker.localeCompare(b.ticker);});
+    render();
+  }catch(e){$("rows").innerHTML="<tr><td colspan='8'>No se pudo cargar el inventario: "+esc(e.message)+"</td></tr>";}
+}
+$("q").addEventListener("input",render);$("f").addEventListener("change",render);
+$("rows").addEventListener("click",function(e){var a=e.target.closest("a[data-ver]");if(a){e.preventDefault();ver(a.getAttribute("data-ver"));}});
+init();
+})();
+</script>
+</body>
+</html>

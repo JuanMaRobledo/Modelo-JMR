@@ -676,6 +676,7 @@
   <a href="damodaran.html">Damodaran</a>
   <a href="auditoria-multiplos.html">Auditoría de múltiplos</a>
   <a href="auditoria-integral.html">Auditoría integral</a>
+  <a href="historicos.html">Estudios recuperados</a>
   <a href="mi-bitacora.html">Mi bitácora</a>
 </nav>
 <script>(function(){var a=document.querySelector('nav.appnav a.active');if(a)a.scrollIntoView({inline:'center',block:'nearest'});})();</script>
@@ -2792,6 +2793,7 @@
       if(seen[name]||name==='Cualitativo')return;
       // Referencias fijas de Damodaran, diccionarios y conversores no son
       // tablas propias del emisor y no deben inflar el JSON publicado.
+      if(/^motor sensib/i.test(name))return; // motor de cálculo de las matrices del DCF: 600 KB de celdas auxiliares, no es una tabla para el lector
       if(!/sensib|anexo work|sotp|fcfe banc|revenue segment|segmentos|moat|puente equity|auditor[ií]a econ/i.test(name))return;
       var section=/margen|eficiencia|salud|roic|estadist|diagnos|tesis/i.test(name)?'analisis':'valoracion';
       out[section][name]=compactSheetForPublishing(renderGenericSheet(name));

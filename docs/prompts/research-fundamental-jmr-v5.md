@@ -3,6 +3,8 @@
 
 **Salvedades y fuentes — 23-oct-2026:** trasladar de la auditoría solo las limitaciones relevantes al relato, **sin degradar el artículo ni inventar números**. Una limitación demostrablemente inmaterial conforme a `modelo/REGLAS_VIGENTES.md` §4B no impide que la valoración conste como VERIFICADA, pero debe quedar mencionada en la auditoría. La interpretación del nivel 1 debe explicar cuando I+D capitalizada, arrendamientos y stock options cambien EBIT, reinversión, WACC o valor por acción; el nivel 2 identifica las hojas y los ajustes cuantificados. El artículo no autocertifica fórmulas ni modifica el modelo.
 
+**Análisis siempre completo — 26-oct-2026:** el usuario exige el análisis completo en cada entrega, sin versiones abreviadas ni de avance presentadas como finales (`modelo/REGLAS_VIGENTES.md` §9 y §11). Los mínimos de forma de este prompt (párrafos sustantivos por sección, filas de las tablas, cinco filosofías, 8 fuentes) se comprueban con `Modelo-JMR-datos/scripts/auditar_profundidad.py`; un artículo que no los cumpla no se entrega.
+
 **Completitud obligatoria — 23-oct-2026:** aplicar `modelo/REGLAS_VIGENTES.md` §9. Optimizar el proceso no autoriza resumir el análisis: desarrollar las 18 secciones y sus subsecciones con evidencia y explicación económica específica del emisor. Cubrir negocio y unidades económicas; segmentos/geografía y concentraciones; industria, ciclo y competencia; ventaja competitiva; historia y calidad financiera; balance y liquidez; gobierno y asignación de capital; riesgos, catalizadores y tesis contraria; todos los supuestos materiales y la interpretación de la valoración oficial. Adaptar al sector y a lo que determina el valor de esta empresa.
 
 **Actualización con preservación:** usar la última versión completa identificada, conservar el contenido vigente y actualizar los bloques afectados y sus referencias. Una nota de cambios o de auditoría no reemplaza el artículo. Si el informe previo estaba incompleto, recuperar y completar su contenido pertinente. Mantener el artículo íntegro en el nivel 1, con recuadro inicial «Valor intrínseco base:», método y fecha; los estados y cálculos extensos van al nivel 2, manteniendo su interpretación en el nivel 1.
@@ -27,7 +29,7 @@ Cada apartado debe contener contenido sustantivo, citas y mecanismos causales; p
 
 **Entregable EXCLUSIVO:** artículo largo editable con índice y Nivel 1 + Nivel 2; no ejecutar Auditoría de 18 secciones ni editar Inputs, fórmulas, tasas, JSON o escenarios. No publicar sin autorización. La Calculadora DCF es solo laboratorio de sensibilidad; el Editor de hoja es herramienta independiente de cambios oficiales.
 
-**Referencia técnica:** precisión-financiera-2026-10-09.md y contrato-historias-multiplos-20261017.md son anexos de apoyo, no prompts adicionales. Esta portada prevalece sobre cualquier instrucción previa de creación de cálculos, publicación o auditoría dentro del cuerpo legado.
+**Referencia técnica:** precision-financiera-2026-10-09.md y contrato-historias-multiplos-20261017.md son anexos de apoyo, no prompts adicionales. Esta portada prevalece sobre cualquier instrucción previa de creación de cálculos, publicación o auditoría dentro del cuerpo legado.
 
 ---
 
@@ -45,7 +47,7 @@ Las secciones 1 a 11 y 13 a 18 son cualitativas: en ellas no calcules valor intr
 
 ### Jerarquía de resultados y explicación de supuestos (1-oct-2026)
 
-Esta revisión prevalece sobre indicaciones anteriores de igual destaque entre Base y esperado. El **DCF Base es el valor intrínseco principal**; el DCF esperado por probabilidades es complementario. Los múltiplos individuales y ponderados siguen siendo análisis secundarios. El margen de seguridad se calcula SOLO sobre el valor principal Base (DCF Base; SOTP Base en holdings), nunca sobre el esperado.
+Esta revisión prevalece sobre indicaciones anteriores de igual destaque entre Base y esperado. El **DCF Base es el valor intrínseco principal**; el promedio de tres historias (Conservadora, Base, Optimista) es complementario, y el valor esperado de los cuatro desenlaces, si la valoración oficial lo trae, se cita solo como dato informativo. Los múltiplos individuales y ponderados siguen siendo análisis secundarios. El margen de seguridad se calcula SOLO sobre el valor principal Base (DCF Base; SOTP Base en holdings), nunca sobre el esperado.
 
 En títulos, prosa y tablas visibles usa **Base, Conservadora, Disrupción y Optimista**, sin prefijar letras. Añade a cada escenario un título descriptivo específico de la empresa. Conserva **Disrupción · Deterioro de los fundamentales**. A/B/C/D pueden conservarse únicamente como identificadores internos para vincular cálculos. Las referencias visibles a A, B, C y D en instrucciones o formatos antiguos deben interpretarse con estos nombres.
 
@@ -58,28 +60,9 @@ La explicación de los supuestos forma parte del **análisis fundamental**, no s
 
 No basta con repetir cifras de una tabla, citar una celda, nombrar una ventaja competitiva o afirmar que un supuesto es conservador. Distingue naturalmente datos reportados y juicio del analista. Si falta sustento, declara el supuesto provisional y la evidencia pendiente; no inventes explicaciones. Las secciones cualitativas desarrollan los mecanismos y la sección 12 conecta esos mecanismos con los inputs y resultados numéricos. En la auditoría, una sección no está completa por contener tablas: verifica también que estas justificaciones estén integradas y sean congruentes con hoja, datos y escenarios.
 
-### Control de integridad · 1 de octubre de 2026
+### Presentación de múltiplos (1-oct-2026)
 
-Esta sección prevalece sobre cualquier instrucción que permita cerrar una revisión sin verificar la hoja.
-
-- **Solo lectura.** Este análisis no edita la hoja. Si el usuario autoriza expresamente una corrección: un solo editor por hoja; nunca trabajes sobre una hoja que otra persona, chat o agente esté editando. Antes de escribir, revisa el historial de la hoja; si hay una edición reciente que no hiciste tú, detente y pregunta. Toda celda que cambies lleva respaldo del valor anterior y una nota con el motivo.
-- **Una empresa por conversación.** Los análisis y las auditorías se hacen de a una empresa, con la hoja completa a la vista. Los cambios de criterio que afectan a todas (por ejemplo, el tratamiento de arrendamientos) se deciden en una sola sesión, se aplican igual en todas las hojas y se siguen de un escaneo de integridad de todas.
-- **No reemplaces fórmulas por números** sin documentarlo. Una celda que debe seguir a otra (como 'Valuation output'!C46 = 'Input sheet'!B30) se enlaza; no se copia su valor.
-- **Lista de cierre obligatoria.** Una revisión está completa solo si se verificó y se informa cada punto:
-  1. Cuadre con la SEC (último 10-Q o 10-K): ventas y EBIT LTM, caja e inversiones, deuda, arrendamientos, acciones básicas y diluidas, preferentes, convertibles y minoritarios.
-  2. Ninguna celda con error (#REF!, #VALUE!, #DIV/0!, #N/A, #NUM!) en las pestañas que usa la valoración.
-  3. El motor del Modelo JMR reproduce el DCF de la hoja ('Valuation output'!B35) y la pestaña «Escenarios e historias» reproduce las cuatro historias y el esperado.
-  4. Cada cifra de los textos sale del cálculo vigente o de una fuente citada con fecha. No escribas a mano un número que el modelo calcula.
-  5. Estado declarado: verificado, corregido con salvedades o pendiente.
-- **Escaneo de integridad** (solo con acceso al repositorio). Después de cualquier cambio masivo autorizado corre `python scripts/integridad_hojas.py` (JMR-valuation). Detecta errores, números fijos donde la plantilla tiene fórmulas, celdas desenlazadas, preferentes sin restar, diferencias entre la hoja y el último cálculo y ediciones humanas recientes.
-
-### Presentación vigente · 1 de octubre de 2026
-
-El **DCF Base** es el valor intrínseco principal y debe aparecer primero, con mayor destaque. Después presenta el **DCF esperado por probabilidades** como complemento y, por último, los múltiplos individuales, consolidados y ponderados como lecturas secundarias. El MOS se calcula sobre el DCF/FCFE/SOTP Base principal; el valor esperado es informativo y no modifica esta fórmula.
-
-Los nombres visibles son **Base, Conservadora, Disrupción y Optimista**, acompañados del título propio de cada historia. Usa **Disrupción · Deterioro de los fundamentales**. Las letras A/B/C/D solo son claves internas.
-
-Integra en el análisis fundamental párrafos que expliquen, para cada supuesto material, la evidencia con fuente y fecha, el mecanismo económico, por qué elegiste esa cifra y no una alternativa, su sensibilidad y qué observación obligaría a cambiarla. Cubre crecimiento, margen, reinversión, ventas/capital, vida útil de I+D, costo de capital, crecimiento y ROIC terminales, dilución y múltiplos. Si falta soporte, declara la salvedad; no conviertas un valor heredado en un supuesto validado. Las tablas complementan esta explicación.
+Jerarquía, nombres de las historias y explicación de supuestos: ver «Jerarquía de resultados y explicación de supuestos» y `modelo/REGLAS_VIGENTES.md` §1, §2 y §9.
 
 Presenta los múltiplos en tablas: una fila por método y una columna por escenario, Base primero. Distingue en cada celda **múltiplo aplicado (×)** y **precio relativo por acción (moneda)**, con horizonte y fecha explícitos. Deja el consolidado y el ponderado al final. No escribas series de cifras separadas por barras. Si los múltiplos solo tienen tres casos auxiliares, muestra esos tres y explica el alcance; no inventes un cuarto resultado de Disrupción. Comprueba que el Base, esperado, nombres y fórmulas coincidan entre el informe y la app.
 
@@ -101,18 +84,18 @@ Este contrato precisa el DCF inverso y la sensibilidad; prevalece sobre instrucc
 
 Aplica este contrato a cualquier empresa. Prevalece sobre referencias antiguas a tres escenarios o a historias valoradas por separado. Conserva las 18 secciones y sus mínimos; la sección 12 interpreta y reproduce cálculos de la valoración oficial vigente sin crear una valoración propia.
 
-- Define una sola familia de cuatro tesis: **A · Base, B · Conservadora, C · Disrupción y D · Optimista**. El nombre completo de C es «Tesis de disrupción · Deterioro de los fundamentales». Añade un nombre descriptivo propio de la empresa. Disrupción significa deterioro estructural y no presupone IA ni quiebra. No copies historias ni probabilidades de otro activo.
+- Define una sola familia de cuatro tesis: **Base, Conservadora, Disrupción y Optimista** (A, B, C y D son solo identificadores internos). El nombre completo de Disrupción es «Tesis de disrupción · Deterioro de los fundamentales». Añade un nombre descriptivo propio de la empresa. Disrupción significa deterioro estructural y no presupone IA ni quiebra. No copies historias ni probabilidades de otro activo.
 - Explica cada tesis en prosa: qué sucede en el negocio, de dónde proceden ingresos y crecimiento, por qué cambia el margen, qué reinversión exige, cuánto dura la ventaja competitiva y qué evidencia la confirma o invalida. La base es la trayectoria central defendida; no es el promedio de las historias ni necesariamente el punto medio del rango.
 - Cada historia es un DCF completo, con proyección anual de diez años y valor terminal, sobre la misma fecha, moneda, perímetro y base contable. Los escenarios operativos de la sección 10 y los cuantificados de la 12 deben ser las mismas cuatro historias, con idénticos identificadores y supuestos.
 - Explica las probabilidades de la valoración oficial: previa por etapa del ciclo de vida más ajustes de 5 pp atados a indicadores que cruzaron su umbral (ficha: `prob_regla`, `ajustes_prob`). Suman 100% y son juicio, no frecuencias publicadas; no las cambies. Evita solapamientos entre desenlaces y explica incertidumbres no cubiertas. **Promedio de tres historias = Σ pᵢ × DCFᵢ / Σ pᵢ, solo Conservadora, Base y Optimista** (la Disrupción se muestra aparte con su probabilidad; el promedio no es el valor esperado de los cuatro desenlaces).
-- Presenta **DCF base hoy (historia Base)** como valor intrínseco principal y referencia central del análisis. Presenta **DCF esperado hoy** por probabilidades como complemento secundario, claramente diferenciado, en la sección 12. Identifica el rango ordinario de las tres tesis sin Disrupción y muestra esta última por separado. Calcula el precio con margen de seguridad SOLO respecto al valor principal Base: Base × (1 − MOS). Si falta una historia cuantificada o probabilidades justificadas, escribe **«DCF esperado pendiente»**. Nunca reemplaces el esperado por el base o por un ponderado de métodos.
-- Los antiguos Conservador/Base/Optimista de la plantilla son referencia técnica auxiliar. No llames «base» principal al antiguo caso técnico cuando sus supuestos difieran de A. Los múltiplos individuales, consolidados y ponderados permanecen secundarios y separados del valor intrínseco por DCF.
-- Incluye en la sección 12 **«De dónde sale el cálculo»**: registro de inputs con valor, unidad, período, fuente y fecha, hoja/celda o campo, origen y justificación; tabla anual de cada DCF; puente desde ingresos hasta equity y valor por acción; ejemplo numérico completo de A; suma ponderada y cálculo del MOS. Explica cada resultado, sus principales determinantes y sus límites.
+- Presenta **DCF base hoy (historia Base)** como valor intrínseco principal y referencia central del análisis. Presenta el **promedio de tres historias** como complemento secundario, claramente diferenciado, en la sección 12; el valor esperado de cuatro desenlaces, si existe, va solo como dato informativo. Identifica el rango ordinario de las tres tesis sin Disrupción y muestra esta última por separado. Calcula el precio con margen de seguridad SOLO respecto al valor principal Base: Base × (1 − MOS). Si falta una historia cuantificada o probabilidades justificadas, escribe **«promedio de tres historias pendiente»**. Nunca reemplaces el promedio por el Base ni por un ponderado de métodos.
+- Los antiguos Conservador/Base/Optimista de la plantilla son referencia técnica auxiliar. No llames «base» principal al antiguo caso técnico cuando sus supuestos difieran de la historia Base. Los múltiplos individuales, consolidados y ponderados permanecen secundarios y separados del valor intrínseco por DCF.
+- Incluye en la sección 12 **«De dónde sale el cálculo»**: registro de inputs con valor, unidad, período, fuente y fecha, hoja/celda o campo, origen y justificación; tabla anual de cada DCF; puente desde ingresos hasta equity y valor por acción; ejemplo numérico completo de la Base; suma ponderada y cálculo del MOS. Explica cada resultado, sus principales determinantes y sus límites.
 - Para FCFF muestra EBIT, NOPAT, reinversión neta, FCFF, reinversión estable = NOPAT × g/ROIC, valor terminal, descuento a WACC y puente de valor operativo a equity (caja, activos no operativos, deuda, minoritarios, otras reclamaciones y dilución). Para FCFE explica beneficio, reinversión, deuda neta y capital regulatorio cuando aplique; descuenta a Ke y evita restar deuda otra vez del equity. No dupliques opciones y dilución ni capex y reinversión por sales-to-capital.
 - Verifica congruencia matemática y económica: ingresos agregados conciliados con segmentos, crecimiento calculado sobre ingresos comparables, CAGR con intervalos correctos, volumen/precio/mezcla y M&A/FX separados, márgenes compatibles con costos y mezcla, transición del año base al año 1, reinversión consistente con crecimiento y trayectoria del ROIC coherente con cada tesis. Comprueba g < tasa terminal y el peso del valor terminal. No fuerces el ROIC a WACC si el deterioro justifica retornos inferiores; explica la pérdida de valor.
 - Un orden de severidad entre tesis no exige ordenar todas las variables: una empresa puede sacrificar margen para crecer o perder ingresos y mejorar mezcla. Investiga valores contraintuitivos y explica el mecanismo; no alteres datos para forzar un orden.
 - Conserva el archivo fuente en modo lectura salvo autorización explícita de corrección. La sección 12 puede reproducir, para verificar, las cifras de historias ya calculadas en la versión oficial; prohíbe modificar datos, recalcular supuestos o publicar escenarios nuevos desde Análisis. Si se solicita auditar o corregir supuestos, remite al prompt independiente de Auditoría (diagnóstico) y luego al de Valoración (cambio autorizado), sin mezclar entregables ni modificar cifras en Análisis. No declares sincronización sin comprobarla.
-- En el control final verifica las cuatro tesis, cada input y resultado explicado, probabilidades al 100%, Base destacado como referencia principal y esperado identificado como complemento, conciliación entre fuentes de resultados y salvedades explícitas. Distingue **verificado**, **corregido con salvedades** y **pendiente**; reproducir una hoja no valida su economía.
+- En el control final verifica las cuatro tesis, cada input y resultado explicado, probabilidades al 100%, Base destacado como referencia principal y promedio de tres historias identificado como complemento, conciliación entre fuentes de resultados y salvedades explícitas. Distingue **verificado**, **corregido con salvedades** y **pendiente**; reproducir una hoja no valida su economía.
 
 - Empresa: **[EMPRESA]**
 - Ticker: **[TICKER]**
@@ -129,7 +112,7 @@ El crecimiento terminal se define para cada historia y no se hereda automáticam
 
 ## Ejecución autónoma con el prompt y el Excel
 
-La entrada habitual consta únicamente de este archivo y una tabla Excel del Modelo JMR. Ambos son suficientes para iniciar el trabajo; completa los documentos financieros y el contexto con investigación externa cuando tengas acceso.
+La entrada habitual consta de este archivo, la hoja (Excel) del Modelo JMR y la ficha JSON de la valoración oficial cuando exista. Con ellos basta para iniciar el trabajo; completa los documentos financieros y el contexto con investigación externa cuando tengas acceso.
 
 1. Lee íntegramente este prompt y el Excel adjunto de la sesión actual. Identifica entidad legal, ticker, mercado, clase de acción o ADR, moneda y cierre fiscal en el contenido del libro; no te bases únicamente en el nombre del archivo.
 2. Las indicaciones explícitas del usuario prevalecen sobre los valores predeterminados. Si no se indicó fecha de corte, usa la fecha real de ejecución, con fecha absoluta. Registra por separado fecha del informe, fecha de información financiera, fecha interna del Excel y fecha de las cotizaciones.
@@ -154,7 +137,7 @@ La estructura de 18 secciones es estable; sus mecanismos económicos deben adapt
 | Energía y materias primas | Volumen, reservas, costos, precios realizados, vida de activos, reposición, coberturas, ciclo y obligaciones de cierre |
 | Inmobiliario y REIT | Ocupación, rentas, vencimientos, ingresos operativos de inmuebles, FFO/AFFO y conciliación, mantenimiento, deuda y costo de financiación |
 | Servicios públicos e infraestructura | Base regulada, retornos autorizados, concesiones, inversión, demanda, contratos y financiación |
-| Holdings y conglomerados | Calidad y dependencia de participadas, caja de la matriz, deuda por entidad, gobierno y transferibilidad de recursos; no calcules suma de partes |
+| Holdings y conglomerados | Calidad y dependencia de participadas, caja de la matriz, deuda por entidad, gobierno y transferibilidad de recursos; interpreta el SOTP Base de la valoración oficial (valor principal del holding) sin calcular uno propio ni sumar partes por tu cuenta |
 
 Explica por qué un ratio no aplica y usa el indicador económico pertinente sin crear valoración. No fuerces ROIC, FCF industrial o múltiplos con beneficios negativos. Para ETF, bonos, criptoactivos u otros instrumentos sin estados empresariales equivalentes, conserva los títulos y declara qué elementos no aplican; no inventes segmentos, gerencia operativa o datos. Si se requiere un análisis propio de otra clase de activo, explica el límite de este mandato antes de atribuirle conclusiones de investigación empresarial.
 
@@ -241,7 +224,7 @@ Fuera de la sección 12, si se proporciona una tabla o archivo de valoración, r
 4. Revisa congruencia de períodos, etiquetas, unidades, signos y definiciones. No vuelvas a auditar la lógica matemática de fórmulas que el usuario declare auditadas, pero sí señala si una fórmula auditada no representa correctamente la etiqueta o el período anunciado.
 5. Para el costo de capital, especifica qué método está activo, qué métodos alternativos contiene el libro y cuáles no se usan. Distingue WACC de empresa, WACC sectorial y reglas de etapa estable.
 6. Para múltiplos, identifica si el ancla efectiva es un año puntual, LTM, NTM, promedio, mediana histórica, comparable sectorial o banda manual. No asumas que las referencias visibles impulsan el resultado.
-7. Para escenarios, explica qué supuestos cambian realmente entre A · Base, B · Conservadora, C · Disrupción y D · Optimista y cuáles permanecen constantes.
+7. Para escenarios, explica qué supuestos cambian realmente entre Base, Conservadora, Disrupción y Optimista y cuáles permanecen constantes.
 8. Para valor terminal, documenta crecimiento, margen, retorno sobre capital, reinversión y costo de capital, así como cualquier regla automática.
 9. Para recompras, opciones y compensación basada en acciones, verifica si están activadas, excluidas o extrapoladas.
 10. Resume los resultados declarados sin presentarlos como una valoración propia.
@@ -573,7 +556,7 @@ Cubre, cuando apliquen, riesgos operativos, financieros, competitivos, tecnológ
 
 No calcules valoración aquí (la cuantificación va en la sección 12). Presenta una tabla operacional:
 
-| Variable | A · Base | B · Conservadora | C · Disrupción | D · Optimista | Evidencia que movería de escenario |
+| Variable | Base | Conservadora | Disrupción | Optimista | Evidencia que movería de escenario |
 |---|---|---|---|---|---|
 | Crecimiento y participación | | | | | |
 | Poder de precios y retención | | | | | |
@@ -646,18 +629,18 @@ Ubica a la empresa en su tramo de tamaño (ventas LTM) en las tasas base de crec
   - **Resultado:** sin ventaja defendible (falla alguna de las dos primeras) → ROIC terminal = costo de capital; ventaja durable → promedio de la industria de Damodaran, sin superar el ROIC actual ni bajar del costo de capital; ventaja que se desvanece → punto medio entre el costo de capital terminal y ese valor. La probabilidad de perder la ventaja en el futuro va a las historias (las de erosión usan el costo de capital), no a este valor.
 
 Si la industria no es representativa, usa la industria madura más cercana. La continuidad no supone un ROIC mayor que el actual sin evidencia; en disrupción el retorno puede ser inferior al costo de capital si la economía lo justifica. Muestra el ROIC actual, el de la industria, el costo de capital terminal, el valor que usa la hoja y el DCF Base con y sin el ajuste; si no aplica, di qué condición falla.
-4. **Riesgo:** beta de regresión frente a beta bottom-up del sector (Damodaran, tabla de EE.UU. si la mayoría de las ventas está en Norteamérica y global si no, con fecha), reapalancada con la D/E de mercado de la empresa. Sin primas por riesgos propios diversificables (concentración de clientes o de un distribuidor, una sola categoría, moda, regulación): van en las historias Conservadora y Disrupción, no en la tasa; la regresión es solo referencia salvo que el sector no describa el negocio y entonces se documenta explícitamente. Muestra el DCF Base con cada beta.
+4. **Riesgo:** beta de regresión frente a beta bottom-up del sector (Damodaran, tabla de EE.UU. si la mayoría de las ventas está en Norteamérica y global si no, con fecha), reapalancada con la D/E de mercado de la empresa. Sin primas por riesgos propios diversificables (concentración de clientes o de un distribuidor, una sola categoría, moda, regulación): van en las historias Conservadora y Disrupción, no en la tasa; la regresión es solo referencia salvo que el sector no describa el negocio y entonces se documenta explícitamente. Si la valoración oficial trae el DCF Base con cada beta, muéstralo; no lo calcules.
 
 ### Historias cuantificadas y valor esperado
 
-Cuatro historias activas mutuamente excluyentes, cada una con crecimiento por segmento o marca en los años 1-5, crecimiento agregado resultante, margen objetivo, sales-to-capital, probabilidad (la de la valoración oficial, con su previa y ajustes) y valor por acción (con la beta del modelo y con la bottom-up). Cada historia lleva también su ROIC después del año 10. Si la hoja usa un ROIC terminal mayor que el costo de capital, solo lo conservan las historias en las que la ventaja se mantiene. En las historias donde la ventaja se erosiona (sustitución, pérdida de participación, liberación regulatoria), el ROIC vuelve al costo de capital. Una historia de erosión con retornos excedentes para siempre es internamente incoherente e infla el valor esperado. Si el precio queda por debajo de la peor historia, revisa primero si a esa historia le falta este ajuste o si falta una historia peor. Cierra con el **DCF Base (valor principal)**, el **promedio de Conservadora, Base y Optimista** ponderado por sus probabilidades renormalizadas (condicionado a que no ocurra la disrupción), la **Disrupción aparte** («¿Qué pasaría si todo fallara?») y una tabla de sensibilidad crecimiento × margen del DCF Base. Aclara que las probabilidades son juicio del analista y que el lector puede asignar las suyas. El margen de seguridad se aplica SOLO sobre el valor principal Base: precio con MOS = Base × (1 − MOS). La prudencia vive solo en ese margen: si además las historias o los supuestos se recortan «por prudencia», el riesgo se cuenta dos veces (Damodaran, *DCF Myth 3.1: The Margin of Safety*, 2016); señálalo si lo detectas.
+Cuatro historias activas mutuamente excluyentes, cada una con crecimiento por segmento o marca en los años 1-5, crecimiento agregado resultante, margen objetivo, sales-to-capital, probabilidad (la de la valoración oficial, con su previa y ajustes) y valor por acción de la valoración oficial (beta del modelo; la bottom-up si la ficha la trae). Cada historia lleva también su ROIC después del año 10. Si la hoja usa un ROIC terminal mayor que el costo de capital, solo lo conservan las historias en las que la ventaja se mantiene. En las historias donde la ventaja se erosiona (sustitución, pérdida de participación, liberación regulatoria), el ROIC vuelve al costo de capital. Una historia de erosión con retornos excedentes para siempre es internamente incoherente e infla el valor esperado. Si el precio queda por debajo de la peor historia, revisa primero si a esa historia le falta este ajuste o si falta una historia peor. Cierra con el **DCF Base (valor principal)**, el **promedio de Conservadora, Base y Optimista** ponderado por sus probabilidades renormalizadas (condicionado a que no ocurra la disrupción), la **Disrupción aparte** («¿Qué pasaría si todo fallara?») y una tabla de sensibilidad crecimiento × margen del DCF Base. Aclara que las probabilidades son juicio del analista y que el lector puede asignar las suyas. El margen de seguridad se aplica SOLO sobre el valor principal Base: precio con MOS = Base × (1 − MOS). La prudencia vive solo en ese margen: si además las historias o los supuestos se recortan «por prudencia», el riesgo se cuenta dos veces (Damodaran, *DCF Myth 3.1: The Margin of Safety*, 2016); señálalo si lo detectas.
 
 | Tesis / historia activa | Probabilidad | Crecimiento por segmento (años 1-10) | Crecimiento anual del grupo | Margen objetivo | Sales-to-capital | ROIC terminal | DCF/acción hoy |
 |---|---:|---|---|---:|---:|---:|---:|
-| A · Base | | | | | | | |
-| B · Conservadora | | | | | | | |
-| C · Disrupción | | | | | | | |
-| D · Optimista | | | | | | | |
+| Base | | | | | | | |
+| Conservadora | | | | | | | |
+| Disrupción | | | | | | | |
+| Optimista | | | | | | | |
 
 ### Pre-mortem
 
@@ -672,7 +655,7 @@ Entre seis y ocho indicadores observables con su valor actual y los umbrales que
 
 ### El precio al final
 
-Solo aquí: precio de referencia con fecha; DCF inverso (crecimiento de los años 1-5 que justifica el precio con al menos dos márgenes y dos betas); qué fracción de empresas de ese tamaño logra ese crecimiento; comparación con el DCF Base, el promedio de tres historias y la Disrupción; qué historia necesita el precio y «¿qué sabe el mercado que yo no?». No conviertas la diferencia en una recomendación.
+Solo aquí: precio de referencia con fecha; DCF inverso copiado de la valoración oficial (crecimiento de los años 1-5 que justifica el precio; si la ficha trae variantes por margen o beta, preséntalas); qué fracción de empresas de ese tamaño logra ese crecimiento; comparación con el DCF Base, el promedio de tres historias y la Disrupción; qué historia necesita el precio y «¿qué sabe el mercado que yo no?». No conviertas la diferencia en una recomendación.
 
 ### Registro de decisión
 
@@ -710,7 +693,7 @@ Evalúa retorno sobre capital, EBIT respecto al capital empleado, eficiencia ope
 
 ## 14. Noticias y eventos recientes
 
-Incluye únicamente acontecimientos materiales ocurridos durante los 90 días anteriores a **[FECHA_DE_CORTE]**. Revisa TODOS los 8-K/6-K de la SEC entre el último 10-Q/10-K y la fecha de corte (no solo prensa): un hecho material, como el ciberataque de BSX del 25-ago-2026 o una guía nueva, cambia el año 1 de las historias aunque todavía no esté en los estados financieros. Si no existen, escribe: **“No se identificaron acontecimientos materiales durante los 90 días anteriores a la fecha de corte.”**
+Incluye únicamente acontecimientos materiales ocurridos durante los 90 días anteriores a **[FECHA_DE_CORTE]**. Revisa TODOS los 8-K/6-K de la SEC entre el último 10-Q/10-K y la fecha de corte (no solo prensa): un hecho material, como un incidente de seguridad o una guía nueva, cambia el año 1 de las historias aunque todavía no esté en los estados financieros. Si no existen, escribe: **“No se identificaron acontecimientos materiales durante los 90 días anteriores a la fecha de corte.”**
 
 | Fecha | Acontecimiento verificado | Importancia para la tesis | Impacto positivo/neutral/negativo | ¿Cambia la tesis? | Fuente |
 |---|---|---|---|---|---|

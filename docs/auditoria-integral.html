@@ -98,7 +98,7 @@ table{width:100%;border-collapse:collapse;font-size:13px;margin:12px 0}th,td{bor
 <script>
 (function(){
 "use strict";
-var ROOT="JuanMaRobledo/Modelo-JMR-datos", API="https://api.github.com/repos/"+ROOT+"/contents/", RAW="https://raw.githubusercontent.com/"+ROOT+"/main/";
+var ROOT="JuanMaRobledo/Modelo-JMR-datos", API="https://api.github.com/repos/"+ROOT+"/contents/", RAW="https://raw.githubusercontent.com/"+ROOT+"/main/", REF="main", HIST=new URLSearchParams(location.search).get("historico")==="1";
 var $=function(x){return document.getElementById(x);};
 var nowPaths={}, narrPaths={}, desired=new URLSearchParams(location.search).get("ticker"), current="";
 function esc(x){return String(x==null?"":x).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
@@ -109,9 +109,9 @@ function pct(x){return n(x)?(x*100).toLocaleString("es-CO",{maximumFractionDigit
 function near(a,b){return n(a)&&n(b)&&Math.abs(a-b)<=Math.max(0.00001,Math.abs(a)*1e-6);}
 function status(text){$("status").textContent=text;}
 function headers(){var h={"Accept":"application/vnd.github+json"};try{if(window.GhOAuth&&GhOAuth.ghHeaders)return GhOAuth.ghHeaders(GhOAuth.getGhToken());}catch(e){}return h;}
-async function list(path){var r=await fetch(API+path+"?ref=main",{headers:headers(),cache:"no-store"});if(!r.ok)throw Error("Inventario "+path+": HTTP "+r.status);var rows=await r.json();if(!Array.isArray(rows))throw Error("Inventario "+path+" inválido");return rows;}
-async function getJSON(path){var r=await fetch(RAW+path,{cache:"no-store"}).catch(function(){return null;});if(r&&r.ok)return r.json();r=await fetch(API+path+"?ref=main",{headers:headers(),cache:"no-store"});if(!r.ok)throw Error("Expediente no disponible: HTTP "+r.status);var j=await r.json();if(!j.content)throw Error("Contenido incompleto");return JSON.parse(decodeURIComponent(escape(atob(j.content.replace(/\s/g,"")))));}
-async function getText(path){var r=await fetch(RAW+path,{cache:"no-store"}).catch(function(){return null;});if(r&&r.ok)return r.text();r=await fetch(API+path+"?ref=main",{headers:headers(),cache:"no-store"});if(!r.ok)throw Error("Narrativa no disponible: HTTP "+r.status);var j=await r.json();return decodeURIComponent(escape(atob(j.content.replace(/\s/g,""))));}
+async function list(path){var r=await fetch(API+path+"?ref="+REF,{headers:headers(),cache:"no-store"});if(!r.ok)throw Error("Inventario "+path+": HTTP "+r.status);var rows=await r.json();if(!Array.isArray(rows))throw Error("Inventario "+path+" inválido");return rows;}
+async function getJSON(path){var r=await fetch(RAW+path,{cache:"no-store"}).catch(function(){return null;});if(r&&r.ok)return r.json();r=await fetch(API+path+"?ref="+REF,{headers:headers(),cache:"no-store"});if(!r.ok)throw Error("Expediente no disponible: HTTP "+r.status);var j=await r.json();if(!j.content)throw Error("Contenido incompleto");return JSON.parse(decodeURIComponent(escape(atob(j.content.replace(/\s/g,"")))));}
+async function getText(path){var r=await fetch(RAW+path,{cache:"no-store"}).catch(function(){return null;});if(r&&r.ok)return r.text();r=await fetch(API+path+"?ref="+REF,{headers:headers(),cache:"no-store"});if(!r.ok)throw Error("Narrativa no disponible: HTTP "+r.status);var j=await r.json();return decodeURIComponent(escape(atob(j.content.replace(/\s/g,""))));}
 function cell(label,pass,detail){var state=pass===true?"Concilia":pass===false?"Diferencia":"No verificable";var cls=pass===true?"row-good":pass===false?"row-warn":"row-missing";return "<tr><td>"+esc(label)+"</td><td class='"+cls+"'>"+state+"</td><td>"+esc(detail)+"</td></tr>";}
 function statusFromRecord(a){var s=String(a&&a.estado||"").toUpperCase();if(/SALVEDAD|RESERV|PENDIENT/.test(s))return "Con salvedades";if(/NO_CONFORME|RECHAZ|ERROR/.test(s))return "Requiere revisión";if(/VALIDAD|CERTIFICAD/.test(s))return "Validación técnica reportada";return "Sin dictamen técnico";}
 function classify(v){if(v.valoracionHolding||/SOTP/.test(v.metodoPrincipal||""))return "SOTP base";if(/FCFE|DDM|RESIDUAL/i.test(v.metodoPrincipal||""))return "FCFE / método financiero";return "DCF base";}
@@ -206,11 +206,19 @@ async function select(ticker){
 async function init(){
  status("Cargando inventarios de valoraciones y narrativas…");
  try{
+  if(HIST){
+   var man=await (await fetch("recuperacion/manifest-20261021.json",{cache:"no-store"})).json();
+   REF=man.snapshot.commit;RAW="https://raw.githubusercontent.com/"+ROOT+"/"+REF+"/";
+   man.records.forEach(function(x){nowPaths[x.ticker]=x.valuationPath;});
+   var b=document.createElement("p");b.className="notice";b.innerHTML="<strong>Versión histórica recuperada (21-oct-2026) · pendiente de auditoría.</strong> Estas cifras NO son las vigentes y los controles automáticos no son una auditoría económica certificada. <a href='historicos.html'>Volver a estudios recuperados</a>";
+   $("status").parentNode.parentNode.insertBefore(b,$("status").parentNode);
+  }else{
   var arr=await Promise.all([list("valoraciones"),list("auditorias/narrativas").catch(function(){return [];})]);
   var files=arr[0].filter(function(x){return x.type==="file"&&/^[A-Z][A-Z0-9.]*-\d{10,}\.json$/.test(x.name);});
   files.sort(function(a,b){return a.name.localeCompare(b.name,undefined,{numeric:true});});
   files.forEach(function(x){var key=x.name.split("-")[0].toUpperCase();nowPaths[key]=x.path;});
   arr[1].forEach(function(x){if(x.type==="file"&&/^[A-Z][A-Z0-9.]*\.md$/.test(x.name))narrPaths[x.name.slice(0,-3)]=x.path;});
+  }
   var keys=Object.keys(nowPaths).sort();if(!keys.length)throw Error("No hay valoraciones guardadas");
   $("company").innerHTML=keys.map(function(k){return "<option value='"+esc(k)+"'>"+esc(k)+"</option>";}).join("");
   var target=valid(String(desired||"").toUpperCase())&&nowPaths[String(desired).toUpperCase()]?String(desired).toUpperCase():(nowPaths.NFLX?"NFLX":keys[0]);

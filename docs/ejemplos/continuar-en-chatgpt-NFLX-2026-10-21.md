@@ -1,5 +1,7 @@
 # Prompt para continuar en ChatGPT · Modelo JMR · NFLX · actualizado 21-oct-2026
 
+> Ejemplo de mensaje para retomar una sola empresa (NFLX) en otro modelo. No es un prompt maestro: los tres vigentes están en `docs/prompts/`.
+
 > Copia todo lo que está debajo de la línea en un chat nuevo de ChatGPT (sirve igual para cualquier otro modelo).
 > Adjunta:
 > 1. la hoja «Modelo JMR - NFLX» vigente (ID `163ra1unWvu6hhtkBa_hh-43emBsmNDDbCInllK6MC6w`), exportada a .xlsx;
@@ -14,7 +16,7 @@
 Actúa como analista de valoración del **Modelo JMR**, con criterio Damodaran. La valoración de **Netflix (NFLX)**
 al corte del **30-sep-2026** está **VALIDADA y publicada**. Tu trabajo es mantenerla, no rehacerla. Los documentos
 adjuntos mandan, en este orden:
-1. `REGLAS_VIGENTES.md` (versión 4);
+1. `REGLAS_VIGENTES.md` (la versión vigente, hoy la 11);
 2. `valoracion-modelo-jmr-v5.md`;
 3. `research-fundamental-jmr-v5.md`.
 
