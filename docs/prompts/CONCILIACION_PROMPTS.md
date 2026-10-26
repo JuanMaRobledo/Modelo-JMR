@@ -93,6 +93,34 @@ Las cinco ediciones de la sección 4 se aplicaron, cada una en su commit:
 
 `node --test tests/prompts-triad.test.mjs tests/work-prompt-parity.test.mjs`: 7 de 7.
 
+## 5B. Revisión de `research-fundamental-jmr-v5.md`, sección por sección (26-oct-2026)
+
+El archivo tiene 783 líneas: una portada de 33 líneas (alcance, 18 secciones, nivel 1 y 2) y una especificación editorial
+legada subordinada. Conclusión: **casi todo el legado es la plantilla real de las 18 secciones y no sobra**; lo que había eran
+contradicciones con `REGLAS_VIGENTES`, que se corrigieron, no volumen.
+
+| Bloque | Veredicto | Acción |
+|---|---|---|
+| Portada (alcance, para cualquier modelo, fuente única, 18 secciones, nivel 2) | Vigente | Sin cambios |
+| Objetivo | Vigente | Sin cambios |
+| Jerarquía de resultados y explicación de supuestos | Hablaba del esperado como complemento | Ahora: complemento = promedio de tres historias; el esperado de cuatro, solo informativo |
+| Presentación de múltiplos | Vigente | Ya se había reducido a la tabla de múltiplos |
+| Contrato cuantitativo del 15-oct | Compartido a propósito con otros tres prompts (lo exige una prueba) | Sin cambios |
+| Contrato «las historias son los escenarios» | Vigente, con letras A/B/C/D visibles y «DCF esperado pendiente» | Nombres sin letras; «promedio de tres historias pendiente» |
+| Ejecución autónoma | Decía que bastaban el prompt y el Excel | Añade la ficha JSON de la valoración oficial |
+| Adaptación al sector | Holdings: «no calcules suma de partes», contra `REGLAS` §1 | Interpretar el SOTP Base oficial, sin calcular uno propio |
+| Protocolo de investigación, estilo narrativo, reglas de citación | Vigente y sin duplicado en los otros prompts | Sin cambios |
+| Tratamiento de la tabla del Modelo JMR y conciliación | Vigente (es la subsección «Auditoría de cifras» de la sección 5) | Letras A/B/C/D fuera |
+| Reglas de estructura y entrega | Vigente (las comprueba `prompts-triad`) | Sin cambios |
+| Secciones 1 a 11, 13 a 17 | Plantilla vigente | Sin cambios |
+| Sección 10 (tabla de escenarios) y 12 (tabla de historias) | Letras visibles contra la regla de nombres | Encabezados y filas sin letras |
+| Sección 12 «El precio al final», «Piezas del valor», «Historias cuantificadas» | Pedían calcular el DCF inverso con dos márgenes y dos betas y el DCF con cada beta | Se copian de la valoración oficial si existen |
+| Sección 14 | Citaba un caso de una empresa (BSX) | Ejemplo genérico |
+| Sección 18 y bloque final de múltiplos históricos | Vigente | Sin cambios |
+
+Lo que no se hizo: recortar la plantilla de las 18 secciones. Reducirla exigiría decidir qué mínimos de `REGLAS` §9 se
+relajan, y eso es una decisión tuya.
+
 ## 6. Cómo mejorar las 38 una a una
 
 Orden sugerido: las 4 pendientes del cierre del 19-oct (comparables contemporáneos y homogéneos por empresa, valor económico de
