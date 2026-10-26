@@ -9,7 +9,7 @@
   });}
   function findCompany(key){
     return request(repo+'valoraciones?ref=main').then(function(files){
-      var chosen=files.filter(function(f){return f.type==='file'&&f.name.replace(/-\d{10,}\.json$/i,'').replace(/\.json$/i,'').toUpperCase()===key;})
+      var chosen=files.filter(function(f){return f.type==='file'&&f.name.replace(/-\d{10,}\.json$/i,'').replace(/\.json$/i,'').replace(/-\d{8}-[A-Za-z0-9]+$/i,'').toUpperCase()===key;})
         .sort(function(a,b){return b.name.localeCompare(a.name,'en',{numeric:true});})[0];
       if(!chosen){var e=new Error('No hay una valoración guardada para '+key+'.');e.status=404;throw e;}
       return request('https://raw.githubusercontent.com/JuanMaRobledo/Modelo-JMR-datos/main/'+chosen.path).then(function(rec){
