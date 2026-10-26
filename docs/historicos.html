@@ -62,12 +62,12 @@ function render(){
   var vis=rows.filter(function(r){return (!q||r.ticker.indexOf(q)>=0)&&(!f||(f==="act")===r.act);});
   $("count").textContent=vis.length+" de "+rows.length+" estudios";
   $("rows").innerHTML=vis.map(function(r){
-    var v=r.v||{},cur=v.moneda||v.currency;
+    var v=r.v||{},cur=v.moneda||v.currency,vp=n(v.valorPrincipal)?v.valorPrincipal:(v.valorEsperado&&n(v.valorEsperado.dcfBase)?v.valorEsperado.dcfBase:null);
     var links="<a href='#' data-ver='"+esc(r.ticker)+"'>Ver análisis</a>"
       +"<a href='auditoria-integral.html?ticker="+encodeURIComponent(r.ticker)+(r.act?"":"&historico=1")+"'>Auditar</a>"
       +(r.sheet?"<a href='"+esc(r.sheet)+"' target='_blank' rel='noopener'>Hoja</a>":"")
       +(r.doc?"<a href='"+esc(r.doc)+"' target='_blank' rel='noopener'>Documento archivado</a>":"");
-    return "<tr><td><strong>"+esc(r.ticker)+"</strong></td><td>"+badge(r)+"</td><td>"+esc(r.region||"")+"</td><td class='n'>"+money(v.valorPrincipal,cur)+"</td><td class='n'>"+money(v.precioMOS,cur)+"</td><td class='n'>"+money(v.precio,cur)+"</td><td>"+esc(r.act?"2026-10-26":(typeof v.fecha==="string"?v.fecha:"21-oct-2026"))+"</td><td class='links'>"+links+"</td></tr>";
+    return "<tr><td><strong>"+esc(r.ticker)+"</strong></td><td>"+badge(r)+"</td><td>"+esc(r.region||"")+"</td><td class='n'>"+money(vp,cur)+"</td><td class='n'>"+money(v.precioMOS,cur)+"</td><td class='n'>"+money(v.precio,cur)+"</td><td>"+esc(r.act?"2026-10-26":(typeof v.fecha==="string"?v.fecha:"21-oct-2026"))+"</td><td class='links'>"+links+"</td></tr>";
   }).join("")||"<tr><td colspan='8'>Sin resultados.</td></tr>";
 }
 async function ver(t){
