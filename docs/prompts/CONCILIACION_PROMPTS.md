@@ -81,11 +81,17 @@ Ediciones concretas, en este orden y cada una en un commit propio para poder rev
 
 Después de cada edición: `node --test tests/prompts-triad.test.mjs tests/work-prompt-parity.test.mjs`.
 
-## 5. Estado de esta entrega
+## 5. Estado (26-oct-2026)
 
-- Prompts de la época archivados sin cambios en `docs/prompts/archivo/epoca-2026-09-30/` y `epoca-2026-10-19/`.
-- Ningún prompt vigente se modificó. Las ediciones de la sección 4 quedan pendientes de tu aprobación.
-- Datos restaurados en `Modelo-JMR-datos` (rama `ccr-68242d45-bfmwvh`): ver `archivo/snapshot-2026-10-20-38-valoraciones/LEEME.md`.
+Las cinco ediciones de la sección 4 se aplicaron, cada una en su commit:
+
+1. `contrato-historias-multiplos-20261017.md` **se editó en lugar de archivarse**: el prompt de auditoría usa sus fórmulas y ejes. Ahora pide matrices solo en la Base (7 por familia). La versión anterior sigue en el historial.
+2. El MOS sobre la Base (SOTP Base en holdings) en `METODOLOGIA.md`, `colombia-nucleo-v1.md`, `colombia-valuation-v1.md` y `colombia-research-v1.md`.
+3. `continuar-en-chatgpt-NFLX-2026-10-21.md` pasó a `docs/ejemplos/`, rotulado como ejemplo y sin citar una versión fija de las reglas.
+4. `REGLAS_VIGENTES` v10 enlaza los anexos de precisión y de múltiplos, y registra el cambio.
+5. La especificación legada de la investigación se recortó de 84 KB a 79 KB: se quitó el control de integridad del 1-oct (cubierto por `REGLAS` §6 y el prompt de valoración) y el párrafo duplicado de «Presentación vigente». **No** se tocó el bloque del contrato cuantitativo del 15-oct: `tests/work-prompt-parity.test.mjs` exige que sea idéntico en los cuatro prompts. El resto del texto legado define las 18 secciones y no se pudo recortar sin revisarlo sección por sección.
+
+`node --test tests/prompts-triad.test.mjs tests/work-prompt-parity.test.mjs`: 7 de 7.
 
 ## 6. Cómo mejorar las 38 una a una
 

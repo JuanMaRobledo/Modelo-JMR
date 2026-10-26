@@ -58,28 +58,9 @@ La explicación de los supuestos forma parte del **análisis fundamental**, no s
 
 No basta con repetir cifras de una tabla, citar una celda, nombrar una ventaja competitiva o afirmar que un supuesto es conservador. Distingue naturalmente datos reportados y juicio del analista. Si falta sustento, declara el supuesto provisional y la evidencia pendiente; no inventes explicaciones. Las secciones cualitativas desarrollan los mecanismos y la sección 12 conecta esos mecanismos con los inputs y resultados numéricos. En la auditoría, una sección no está completa por contener tablas: verifica también que estas justificaciones estén integradas y sean congruentes con hoja, datos y escenarios.
 
-### Control de integridad · 1 de octubre de 2026
+### Presentación de múltiplos (1-oct-2026)
 
-Esta sección prevalece sobre cualquier instrucción que permita cerrar una revisión sin verificar la hoja.
-
-- **Solo lectura.** Este análisis no edita la hoja. Si el usuario autoriza expresamente una corrección: un solo editor por hoja; nunca trabajes sobre una hoja que otra persona, chat o agente esté editando. Antes de escribir, revisa el historial de la hoja; si hay una edición reciente que no hiciste tú, detente y pregunta. Toda celda que cambies lleva respaldo del valor anterior y una nota con el motivo.
-- **Una empresa por conversación.** Los análisis y las auditorías se hacen de a una empresa, con la hoja completa a la vista. Los cambios de criterio que afectan a todas (por ejemplo, el tratamiento de arrendamientos) se deciden en una sola sesión, se aplican igual en todas las hojas y se siguen de un escaneo de integridad de todas.
-- **No reemplaces fórmulas por números** sin documentarlo. Una celda que debe seguir a otra (como 'Valuation output'!C46 = 'Input sheet'!B30) se enlaza; no se copia su valor.
-- **Lista de cierre obligatoria.** Una revisión está completa solo si se verificó y se informa cada punto:
-  1. Cuadre con la SEC (último 10-Q o 10-K): ventas y EBIT LTM, caja e inversiones, deuda, arrendamientos, acciones básicas y diluidas, preferentes, convertibles y minoritarios.
-  2. Ninguna celda con error (#REF!, #VALUE!, #DIV/0!, #N/A, #NUM!) en las pestañas que usa la valoración.
-  3. El motor del Modelo JMR reproduce el DCF de la hoja ('Valuation output'!B35) y la pestaña «Escenarios e historias» reproduce las cuatro historias y el esperado.
-  4. Cada cifra de los textos sale del cálculo vigente o de una fuente citada con fecha. No escribas a mano un número que el modelo calcula.
-  5. Estado declarado: verificado, corregido con salvedades o pendiente.
-- **Escaneo de integridad** (solo con acceso al repositorio). Después de cualquier cambio masivo autorizado corre `python scripts/integridad_hojas.py` (JMR-valuation). Detecta errores, números fijos donde la plantilla tiene fórmulas, celdas desenlazadas, preferentes sin restar, diferencias entre la hoja y el último cálculo y ediciones humanas recientes.
-
-### Presentación vigente · 1 de octubre de 2026
-
-El **DCF Base** es el valor intrínseco principal y debe aparecer primero, con mayor destaque. Después presenta el **DCF esperado por probabilidades** como complemento y, por último, los múltiplos individuales, consolidados y ponderados como lecturas secundarias. El MOS se calcula sobre el DCF/FCFE/SOTP Base principal; el valor esperado es informativo y no modifica esta fórmula.
-
-Los nombres visibles son **Base, Conservadora, Disrupción y Optimista**, acompañados del título propio de cada historia. Usa **Disrupción · Deterioro de los fundamentales**. Las letras A/B/C/D solo son claves internas.
-
-Integra en el análisis fundamental párrafos que expliquen, para cada supuesto material, la evidencia con fuente y fecha, el mecanismo económico, por qué elegiste esa cifra y no una alternativa, su sensibilidad y qué observación obligaría a cambiarla. Cubre crecimiento, margen, reinversión, ventas/capital, vida útil de I+D, costo de capital, crecimiento y ROIC terminales, dilución y múltiplos. Si falta soporte, declara la salvedad; no conviertas un valor heredado en un supuesto validado. Las tablas complementan esta explicación.
+Jerarquía, nombres de las historias y explicación de supuestos: ver «Jerarquía de resultados y explicación de supuestos» y `modelo/REGLAS_VIGENTES.md` §1, §2 y §9.
 
 Presenta los múltiplos en tablas: una fila por método y una columna por escenario, Base primero. Distingue en cada celda **múltiplo aplicado (×)** y **precio relativo por acción (moneda)**, con horizonte y fecha explícitos. Deja el consolidado y el ponderado al final. No escribas series de cifras separadas por barras. Si los múltiplos solo tienen tres casos auxiliares, muestra esos tres y explica el alcance; no inventes un cuarto resultado de Disrupción. Comprueba que el Base, esperado, nombres y fórmulas coincidan entre el informe y la app.
 
