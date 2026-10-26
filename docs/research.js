@@ -400,6 +400,7 @@
     var editorial=editorialArticles[ticker];
     var rawArticle=state.articleHtml||(editorial&&editorial.html)||state.html||'';
     var article=navigableAnalysis(articleForReading(rawArticle,ticker),'articulo');
+    var auditLinks=/^[A-Z0-9._-]{1,24}$/.test(ticker)?'<p class="jmr-audit-links no-print"><strong>Auditorías de '+ticker+':</strong> <a href="auditorias.html?ticker='+encodeURIComponent(ticker)+'">Auditoría narrativa ↗</a> · <a href="auditoria-integral.html?ticker='+encodeURIComponent(ticker)+'">Auditoría integral ↗</a> · <a href="historicos.html?ticker='+encodeURIComponent(ticker)+'">Estado del estudio ↗</a></p>':'';
     var technical=state.calculationHtml?navigableAnalysis(state.calculationHtml,'calculos'):null;
     var linked=state.linkedValuation?buildLinkedValuationHtml(state.linkedValuation):'';
     var extra=state.valuationHtml?'<section class="valuation-block"><h3>Tablas vinculadas de valoración</h3>'+state.valuationHtml+'</section>':'';
@@ -425,7 +426,7 @@
       '<section class="jmr-editorial-article" id="jmrArticleLevel" aria-label="Nivel 1 · Análisis fundamental">'+
       intrinsicBaseCard(state.linkedValuation)+
       '<div class="jmr-editorial-label">NIVEL 1 · ANÁLISIS FUNDAMENTAL</div>'+
-      actions+article.toc+'<div id="editableContent">'+article.body+'</div>'+renderNews()+
+      actions+auditLinks+article.toc+'<div id="editableContent">'+article.body+'</div>'+renderNews()+
       '</section>'+level2+'</div>';
     markNumericCells(body);
     JmrDisplayNumber.formatTable(body);

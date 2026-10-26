@@ -74,7 +74,7 @@ async function ver(t){
   var r=rows.find(function(x){return x.ticker===t;}),box=$("viewer");box.hidden=false;box.innerHTML="Cargando "+esc(t)+"…";
   try{
     var a=await getJSON(raw(r.act?"main":snapshot,r.analysisPath)),h=a.articleHtml||a.html||"";
-    var head="<h2>"+esc(t)+" · "+badge(r)+"</h2><p class='small'>"+(r.act?"Revisión 26-oct-2026. Auditoría con reservas.":"Versión histórica del 21-oct-2026; NO es la valoración vigente y no ha pasado auditoría económica.")+"</p>";
+    var head="<h2>"+esc(t)+" · "+badge(r)+"</h2><p class='links small'>"+(r.act?"<a href='research.html?ticker="+encodeURIComponent(t)+"'>Análisis fundamental en la biblioteca ↗</a><a href='auditorias.html?ticker="+encodeURIComponent(t)+"'>Auditoría narrativa ↗</a>":"")+"<a href='auditoria-integral.html?ticker="+encodeURIComponent(t)+(r.act?"":"&historico=1")+"'>Auditoría integral ↗</a></p><p class='small'>"+(r.act?"Revisión 26-oct-2026. Auditoría con reservas.":"Versión histórica del 21-oct-2026; NO es la valoración vigente y no ha pasado auditoría económica.")+"</p>";
     box.innerHTML=head+(window.DOMPurify?DOMPurify.sanitize(h):"<p>No se pudo cargar el sanitizador; consulta el JSON enlazado.</p>");
     box.scrollIntoView({behavior:"smooth",block:"start"});
   }catch(e){box.innerHTML="<p>No fue posible cargar el análisis de "+esc(t)+": "+esc(e.message)+".</p>";}
@@ -89,6 +89,7 @@ async function init(){
     await Promise.all(list.map(async function(r){try{r.v=await getJSON(raw(r.act?"main":snapshot,r.valuationPath));}catch(e){r.v=null;}}));
     rows=list.sort(function(a,b){return a.ticker.localeCompare(b.ticker);});
     render();
+    var qt=new URLSearchParams(location.search).get('ticker');if(qt&&rows.some(function(x){return x.ticker===qt.toUpperCase();}))ver(qt.toUpperCase());
   }catch(e){$("rows").innerHTML="<tr><td colspan='8'>No se pudo cargar el inventario: "+esc(e.message)+"</td></tr>";}
 }
 $("q").addEventListener("input",render);$("f").addEventListener("change",render);
