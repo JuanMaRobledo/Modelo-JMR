@@ -27,7 +27,7 @@ Cada apartado debe contener contenido sustantivo, citas y mecanismos causales; p
 
 **Entregable EXCLUSIVO:** artículo largo editable con índice y Nivel 1 + Nivel 2; no ejecutar Auditoría de 18 secciones ni editar Inputs, fórmulas, tasas, JSON o escenarios. No publicar sin autorización. La Calculadora DCF es solo laboratorio de sensibilidad; el Editor de hoja es herramienta independiente de cambios oficiales.
 
-**Referencia técnica:** precisión-financiera-2026-10-09.md y contrato-historias-multiplos-20261017.md son anexos de apoyo, no prompts adicionales. Esta portada prevalece sobre cualquier instrucción previa de creación de cálculos, publicación o auditoría dentro del cuerpo legado.
+**Referencia técnica:** precision-financiera-2026-10-09.md y contrato-historias-multiplos-20261017.md son anexos de apoyo, no prompts adicionales. Esta portada prevalece sobre cualquier instrucción previa de creación de cálculos, publicación o auditoría dentro del cuerpo legado.
 
 ---
 

@@ -1,6 +1,6 @@
 # Reglas vigentes del Modelo JMR
 
-**Versión 9 · 24-oct-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
+**Versión 10 · 26-oct-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
 (`docs/prompts/*.md`), `METODOLOGIA.md`, una habilidad o un comentario de código dice otra cosa, prevalece este
 documento. Una regla nueva no se agrega como «regla del día X» en un prompt: se cambia aquí, se sube la versión y se
 anota en el registro de cambios del final.
@@ -97,6 +97,8 @@ anota en el registro de cambios del final.
 - Si un método es económicamente inaplicable, mostrar N/A con causa; si falta un dato, mostrar N/D con dato pendiente, fuente consultada y efecto. Nunca dejar un método sin evaluar, usar cero para fingir que está calculado, ni completar denominadores no interpretables. Buscar los datos necesarios; el cierre de hallazgos usa la materialidad del §4B, sin ocultar pendientes.
 - Antes de entregar, comprobar integridad de fórmulas contra la versión de plantilla, las siete salidas o sus excepciones justificadas, puentes EV/equity, unidades y acciones, dividendos sin duplicar y descuento por fecha. Hoja, valoración y análisis deben usar la misma revisión. La auditoría registra estos controles también para métodos con peso cero.
 
+**Anexos de apoyo (no son prompts; las reglas siguen aquí):** [`docs/prompts/precision-financiera-2026-10-09.md`](../docs/prompts/precision-financiera-2026-10-09.md) (evidencia, corte, tasas, UDM y publicación) y [`docs/prompts/contrato-historias-multiplos-20261017.md`](../docs/prompts/contrato-historias-multiplos-20261017.md) (fórmulas y ejes de las matrices de múltiplos de la Base).
+
 ## 6. Controles de publicación
 
 `bash scripts/controles_todas.sh` sin fallas antes de publicar o fusionar:
@@ -187,6 +189,7 @@ Hojas de trabajo conservadas tras el archivo del 24-oct-2026 (identidad document
 
 | Versión | Fecha | Cambio |
 |---|---|---|
+| 10 | 26-oct-2026 | Conciliación de prompts: el contrato de historias y múltiplos pasa a matrices solo en la Base; el MOS de METODOLOGIA y de los prompts de Colombia se aplica sobre el DCF/SOTP Base; los anexos de precisión y de múltiplos se enlazan desde §6. Sin cambios en fórmulas ni en valores de empresas. |
 | 9 | 24-oct-2026 | §10: una sola valoración vigente por empresa; las nuevas valoraciones archivan las anteriores con sus documentos asociados; archivo excluido de selección e importación automática. Se identifican las cuatro hojas actuales sin certificar su validación ni publicación. |
 | 8 | 23-oct-2026 | §5A: el analista/IA elige y justifica el peso de cada múltiplo según el tipo de empresa y su modelo de negocio; sin pesos universales ni omisión de cálculos por peso cero. |
 | 7 | 23-oct-2026 | §5A y §8: cálculo obligatorio de siete múltiplos con fórmulas existentes; P/S y P/BV en Maestra/IA/Manual; juicio limitado a entradas, múltiplos de salida y pesos; controles también con peso cero. Sin recálculo ni publicación de empresas. |
