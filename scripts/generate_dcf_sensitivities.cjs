@@ -8,7 +8,13 @@
  */
 'use strict';
 const fs=require('node:fs');
-const {runDCFDetalle}=require('../docs/jmr_engine.js');
+const vm=require('node:vm');
+const path=require('node:path');
+// El motor también se sirve como script de navegador. Con type=module,
+// require(.js) no expone su module.exports; cargarlo en su contexto CommonJS.
+const scope={module:{exports:{}},console};
+vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../docs/jmr_engine.js'),'utf8'),scope);
+const {runDCFDetalle}=scope.module.exports;
 
 const FIN=Number.isFinite;
 const OFF=[-2,-1,0,1,2];
