@@ -4,7 +4,7 @@ Versión compacta de `colombia-valuation-v1.md` y `colombia-research-v1.md` (55 
 
 **Identidad.** Ticker local `.CL`, COP, BVC; cada emisora en su propio expediente; sin datos, supuestos ni rótulos de otra empresa (AISLAMIENTO = OK). Sin fallback a ADR.
 **Corte.** Misma fecha que EE.UU.: cierres BVC, ERP implícita del mes + prima país, Rf COP = TES − spread soberano.
-**Valor.** Principal = DCF Base intrínseco (RE/DDM o FCFE en bancos/aseguradoras; FCFF en industriales; SOTP intrínseco en holdings: cada filial por flujos, privadas a valores fechados). Esperado = Σ p × valor; compra = esperado × 65%. Múltiplos/SOTP de mercado/libro: secundarios (40% DCF + 60% múltiplos). Sin foso → retorno terminal = costo de capital. Con ROE = Ke el crecimiento terminal no crea valor.
+**Valor.** Principal = DCF Base intrínseco (RE/DDM o FCFE en bancos/aseguradoras; FCFF en industriales; SOTP intrínseco en holdings: cada filial por flujos, privadas a valores fechados). Esperado = Σ p × valor (informativo); precio con MOS = valor principal × (1 − 35%), sobre el DCF Base o el SOTP Base en holdings, nunca sobre el esperado. Múltiplos/SOTP de mercado/libro: secundarios (40% DCF + 60% múltiplos). Sin foso → retorno terminal = costo de capital. Con ROE = Ke el crecimiento terminal no crea valor.
 **Historias.** Base, Conservadora, Optimista, Disrupción; 100%; Base primero; pre-mortem e indicadores.
 **Múltiplos.** Tres anclas (historia propia, pares comparables, justificado); P/E y P/B en financieras; EV/EBITDA solo industriales; N/D si no hay comparables homogéneos (nunca cero).
 **Horizontes.** Hoy y FY+3 ex-dividendo: P3 = (V0 − VP dividendos)(1+Ke)^3; mostrar ambos sin doble conteo.

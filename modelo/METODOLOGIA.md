@@ -390,7 +390,7 @@ Desde el prompt de valoración v4 y el de análisis fundamental v5:
 - **El valor intrínseco es el DCF de hoy; su cifra principal es el DCF Base (jerarquía del 1-oct-2026).**
   El DCF Base (la historia central) va primero y con mayor destaque en el Visor, en Mi Bitácora, en los
   análisis y en los informes. El DCF esperado de las cuatro historias (Σ probabilidad × DCF) es un
-  complemento; el margen de seguridad se sigue aplicando sobre el esperado.
+  complemento. El margen de seguridad (35 %) se aplica solo sobre el DCF Base (SOTP Base en holdings), según `REGLAS_VIGENTES.md` §1; antes se aplicaba sobre el esperado.
 - **Los múltiplos son precio relativo y van por aparte.** Siguen eligiéndose con las tres anclas y
   pasan el chequeo de crecimiento implícito (pestaña «Crecimiento implícito»). El ponderado DCF +
   múltiplos, con los pesos de la categoría de empresa, es una lectura opcional en la app.
