@@ -1,6 +1,6 @@
 # Reglas vigentes del Modelo JMR
 
-**Versión 10 · 26-oct-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
+**Versión 11 · 26-oct-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
 (`docs/prompts/*.md`), `METODOLOGIA.md`, una habilidad o un comentario de código dice otra cosa, prevalece este
 documento. Una regla nueva no se agrega como «regla del día X» en un prompt: se cambia aquí, se sube la versión y se
 anota en el registro de cambios del final.
@@ -185,10 +185,26 @@ Hojas de trabajo conservadas tras el archivo del 24-oct-2026 (identidad document
 | META | R4 · 23-oct-2026 | `1Ap5ylZGNdW_qyEIH5dVy22jTfHSy1TNB5bFsiW1IXsg` |
 | NVDA | R1 · 23-oct-2026 | `1hvlfGunORzgup0OyxyW0QRBcosZ_xooLI-gMH1kixpE` |
 
+## 11. Hojas unificadas y reparto del trabajo entre la IA y las fórmulas
+
+**Reparto.** Lo que la IA aporta es (1) conseguir los **datos crudos** con su fuente primaria y (2) **estimar los supuestos** y explicar por qué. Todo cálculo lo hacen las fórmulas de la hoja. La IA no escribe resultados sobre celdas con fórmula, no «calibra» una salida y no reconstruye un cálculo fuera de la hoja.
+
+**Formato único.** Toda valoración nace como copia nueva de la plantilla maestra vigente (`reference/plantillas.json`; Maestra, IA y Manual comparten la misma estructura) y conserva ese formato sin importar quién la diligencie, sea una IA o una persona:
+- las mismas pestañas, en el mismo orden y con las mismas dimensiones; no se añaden, quitan, renombran ni reordenan. Los soportes propios de una empresa (conciliaciones con la SEC, matrices adicionales, registros de revisión) van a `Modelo-JMR-datos/evidencia/<T>-<revisión>/`, no a la hoja;
+- todas las fórmulas de la plantilla intactas: una fórmula sustituida por un número, o editada, es un hallazgo bloqueante;
+- **todos los selectores** (validaciones de datos: `B12`, `B22`, `B26`, selectores de método, de historia y de ponderación) con su validación original. Cambiar una opción es elegir de la lista; un selector reemplazado por un valor o eliminado es un hallazgo bloqueante.
+
+**Datos crudos.** Se diligencian todos los datos de entrada aplicables, cada uno con fuente (nota de la celda o pestaña `Origen de los Supuestos`: documento, URL, período, página o nota, fecha de consulta). La materialidad del §4B decide qué faltante secundario no bloquea; nunca se inventa un cero.
+
+**Control.** `python3 scripts/unificacion_hojas.py --copy-id <ID> --salida <ruta>` (JMR-valuation) debe dar UNIFICADA antes de publicar, y se repite al auditar.
+
+**Entregables.** El análisis fundamental siempre completo (§9). La auditoría explica el porqué de cada supuesto estimado y la fuente de **todos** los datos de entrada, con un inventario que cubra todas las celdas de entrada (prompt de auditoría v1.3).
+
 ## Registro de cambios
 
 | Versión | Fecha | Cambio |
 |---|---|---|
+| 11 | 26-oct-2026 | §11 nuevo: hojas unificadas (formato de la maestra, fórmulas y selectores intactos, sin pestañas añadidas), reparto IA (datos crudos y supuestos) y fórmulas (cálculo); control `unificacion_hojas.py`. Auditoría v1.3: porqué de cada supuesto y fuente de todos los datos de entrada. Sin cambios en valores de empresas. |
 | 10 | 26-oct-2026 | Conciliación de prompts: el contrato de historias y múltiplos pasa a matrices solo en la Base; el MOS de METODOLOGIA y de los prompts de Colombia se aplica sobre el DCF/SOTP Base; los anexos de precisión y de múltiplos se enlazan desde §6. Sin cambios en fórmulas ni en valores de empresas. |
 | 9 | 24-oct-2026 | §10: una sola valoración vigente por empresa; las nuevas valoraciones archivan las anteriores con sus documentos asociados; archivo excluido de selección e importación automática. Se identifican las cuatro hojas actuales sin certificar su validación ni publicación. |
 | 8 | 23-oct-2026 | §5A: el analista/IA elige y justifica el peso de cada múltiplo según el tipo de empresa y su modelo de negocio; sin pesos universales ni omisión de cálculos por peso cero. |
