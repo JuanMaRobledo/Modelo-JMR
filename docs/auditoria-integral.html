@@ -60,7 +60,7 @@ table{width:100%;border-collapse:collapse;font-size:13px;margin:12px 0}th,td{bor
 <h1>Auditoría integral de valoración</h1>
 <p class="muted">Una vista por empresa: comprobación técnica del método principal, examen económico de los supuestos y control de múltiplos. Se distinguen las comprobaciones hechas ahora en el navegador de las pruebas históricas declaradas por el expediente.</p>
 <section class="panel no-print">
-<div class="flex"><label for="company"><strong>Empresa</strong></label><select id="company" aria-label="Elegir empresa"><option>Cargando…</option></select><button type="button" id="reload">Actualizar datos</button><span id="status" role="status" aria-live="polite" class="small muted">Cargando inventario oficial…</span></div>
+<div class="flex"><label for="company"><strong>Empresa</strong></label><select id="company" aria-label="Elegir empresa"><option>Cargando…</option></select><button type="button" id="reload">Actualizar datos</button><a id="analysisLink" class="small" href="research.html">Ver análisis fundamental ↗</a><span id="status" role="status" aria-live="polite" class="small muted">Cargando inventario oficial…</span></div>
 </section>
 <section class="panel" id="overview">
 <div class="eyebrow">Resumen de cobertura y dictamen</div><h2 id="companyName">Selecciona una empresa</h2>
@@ -180,7 +180,7 @@ async function renderNarrative(ticker){
 }
 async function select(ticker){
  if(!valid(ticker)||!nowPaths[ticker]){status("No hay valoración publicada para "+ticker);return;}
- current=ticker;$("company").value=ticker;
+ current=ticker;$("company").value=ticker;$("analysisLink").href="research.html?ticker="+encodeURIComponent(ticker);
  ["mainValue","companyName","source","links","testArea","historical","multipleArea","report","narrativeLinks","riskNotes"].forEach(function(id){$(id).textContent="";});
  ["sTech","sEco","sMult"].forEach(function(id){$(id).textContent="Cargando…";});
  status("Abriendo expediente "+ticker+"…");history.replaceState(null,"","?ticker="+encodeURIComponent(ticker));
