@@ -1553,6 +1553,18 @@
   // sirve como enlace directo compartible a un análisis puntual.
   var pdfMode = new URLSearchParams(location.search).get('pdfmode') === '1';
   var deepLinkId = new URLSearchParams(location.search).get('id');
+  // La ficha JMR puede pedir un informe EXACTO del catálogo, nunca seleccionar
+  // a ciegas una revisión anterior del mismo ticker.
+  var deepLinkAnalysisPath = new URLSearchParams(location.search).get('analisis');
+  function openCatalogResearch(){
+    if(!deepLinkAnalysisPath || deepLinkId) return;
+    if(!/^analisis\/[A-Za-z0-9._-]+\.json$/.test(deepLinkAnalysisPath)){
+      setStatus('libraryStatus','Ruta de análisis inválida en el expediente.','bad');return;
+    }
+    var rec=getLocalLibrary().find(function(r){return r.remotePath===deepLinkAnalysisPath;});
+    if(rec){fillEditor(rec);}
+    else setStatus('libraryStatus','El análisis de la revisión indicada no está accesible. No se abrirá otra revisión en su lugar.','bad');
+  }
   function applyDeepLinkId() {
     if (!deepLinkId) return false;
     var rec = getLocalLibrary().find(function (r) { return r.id === deepLinkId; });
@@ -1597,10 +1609,12 @@
   syncRemote().then(function (n) {
     applyDeepLinkFilter();
     if (deepLinkId) applyDeepLinkId();
+    else openCatalogResearch();
     return pushLocalOnlyToRemote();
   }).catch(function (err) {
     applyDeepLinkFilter();
     if (deepLinkId) applyDeepLinkId();
+    else openCatalogResearch();
     setStatus('libraryStatus',err.message,'bad');
   }).finally(function () {
     // Señal para api/pdf.js: se espera este flag en vez de un timeout fijo,
