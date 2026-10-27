@@ -89,3 +89,34 @@ test('auditorías usan menú compartido',()=>{
     assert.match(get('docs/'+f),/jmr-theme.css/);
   }
 });
+
+test('expediente.js solo usa secciones definidas en pages() (evita excepciones antes de cargar el iframe)',()=>{
+  const js=get('docs/expediente.js');
+  const body=js.match(/function pages\(t\)\{[\s\S]*?return \{([\s\S]*?)\n  \};\n\}/)?.[1];
+  assert.ok(body,'return de pages()');
+  const keys=new Set([...body.matchAll(/^\s{4}(\w+):/gm)].map(m=>m[1]));
+  for(const k of ['valoracion','analisis','supuestos','auditoria','auditoriaIntegral','sensibilidades','sensibilidadMultiples']) assert.ok(keys.has(k),k);
+  for(const m of js.matchAll(/\bp\.(\w+)\.href/g)) assert.ok(keys.has(m[1]),'p.'+m[1]+' no existe');
+});
+test('menú principal: las vistas por empresa salen de la ficha, no del menú',()=>{
+  const nav=get('docs/mercado.js');
+  assert.match(nav,/Expedientes JMR/);
+  for(const f of ['editor-hoja.html\', \'Hojas','auditorias.html\', \'Auditoría narrativa']) assert.ok(!nav.includes("link('"+f),f);
+});
+test('las páginas por empresa reconocen archivos de revisión TICKER-AAAAMMDD-Rn y no caen en otro ticker',()=>{
+  const sources=[get('docs/auditoria-integral.html').match(/arr\[0\]\.filter\(function\(x\)\{return x\.type==="file"&&(\/.*?\/)\.test/)?.[1],
+    get('docs/auditoria-multiplos.js').match(/listing\("valoraciones",(\/.*?\/)\)/)?.[1]];
+  for(const src of sources){
+    assert.ok(src,'regex de archivos de valoración');
+    const re=eval(src);
+    for(const n of ['NKE-20261025-R6.json','META-20261025-R5.json','XP-20261026-R2.json','NFLX-1792548021734.json','ADBE-1789572982820.json'])
+      assert.ok(re.test(n),n+' debe reconocerse');
+    assert.ok(!re.test('catalogo.json'));
+  }
+  for(const f of ['docs/visor.html','docs/research.js']){
+    const m=get(f).match(/var m = base\.match\((\/\^\(\[A-Za-z0-9\.\]\+\)-.*?\/)\);/);
+    assert.ok(m,f);const re=eval(m[1]);
+    assert.equal('NKE-20261025-R6'.match(re)?.[1],'NKE');
+    assert.equal('NFLX-1792548021734'.match(re)?.[1],'NFLX');
+  }
+});
