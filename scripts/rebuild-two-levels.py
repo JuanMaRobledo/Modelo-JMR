@@ -95,7 +95,7 @@ def build(record,valuation):
      if not isinstance(v,dict):continue
      for i,(fy,vp) in enumerate(zip(v.get('fy') or [],v.get('vp') or []),1):rows.append([m.get('nombre'),sc,i,fy,ke,vp])
    if len(rows)>1:calc.append(BeautifulSoup(table_html(rows),'html.parser'))
-  price=valuation.get('precioAnalisis') or valuation.get('precio');central=ve.get('valorCentral') or ve.get('dcfBase') or (dm.get('dcfHoy') or {}).get('base');mos=valuation.get('mos')
+  price=valuation.get('precio') if isinstance(valuation.get('precio'),(int,float)) else valuation.get('precioAnalisis');central=ve.get('valorCentral') or ve.get('dcfBase') or (dm.get('dcfHoy') or {}).get('base');mos=valuation.get('mos')
   if all(isinstance(v,(int,float)) for v in [price,central,mos]):
    calc.append(BeautifulSoup(table_html([['Operación','Sustitución','Resultado'],['Diferencia Base/precio',f'{central}/{price} − 1',central/price-1],['Precio con MOS',f'{central} × (1 − {mos})',central*(1-mos)]]),'html.parser'))
  link=valuation.get('hojaGoogle')
