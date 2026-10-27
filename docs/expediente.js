@@ -66,6 +66,86 @@ function pages(t){
     sensibilidadMultiples:{href:'auditoria-multiplos.html?ticker='+encodeURIComponent(t),help:'Sensibilidades por múltiplo en el escenario Base; no reemplazan las matrices prioritarias del DCF.'}
   };
 }
+
+const DRAFT_PREFIX='jmr-audit-draft-v1:';
+let noteRequestVersion=0;
+function auditNoteLocation(t){
+  const p=pages(t);
+  if(!p.official||!/^valoraciones\/[A-Za-z0-9._-]+\.json$/.test(p.valPath))return null;
+  const filename=p.valPath.split('/').pop();
+  return {revision:p.valPath,path:'auditorias/solicitudes/'+filename,draftKey:DRAFT_PREFIX+filename};
+}
+function auditNoteStatus(message){el('auditReviewStatus').textContent=message;}
+function auditNoteLink(path){
+  const a=el('auditReviewLink');a.hidden=!path;
+  if(path)a.href='https://github.com/'+ROOT+'/blob/main/'+path;
+}
+function getAuditDraft(key){try{return localStorage.getItem(key)||'';}catch(e){return '';}}
+function storeAuditDraft(key,value){try{localStorage.setItem(key,value);}catch(e){auditNoteStatus('No se pudo guardar localmente; conserva una copia del texto.');}}
+async function readAuditNotes(t){
+  const request=++noteRequestVersion;
+  const loc=auditNoteLocation(t),area=el('auditReviewNotes');
+  area.value='';el('saveAuditRequest').disabled=!loc;
+  el('connectAuditGithub').hidden=!!GhOAuth.getGhToken();
+  auditNoteLink('');
+  if(!loc){auditNoteStatus('La valoración todavía no está conciliada en catálogo; no se puede adjuntar una nota oficial.');return;}
+  const draft=getAuditDraft(loc.draftKey);
+  area.value=draft;
+  auditNoteStatus(draft?'Borrador local recuperado; no se ha publicado.':'Consultando observaciones guardadas…');
+  try{
+    const res=await fetch(CONTENTS+loc.path+'?ref=main',{cache:'no-store'});
+    if(request!==noteRequestVersion||state.ticker!==t)return;
+    if(res.status===404){auditNoteStatus(draft?'Borrador local pendiente de sincronizar.':'No hay observaciones guardadas para esta revisión.');return;}
+    if(!res.ok)throw Error('HTTP '+res.status);
+    const file=await res.json();
+    const record=JSON.parse(GhOAuth.b64DecodeUnicode(String(file.content||'').replace(/\s+/g,'')));
+    if(request!==noteRequestVersion||state.ticker!==t)return;
+    if(record.schema!=='jmr-audit-request-v1'||record.ticker!==t||record.valuationPath!==loc.revision)throw Error('La solicitud guardada pertenece a otra revisión.');
+    if(!draft)area.value=String(record.observaciones||'');
+    auditNoteLink(loc.path);
+    auditNoteStatus(draft?'Borrador local pendiente. También existe una versión publicada.':'Observaciones sincronizadas con GitHub para esta revisión.');
+  }catch(e){if(request===noteRequestVersion&&state.ticker===t)auditNoteStatus('No se pudo consultar GitHub: '+e.message+'. Se conserva el borrador local.');}
+}
+async function saveAuditNotes(){
+  const t=state.ticker,loc=auditNoteLocation(t),notes=el('auditReviewNotes').value.trim();
+  if(!loc){auditNoteStatus('Primero se requiere una valoración en el catálogo oficial.');return;}
+  if(!notes){auditNoteStatus('Escribe al menos una observación antes de guardar.');return;}
+  storeAuditDraft(loc.draftKey,notes);
+  if(!GhOAuth.getGhToken()){
+    el('connectAuditGithub').hidden=false;
+    auditNoteStatus('Borrador local conservado. Conecta GitHub para que la auditoría lo pueda leer desde cualquier sesión.');
+    return;
+  }
+  const button=el('saveAuditRequest');button.disabled=true;
+  auditNoteStatus('Guardando observaciones…');
+  try{
+    const url=CONTENTS+loc.path;
+    const headers=Object.assign({'Content-Type':'application/json'},GhOAuth.ghHeaders());
+    const r=await fetch(url+'?ref=main',{headers,cache:'no-store'});
+    if(!r.ok&&r.status!==404)throw Error('Error consultando versión anterior: HTTP '+r.status);
+    const previous=r.ok?await r.json():null;
+    if(state.ticker!==t||auditNoteLocation(t)?.path!==loc.path)throw Error('Cambió el expediente durante el guardado.');
+    let createdAt=new Date().toISOString();
+    if(previous){
+      const old=JSON.parse(GhOAuth.b64DecodeUnicode(String(previous.content||'').replace(/\s+/g,'')));
+      if(old.valuationPath!==loc.revision||old.ticker!==t)throw Error('Conflicto de versión: no se sobrescribirá otro expediente.');
+      createdAt=old.createdAt||createdAt;
+    }
+    const doc={schema:'jmr-audit-request-v1',ticker:t,valuationPath:loc.revision,
+      analysisPath:pages(t).analysisPath||null,estado:'PENDIENTE_AUDITORIA',
+      observaciones:notes,createdAt,updatedAt:new Date().toISOString()};
+    const payload={message:'Registrar observaciones de auditoría '+t,content:GhOAuth.b64EncodeUnicode(JSON.stringify(doc,null,2)),branch:'main'};
+    if(previous)payload.sha=previous.sha;
+    const saved=await fetch(url,{method:'PUT',headers,body:JSON.stringify(payload)});
+    if(!saved.ok){const response=await saved.json().catch(()=>({}));throw Error(response.message||'HTTP '+saved.status);}
+    if(state.ticker!==t)throw Error('Guardado en GitHub; cambió la empresa. Comprueba su expediente.');
+    try{localStorage.removeItem(loc.draftKey);}catch(e){}
+    auditNoteLink(loc.path);
+    auditNoteStatus('Observaciones guardadas para '+t+'. Al pedir su auditoría se consultará este archivo.');
+  }catch(e){auditNoteStatus('No se pudo guardar en GitHub: '+e.message+'. Borrador local conservado.');}
+  finally{if(state.ticker===t)button.disabled=false;}
+}
+
 function openCompany(input){
   const t=valid(input);
   if(!t){status('Ticker inválido. Usa letras, números, punto, guion o subrayado.','error');return;}
@@ -79,6 +159,7 @@ function openCompany(input){
     : 'Expediente en consulta: faltan piezas del catálogo oficial o todavía no están conciliadas. No se equipara archivo existente a estudio publicado.';
   el('dossier').hidden=false;el('empty').hidden=true;
   el('sheetLink').hidden=false;el('sheetLink').href=p.supuestos.href;
+  readAuditNotes(t);
   const first=p.valPath?'valoracion': 'analisis';
   showView(state.view&&p[state.view]?state.view:first);
   if(!p.official)status(t+' · Sin entrada oficial completa de valoración en catálogo; consulta disponible con reservas.','warning');
@@ -110,6 +191,12 @@ function showDetail(kind){
   const frame=el('viewFrame');
   if(frame.getAttribute('src')!==d.href)frame.setAttribute('src',d.href);
 }
+el('auditReviewNotes').addEventListener('input',function(){
+  const loc=auditNoteLocation(state.ticker);
+  if(loc){storeAuditDraft(loc.draftKey,this.value);auditNoteStatus('Borrador guardado localmente; pulsa «Guardar para auditoría en GitHub» para sincronizar.');}
+});
+el('saveAuditRequest').addEventListener('click',saveAuditNotes);
+el('connectAuditGithub').addEventListener('click',()=>GhOAuth.startLogin());
 el('lookup').addEventListener('submit',e=>{e.preventDefault();openCompany(el('ticker').value);});
 el('reload').addEventListener('click',loadInventory);
 document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>showView(b.dataset.view)));
