@@ -719,10 +719,10 @@
       <span class="gh-status" id="downloadPdfStatus"></span>
     </div>
 
-    <p class="section-title">Precio de hoy vs. precio al día del análisis</p>
+    <p class="section-title">Precio de referencia vs. cotización (si está disponible)</p>
     <div class="methods-scroll" style="margin-bottom:22px;">
       <table class="price-compare">
-        <thead><tr><th>Precio al día del análisis</th><th>Precio de hoy</th><th>Cambio</th></tr></thead>
+        <thead><tr><th>Precio del corte de valoración</th><th>Cotización reciente</th><th>Cambio</th></tr></thead>
         <tbody>
           <tr>
             <td id="rPrecioAnalisis">—</td>
@@ -3224,8 +3224,12 @@
     document.getElementById('rPriceNote').textContent = 'Precio guardado · consulta: ' +
       (rec.precioReferenciaConsultadoAt || 'fecha no registrada') +
       (hasApiKey() ? ' — actualizando al precio de hoy…' : '');
-    currentPrecioAnalisis = (typeof rec.precioAnalisis === 'number' && isFinite(rec.precioAnalisis)) ? rec.precioAnalisis : null;
-    renderPriceCompare(currentPrecioAnalisis, rec.precio);
+    // El expediente puede conservar en precioAnalisis un precio de una edición
+    // anterior (ADBE/ONON, octubre 2026). Para el corte, manda rec.precio,
+    // que coincide con Input sheet!D1. No llamar 'precio de hoy' a rec.precio.
+    currentPrecioAnalisis = (typeof rec.precio === 'number' && isFinite(rec.precio))
+      ? rec.precio : ((typeof rec.precioAnalisis === 'number' && isFinite(rec.precioAnalisis)) ? rec.precioAnalisis : null);
+    renderPriceCompare(currentPrecioAnalisis, null);
     currentPosicion = rec.posicion ? Object.assign({}, rec.posicion) : null;
     if(currentPosicion && currentPosicion.dcfEsperado == null && rec.valorEsperado &&
        typeof rec.valorEsperado.valor === 'number' && isFinite(rec.valorEsperado.valor)){
