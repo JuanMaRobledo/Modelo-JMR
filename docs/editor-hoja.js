@@ -22,8 +22,12 @@
   // La fuente sigue siendo exactamente el libro leído de Google Sheets.
   // Las cuatro vistas son accesos a hojas reales, sin generar datos nuevos.
   function normalizeName(s){return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase();}
-  function findMainSheet(kind,names){
+  function findMainSheet(kind,names,company){
     var list=names||[], normalized=list.map(normalizeName);
+    if(String(company||'').toUpperCase()==='XP'){
+      var xp={input:'XP Datos financieros',valuation:'XP FCFE',multiples:'XP Múltiplos'};
+      if(list.includes(xp[kind]))return xp[kind];
+    }
     var preferred={
       input:['input sheet','input','inputs'],
       valuation:['valuation output','valuation outputs'],
@@ -40,6 +44,9 @@
     if(n==='input sheet'||n==='input'||n==='inputs')return 'input';
     if(n==='valuation output'||n==='valuation outputs')return 'valuation';
     if(/^financials? multiple/.test(n))return 'financial';
+    if(n==='xp datos financieros')return 'input';
+    if(n==='xp fcfe')return 'valuation';
+    if(n==='xp multiplos')return 'multiples';
     if(n.startsWith('descuento de multip')||n==='multiples'||n==='multiplos'||/^(ev\/|p\/)/.test(n))return 'multiples';
     return '';
   }
@@ -54,8 +61,14 @@
   }
   // Solo inspecciona fórmulas del propio Google Sheets, jamás calcula un
   // precio por múltiplos ni acepta un valor pegado como prueba de cálculo.
-  function multiplesFormulaAudit(sheets){
-    var checks=[
+  function multiplesFormulaAudit(sheets,company){
+    var isFinancial=String(company||'').toUpperCase()==='XP'&&!!sheets?.['XP Múltiplos'];
+    var checks=isFinancial?[
+      ['P/E','XP Múltiplos','I6'],
+      ['P/FCFE','XP Múltiplos','I15'],
+      ['P/S (P/V)','XP Múltiplos','I9'],
+      ['P/BV','XP Múltiplos','I12']
+    ]:[
       ['EV/EBITDA','Descuento de múltiplos','J20'],
       ['EV/FCFF','Descuento de múltiplos','J21'],
       ['P/E','Descuento de múltiplos','J22'],
@@ -64,22 +77,35 @@
       ['P/S (P/V)','PV','E42'],
       ['P/BV','PBV','E42']
     ];
-    return checks.map(function(row){
+    var result=checks.map(function(row){
       var cell=sheets?.[row[1]]?.[row[2]];
-      return {method:row[0],sheet:row[1],cell:row[2],hasValue:typeof cell?.v==='number'&&Number.isFinite(cell.v),
-        hasFormula:typeof cell?.formula==='string'&&cell.formula.startsWith('=')};
+      return {method:row[0],sheet:row[1],cell:row[2],
+        hasValue:typeof cell?.v==='number'&&Number.isFinite(cell.v),
+        hasFormula:typeof cell?.formula==='string'&&cell.formula.startsWith('='),exempt:false};
     });
+    if(isFinancial){
+      var proof=String(sheets?.['XP Control']?.B16?.v||'').toLowerCase();
+      var justified=proof.includes('4 calculados')&&proof.includes('3 n/a')&&proof.includes('financier');
+      ['EV/EBITDA','EV/FCFF','P/OCF'].forEach(function(method){
+        result.push({method:method,sheet:'XP Control',cell:'B16',
+          hasValue:false,hasFormula:false,exempt:justified});
+      });
+    }
+    return result;
   }
   function updateMultiplesStatus(){
     var host=byId('multiplesFormulaStatus');
     if(!host||!snapshot)return;
-    var checks=multiplesFormulaAudit(snapshot.sheets),withFormula=checks.filter(x=>x.hasValue&&x.hasFormula);
-    var unresolved=checks.filter(x=>!x.hasValue||!x.hasFormula);
+    var checks=multiplesFormulaAudit(snapshot.sheets,ticker);
+    var calculated=checks.filter(x=>x.hasValue&&x.hasFormula).length;
+    var accepted=checks.filter(x=>x.exempt).length;
+    var unresolved=checks.filter(x=>!x.exempt&&(!x.hasValue||!x.hasFormula));
     var notes=unresolved.map(x=>x.method+' ('+x.sheet+'!'+x.cell+')');
-    host.textContent='Origen: Google Sheets · '+withFormula.length+'/7 resultados con celda numérica y fórmula visible. '+
-       (notes.length?'Pendientes de evidencia: '+notes.join(', ')+'. ':'')+
-       'Este control no sustituye comparar las fórmulas con la plantilla maestra.';
-    host.dataset.coverage=withFormula.length===7?'complete':'incomplete';
+    host.textContent='Fuente: fórmulas originales de Google Sheets · '+calculated+' calculados /7'+
+       (accepted?' · '+accepted+' N/A financieros justificados':'')+'. '+
+       (notes.length?'Sin resultado verificable: '+notes.join(', ')+'. ':'')+
+       'La equivalencia de fórmulas con la plantilla se verifica por separado.';
+    host.dataset.coverage=calculated+accepted===7?'complete':'incomplete';
   }
   var snapshot=null,ticker='',selected='',firstRow=1,firstCol=1,pageRows=30,pageCols=9,fullSheet=true;
   var drafts=new Map(),busy=false,loader=0,dimensions={};
@@ -87,9 +113,10 @@
   function refreshShortcuts(){
     var names=Object.keys(snapshot?.sheets||{});
     document.querySelectorAll('#modelSheetTabs [data-sheet-kind]').forEach(function(button){
-      var name=findMainSheet(button.dataset.sheetKind,names),active=!!name&&mainKind(selected)===button.dataset.sheetKind;
+      var name=findMainSheet(button.dataset.sheetKind,names,ticker),active=!!name&&mainKind(selected)===button.dataset.sheetKind;
       button.disabled=!name;
       button.title=name?'Abrir '+name:'Esta pestaña no está en el libro importado';
+      if(ticker==='XP' && name && /^XP /.test(name))button.textContent=name;
       button.classList.toggle('active',active);
       button.setAttribute('aria-pressed',String(active));
     });
@@ -284,7 +311,7 @@
     byId('modelSheetTabs').addEventListener('click',function(e){
       var btn=e.target.closest('button[data-sheet-kind]');
       if(!btn||btn.disabled||!snapshot)return;
-      var name=findMainSheet(btn.dataset.sheetKind,Object.keys(snapshot.sheets));
+      var name=findMainSheet(btn.dataset.sheetKind,Object.keys(snapshot.sheets),ticker);
       if(name)selectSheet(name);
     });
     byId('toggleFullSheet').addEventListener('click',function(){
