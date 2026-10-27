@@ -6,7 +6,7 @@ import { Script } from 'node:vm';
 const get = p => readFileSync(new URL('../' + p, import.meta.url), 'utf8');
 
 test('index redirige al análisis, sin borrar la bitácora de terceros', () => {
-  assert.match(get('docs/index.html'), /location\.replace\("research\.html"/);
+  assert.match(get('docs/index.html'), /location\.replace\("expediente\.html\?seccion=analisis"/);
   const third = get('docs/bitacora-terceros.html');
   assert.match(third, /Bitácora de terceros/);
   assert.match(third, /55 hipótesis de inversión/);
@@ -67,6 +67,32 @@ test('notas de auditoría se guardan por revisión y distinguen borrador de GitH
   assert.match(js,/localStorage\.setItem\(key,value\)/);
   new Script(js);
 });
+
+test('solicitudes de auditoría usan la revisión exacta y no sustituyen una valoración archivada',()=>{
+  const js=get('docs/expediente.js');
+  const html=get('docs/expediente.html');
+  assert.match(js,/mostRecent/); // Solo se menciona en la explicación histórica, no para elegir el activo.
+  assert.doesNotMatch(js,/mostRecent\?\.path/);
+  assert.match(js,/const tickers=\[\.\.\.new Set\(\(state\.catalog\.valoraciones\|\|\[\]\)/);
+  assert.match(js,/const path=\(officialPath&&inDirectory\)\?officialPath:''/);
+  assert.match(js,/!p\.official/);
+  for(const status of ['EN_REVISION','LISTO','REHACER'])assert.ok(js.includes(status));
+  assert.match(html,/id="reviewPanel"/);
+  assert.match(html,/id="auditReviewStatus"/);
+  const m=js.match(/function reviewPath\(loc\)\{[\s\S]*?\n\}/);
+  assert.ok(m);
+  const fn=new Function(m[0]+';return reviewPath')();
+  assert.equal(fn({ticker:'ADBE',revision:'ADBE-REC-20261027-R1'}),
+    'auditorias/solicitudes/ADBE/ADBE-REC-20261027-R1.json');
+  assert.equal(fn({ticker:'ADBE',revision:'ADBE-REC-20261027-R2'}),
+    'auditorias/solicitudes/ADBE/ADBE-REC-20261027-R2.json');
+  assert.match(js,/latest\.sha!==state\.reviewSha/);
+  assert.match(js,/auditoriaSolicitada:false/);
+  assert.match(js,/result\.content\?\.sha/);
+  assert.match(js,/GhOAuth\.b64EncodeUnicode/);
+  assert.match(js,/branch:'main'/);
+});
+
 test('servicio offline incluye nuevas páginas', () => {
   const sw=get('docs/sw.js');new Script(sw);
   for (const f of ['index.html','bitacora-terceros.html','expediente.html','expediente.js']) assert.ok(sw.includes('"'+f+'"'));
