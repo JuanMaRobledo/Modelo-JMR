@@ -215,7 +215,7 @@ async function init(){
    $("status").parentNode.parentNode.insertBefore(b,$("status").parentNode);
   }else{
   var arr=await Promise.all([list("valoraciones"),list("auditorias/narrativas").catch(function(){return [];})]);
-  var files=arr[0].filter(function(x){return x.type==="file"&&/^[A-Z][A-Z0-9.]*-\d{10,}\.json$/.test(x.name);});
+  var files=arr[0].filter(function(x){return x.type==="file"&&/^[A-Z][A-Z0-9.]*-\d{8,}(?:-R\d+)?\.json$/.test(x.name);});
   files.sort(function(a,b){return a.name.localeCompare(b.name,undefined,{numeric:true});});
   files.forEach(function(x){var key=x.name.split("-")[0].toUpperCase();nowPaths[key]=x.path;});
   arr[1].forEach(function(x){if(x.type==="file"&&/^[A-Z][A-Z0-9.]*\.md$/.test(x.name))narrPaths[x.name.slice(0,-3)]=x.path;});

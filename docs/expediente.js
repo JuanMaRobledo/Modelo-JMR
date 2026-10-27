@@ -78,7 +78,7 @@ function openCompany(input){
     ? 'Valoración, análisis y auditoría constan en el catálogo. Esto no certifica por sí solo que compartan revisión ni que la auditoría esté aprobada.'
     : 'Expediente en consulta: faltan piezas del catálogo oficial o todavía no están conciliadas. No se equipara archivo existente a estudio publicado.';
   el('dossier').hidden=false;el('empty').hidden=true;
-  el('sheetLink').hidden=false;el('sheetLink').href=p.suppuestos.href;
+  el('sheetLink').hidden=false;el('sheetLink').href=p.supuestos.href;
   const first=p.valPath?'valoracion': 'analisis';
   showView(state.view&&p[state.view]?state.view:first);
   if(!p.official)status(t+' · Sin entrada oficial completa de valoración en catálogo; consulta disponible con reservas.','warning');

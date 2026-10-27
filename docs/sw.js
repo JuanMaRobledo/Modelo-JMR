@@ -1,4 +1,4 @@
-const CACHE = "modelo-jmr-v179-adaptador-financiero-20261027";
+const CACHE = "modelo-jmr-v180-ficha-unica-20261027";
 const APP_SHELL = [
   "catalog-reset.js",
   "index.html",

@@ -630,7 +630,7 @@
   // no copiado a ciegas: "sourcePath" muestra siempre de dónde salió.
   function tickerFromValoracionName(name) {
     var base = name.replace(/\.json$/i, '');
-    var m = base.match(/^(.+)-(\d{10,})$/);
+    var m = base.match(/^([A-Za-z0-9.]+)-\d{8,}(?:-R\d+)?$/);
     return m ? m[1] : base;
   }
   function listValoraciones() {
