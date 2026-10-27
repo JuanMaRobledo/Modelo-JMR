@@ -1259,7 +1259,7 @@ activate(["data", "research", "valuation", "library", "prompts"].includes(locati
 $("syncBtn").click();
 document
   .querySelector("nav.appnav a.active")
-  .scrollIntoView({ inline: "center", block: "nearest" });
+  ?.scrollIntoView({ inline: "center", block: "nearest" });
 if ("serviceWorker" in navigator)
   navigator.serviceWorker.register("sw.js").catch(() => {});
 

@@ -63,7 +63,7 @@ nav.appnav{display:flex;gap:4px;padding:14px 20px 0;max-width:1180px;margin:0 au
 .chart-legend-swatch.chart-ref-cons-sw{background:color-mix(in oklab, var(--accent) 45%, var(--surface))}
 .chart-legend-swatch.chart-ref-base-sw{background:color-mix(in oklab, var(--accent) 70%, var(--surface))}
 .chart-legend-swatch.chart-ref-opt-sw{background:var(--accent)}
-@media(max-width:900px){.port-grid{grid-template-columns:1fr}}
+@media(max-width:900px){.port-grid{grid-template-columns:minmax(0,1fr)}.port-block{min-width:0;overflow-wrap:anywhere}}
 @media(max-width:600px){.wrap{padding-left:14px;padding-right:14px}.hero{padding-top:25px}.theme-btn{display:none}.port-head h2{font-size:16px}}
 </style>
 <link rel="stylesheet" href="jmr-theme.css">
