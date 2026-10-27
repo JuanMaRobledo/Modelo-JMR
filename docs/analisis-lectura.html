@@ -187,8 +187,7 @@ async function valuationSnapshot(catalog){
       '<td class="flag-secondary">'+esc(w? 'Seleccionado en valoración':'Referencia sin ponderar'+(m.estado?' · '+m.estado:''))+'</td></tr>';
     }).join('');
     const box=el('multiplesSnapshot');
-    box.id='multiplos-de-valoracion';
-    box.innerHTML='<h2>Múltiplos de valoración · todos los métodos</h2>'+
+    box.innerHTML='<h2 id="multiplos-de-valoracion">Múltiplos de valoración · todos los métodos</h2>'+
       '<p class="multiples-intro">Los precios a valor presente corresponden al promedio descontado de FY+1, FY+2 y FY+3 según la hoja. El precio al cierre de FY+3 es una cifra diferente. Ningún múltiplo sustituye el DCF Base principal.</p>'+
       '<table><thead><tr><th>Método</th><th>Valor presente · Base</th><th>Precio FY+3 · Base</th><th>Peso vigente</th><th>Condición</th></tr></thead><tbody>'+
       rows+'</tbody></table>'+
