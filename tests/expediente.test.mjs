@@ -58,3 +58,23 @@ test('servicio offline incluye nuevas páginas', () => {
   const sw=get('docs/sw.js');new Script(sw);
   for (const f of ['index.html','bitacora-terceros.html','expediente.html','expediente.js']) assert.ok(sw.includes('"'+f+'"'));
 });
+
+test('Research deja visible una ficha por empresa y conserva copias en memoria',()=>{
+  const js=get('docs/research.js');
+  const source=js.match(/  var officialAnalysisPaths = null;[\s\S]*?(?=  function setLocalLibrary\(list\) \{)/)?.[0];
+  assert.ok(source,'selector de revisión activa');
+  const records=[
+    {id:'viejo',ticker:'DUOL',date:'2026-09-01',remotePath:'analisis/DUOL-viejo.json'},
+    {id:'nuevo',ticker:'DUOL',date:'2026-10-26',remotePath:'analisis/DUOL-nuevo.json'},
+    {id:'oficial',ticker:'DUOL',date:'2026-10-15',remotePath:'analisis/DUOL-oficial.json'},
+    {id:'otro',ticker:'CELH',date:'2026-10-10',remotePath:'analisis/CELH.json'}
+  ];
+  const api=new Function('getLocalLibrary','jmrDelMercado',source+
+    ';return {list:activeResearchList,setOfficial:function(paths){officialAnalysisPaths=new Set(paths)}};')(
+    ()=>records.slice(),()=>true);
+  assert.equal(api.list().length,2);
+  assert.equal(api.list().find(x=>x.ticker==='DUOL').id,'nuevo');
+  api.setOfficial(['analisis/DUOL-oficial.json']);
+  assert.equal(api.list().find(x=>x.ticker==='DUOL').id,'oficial');
+  assert.equal(records.length,4,'no borrar los registros históricos');
+});
