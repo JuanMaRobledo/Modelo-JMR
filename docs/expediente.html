@@ -17,7 +17,7 @@ input,button{font:inherit}
 input{min-width:175px;background:var(--surface,#fff);color:var(--ink);border:1px solid var(--border,#c7d3ca);border-radius:8px;padding:11px}
 button{border:1px solid var(--border,#c7d3ca);background:var(--surface,#fff);color:var(--ink);border-radius:8px;padding:11px 15px;cursor:pointer}
 button.active,button[type=submit]{background:var(--ink,#173128);color:var(--surface,#fff)}
-button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #ad8c4b;outline-offset:2px}
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #ad8c4b;outline-offset:2px}
 #status{min-height:26px;color:var(--ink-soft,#57665b);margin:12px 0}
 #status[data-level=warning]{color:#a66714}
 #status[data-level=error]{color:#b32d2d}
@@ -34,12 +34,20 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #ad8c
 .panelbar a{color:var(--accent,#856327);font-weight:700}
 iframe{display:block;width:100%;height:max(620px,78vh);border:0;background:var(--surface,#fff)}
 #empty{padding:60px 24px;text-align:center;color:var(--ink-soft,#59645b)}
+.audit-notes{padding:14px 20px;background:var(--surface-2,#f1f5f9);border-block:1px solid var(--border,#ddd)}
+.audit-notes summary{cursor:pointer;font-weight:750;font-size:15px}
+.audit-notes p{font-size:12px;line-height:1.55;color:var(--ink-soft,#59645b)}
+.audit-notes label{display:block;margin:10px 0;font-size:13px;font-weight:650}
+.audit-notes textarea{display:block;width:100%;min-height:140px;resize:vertical;font:inherit;color:var(--ink);background:var(--surface,#fff);border:1px solid var(--border,#ddd);border-radius:9px;padding:12px}
+.audit-actions{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-top:10px}
+#auditReviewStatus{min-height:21px}
+#auditReviewLink{font-size:12px;color:var(--accent,#856327)}
 [hidden]{display:none!important}
 footer{margin-top:20px;color:var(--ink-soft,#59645b);font-size:12px}
 footer a{color:inherit}
 @media(max-width:680px){form input{min-width:0;width:min(75vw,320px)}main{padding:12px}.overview{padding:12px}.tabs{padding:8px}iframe{height:82vh}}
 </style></head><body>
-<script src="auth.js"></script><script src="mercado.js"></script>
+<script src="auth.js"></script><script src="mercado.js"></script><script src="gh_oauth.js"></script>
 <nav class="appnav" aria-label="Navegación principal"><a href="research.html">Análisis fundamental</a><a href="expediente.html" class="active">Expedientes JMR</a><a href="bitacora-terceros.html">Bitácora de terceros</a></nav>
 <main>
 <header><span>MODELO JMR · EXPEDIENTE UNIFICADO</span><h1>Una empresa, un expediente</h1>
@@ -55,6 +63,19 @@ footer a{color:inherit}
 <button type="button" data-view="auditoria" role="tab" aria-selected="false">Auditoría</button>
 <button type="button" data-view="sensibilidades" role="tab" aria-selected="false">Sensibilidades</button>
 </div>
+<details class="audit-notes" id="auditNotesPanel">
+<summary>Mis observaciones para la próxima auditoría</summary>
+<p>Escribe los supuestos, tablas o conclusiones que quieres revisar. Las notas se vinculan a esta revisión exacta; no sustituyen los controles económicos mínimos.</p>
+<label for="auditReviewNotes">Puntos específicos para revisar</label>
+<textarea id="auditReviewNotes" maxlength="6000" placeholder="Por ejemplo: revisar ROIC terminal, contrastar margen EBIT y justificar múltiplos con pares."></textarea>
+<div class="audit-actions">
+<button type="button" id="saveAuditRequest">Guardar para auditoría en GitHub</button>
+<button type="button" id="connectAuditGithub" hidden>Conectar GitHub</button>
+<a id="auditReviewLink" hidden target="_blank" rel="noopener noreferrer">Ver observaciones guardadas ↗</a>
+</div>
+<p>El texto se conserva como borrador local al escribir. Guardarlo en GitHub lo hace accesible en el repositorio <strong>público</strong> Modelo-JMR-datos. No introduzcas datos privados ni credenciales.</p>
+<p id="auditReviewStatus" role="status" aria-live="polite"></p>
+</details>
 <div id="auditModes" class="sensitivity-modes" role="group" aria-label="Tipo de auditoría" hidden><button type="button" class="active" data-audit="auditoria" aria-pressed="true">Auditoría narrativa</button><button type="button" data-audit="auditoriaIntegral" aria-pressed="false">Auditoría integral</button></div>
 <div id="sensitivityModes" class="sensitivity-modes" role="group" aria-label="Tipo de sensibilidad" hidden><button type="button" class="active" data-sensitivity="sensibilidades" aria-pressed="true">DCF · Prioritaria</button><button type="button" data-sensitivity="sensibilidadMultiples" aria-pressed="false">Múltiplos · Base</button></div>
 <div class="panelbar"><p id="viewHelp"></p><a id="openOriginal" target="_self" href="visor.html">Abrir vista completa ↗</a></div>
@@ -62,4 +83,4 @@ footer a{color:inherit}
 <div id="empty">Elige una empresa para consultar sus secciones sin cambiar de expediente.</div>
 <footer>Fuentes: <code>Modelo-JMR-datos</code> y Google Sheets. Un archivo en el repositorio no implica auditoría aprobada ni publicación oficial.
 <a href="https://github.com/JuanMaRobledo/Modelo-JMR/blob/main/docs/PROCESO_UNICO_JMR.md" target="_blank" rel="noopener noreferrer">Procedimiento único para ChatGPT, Claude y Gemini ↗</a></footer>
-</main><script src="expediente.js?v=20261027-ficha"></script></body></html>
+</main><script src="expediente.js?v=20261027-audit-notes"></script></body></html>
