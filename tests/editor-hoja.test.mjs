@@ -83,6 +83,8 @@ test('cuatro accesos abren hojas reales sin crear datos ni hojas ficticias',()=>
   assert.equal(findMainSheet('valuation',names),'Valuation output');
   assert.equal(findMainSheet('multiples',names),'Descuento de múltiplos');
   assert.equal(findMainSheet('financial',names),'Financial Multiples');
+  assert.equal(findMainSheet('financial',['Input sheet','Financials Multiples']),'Financials Multiples');
+  assert.equal(mainKind('Financials Multiples'),'financial');
   assert.equal(mainKind('P/E'),'multiples');
   assert.equal(mainKind('Financial Multiples'),'financial');
   assert.equal(findMainSheet('financial',['Input sheet','Valuation output']),'');
@@ -100,4 +102,17 @@ test('la vista íntegra permite consultar fórmulas sin crear un cálculo parale
   assert.match(source,/fullSheet=false;table\(\)/);
   assert.match(source,/method:'PATCH'/);
   assert.match(source,/isEditable\(selected,address,c,!!snapshot.writable\)/);
+});
+
+test('los siete múltiplos se verifican contra fórmulas reales de Sheets, no solo precios guardados',()=>{
+  const context={};context.globalThis=context;vm.runInNewContext(formatter,context);vm.runInNewContext(source,context);
+  const check=context.JmrSheetEditor.multiplesFormulaAudit;
+  const sheet={'Descuento de múltiplos':{},PV:{},PBV:{}};
+  ['J20','J21','J22','J23','J24'].forEach((address,i)=>sheet['Descuento de múltiplos'][address]={v:i+10,formula:'=B'+(i+20)});
+  sheet.PV.E42={v:35,formula:'=A42*B42'};
+  sheet.PBV.E42={v:40,formula:'=A42*B42'};
+  assert.equal(check(sheet).filter(x=>x.hasFormula&&x.hasValue).length,7);
+  sheet.PBV.E42={v:40,formula:null};
+  assert.equal(check(sheet).filter(x=>x.hasFormula&&x.hasValue).length,6);
+  assert.equal(check(sheet).find(x=>x.method==='P/BV').hasFormula,false);
 });
