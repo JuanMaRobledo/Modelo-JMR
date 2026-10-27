@@ -817,6 +817,34 @@
     if (memLibrary) return memLibrary.slice();
     try { var x=JSON.parse(localStorage.getItem(LOCAL_KEY)||'[]'); return Array.isArray(x)?x:[]; } catch(e){return [];}
   }
+  // El repositorio conserva todo el historial, pero la portada muestra una
+  // sola ficha por ticker. La revisión de catalogo.json tiene prioridad.
+  var officialAnalysisPaths = null;
+  function preferResearchRecord(candidate, previous) {
+    const a=!!(officialAnalysisPaths&&officialAnalysisPaths.has(candidate.remotePath));
+    const b=!!(officialAnalysisPaths&&officialAnalysisPaths.has(previous.remotePath));
+    if(a!==b)return a;
+    const date=r=>Date.parse(r.updatedAt||r.date||'')||0;
+    if(date(candidate)!==date(previous))return date(candidate)>date(previous);
+    return String(candidate.id||'')>String(previous.id||'');
+  }
+  function activeResearchList() {
+    var groups=Object.create(null);
+    getLocalLibrary().filter(function(r){return typeof jmrDelMercado!=='function'||jmrDelMercado(r);}).forEach(function(r){
+      var t=String(r.ticker||'').trim().toUpperCase();
+      var key=/^[A-Z0-9._-]{1,24}$/.test(t)?t:'SIN_TICKER_'+String(r.id||'');
+      if(!groups[key]||preferResearchRecord(r,groups[key]))groups[key]=r;
+    });
+    return Object.keys(groups).map(function(k){return groups[k];}).sort(function(a,b){
+      return String(b.updatedAt||b.date||'').localeCompare(String(a.updatedAt||a.date||''));
+    });
+  }
+  function loadOfficialAnalysisPaths(){
+    return fetch('https://raw.githubusercontent.com/JuanMaRobledo/Modelo-JMR-datos/main/catalogo.json',{cache:'no-store'})
+      .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+      .then(function(c){officialAnalysisPaths=new Set(Array.isArray(c.analisis)?c.analisis:[]);renderLibrary();})
+      .catch(function(e){console.warn('Catálogo JMR no disponible: se usa última fecha sin declarar validación.',e.message);});
+  }
   function setLocalLibrary(list) {
     memLibrary = list.slice();
     try { localStorage.setItem(LOCAL_KEY, JSON.stringify(list)); }
@@ -1392,7 +1420,7 @@
     return text;
   }
   function renderLibrary() {
-    var q=normalizeText(el('librarySearch').value), list=getLocalLibrary().filter(function(r){return (typeof jmrDelMercado!=='function'||jmrDelMercado(r))&&(!q||recordSearchText(r).indexOf(q)>=0);});
+    var q=normalizeText(el('librarySearch').value), list=activeResearchList().filter(function(r){return !q||recordSearchText(r).indexOf(q)>=0;});
     var holder=el('libraryCards');
     if(!list.length){populateCompareSelects();holder.innerHTML='<div class="empty">Todavía no hay análisis guardados. Abre “Nuevo análisis” para crear el primero.</div>';setStatus('libraryStatus',getGhToken()?'GitHub conectado.':'Biblioteca local · GitHub no conectado.');return;}
     holder.innerHTML=list.map(function(r){
@@ -1407,10 +1435,10 @@
       if(!/^valoraciones\/[A-Za-z0-9._-]+\.json$/.test(visorPath)) visorPath = '';
       var visorLink=visorPath?'<a class="btn" href="visor.html?path='+encodeURIComponent(visorPath)+(typeof jmrMercadoQS==='function'?jmrMercadoQS():'')+'">Ver en el Visor</a>':'';
       var dossierLink=/^[A-Za-z0-9._-]{1,24}$/.test(r.ticker||'')?'<a class="btn" href="expediente.html?ticker='+encodeURIComponent(r.ticker)+'">Expediente JMR</a>':'';
-      return '<article class="analysis-card" data-id="'+escapeHtml(r.id)+'"><div class="card-head">'+logo+'<div class="card-title"><strong>'+escapeHtml(r.title||r.company)+(typeof JmrDecision!=='undefined'?JmrDecision.badge(r.decision):'')+'</strong><span class="ticker">'+escapeHtml(r.ticker||'—')+' · '+escapeHtml(r.company||'')+'</span></div></div>'+(excerpt?'<p class="card-excerpt">'+escapeHtml(excerpt)+'</p>':'')+'<div class="card-meta"><span>'+escapeHtml(r.date||'Sin fecha')+'</span><span>'+(r.remotePath?'GitHub + local':'Solo local')+'</span></div><div class="card-actions"><button class="btn" data-action="open" type="button">Abrir</button>'+dossierLink+visorLink+'<button class="btn danger" data-action="delete" type="button">Borrar</button></div></article>';
+      return '<article class="analysis-card" data-id="'+escapeHtml(r.id)+'"><div class="card-head">'+logo+'<div class="card-title"><strong>'+escapeHtml(r.title||r.company)+(typeof JmrDecision!=='undefined'?JmrDecision.badge(r.decision):'')+'</strong><span class="ticker">'+escapeHtml(r.ticker||'—')+' · '+escapeHtml(r.company||'')+'</span></div></div>'+(excerpt?'<p class="card-excerpt">'+escapeHtml(excerpt)+'</p>':'')+'<div class="card-meta"><span>'+escapeHtml(r.date||'Sin fecha')+'</span><span>'+(officialAnalysisPaths?(officialAnalysisPaths.has(r.remotePath)?'Catálogo oficial':'Recuperado / fuera del catálogo'):'Estado pendiente de catálogo')+'</span></div><div class="card-actions"><button class="btn" data-action="open" type="button">Abrir</button>'+dossierLink+visorLink+'<button class="btn danger" data-action="delete" type="button">Borrar</button></div></article>';
     }).join('');
     wireLogoFallbacks(holder);
-    setStatus('libraryStatus',list.length+' análisis · '+(getGhToken()?'GitHub disponible':'almacenamiento local'));
+    setStatus('libraryStatus',list.length+' empresas visibles (una ficha por ticker) · '+(getGhToken()?'GitHub disponible':'almacenamiento local'));
     populateCompareSelects();
   }
   el('librarySearch').addEventListener('input',renderLibrary);
@@ -1428,7 +1456,7 @@
   // renderer de documento (safeHtml + valuation-block) para cada columna,
   // a partir de dos análisis ya guardados en la biblioteca local.
   function populateCompareSelects() {
-    var list = getLocalLibrary().filter(jmrDelMercado);
+    var list = activeResearchList();
     ['compareA','compareB'].forEach(function (id) {
       var sel = el(id); if (!sel) return;
       var current = sel.value;
@@ -1599,6 +1627,7 @@
 
   // catalog-reset.js retira una sola vez las copias locales del catálogo anterior.
 
+  loadOfficialAnalysisPaths();
   renderGhBanner();
   el('compareOutput').innerHTML='<div class="compare-empty">Elegí dos empresas arriba para verlas lado a lado.</div>';
   renderLibrary();renderPreview();loadPrompt(false);
