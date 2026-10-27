@@ -25,18 +25,19 @@
     if (!nav) return;
     var page = location.pathname.split('/').pop() || 'index.html';
     var research = page === 'research.html';
-    var marketPage = research || ['visor.html', 'colombia.html', 'portafolio.html', 'mi-bitacora.html', 'calculadora.html'].indexOf(page) >= 0;
+    var marketPage = research || (page==='expediente.html' && !!params.get('mercado')) || ['visor.html', 'colombia.html', 'portafolio.html', 'mi-bitacora.html', 'calculadora.html'].indexOf(page) >= 0;
     var qs = col ? '?mercado=colombia' : '';
-    var activeInternational = page==='visor.html' && !col;
-    var activeColombia = (page==='visor.html' && col)||page==='colombia.html';
+    var valuationDossier = page==='expediente.html'&&params.get('seccion')==='valoracion';
+    var activeInternational = (page==='visor.html' && !col)||(valuationDossier&&!col);
+    var activeColombia = (page==='visor.html' && col)||page==='colombia.html'||(valuationDossier&&col);
     nav.setAttribute('aria-label', 'Navegación principal JMR');
     // Cada enlace lleva a una ruta canónica estable, nunca al documento de origen
     // bajo otra etiqueta. Hojas, auditorías y sensibilidades de una empresa se abren desde su ficha. La navegación contextual se limita a la segunda fila.
     nav.innerHTML = link('https://cartera-two-eta.vercel.app/', 'JMR', false, 'jmr-home') +
       link('expediente.html?seccion=analisis', 'Análisis fundamental', page==='expediente.html'&&params.get('seccion')==='analisis') +
       link('expediente.html', 'Expedientes JMR', (page==='expediente.html'&&params.get('seccion')!=='analisis')||['editor-hoja.html','auditorias.html','auditoria-integral.html','auditoria-multiplos.html'].indexOf(page) >= 0) +
-      link('visor.html', 'Valoraciones internacionales', activeInternational) +
-      link('visor.html?mercado=colombia', 'Valoraciones Colombia', activeColombia) +
+      link('expediente.html?seccion=valoracion&mercado=internacional', 'Valoraciones internacionales', activeInternational) +
+      link('expediente.html?seccion=valoracion&mercado=colombia', 'Valoraciones Colombia', activeColombia) +
       link('bitacora-terceros.html', 'Bitácora de terceros', page === 'bitacora-terceros.html') +
       link('screener.html', 'Screener', page === 'screener.html') +
       link('calculadora.html' + qs, 'Calculadora DCF', page === 'calculadora.html') +
@@ -49,13 +50,13 @@
     sub.hidden = !marketPage;
     sub.setAttribute('aria-label', 'Secciones de ' + (col ? 'Colombia' : 'Internacionales'));
     sub.innerHTML = '<span>' + (col ? 'Colombia · COP' : 'Internacionales') + '</span>' +
-      link('visor.html' + qs, 'Valoraciones', page === 'visor.html') +
+      link('expediente.html?seccion=valoracion' + (col?'&mercado=colombia':'&mercado=internacional'), 'Valoraciones', page === 'expediente.html' || page === 'visor.html') +
       link('research.html' + qs, 'Análisis fundamental', research) +
       link('mi-bitacora.html' + qs, 'Mi bitácora', page === 'mi-bitacora.html') +
       link('portafolio.html' + qs, 'Portafolio', page === 'portafolio.html') +
       (col ? link('colombia.html', 'Datos y expedientes', page === 'colombia.html') : '');
     if (marketPage && page !== 'colombia.html') {
-      var title = research ? 'Análisis fundamental' : page === 'visor.html' ? 'Valoraciones · Modelo JMR' : page === 'portafolio.html' ? 'Portafolio' : page === 'mi-bitacora.html' ? 'Mi bitácora' : 'Calculadora DCF';
+      var title = research ? 'Análisis fundamental' : page === 'expediente.html' ? 'Fichas · Modelo JMR' : page === 'visor.html' ? 'Valoraciones · Modelo JMR' : page === 'portafolio.html' ? 'Portafolio' : page === 'mi-bitacora.html' ? 'Mi bitácora' : 'Calculadora DCF';
       var h = document.querySelector('h1'); if (h) h.textContent = title + ' · ' + (col ? 'Colombia' : 'Internacionales');
       document.title = title + ' · ' + (col ? 'Colombia' : 'Internacionales');
     }
