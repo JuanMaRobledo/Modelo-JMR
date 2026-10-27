@@ -8,6 +8,7 @@
 - **Valoraciones:** `visor.html` / `visor.html?mercado=colombia` (destinos distintos, nunca la página abierta bajo otra etiqueta).
 - **Hojas del modelo:** `editor-hoja.html?ticker=<T>`, lector de la hoja Google oficial.
 - **Auditorías:** `auditorias.html?ticker=<T>`, `auditoria-integral.html?ticker=<T>`, `auditoria-multiplos.html?ticker=<T>`.
+- **Observaciones para auditoría:** campo desplegable en `expediente.html?ticker=<T>`; borrador local y guardado explícito vía GitHub en `Modelo-JMR-datos/auditorias/solicitudes/<archivo-de-la-valoración>.json`. Revisión y ticker vinculados; las notas sincronizadas quedan visibles en un repositorio público.
 - **Histórico:** `historicos.html`; **Bitácora de terceros:** `bitacora-terceros.html` (externa al modelo oficial).
 - **Herramientas:** `calculadora.html` (simulación no persistente), `damodaran.html`, `screener.html`, `portafolio.html`, `mi-bitacora.html`.
 

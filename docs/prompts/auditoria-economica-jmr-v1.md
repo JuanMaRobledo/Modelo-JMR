@@ -1,7 +1,7 @@
 # PROMPT MAESTRO 3/3 · AUDITORÍA ECONÓMICA INDEPENDIENTE JMR · v1.3 (26-oct-2026)
 
 **Vigencia:** 21-oct-2026. **Reglas de método:** `modelo/REGLAS_VIGENTES.md` (prevalecen). **Uso:** una empresa por ejecución. **Formato:** Markdown editable. **Idioma:** español de Colombia.  
-**Ámbito:** auditoría independiente de la última valoración vigente; no es el prompt para recalcular, valorar ni publicar nuevos supuestos.  
+**Ámbito:** auditoría independiente de la última valoración vigente, tras la revisión visual del usuario en el nuevo flujo híbrido. Antes de auditar, resolver el archivo de valoración oficial en `Modelo-JMR-datos/catalogo.json` y consultar `auditorias/solicitudes/<archivo-de-valoración>.json` para esa misma revisión, si existe. Verificar ticker y ruta, atender los puntos anotados y completar siempre los controles económicos mínimos: las observaciones no sustituyen la auditoría. Los borradores locales sin sincronizar no son accesibles a otros agentes. No es el prompt para recalcular, valorar ni publicar nuevos supuestos.  
 **Contratos complementarios:** [controles de precisión financiera](precision-financiera-2026-10-09.md) y [historias/múltiplos](contrato-historias-multiplos-20261017.md).
 
 
