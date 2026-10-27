@@ -9,6 +9,8 @@ on:
       - 'tests/economic-multiples.test.cjs'
       - 'docs/jmr-economic-multiples.js'
       - 'docs/jmr-report-sheets.js'
+      - 'docs/valuation-board.js'
+      - 'tests/value-board-multiples-completeness.test.cjs'
       - '.github/workflows/auditoria-multiplos.yml'
   push:
     branches: [main]
@@ -16,6 +18,8 @@ on:
       - 'docs/auditoria-multiplos.*'
       - 'docs/visor.html'
       - 'docs/research.html'
+      - 'docs/valuation-board.js'
+      - 'tests/value-board-multiples-completeness.test.cjs'
       - 'tests/auditoria-multiplos.test.cjs'
 permissions:
   contents: read
@@ -29,6 +33,8 @@ jobs:
         with:
           node-version: '22'
       - run: node --check docs/auditoria-multiplos.js
+      - run: node --check docs/valuation-board.js
       - run: node --check docs/jmr-economic-multiples.js
       - run: node --test tests/economic-multiples.test.cjs
       - run: node --test tests/auditoria-multiplos.test.cjs
+      - run: node --test tests/value-board-multiples-completeness.test.cjs
