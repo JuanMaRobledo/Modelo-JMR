@@ -52,6 +52,23 @@ function catalogMarket(t){
   const isColombia=typeof window.jmrEsCOP==='function'?window.jmrEsCOP({ticker:t}):false;
   return market==='colombia'?isColombia:!isColombia;
 }
+function logoUrl(t){
+  if(t==='NKE')return 'assets/logos/nike.svg';
+  if(t==='UBER')return 'assets/logos/uber.svg';
+  return 'https://images.financialmodelingprep.com/symbol/'+encodeURIComponent(t)+'.png';
+}
+function companyLogo(t,kind){
+  const wrap=document.createElement('span');wrap.className=kind+'-logo-wrap';
+  const fallback=document.createElement('span');fallback.className=kind+'-logo-fallback';
+  fallback.textContent=t.slice(0,3);
+  const img=document.createElement('img');img.className=kind+'-logo-image';
+  img.alt='Logo de '+t;img.hidden=true;
+  img.onload=()=>{img.hidden=false;fallback.hidden=true;};
+  img.onerror=()=>{img.hidden=true;fallback.hidden=false;};
+  img.src=logoUrl(t);
+  wrap.append(img,fallback);
+  return wrap;
+}
 function renderCatalogCards(){
   const q=String(el('catalogSearch').value||'').trim().toUpperCase();
   const paths=Array.isArray(state.catalog.valoraciones)?state.catalog.valoraciones:[];
@@ -62,19 +79,37 @@ function renderCatalogCards(){
   const fragment=document.createDocumentFragment();
   matching.forEach(t=>{
     const p=pages(t);
-    const card=document.createElement('button');
-    card.type='button';card.className='catalog-card'+(state.ticker===t?' active':'');
+    const card=document.createElement('article');
+    card.className='catalog-card'+(state.ticker===t?' active':'');
     card.setAttribute('role','listitem');
-    card.setAttribute('aria-label','Abrir expediente de '+t);
-    const h=document.createElement('strong');h.textContent=t;card.appendChild(h);
-    const info=document.createElement('small');
-    info.textContent='Valoración vigente en catálogo';
+    const head=document.createElement('div');head.className='card-identity';
+    const title=document.createElement('strong');title.textContent=t;
+    head.append(companyLogo(t,'card'),title);
+    card.appendChild(head);
+    const info=document.createElement('small');info.textContent='Valoración vigente en catálogo';
     card.appendChild(info);
     const supports=document.createElement('span');supports.className='card-caption';
     supports.textContent=(p.analysisPath?'Análisis disponible':'Análisis pendiente')+' · '+(p.auditPath?'Auditoría disponible':'Auditoría pendiente');
     card.appendChild(supports);
-    const action=document.createElement('span');action.className='card-action';action.textContent='Abrir ficha completa';card.appendChild(action);
-    card.addEventListener('click',()=>{openCompany(t);el('dossier').scrollIntoView({behavior:'smooth',block:'start'});});
+    const actions=document.createElement('div');actions.className='card-links';
+    if(p.analysisPath){
+      const reader=document.createElement('a');
+      reader.className='card-action';reader.href=p.analisis.href;
+      reader.target='_blank';reader.rel='noopener noreferrer';
+      reader.textContent='Leer análisis ↗';
+      actions.appendChild(reader);
+    }
+    const open=document.createElement('button');open.type='button';open.className='card-open';
+    open.textContent='Ver expediente';
+    open.addEventListener('click',()=>{openCompany(t);el('dossier').scrollIntoView({behavior:'smooth',block:'start'});});
+    actions.appendChild(open);
+    card.appendChild(actions);
+    // Tocar la superficie de la ficha abre el análisis como documento independiente.
+    card.addEventListener('click',event=>{
+      if(event.target.closest('a,button'))return;
+      if(p.analysisPath)window.open(p.analisis.href,'_blank','noopener,noreferrer');
+      else open.click();
+    });
     fragment.appendChild(card);
   });
   grid.appendChild(fragment);
@@ -91,7 +126,7 @@ function pages(t){
   const analysisPath=fromCatalog(state.catalog.analisis,t);
   const auditPath=fromCatalog(state.catalog.auditorias,t);
   const v=path?'visor.html?path='+encodeURIComponent(path):'visor.html?ticker='+encodeURIComponent(t);
-  const a='research.html?ticker='+encodeURIComponent(t)+(analysisPath?'&analisis='+encodeURIComponent(analysisPath):'');
+  const a='analisis-lectura.html?ticker='+encodeURIComponent(t)+(analysisPath?'&analisis='+encodeURIComponent(analysisPath):'');
   return {
     valPath:path,official:!!officialPath&&inDirectory,analysisPath,auditPath,
     valoracion:{href:v,help:officialPath&&inDirectory?'Valoración indicada en el catálogo oficial.':'La valoración disponible aún no figura en el catálogo oficial; no se presenta como validada.'},
@@ -113,6 +148,7 @@ function openCompany(input){
   el('reviewSaveStatus').textContent='';
   const u=new URL(location.href);u.searchParams.set('ticker',t);history.replaceState({},'',u.pathname+u.search+u.hash);
   el('companyTitle').textContent='Expediente '+t;
+  el('companyLogo').replaceChildren(companyLogo(t,'overview'));
   const p=pages(t);
   if(!p.official){
     el('dossier').hidden=true;el('empty').hidden=false;
@@ -156,6 +192,9 @@ function showDetail(kind){
     b.classList.toggle('active',selected);b.setAttribute('aria-pressed',String(selected));
   });
   el('viewHelp').textContent=d.help;el('openOriginal').href=d.href;
+  el('openOriginal').target=kind==='analisis'?'_blank':'_self';
+  el('openOriginal').rel=kind==='analisis'?'noopener noreferrer':'';
+  el('openOriginal').textContent=kind==='analisis'?'Leer análisis en nueva pestaña ↗':'Abrir vista completa ↗';
   const frame=el('viewFrame');
   if(frame.getAttribute('src')!==d.href)frame.setAttribute('src',d.href);
 }
@@ -296,7 +335,13 @@ el('reloadAuditRequest').addEventListener('click',()=>{
 el('catalogSearch').addEventListener('input',renderCatalogCards);
 el('lookup').addEventListener('submit',e=>{e.preventDefault();openCompany(el('ticker').value);});
 el('reload').addEventListener('click',loadInventory);
-document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>showView(b.dataset.view)));
+document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>{
+  showView(b.dataset.view);
+  if(b.dataset.view==='analisis'){
+    const p=pages(state.ticker);
+    if(p.analysisPath)window.open(p.analisis.href,'_blank','noopener,noreferrer');
+  }
+}));
 document.querySelectorAll('[data-sensitivity]').forEach(b=>b.addEventListener('click',()=>showDetail(b.dataset.sensitivity)));
 document.querySelectorAll('[data-audit]').forEach(b=>b.addEventListener('click',()=>showDetail(b.dataset.audit)));
 el('viewFrame').addEventListener('load',function(){
