@@ -1,0 +1,43 @@
+name: Smoke temporal ficha unificada revision visual
+on:
+  push:
+    branches: ['verify/expediente-revision-smoke-20261027']
+    paths:
+      - '.github/workflows/smoke-temporal-revision-20261027.yml'
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Comprobar despliegue publico real
+        run: |
+          python - <<'PY'
+          import time,urllib.request,sys
+          url='https://juanmarobledo.github.io/Modelo-JMR/'
+          checks={
+           'expediente.html':['id="auditReviewStatus"','id="auditReviewNotes"','id="saveAuditRequest"','gh_oauth.js'],
+           'expediente.js':['function reviewPath(loc)','auditorias/solicitudes/','loadAuditRequest(t,p)','no hay una valoración vigente'],
+           'index.html':['expediente.html?seccion=analisis'],
+           'mercado.js':["expediente.html?seccion=analisis"]
+          }
+          for iteration in range(7):
+              problems=[]
+              for path,need in checks.items():
+                  try:
+                      req=urllib.request.Request(url+path,headers={'Cache-Control':'no-cache','User-Agent':'JMR smoke'})
+                      with urllib.request.urlopen(req,timeout=20) as response:
+                          body=response.read().decode('utf-8')
+                          status=response.status
+                      missing=[item for item in need if item.lower() not in body.lower()]
+                      if status!=200 or missing: problems.append((path,status,missing))
+                      else: print('OK',path,status,len(body))
+                  except Exception as e: problems.append((path,'ERR',str(e)[:180]))
+              if not problems:
+                  print('DEPLOY CONFIRMADO: revision visual y entrada oficial')
+                  sys.exit(0)
+              print('Intento',iteration+1,'pendientes',problems)
+              time.sleep(12)
+          raise SystemExit('El Pages publico no refleja todavia la revision nueva')
+          PY
