@@ -2632,8 +2632,40 @@
   // renderSheetGroup. cualitativoOverride (si ya se editó, o si se cargó
   // desde una valoración guardada) manda sobre lo derivado del Excel.
   var qualContainerEl = document.getElementById('sheetCualitativo');
+  // Los expedientes recuperados contienen rótulos editoriales de un caso
+  // anterior. Solo se normaliza la visualización, sin reescribir la fuente.
+  var QUAL_LEGACY_LABELS = {
+    'MediosDigitales(DigitalMedia)':'Segmento operativo 1',
+    'ExperienciaDigital(DigitalExperience)':'Segmento operativo 2',
+    'PublicaciónyPublicidad(Publishing&Advertising)':'Segmento operativo 3',
+    'ExpansióndelEcosistemaCreativo':'Expansión comercial y ventajas competitivas',
+    'IncertidumbreenExperienciaDigital':'Riesgos específicos del negocio',
+    'DisrupciónporIAGenerativayDesaceleración':'Disrupción tecnológica y desaceleración',
+    'Fuente/Fuenteoriginal:AnálisisdeMorningstar–12dejuniode2026':'Fuentes verificadas: entidad, documento y fecha de consulta',
+    'PeriododelReporte:23dejuniode2026–21dejuliode2026':'Periodo del informe: consignar inicio y fin',
+    'Ciberseguridad':'Riesgos operativos, regulatorios o reputacionales',
+    'AnálisisdeWallSt.':'Otros hechos relevantes',
+    'AdquisicióndeTopazLabs':'Evento relevante 1 (documentar evidencia)',
+    'DegradacióndeMorganStanleyyBofA':'Evento relevante 2 (documentar evidencia)',
+    'AcuerdoComercialconDisney':'Evento relevante 3 (documentar evidencia)',
+    'BoletíndeCiberseguridad':'Evento relevante 4 (documentar evidencia)'
+  };
+  function neutralizeLegacyQualitativeHtml(html){
+    if(!/Adquisición de Topaz Labs|Acuerdo Comercial con Disney/.test(html||''))return html;
+    var wrap=document.createElement('div');
+    wrap.innerHTML=html;
+    var replaced=0;
+    wrap.querySelectorAll('td,th').forEach(function(cell){
+      var key=(cell.textContent||'').replace(/\\s+/g,'').trim();
+      if(Object.prototype.hasOwnProperty.call(QUAL_LEGACY_LABELS,key)){
+        cell.textContent=QUAL_LEGACY_LABELS[key];
+        replaced++;
+      }
+    });
+    return (replaced?'<div class="edit-hint" contenteditable="false">La hoja original contenía rótulos heredados de otra empresa. En esta vista se muestran etiquetas genéricas; aún requieren información específica y fuentes del emisor. Los datos financieros originales no se han modificado.</div>':'')+wrap.innerHTML;
+  }
   function renderCualitativoTab(){
-    qualContainerEl.innerHTML = cualitativoOverride !== null ? cualitativoOverride : renderGenericSheet('Cualitativo');
+    qualContainerEl.innerHTML = neutralizeLegacyQualitativeHtml(cualitativoOverride !== null ? cualitativoOverride : renderGenericSheet('Cualitativo'));
     qualContainerEl.classList.add('prose', 'editable');
     qualContainerEl.setAttribute('contenteditable', 'true');
     if(!qualContainerEl.dataset.editListenerAttached){
