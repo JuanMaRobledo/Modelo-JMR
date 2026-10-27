@@ -1,4 +1,4 @@
-const CACHE = "modelo-jmr-v184-adbe-lectura-dcf-20261027";
+const CACHE = "modelo-jmr-v185-indice-unico-20261027";
 const APP_SHELL = [
   "catalog-reset.js",
   "index.html",
