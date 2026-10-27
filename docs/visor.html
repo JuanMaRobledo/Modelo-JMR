@@ -2656,7 +2656,7 @@
     wrap.innerHTML=html;
     var replaced=0;
     wrap.querySelectorAll('td,th').forEach(function(cell){
-      var key=(cell.textContent||'').replace(/\\s+/g,'').trim();
+      var key=(cell.textContent||'').replace(/\s+/g,'').trim();
       if(Object.prototype.hasOwnProperty.call(QUAL_LEGACY_LABELS,key)){
         cell.textContent=QUAL_LEGACY_LABELS[key];
         replaced++;
