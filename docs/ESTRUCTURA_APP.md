@@ -3,7 +3,7 @@
 **Única fuente del menú:** `docs/mercado.js`, estilo en `docs/jmr-theme.css`. No incorporar menús nuevos independientes.
 
 ## Entradas
-- **Análisis fundamental:** `research.html` (portada).
+- **Análisis fundamental (entrada principal):** `expediente.html?seccion=analisis` (ficha unificada). `research.html` queda como editor/biblioteca, no como portada del estudio oficial.
 - **Empresa:** `expediente.html?ticker=<T>`, la ficha única que enlaza valoración, análisis, hojas, auditorías y sensibilidades.
 - **Valoraciones:** `visor.html` / `visor.html?mercado=colombia` (destinos distintos, nunca la página abierta bajo otra etiqueta).
 - **Hojas del modelo:** `editor-hoja.html?ticker=<T>`, lector de la hoja Google oficial.
@@ -23,3 +23,7 @@
 
 ## Comprobación
 Ejecutar `node --test tests/mercado.test.js tests/expediente.test.mjs tests/editor-hoja.test.mjs tests/model-sync.test.mjs` y comprobar las rutas visibles y los controles de permisos antes de desplegar.
+
+## Revisión visual del análisis
+
+En la pestaña **Análisis fundamental** de la ficha unificada se selecciona el estado `EN_REVISION`, `LISTO` o `REHACER`, y se registran puntos de auditoría por ticker y **revisión exacta**. Se guardan con OAuth en `Modelo-JMR-datos/auditorias/solicitudes/<T>/<REVISION>.json`. El borrador local nunca equivale a guardado en GitHub. `LISTO` significa «listo para ejecutar auditoría cuando el usuario la solicite» y **no** que la auditoría esté aprobada. `REHACER` requiere motivación; no modifica automáticamente las hojas.
