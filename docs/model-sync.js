@@ -41,7 +41,7 @@
     key=ticker(key);
     return request('/api/model?ticker='+encodeURIComponent(key)).then(function(s){
       if(s.publicWorkbook){var bytes=Uint8Array.from(atob(s.publicWorkbook),function(c){return c.charCodeAt(0);});s.sheets=fromWorkbook(XLSX.read(bytes,{type:'array'}));delete s.publicWorkbook;}
-      s.writable=!!s.revision;return s;}).catch(function(apiError){
+      s.writable=!!s.revision && !(s.catalogAvailable && !s.official);return s;}).catch(function(apiError){
       // GitHub Pages has no server API. Public native sheets remain a read-only alternative.
       return findCompany(key).then(function(found){
         var id=/^https:\/\/docs\.google\.com\/spreadsheets\/d\/([\w-]+)/.exec(found.record.hojaGoogle||'');
