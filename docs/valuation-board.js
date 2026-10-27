@@ -337,7 +337,17 @@ function fromRecord(rec, extra) {
     function key(name) {
       return /^P\/(?:S(?:\s|$|\()|VENTAS)/i.test(name || '') ? 'P/V' : String(name || '').toUpperCase();
     }
-    var enforce = /^(NKE|NFLX|META)$/.test(String(rec.ticker || '').toUpperCase());
+    // Mostrar cobertura también en empresas operativas recuperadas o futuras.
+    // En financieras (FCFE/Ke) y holdings SOTP los siete múltiplos industriales
+    // no son obligatorios: mantienen su propio contrato de aplicabilidad.
+    var ticker = String(rec.ticker || '').toUpperCase();
+    var tipo = String(rec.tipo || '') + ' ' + String(rec.metodoPrincipal || '');
+    var isFinancial = /financier|banc|holding|sotp|fcfe financiero/i.test(tipo) || ticker === 'XP';
+    var hasIndustrialMethods = Array.isArray(rec.metodos) && rec.metodos.some(function (m) {
+      return key(m && m.nombre) === 'EV/EBITDA';
+    });
+    var enforce = !rec.valoracionHolding && !isFinancial &&
+      (/^(NKE|NFLX|META)$/.test(ticker) || hasIndustrialMethods);
     var snapshot = rec.multiplesRelativosInformativos;
     var sheetId = (String(rec.hojaGoogle || '').match(/\/spreadsheets\/d\/([^/]+)/) || [])[1];
     var sameSource = snapshot && rec.revisionId && snapshot.revisionId === rec.revisionId &&
