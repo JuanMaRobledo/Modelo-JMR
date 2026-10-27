@@ -1750,7 +1750,9 @@
     document.getElementById('rPrice').textContent = fmtMoney(precio);
     document.getElementById('rPriceNote').textContent = (precio === precioExcelD1 ? 'Del Excel (Input sheet)' : 'Precio al día del análisis') + (hasApiKey() ? ' — actualizando al precio de hoy…' : '');
     currentPrecioAnalisis = (typeof precioAnalisis === 'number' && isFinite(precioAnalisis)) ? precioAnalisis : null;
-    renderPriceCompare(currentPrecioAnalisis, precio);
+    // El precio de un Excel importado es un dato guardado, no una cotización
+    // comprobada de hoy. Solo completar la segunda columna tras FMP.
+    renderPriceCompare(currentPrecioAnalisis, null);
     currentPosicion = leerPosicion(res);
     renderPosicion(currentPosicion, currentPosicion && currentPosicion.precioHoyHoja, 'GOOGLEFINANCE en la hoja');
     document.getElementById('rTipo').textContent = tipo || '—';
