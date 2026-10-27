@@ -343,7 +343,7 @@ el('viewFrame').addEventListener('load',function(){
     style.textContent='nav.appnav,#jmr-market-nav{display:none!important}';
     // En la ficha el análisis se lee como artículo, sin mostrar las herramientas
     // de edición heredadas ni duplicar el selector de empresas.
-    if(/\\/research\\.html$/.test(doc.location.pathname)){
+    if(doc.location.pathname.endsWith('/research.html')){
       style.textContent+='body.research-page .hero,body.research-page .disclaimer,body.research-page .tabs,body.research-page #ghConnectBanner,body.research-page .setup-panel,body.research-page .analysis-actions,body.research-page #editorToolbar{display:none!important}';
       style.textContent+='body.research-page .wrap{max-width:none;width:100%;padding:0 12px 32px}body.research-page .editor-grid{display:block!important}body.research-page .preview-shell{max-width:none;width:100%;margin:0}body.research-page .panel[data-panel=editor]{padding:0;border:0;display:block}';
     }
