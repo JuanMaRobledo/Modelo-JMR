@@ -47,6 +47,26 @@ iframe{display:block;width:100%;height:max(620px,78vh);border:0;background:var(-
 .review-panel label{min-width:0}
 @media(max-width:720px){.review-panel{padding:13px}.review-panel .review-fields{grid-template-columns:1fr}}
 
+
+.catalog-section{margin:22px 0 26px}
+.catalog-heading{display:flex;align-items:end;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:15px}
+.catalog-heading h2{font:26px/1.2 Georgia,serif;margin:0 0 5px}
+.catalog-heading p{margin:0;color:var(--ink-soft);font-size:13px;max-width:720px}
+.catalog-heading label{font-size:12px;max-width:320px;width:100%}
+.catalog-heading input{width:100%;min-width:0}
+.catalog-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:14px}
+.catalog-card{display:flex;flex-direction:column;text-align:left;gap:9px;padding:17px;border:1px solid var(--border);background:var(--surface);border-radius:13px;min-height:155px;color:var(--ink);width:100%;box-shadow:var(--shadow);transition:border-color .15s,transform .15s}
+.catalog-card:hover,.catalog-card:focus-visible{border-color:var(--accent);transform:translateY(-1px)}
+.catalog-card.active{border:2px solid var(--accent);padding:16px}
+.catalog-card strong{font:23px Georgia,serif}
+.catalog-card small{font-size:12px;color:var(--ink-soft);line-height:1.5}
+.catalog-card .card-caption{font-size:12px;color:var(--ink-soft)}
+.catalog-card .card-action{font-size:12px;font-weight:750;color:var(--accent);margin-top:auto}
+.catalog-footnote{color:var(--ink-soft);font-size:12px;margin:12px 0}
+.catalog-footnote a{color:var(--accent)}
+.catalog-empty{padding:24px 15px;border:1px dashed var(--border);border-radius:12px;color:var(--ink-soft)}
+@media(max-width:650px){.catalog-cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.catalog-card{min-height:150px;padding:12px}.catalog-card strong{font-size:20px}.catalog-card.active{padding:11px}}
+
 #empty{padding:60px 24px;text-align:center;color:var(--ink-soft,#59645b)}
 .audit-notes{padding:14px 20px;background:var(--surface-2,#f1f5f9);border-block:1px solid var(--border,#ddd)}
 .audit-notes summary{cursor:pointer;font-weight:750;font-size:15px}
@@ -61,13 +81,19 @@ footer{margin-top:20px;color:var(--ink-soft,#59645b);font-size:12px}
 footer a{color:inherit}
 @media(max-width:680px){form input{min-width:0;width:min(75vw,320px)}main{padding:12px}.overview{padding:12px}.tabs{padding:8px}iframe{height:82vh}}
 </style></head><body>
-<script src="auth.js"></script><script src="mercado.js"></script><script src="gh_oauth.js"></script><script src="gh_oauth.js"></script>
-<nav class="appnav" aria-label="Navegación principal"><a href="expediente.html?seccion=analisis" class="active">Análisis fundamental</a><a href="expediente.html" class="active">Expedientes JMR</a><a href="bitacora-terceros.html">Bitácora de terceros</a></nav>
+<script src="auth.js"></script><script src="mercado.js"></script><script src="gh_oauth.js"></script>
+<nav class="appnav" aria-label="Navegación principal"><a href="expediente.html?seccion=analisis">Análisis fundamental</a><a href="expediente.html">Expedientes JMR</a><a href="bitacora-terceros.html">Bitácora de terceros</a></nav>
 <main>
 <header><span>MODELO JMR · EXPEDIENTE UNIFICADO</span><h1>Una empresa, un expediente</h1>
 <p>Valoración, artículo fundamental, edición de supuestos, auditoría y sensibilidades. Cada sección consulta las páginas oficiales existentes; editar la hoja <strong>no</strong> publica automáticamente una revisión.</p></header>
 <form id="lookup"><label for="ticker">Empresa / ticker<input id="ticker" list="tickers" placeholder="MSFT, PYPL, ADBE…" autocomplete="off" spellcheck="false" required></label><datalist id="tickers"></datalist><button type="submit">Abrir expediente</button><button type="button" id="reload">Actualizar catálogo</button></form>
 <p id="status" role="status" aria-live="polite">Buscando estudios vigentes…</p>
+<section id="catalogSection" class="catalog-section" aria-label="Fichas de empresas vigentes">
+<div class="catalog-heading"><div><h2>Mis fichas de análisis</h2><p>Una ficha por empresa y revisión oficial. Valoración, análisis y auditoría se consultan en el mismo expediente.</p></div><label for="catalogSearch">Buscar empresa<input id="catalogSearch" type="search" placeholder="Escribe ticker o empresa…" autocomplete="off"></label></div>
+<div id="catalogCards" class="catalog-cards" role="list" aria-live="polite"></div>
+<p id="catalogEmpty" class="catalog-empty" hidden>No hay fichas vigentes para mostrar. Revisa el filtro o actualiza el catálogo; los históricos se consultan aparte.</p>
+<p class="catalog-footnote">Aquí aparecen las revisiones activas del catálogo oficial, no todos los archivos históricos. <a href="historicos.html">Consultar históricos</a>.</p>
+</section>
 <section id="dossier" class="panel" hidden>
 <div class="overview"><div><h2 id="companyTitle"></h2><p id="revisionNotice"></p></div><a id="sheetLink" href="editor-hoja.html" hidden>Abrir todas las hojas del modelo ↗</a></div>
 <div class="tabs" role="tablist" aria-label="Secciones del expediente">
@@ -77,19 +103,7 @@ footer a{color:inherit}
 <button type="button" data-view="auditoria" role="tab" aria-selected="false">Auditoría</button>
 <button type="button" data-view="sensibilidades" role="tab" aria-selected="false">Sensibilidades</button>
 </div>
-<details class="audit-notes" id="auditNotesPanel">
-<summary>Mis observaciones para la próxima auditoría</summary>
-<p>Escribe los supuestos, tablas o conclusiones que quieres revisar. Las notas se vinculan a esta revisión exacta; no sustituyen los controles económicos mínimos.</p>
-<label for="auditReviewNotes">Puntos específicos para revisar</label>
-<textarea id="auditReviewNotes" maxlength="6000" placeholder="Por ejemplo: revisar ROIC terminal, contrastar margen EBIT y justificar múltiplos con pares."></textarea>
-<div class="audit-actions">
-<button type="button" id="saveAuditRequest">Guardar para auditoría en GitHub</button>
-<button type="button" id="connectAuditGithub" hidden>Conectar GitHub</button>
-<a id="auditReviewLink" hidden target="_blank" rel="noopener noreferrer">Ver observaciones guardadas ↗</a>
-</div>
-<p>El texto se conserva como borrador local al escribir. Guardarlo en GitHub lo hace accesible en el repositorio <strong>público</strong> Modelo-JMR-datos. No introduzcas datos privados ni credenciales.</p>
-<p id="auditReviewStatus" role="status" aria-live="polite"></p>
-</details>
+
 <div id="auditModes" class="sensitivity-modes" role="group" aria-label="Tipo de auditoría" hidden><button type="button" class="active" data-audit="auditoria" aria-pressed="true">Auditoría narrativa</button><button type="button" data-audit="auditoriaIntegral" aria-pressed="false">Auditoría integral</button></div>
 <div id="sensitivityModes" class="sensitivity-modes" role="group" aria-label="Tipo de sensibilidad" hidden><button type="button" class="active" data-sensitivity="sensibilidades" aria-pressed="true">DCF · Prioritaria</button><button type="button" data-sensitivity="sensibilidadMultiples" aria-pressed="false">Múltiplos · Base</button></div>
 <section id="reviewPanel" class="review-panel" aria-label="Revisión visual y puntos de auditoría" hidden>
@@ -116,4 +130,4 @@ footer a{color:inherit}
 <div id="empty">Elige una empresa para consultar sus secciones sin cambiar de expediente.</div>
 <footer>Fuentes: <code>Modelo-JMR-datos</code> y Google Sheets. Un archivo en el repositorio no implica auditoría aprobada ni publicación oficial.
 <a href="https://github.com/JuanMaRobledo/Modelo-JMR/blob/main/docs/PROCESO_UNICO_JMR.md" target="_blank" rel="noopener noreferrer">Procedimiento único para ChatGPT, Claude y Gemini ↗</a></footer>
-</main><script src="expediente.js?v=20261027-audit-notes"></script></body></html>
+</main><script src="expediente.js?v=20261027-catalogo-fichas-v2"></script></body></html>
