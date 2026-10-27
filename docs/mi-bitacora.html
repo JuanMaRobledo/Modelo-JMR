@@ -1503,7 +1503,7 @@
   }
   function buildRowFromResearch(rec) {
     var v = rec.linkedValuation || null;
-    var precioNum = v ? (typeof v.precioAnalisis === 'number' ? v.precioAnalisis : v.precio) : null;
+    var precioNum = v ? (typeof v.precio === 'number' ? v.precio : v.precioAnalisis) : null;
     return {
       ticker: rec.ticker,
       market: rec.market,
