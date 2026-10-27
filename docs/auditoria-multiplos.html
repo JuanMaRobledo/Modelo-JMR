@@ -1,5 +1,6 @@
 <!doctype html>
-<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="es"><head>
+<link rel="stylesheet" href="jmr-theme.css"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Auditoría de múltiplos · Modelo JMR</title><link rel="icon" href="favicon.ico">
 <style>
 :root{--bg:#f5f6f2;--card:#fff;--ink:#16231f;--sub:#57665b;--line:#dbe1d9;--soft:#edf1e9;--gold:#8e692c}
@@ -89,7 +90,8 @@ table.sensitivity{width:100%;min-width:0;table-layout:fixed}
 </style><script src="catalog-reset.js?v=20261021-nflx-7168"></script>
 <script src="gh_oauth.js" defer></script><script src="jmr-multiples-axes.js?v=20261018-realejes" defer></script><script src="jmr-economic-multiples.js?v=20261018-justificados" defer></script><script src="auditoria-multiplos.js?v=20261019-inventario" defer></script><link rel="stylesheet" href="jmr-fullwidth.css?v=20261018">
 </head>
-<body><header class="top"><strong>Modelo JMR · Auditoría de múltiplos</strong><nav><a href="index.html">Inicio</a><a href="visor.html">Valoraciones</a><a href="research.html">Análisis</a><a href="visor.html?mercado=colombia">Colombia</a><a href="auditoria-integral.html">Auditoría integral</a></nav></header>
+<body>
+<script src="mercado.js"></script><header class="top"><strong>Modelo JMR · Auditoría de múltiplos</strong><nav class="appnav" aria-label="Navegación principal JMR"></nav><a class="audit-context-link" href="auditoria-integral.html">Abrir auditoría integral</a></header>
 <main class="wrap"><h1>Audita los múltiplos empresa por empresa</h1>
 <p class="lead muted">Inventario actualizado automáticamente. A: historia propia depurada; B: comparables por crecimiento, ROIC, margen y riesgo; C: múltiplo justificado por fundamentales. Inspirado en los criterios de Toro/Arena Alfa, McKinsey y Damodaran; ningún autor prescribe ponderaciones fijas para el Modelo JMR.</p>
 <p id="summary" class="notice">Abriendo las valoraciones publicadas…</p>

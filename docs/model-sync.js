@@ -7,14 +7,27 @@
   function request(url,options){return fetch(url,Object.assign({cache:'no-store',signal:AbortSignal.timeout(25000)},options||{})).then(function(r){
     return r.json().catch(function(){return {};}).then(function(d){if(!r.ok){var e=new Error(d.error||'HTTP '+r.status);e.status=r.status;throw e;}return d;});
   });}
+  function selectCompanyFile(files,catalog,key){
+    var list=(Array.isArray(files)?files:[]).filter(function(f){
+      return f.type==='file'&&f.name.toUpperCase().startsWith(key+'-')&&/\.json$/i.test(f.name);
+    }).sort(function(a,b){return b.name.localeCompare(a.name,'en',{numeric:true});});
+    var official=Array.isArray(catalog?.valoraciones)
+      ?catalog.valoraciones.find(function(p){return typeof p==='string'&&p.split('/').pop().toUpperCase().startsWith(key+'-');})
+      :null;
+    var selected=(official&&list.find(function(f){return f.path===official;}))||list[0];
+    return selected ? {file:selected,official:!!official&&selected.path===official} : null;
+  }
   function findCompany(key){
-    return request(repo+'valoraciones?ref=main').then(function(files){
-      var chosen=files.filter(function(f){return f.type==='file'&&f.name.replace(/-\d{10,}\.json$/i,'').replace(/\.json$/i,'').replace(/-\d{8}-[A-Za-z0-9]+$/i,'').toUpperCase()===key;})
-        .sort(function(a,b){return b.name.localeCompare(a.name,'en',{numeric:true});})[0];
-      if(!chosen){var e=new Error('No hay una valoración guardada para '+key+'.');e.status=404;throw e;}
-      return request('https://raw.githubusercontent.com/JuanMaRobledo/Modelo-JMR-datos/main/'+chosen.path).then(function(rec){
+    var base='https://raw.githubusercontent.com/JuanMaRobledo/Modelo-JMR-datos/main/';
+    return Promise.all([
+      request(repo+'valoraciones?ref=main'),
+      request(base+'catalogo.json').catch(function(){return null;})
+    ]).then(function(data){
+      var selected=selectCompanyFile(data[0],data[1],key);
+      if(!selected){var e=new Error('No hay una valoración guardada para '+key+'.');e.status=404;throw e;}
+      return request(base+selected.file.path).then(function(rec){
         if(ticker(rec.ticker)!==key)throw new Error('El ticker no coincide con la empresa del archivo.');
-        return {record:rec,path:chosen.path};
+        return {record:rec,path:selected.file.path,official:selected.official};
       });
     });
   }
@@ -28,7 +41,7 @@
     key=ticker(key);
     return request('/api/model?ticker='+encodeURIComponent(key)).then(function(s){
       if(s.publicWorkbook){var bytes=Uint8Array.from(atob(s.publicWorkbook),function(c){return c.charCodeAt(0);});s.sheets=fromWorkbook(XLSX.read(bytes,{type:'array'}));delete s.publicWorkbook;}
-      s.writable=!!s.revision;return s;}).catch(function(apiError){
+      s.writable=!!s.revision && !(s.catalogAvailable && !s.official);return s;}).catch(function(apiError){
       // GitHub Pages has no server API. Public native sheets remain a read-only alternative.
       return findCompany(key).then(function(found){
         var id=/^https:\/\/docs\.google\.com\/spreadsheets\/d\/([\w-]+)/.exec(found.record.hojaGoogle||'');
@@ -211,5 +224,5 @@
     var timer=setInterval(function(){if(!document.hidden)refresh();},30000);if(initial)accept(initial);else refresh();
     return {dispose:function(){active=false;clearInterval(timer);global.removeEventListener('focus',focus);global.removeEventListener('jmr-model-updated',update);}};
   }
-  global.JmrModelSync={load:load,findCompany:findCompany,workbook:workbook,record:record,calculatorResult:calculatorResult,mount:mount,ticker:ticker};
+  global.JmrModelSync={load:load,findCompany:findCompany,selectCompanyFile:selectCompanyFile,workbook:workbook,record:record,calculatorResult:calculatorResult,mount:mount,ticker:ticker};
 })(typeof window!=='undefined'?window:globalThis);

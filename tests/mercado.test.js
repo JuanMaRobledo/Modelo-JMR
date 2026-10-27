@@ -26,8 +26,9 @@ test('libraries form disjoint complete market partitions', () => {
 });
 test('market switch keeps document type and never carries a previous company filter',()=>{
  const {nav,nodes}=app('https://jmr.test/research.html?mercado=colombia&ticker=PFGRUPSURA');
- assert.match(nav.innerHTML,/href="research.html"[^>]*>Internacionales/);
- assert.match(nav.innerHTML,/research.html\?mercado=colombia/);
+ assert.match(nav.innerHTML,/href="visor.html"[^>]*>Valoraciones internacionales/);
+ assert.match(nav.innerHTML,/href="visor.html\?mercado=colombia"[^>]*>Valoraciones Colombia/);
+ assert.doesNotMatch(nav.innerHTML,/href="research.html\?mercado=colombia"[^>]*>Valoraciones Colombia/);
  assert.doesNotMatch(nav.innerHTML,/ticker=/);
  assert.match(nodes['jmr-market-nav'].innerHTML,/visor.html\?mercado=colombia/);
 });

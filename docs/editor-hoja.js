@@ -28,18 +28,18 @@
       input:['input sheet','input','inputs'],
       valuation:['valuation output','valuation outputs'],
       multiples:['descuento de multiplos','multiplos','multiples','ev/ebit','ev/ebitda','p/e','p/ventas','p/s','p/bv'],
-      financial:['financial multiples','financial multiple','financial multiples worksheet']
+      financial:['financials multiples','financial multiples','financial multiple','financial multiples worksheet']
     }[kind]||[];
     for(var p of preferred){var index=normalized.indexOf(p);if(index>=0)return list[index];}
     if(kind==='multiples')return list.find(function(n){return /^(ev\/|p\/|multip|descuento de m)/i.test(normalizeName(n));})||'';
-    if(kind==='financial')return list.find(function(n){return /^financial multiples?/i.test(normalizeName(n));})||'';
+    if(kind==='financial')return list.find(function(n){return /^financials? multiples?/i.test(normalizeName(n));})||'';
     return '';
   }
   function mainKind(name){
     var n=normalizeName(name);
     if(n==='input sheet'||n==='input'||n==='inputs')return 'input';
     if(n==='valuation output'||n==='valuation outputs')return 'valuation';
-    if(n.startsWith('financial multiple'))return 'financial';
+    if(/^financials? multiple/.test(n))return 'financial';
     if(n.startsWith('descuento de multip')||n==='multiples'||n==='multiplos'||/^(ev\/|p\/)/.test(n))return 'multiples';
     return '';
   }
@@ -51,6 +51,35 @@
     if(nonempty===0&&label.length>=4)return ' section-row';
     if(/^(valor intr[ií]nseco|estimated value|intrinsic value|price per share|valor por acci[oó]n|dcf base|valor empresa|equity value|total weighted)/i.test(label))return ' value-row';
     return '';
+  }
+  // Solo inspecciona fórmulas del propio Google Sheets, jamás calcula un
+  // precio por múltiplos ni acepta un valor pegado como prueba de cálculo.
+  function multiplesFormulaAudit(sheets){
+    var checks=[
+      ['EV/EBITDA','Descuento de múltiplos','J20'],
+      ['EV/FCFF','Descuento de múltiplos','J21'],
+      ['P/E','Descuento de múltiplos','J22'],
+      ['P/FCFE','Descuento de múltiplos','J23'],
+      ['P/OCF','Descuento de múltiplos','J24'],
+      ['P/S (P/V)','PV','E42'],
+      ['P/BV','PBV','E42']
+    ];
+    return checks.map(function(row){
+      var cell=sheets?.[row[1]]?.[row[2]];
+      return {method:row[0],sheet:row[1],cell:row[2],hasValue:typeof cell?.v==='number'&&Number.isFinite(cell.v),
+        hasFormula:typeof cell?.formula==='string'&&cell.formula.startsWith('=')};
+    });
+  }
+  function updateMultiplesStatus(){
+    var host=byId('multiplesFormulaStatus');
+    if(!host||!snapshot)return;
+    var checks=multiplesFormulaAudit(snapshot.sheets),withFormula=checks.filter(x=>x.hasValue&&x.hasFormula);
+    var unresolved=checks.filter(x=>!x.hasValue||!x.hasFormula);
+    var notes=unresolved.map(x=>x.method+' ('+x.sheet+'!'+x.cell+')');
+    host.textContent='Origen: Google Sheets · '+withFormula.length+'/7 resultados con celda numérica y fórmula visible. '+
+       (notes.length?'Pendientes de evidencia: '+notes.join(', ')+'. ':'')+
+       'Este control no sustituye comparar las fórmulas con la plantilla maestra.';
+    host.dataset.coverage=withFormula.length===7?'complete':'incomplete';
   }
   var snapshot=null,ticker='',selected='',firstRow=1,firstCol=1,pageRows=30,pageCols=9,fullSheet=true;
   var drafts=new Map(),busy=false,loader=0,dimensions={};
@@ -182,8 +211,9 @@
     if(!byId('nativeSheet').hidden)byId('nativeSheet').href=url;
     byId('researchLink').href='research.html?ticker='+encodeURIComponent(ticker);
     byId('calcLink').href='calculadora.html?ticker='+encodeURIComponent(ticker);
-    setMode();selectSheet(chosen);pending();
-    if(result.writable)setStatus('Libro importado. Edita las celdas permitidas y confirma “Guardar cambios en Google Sheets”.','ok');
+    setMode();selectSheet(chosen);pending();updateMultiplesStatus();
+    if(result.catalogAvailable && !result.official)setStatus('Hoja recuperada fuera del catálogo oficial: solo lectura hasta conciliar esta versión. No se modificarán fórmulas ni resultados.','warn');
+    else if(result.writable)setStatus('Libro oficial importado. Edita solo celdas permitidas y confirma “Guardar cambios en Google Sheets”.','ok');
     else setStatus('Libro importado en solo lectura. Para editar en esta pestaña se necesita la conexión de escritura del servidor. Puedes abrir la hoja original.','warn');
   }
   async function load(){
@@ -282,6 +312,6 @@
     var fromUrl=new URLSearchParams(global.location.search).get('ticker');
     if(fromUrl){byId('ticker').value=fromUrl;load();}
   }
-  global.JmrSheetEditor={isEditable,coordinates,colName,formatNumber,normalizeName,findMainSheet,mainKind,sectionType};
+  global.JmrSheetEditor={isEditable,coordinates,colName,formatNumber,normalizeName,findMainSheet,mainKind,sectionType,multiplesFormulaAudit};
   if(typeof document!=='undefined'&&byId('lookup'))bind();
 })(typeof window!=='undefined'?window:globalThis);

@@ -99,3 +99,5 @@ button.secondary,.page-controls button,.goto-controls button{color:var(--ink,#0f
 button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--accent,#996e23);outline-offset:2px}
 @media(max-width:900px){.model-sheet-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.cell-inspector{grid-template-columns:1fr 1fr}.cell-inspector>div:last-child{grid-column:1/-1}}
 @media(max-width:600px){.model-sheets{padding:14px 12px}.model-sheet-tabs{gap:7px}.model-sheet-tabs button{padding:10px;font-size:12px}.cell-inspector{grid-template-columns:1fr}.cell-inspector>div:last-child{grid-column:auto}.workbook-table .first-source-col{min-width:190px;max-width:260px}.toolbar #toggleFullSheet{margin-left:0}.workbook-table{min-width:100%}}
+
+.multiples-source-status{background:var(--surface-2);color:var(--ink-soft);font-size:12px;font-weight:600;line-height:1.6;padding:12px 15px;border:1px solid var(--border-soft);border-radius:12px;margin:10px 0}.multiples-source-status[data-coverage="incomplete"]{border-left:3px solid var(--accent);}.multiples-source-status[data-coverage="complete"]{border-left:3px solid var(--positive);}

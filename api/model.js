@@ -15,6 +15,10 @@ export default async function handler(req, res) {
   try {
     const ticker = tickerKey(req.query.ticker);
     const company = await resolveCompany(ticker);
+    // Las versiones fuera del catálogo pueden consultarse, pero no sobrescribir
+    // una hoja histórica desde el editor. Primero deben conciliarse.
+    if(req.method==='PATCH' && company.catalogAvailable && !company.official)
+      return res.status(409).json({error:'Valoración no incorporada al catálogo oficial: lectura permitida, edición bloqueada hasta su conciliación.'});
     if (!company.id) return res.status(409).json({error:'Esta valoración no tiene una hoja de Google vinculada.', record:company.record, path:company.path});
     if(!process.env.GOOGLE_SERVICE_ACCOUNT_JSON_CONTENT){
       if(req.method==='PATCH')return res.status(503).json({error:'La lectura está activa; falta configurar el acceso de escritura a Google Sheets.'});
