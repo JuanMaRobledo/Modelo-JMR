@@ -29,6 +29,7 @@ test('expediente muestra cinco secciones y protege estados', () => {
   assert.match(js,/auditoria-multiplos\.html\?ticker=/);
   assert.match(html,/data-sensitivity="sensibilidades"/);
   assert.match(html,/data-sensitivity="sensibilidadMultiples"/);
+  assert.match(html,/data-audit="auditoriaIntegral"/);
 });
 
 test('resuelve auditoría narrativa .md exacta, no la confunde con JSON',()=>{
