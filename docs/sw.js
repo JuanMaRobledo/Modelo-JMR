@@ -1,4 +1,4 @@
-const CACHE = "modelo-jmr-v181-paginas-20261027";
+const CACHE = "modelo-jmr-v182-audit-notes-20261027";
 const APP_SHELL = [
   "catalog-reset.js",
   "index.html",
