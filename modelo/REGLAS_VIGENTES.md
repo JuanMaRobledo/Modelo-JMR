@@ -1,6 +1,6 @@
 # Reglas vigentes del Modelo JMR
 
-**Versión 11 · 26-oct-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
+**Versión 12 · 27-oct-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
 (`docs/prompts/*.md`), `METODOLOGIA.md`, una habilidad o un comentario de código dice otra cosa, prevalece este
 documento. Una regla nueva no se agrega como «regla del día X» en un prompt: se cambia aquí, se sube la versión y se
 anota en el registro de cambios del final.
@@ -142,11 +142,22 @@ observaciones, las frecuencias por etapa recalibran las previas del §3 (nueva v
   - **PENDIENTE** = control estructural/material fallido o incertidumbre material sin cuantificar.
 
   Las salvedades son notas, no un estado. No existe «conciliado con salvedades» indefinido.
-- **Una auditoría por publicación.** No se re-audita sin un hecho nuevo (resultados, 8-K material, cambio de regla).
+- **Una auditoría por cierre definitivo.** La publicación preliminar EN_REVISIÓN conserva los controles técnicos completos, pero no anticipa el dictamen económico. Este se emite después de la revisión visual y de las observaciones del usuario. No se re-audita sin un hecho nuevo (resultados, 8-K material, cambio de regla).
   Una actualización trimestral solo toca lo que cambió (modo C de `actualizar-cartera`).
 - **Una regla, un lugar:** un cambio de método se hace aquí, sube la versión y se aplica a todas las empresas en una
   sola pasada; nunca empresa por empresa ni como «contrato del día» en un prompt.
 
+
+### 8A. Flujo híbrido: revisión visual antes de auditoría independiente (27-oct-2026)
+
+1. **Valoración y análisis juntos:** elaborar las cuatro historias, siete múltiplos, matrices y artículo completo de 18 secciones y dos niveles, siempre asociados a una revisión identificada.
+2. **Controles técnicos antes de publicar:** ejecutar §6, integridad de la hoja, conservación de fórmulas y selectores, origen de entradas, alertas de supuestos y conciliación hoja↔JSON↔app. No omitir candados materiales para obtener una publicación preliminar.
+3. **Publicación preliminar EN_REVISIÓN:** solo con autorización y controles aprobados. La ficha mostrará claramente que la auditoría económica independiente está pendiente; no se podrá etiquetar VERIFICADO por el mero éxito de los controles técnicos.
+4. **Observaciones del usuario:** en el expediente de la compañía se pueden registrar puntos para auditar. El borrador local se sincroniza solo mediante la acción explícita de guardarlo en GitHub, en `Modelo-JMR-datos/auditorias/solicitudes/<archivo-de-valoración>.json`. El repositorio es público: se advierte antes de publicar. Vincular ticker, revisión y fecha, nunca transferir notas silenciosamente de otra revisión.
+5. **Auditoría económica diferida:** cuando se pida «Audita <TICKER>», identificar la revisión vigente en el catálogo y consultar primero los puntos de auditoría de esa revisión, si existen. Además, examinar siempre la razonabilidad de crecimiento, márgenes, ROIC, reinversión, WACC/Ke, terminal, DCF/FCFE/SOTP, múltiplos, riesgos y materialidad. Solo entonces emitir VERIFICADO, VERIFICADO CON RESERVA MATERIAL o PENDIENTE.
+6. **Cierre y cambios:** dictamen, hoja y artículo de la misma revisión. Una corrección autorizada debe repetir los controles afectados. Conservar solicitudes y auditorías de revisiones anteriores como histórico.
+
+El cambio afecta la secuencia y los estados, no el método financiero, fórmulas o candados técnicos.
 
 ## 9. Análisis fundamental siempre completo
 
@@ -173,7 +184,7 @@ observaciones, las frecuencias por etapa recalibran las previas del §3 (nueva v
 - Usar la carpeta de Drive [Valoraciones antiguas](https://drive.google.com/drive/folders/10ZCGoZ4hKVqtg6ekcyYHsm8IHPZOBVLq). Los expedientes retirados el 24-oct-2026 están en [Revisiones sustituidas](https://drive.google.com/drive/folders/1M2sWqAR60HBIBx0JbRn057kawpD9ZsZG). Archivar conserva los archivos e identificadores; no borrar el historial.
 - El archivo histórico queda **excluido de las entradas automáticas, selección de valoración vigente, importación a la app y recuperación de supuestos**. Un título antiguo que diga «vigente», «final» o «publicada» no acredita vigencia. Resolver siempre por empresa, revisión e identificador de la hoja actual.
 - No copiar supuestos, resultados, dictámenes ni narrativa de otra revisión como si pertenecieran al expediente nuevo. Los documentos financieros primarios pueden reutilizarse únicamente tras verificar fuente, fecha, período y pertinencia; no confundir un estado histórico con una valoración anterior.
-- La valoración, análisis y auditoría activos deben pertenecer a la misma revisión. Si falta una pieza actual, queda pendiente: no usar la pieza archivada para aparentar completitud. La nueva revisión conserva su estado real y archivar la previa no equivale a validar ni publicar la nueva.
+- En EN_REVISIÓN, valoración y análisis activos deben ser de la misma revisión y el dictamen económico se marca pendiente. En el cierre auditado, las tres piezas deben compartir revisión. Nunca reutilizar auditorías archivadas como dictamen vigente. La nueva revisión conserva su estado real y archivar la previa no equivale a validar ni publicar la nueva.
 - Mantener un registro de movimientos y comprobar origen, destino y hoja conservada. Una actualización ordinaria conserva la identidad del expediente y su historial de versiones; una valoración nueva sustituye la anterior en el catálogo activo.
 
 Hojas de trabajo conservadas tras el archivo del 24-oct-2026 (identidad documental; no certifica publicación ni validación):
@@ -204,6 +215,7 @@ Hojas de trabajo conservadas tras el archivo del 24-oct-2026 (identidad document
 
 | Versión | Fecha | Cambio |
 |---|---|---|
+| 12 | 27-oct-2026 | §8A: proceso híbrido, controles técnicos antes de la publicación preliminar, observaciones por revisión y auditoría posterior. Sin cambios financieros. |
 | 11 | 26-oct-2026 | §11 nuevo: hojas unificadas (formato de la maestra, fórmulas y selectores intactos, sin pestañas añadidas), reparto IA (datos crudos y supuestos) y fórmulas (cálculo); control `unificacion_hojas.py`. Auditoría v1.3: porqué de cada supuesto y fuente de todos los datos de entrada. Sin cambios en valores de empresas. |
 | 10 | 26-oct-2026 | Conciliación de prompts: el contrato de historias y múltiplos pasa a matrices solo en la Base; el MOS de METODOLOGIA y de los prompts de Colombia se aplica sobre el DCF/SOTP Base; los anexos de precisión y de múltiplos se enlazan desde §6. Sin cambios en fórmulas ni en valores de empresas. |
 | 9 | 24-oct-2026 | §10: una sola valoración vigente por empresa; las nuevas valoraciones archivan las anteriores con sus documentos asociados; archivo excluido de selección e importación automática. Se identifican las cuatro hojas actuales sin certificar su validación ni publicación. |
