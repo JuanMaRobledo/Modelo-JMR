@@ -54,6 +54,19 @@ test('navegación general y biblioteca permiten abrir el expediente', () => {
   assert.match(visor,/expediente\.html\?ticker=/);
 });
 
+test('notas de auditoría se guardan por revisión y distinguen borrador de GitHub',()=>{
+  const html=get('docs/expediente.html'),js=get('docs/expediente.js');
+  assert.match(html,/id="auditReviewNotes"/);
+  assert.match(html,/id="saveAuditRequest"/);
+  assert.match(html,/repositorio <strong>público<\/strong>/);
+  assert.match(html,/src="gh_oauth\.js"/);
+  assert.match(js,/auditorias\/solicitudes\//);
+  assert.match(js,/jmr-audit-request-v1/);
+  assert.match(js,/loc\.revision/);
+  assert.match(js,/GhOAuth\.getGhToken\(\)/);
+  assert.match(js,/localStorage\.setItem\(key,value\)/);
+  new Script(js);
+});
 test('servicio offline incluye nuevas páginas', () => {
   const sw=get('docs/sw.js');new Script(sw);
   for (const f of ['index.html','bitacora-terceros.html','expediente.html','expediente.js']) assert.ok(sw.includes('"'+f+'"'));
