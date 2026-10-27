@@ -137,3 +137,28 @@ textarea {
     margin-top: 0;
   }
 }
+
+/* Contrato visual único para todas las páginas, incluidas auditorías.
+   La barra principal NO cambia de estructura de una pantalla a otra. */
+nav.appnav{
+  display:flex!important;flex-wrap:nowrap!important;align-items:center!important;
+  gap:5px!important;overflow-x:auto!important;overflow-y:hidden!important;
+  scrollbar-width:thin;white-space:nowrap;
+  background:var(--surface)!important;color:var(--ink);
+  padding:9px clamp(12px,2vw,22px)!important;
+  border:1px solid var(--border-soft)!important;border-radius:0!important;
+  margin:0!important;box-shadow:none!important;max-width:none!important;
+}
+nav.appnav a{
+  display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;
+  border-radius:8px!important;border:0!important;min-height:36px;
+  text-decoration:none!important;line-height:1.25!important;
+  font-family:"Public Sans",system-ui,sans-serif;font-size:12px!important;
+  font-weight:650!important;padding:9px 12px!important;margin:0!important;
+  color:var(--ink-soft)!important;background:transparent!important;
+}
+nav.appnav a:hover,nav.appnav a:focus-visible{background:var(--surface-2)!important;color:var(--ink)!important}
+nav.appnav a[aria-current="page"],nav.appnav a.active{background:var(--accent-soft)!important;color:var(--accent-ink)!important}
+nav.appnav a.jmr-home{background:var(--ink)!important;color:var(--surface)!important;letter-spacing:.08em}
+nav.appnav a.jmr-home:hover{background:var(--ink-soft)!important;color:var(--surface)!important}
+@media(max-width:700px){nav.appnav{padding:8px 11px!important;gap:3px!important}nav.appnav a{min-height:40px;font-size:12px!important}}
