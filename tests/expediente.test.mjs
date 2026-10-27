@@ -78,3 +78,14 @@ test('Research deja visible una ficha por empresa y conserva copias en memoria',
   assert.equal(api.list().find(x=>x.ticker==='DUOL').id,'oficial');
   assert.equal(records.length,4,'no borrar los registros históricos');
 });
+
+test('las rutas a un expediente desde vistas incrustadas suben al nivel superior',()=>{
+  assert.match(get('docs/expediente.js'),/setAttribute\('target','_top'\)/);
+});
+test('auditorías usan menú compartido',()=>{
+  for(const f of ['auditorias.html','auditoria-integral.html','auditoria-multiplos.html','historicos.html']){
+    assert.match(get('docs/'+f),/src="mercado.js"/);
+    assert.match(get('docs/'+f),/class="appnav"/);
+    assert.match(get('docs/'+f),/jmr-theme.css/);
+  }
+});
