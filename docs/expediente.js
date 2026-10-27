@@ -124,6 +124,13 @@ el('viewFrame').addEventListener('load',function(){
     const style=doc.createElement('style');style.id='jmr-dossier-embed';
     style.textContent='nav.appnav,#jmr-market-nav{display:none!important}';
     doc.head.appendChild(style);
+    // Un enlace al expediente dentro de un iframe no debe crear un expediente
+    // dentro de sí mismo. Los enlaces a este módulo vuelven al nivel superior.
+    doc.querySelectorAll('a[href]').forEach(function(a){
+      try{const u=new URL(a.getAttribute('href'),doc.location.href);
+        if(u.origin===location.origin && /\/(?:expediente|index)\.html$/.test(u.pathname))a.setAttribute('target','_top');
+      }catch(e){}
+    });
   }catch(e){/* La vista original sigue siendo accesible desde el enlace superior. */}
 });
 loadInventory();
