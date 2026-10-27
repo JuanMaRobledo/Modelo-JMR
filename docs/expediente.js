@@ -9,7 +9,14 @@ const state={catalog:{valoraciones:[],analisis:[],auditorias:[]},files:[],ticker
 const TICKER=/^[A-Z0-9._-]{1,24}$/;
 function valid(x){x=String(x||'').trim().toUpperCase();return TICKER.test(x)?x:'';}
 function tickerFromName(x){return String(x||'').match(/^([A-Za-z0-9._]+)-/)?.[1]?.toUpperCase()||'';}
-function fromCatalog(arr,t){return (arr||[]).find(path=>path.split('/').pop().toUpperCase().startsWith(t+'-'))||'';}
+function fromCatalog(arr,t){
+  if(!Array.isArray(arr))return '';
+  return arr.find(path=>{
+    if(typeof path!=='string')return false;
+    const name=path.split('/').pop().toUpperCase();
+    return name.startsWith(t+'-') || name===t+'.MD' || name===t+'.JSON';
+  })||'';
+}
 function status(s,level){el('status').textContent=s;el('status').dataset.level=level||'neutral';}
 async function fetchJSON(url){
   const r=await fetch(url,{cache:'no-store'});
@@ -53,8 +60,9 @@ function pages(t){
     valoracion:{href:v,help:officialPath&&inDirectory?'Valoración indicada en el catálogo oficial.':'La valoración disponible aún no figura en el catálogo oficial; no se presenta como validada.'},
     analisis:{href:a,help:analysisPath?'Análisis asociado en el catálogo oficial; verificar que corresponda a la misma revisión.':'Biblioteca filtrada por ticker. No se atribuye automáticamente un informe antiguo a esta revisión.'},
     supuestos:{href:'editor-hoja.html?ticker='+encodeURIComponent(t),help:'Edición real en Google Sheets solo con autorización y permisos; guardar aquí NO republica el expediente.'},
-    auditoria:{href:'auditoria-integral.html?ticker='+encodeURIComponent(t),help:auditPath?'Narrativa de auditoría indexada; verificar dictamen y revisión del modelo.':'No se encontró auditoría de esta empresa en el catálogo oficial; consulta la integral con su estado real.'},
-    sensibilidades:{href:'auditoria-multiplos.html?ticker='+encodeURIComponent(t),help:'Matrices de múltiplos de la revisión disponible. Las sensibilidades del DCF base se consultan en Valoración y su hoja oficial; Recalcular es solo hipotético.'}
+    auditoria:{href:'auditorias.html?ticker='+encodeURIComponent(t),help:auditPath?'Auditoría narrativa incluida en el catálogo oficial; cotejar dictamen y revisión con la valoración. Auditoría integral disponible desde la página de auditorías.':'No hay auditoría narrativa oficial para esta empresa. La página indica el estado real, sin sustituirla por otra empresa.'},
+    sensibilidades:{href:v,help:'Sensibilidades DCF: consultar las matrices de la valoración oficial y la hoja fuente. Recalcular en el Visor es una simulación, no edita el expediente.'},
+    sensibilidadMultiples:{href:'auditoria-multiplos.html?ticker='+encodeURIComponent(t),help:'Sensibilidades por múltiplo en el escenario Base; no reemplazan las matrices prioritarias del DCF.'}
   };
 }
 function openCompany(input){
@@ -78,8 +86,19 @@ function openCompany(input){
 function showView(view){
   if(!state.ticker)return;
   state.view=view;
-  const d=pages(state.ticker)[view];if(!d)return;
   document.querySelectorAll('[data-view]').forEach(b=>{const selected=b.dataset.view===view;b.classList.toggle('active',selected);b.setAttribute('aria-selected',String(selected));});
+  const sensitivity=view==='sensibilidades';
+  el('sensitivityModes').hidden=!sensitivity;
+  showDetail(sensitivity?(state.sensitivityMode||'sensibilidades'):view);
+}
+function showDetail(kind){
+  if(!state.ticker)return;
+  const d=pages(state.ticker)[kind];if(!d)return;
+  if(kind==='sensibilidades'||kind==='sensibilidadMultiples')state.sensitivityMode=kind;
+  document.querySelectorAll('[data-sensitivity]').forEach(b=>{
+    const selected=b.dataset.sensitivity===kind;
+    b.classList.toggle('active',selected);b.setAttribute('aria-pressed',String(selected));
+  });
   el('viewHelp').textContent=d.help;el('openOriginal').href=d.href;
   const frame=el('viewFrame');
   if(frame.getAttribute('src')!==d.href)frame.setAttribute('src',d.href);
@@ -87,6 +106,7 @@ function showView(view){
 el('lookup').addEventListener('submit',e=>{e.preventDefault();openCompany(el('ticker').value);});
 el('reload').addEventListener('click',loadInventory);
 document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>showView(b.dataset.view)));
+document.querySelectorAll('[data-sensitivity]').forEach(b=>b.addEventListener('click',()=>showDetail(b.dataset.sensitivity)));
 el('viewFrame').addEventListener('load',function(){
   // Mismo origen: ocultar solamente la navegación duplicada, sin tocar los
   // botones, selectores, formularios o cálculos de la página original.
