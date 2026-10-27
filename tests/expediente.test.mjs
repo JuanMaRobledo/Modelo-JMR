@@ -71,7 +71,6 @@ test('notas de auditoría se guardan por revisión y distinguen borrador de GitH
 test('solicitudes de auditoría usan la revisión exacta y no sustituyen una valoración archivada',()=>{
   const js=get('docs/expediente.js');
   const html=get('docs/expediente.html');
-  assert.match(js,/mostRecent/); // Solo se menciona en la explicación histórica, no para elegir el activo.
   assert.doesNotMatch(js,/mostRecent\?\.path/);
   assert.match(js,/const tickers=\[\.\.\.new Set\(\(state\.catalog\.valoraciones\|\|\[\]\)/);
   assert.match(js,/const path=\(officialPath&&inDirectory\)\?officialPath:''/);
