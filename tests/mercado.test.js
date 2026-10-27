@@ -26,11 +26,11 @@ test('libraries form disjoint complete market partitions', () => {
 });
 test('market switch keeps document type and never carries a previous company filter',()=>{
  const {nav,nodes}=app('https://jmr.test/research.html?mercado=colombia&ticker=PFGRUPSURA');
- assert.match(nav.innerHTML,/href="visor.html"[^>]*>Valoraciones internacionales/);
- assert.match(nav.innerHTML,/href="visor.html\?mercado=colombia"[^>]*>Valoraciones Colombia/);
+ assert.match(nav.innerHTML,/href="expediente.html\?seccion=valoracion&mercado=internacional"[^>]*>Valoraciones internacionales/);
+ assert.match(nav.innerHTML,/href="expediente.html\?seccion=valoracion&mercado=colombia"[^>]*>Valoraciones Colombia/);
  assert.doesNotMatch(nav.innerHTML,/href="research.html\?mercado=colombia"[^>]*>Valoraciones Colombia/);
  assert.doesNotMatch(nav.innerHTML,/ticker=/);
- assert.match(nodes['jmr-market-nav'].innerHTML,/visor.html\?mercado=colombia/);
+ assert.match(nodes['jmr-market-nav'].innerHTML,/expediente.html\?seccion=valoracion&mercado=colombia/);
 });
 test('opening legacy direct record selects its market and preserves deep link',()=>{
  const a=app('https://jmr.test/visor.html?path=valoraciones%2FSURA.json#saved');
@@ -52,7 +52,8 @@ test('portfolio, journal and calculator preserve the market across navigation',(
    const a=app('https://jmr.test/'+page+'?mercado=colombia');
    assert.match(a.heading.textContent,/Colombia/);
    assert.match(a.nav.innerHTML,new RegExp('href="'+page.replace('.','\\.')+'\\?mercado=colombia"[^>]*aria-current="page"'));
-   for(const destination of ['visor.html','research.html','portafolio.html','mi-bitacora.html']) {
+   assert.ok(a.nodes['jmr-market-nav'].innerHTML.includes('expediente.html?seccion=valoracion&mercado=colombia'));
+   for(const destination of ['research.html','portafolio.html','mi-bitacora.html']) {
      assert.ok(a.nodes['jmr-market-nav'].innerHTML.includes(destination+'?mercado=colombia'));
    }
  }
@@ -62,4 +63,14 @@ test('joined portfolio and derived journal records retain Colombian metadata',()
  for(const r of [{ticker:'NEW',visor:{currency:'COP'}},{ticker:'NEW',valoracionActual:{market:'BVC'}},{ticker:'NEW',research:{market:'CO'}}]) assert.equal(w.jmrDelMercado(r),true);
  assert.equal(w.jmrMercadoHref('research.html?ticker=NEW',{ticker:'NEW',currency:'COP'}),'research.html?ticker=NEW&mercado=colombia');
  assert.equal(w.jmrMercadoHref('research.html?ticker=EC',{ticker:'EC',currency:'USD'}),'research.html?ticker=EC');
+});
+
+test('internacionales abre fichas, no el visor heredado; Colombia usa la misma interfaz',()=>{
+ const a=app('https://jmr.test/expediente.html?seccion=valoracion&mercado=internacional');
+ const b=app('https://jmr.test/expediente.html?seccion=valoracion&mercado=colombia');
+ assert.match(a.nav.innerHTML,/Valoraciones internacionales/);
+ assert.match(a.nav.innerHTML,/expediente\.html\?seccion=valoracion&mercado=internacional/);
+ assert.match(b.nav.innerHTML,/expediente\.html\?seccion=valoracion&mercado=colombia/);
+ assert.match(a.heading.textContent,/Internacionales/);
+ assert.match(b.heading.textContent,/Colombia/);
 });
