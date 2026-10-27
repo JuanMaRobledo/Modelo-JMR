@@ -73,7 +73,7 @@ test('solicitudes de auditoría usan la revisión exacta y no sustituyen una val
   const html=get('docs/expediente.html');
   assert.doesNotMatch(js,/mostRecent\?\.path/);
   assert.match(js,/const tickers=\[\.\.\.new Set\(\(state\.catalog\.valoraciones\|\|\[\]\)/);
-  assert.match(js,/const path=\(officialPath&&inDirectory\)\?officialPath:''/);
+  assert.match(js,/const path=inDirectory\?officialPath:''/);
   assert.match(js,/!p\.official/);
   for(const status of ['EN_REVISION','LISTO','REHACER'])assert.ok(js.includes(status));
   assert.match(html,/id="reviewPanel"/);
@@ -162,4 +162,20 @@ test('menú y páginas restantes: el menú no desborda la página y colombia no 
   assert.match(get('docs/mercado.js'),/nav\.appnav\{box-sizing:border-box;max-width:100%;overflow-x:auto\}/);
   assert.match(get('docs/colombia/app.js'),/\?\.scrollIntoView\(/);
   assert.match(get('docs/portafolio.html'),/\.port-grid\{grid-template-columns:minmax\(0,1fr\)\}/);
+});
+
+test('catálogo muestra tarjetas clicables para las rutas oficiales y evita IDs duplicados',()=>{
+  const html=get('docs/expediente.html'),js=get('docs/expediente.js');
+  for(const x of ['catalogSection','catalogSearch','catalogCards','catalogEmpty'])assert.match(html,new RegExp('id="'+x+'"'));
+  assert.match(js,/function renderCatalogCards\(\)/);
+  assert.match(js,/catalog\.valoraciones/);
+  assert.match(js,/card\.addEventListener\('click',\(\)=>\{openCompany\(t\)/);
+  assert.doesNotMatch(js,/CONTENTS\+'valoraciones\?ref=main'/,'la lista no depende de otra API');
+  assert.doesNotMatch(js,/mostRecent\?\.path/);
+  assert.match(js,/catalogMarket\(t\)/);
+  assert.equal((html.match(/id="auditReviewNotes"/g)||[]).length,1);
+  assert.equal((html.match(/id="saveAuditRequest"/g)||[]).length,1);
+  assert.equal((html.match(/src="gh_oauth\.js"/g)||[]).length,1);
+  assert.doesNotMatch(html,/id="auditNotesPanel"/);
+  assert.match(js,/jmr-audit-draft-v1:/,'notas antiguas recuperables');
 });
