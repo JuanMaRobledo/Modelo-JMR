@@ -33,8 +33,8 @@
     // Cada enlace lleva a una ruta canónica estable, nunca al documento de origen
     // bajo otra etiqueta. Hojas, auditorías y sensibilidades de una empresa se abren desde su ficha. La navegación contextual se limita a la segunda fila.
     nav.innerHTML = link('https://cartera-two-eta.vercel.app/', 'JMR', false, 'jmr-home') +
-      link('research.html', 'Análisis fundamental', research&&!col) +
-      link('expediente.html', 'Expedientes JMR', ['expediente.html','editor-hoja.html','auditorias.html','auditoria-integral.html','auditoria-multiplos.html'].indexOf(page) >= 0) +
+      link('expediente.html?seccion=analisis', 'Análisis fundamental', page==='expediente.html'&&params.get('seccion')==='analisis') +
+      link('expediente.html', 'Expedientes JMR', (page==='expediente.html'&&params.get('seccion')!=='analisis')||['editor-hoja.html','auditorias.html','auditoria-integral.html','auditoria-multiplos.html'].indexOf(page) >= 0) +
       link('visor.html', 'Valoraciones internacionales', activeInternational) +
       link('visor.html?mercado=colombia', 'Valoraciones Colombia', activeColombia) +
       link('bitacora-terceros.html', 'Bitácora de terceros', page === 'bitacora-terceros.html') +

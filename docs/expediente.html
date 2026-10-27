@@ -33,6 +33,20 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible{
 .panelbar p{margin:0;color:var(--ink-soft,#59645b);font-size:12px}
 .panelbar a{color:var(--accent,#856327);font-weight:700}
 iframe{display:block;width:100%;height:max(620px,78vh);border:0;background:var(--surface,#fff)}
+
+.review-panel{padding:16px 20px;border-bottom:1px solid var(--border,#ddd);background:var(--surface,#fff)}
+.review-panel h3{font:21px Georgia,serif;margin:0 0 4px}
+.review-panel .review-help{font-size:13px;color:var(--ink-soft,#59645b);margin:4px 0 10px}
+.review-panel .review-fields{display:grid;grid-template-columns:minmax(190px,300px) minmax(0,1fr);gap:12px;margin-bottom:12px}
+.review-panel select,.review-panel textarea{width:100%;font:inherit;background:var(--surface,#fff);color:var(--ink,#14251d);border:1px solid var(--border,#c7d3ca);border-radius:8px;padding:10px}
+.review-panel textarea{min-height:120px;resize:vertical;line-height:1.5}
+.review-panel .review-actions{display:flex;align-items:center;flex-wrap:wrap;gap:10px}
+.review-panel #reviewSaveStatus{font-size:12px;color:var(--ink-soft,#59645b)}
+.review-panel #reviewSaveStatus[data-level="error"]{color:#b32d2d}
+.review-panel .review-disclosure{font-size:12px;color:var(--ink-soft,#59645b);margin:12px 0 0}
+.review-panel label{min-width:0}
+@media(max-width:720px){.review-panel{padding:13px}.review-panel .review-fields{grid-template-columns:1fr}}
+
 #empty{padding:60px 24px;text-align:center;color:var(--ink-soft,#59645b)}
 .audit-notes{padding:14px 20px;background:var(--surface-2,#f1f5f9);border-block:1px solid var(--border,#ddd)}
 .audit-notes summary{cursor:pointer;font-weight:750;font-size:15px}
@@ -47,8 +61,8 @@ footer{margin-top:20px;color:var(--ink-soft,#59645b);font-size:12px}
 footer a{color:inherit}
 @media(max-width:680px){form input{min-width:0;width:min(75vw,320px)}main{padding:12px}.overview{padding:12px}.tabs{padding:8px}iframe{height:82vh}}
 </style></head><body>
-<script src="auth.js"></script><script src="mercado.js"></script><script src="gh_oauth.js"></script>
-<nav class="appnav" aria-label="Navegación principal"><a href="research.html">Análisis fundamental</a><a href="expediente.html" class="active">Expedientes JMR</a><a href="bitacora-terceros.html">Bitácora de terceros</a></nav>
+<script src="auth.js"></script><script src="mercado.js"></script><script src="gh_oauth.js"></script><script src="gh_oauth.js"></script>
+<nav class="appnav" aria-label="Navegación principal"><a href="expediente.html?seccion=analisis" class="active">Análisis fundamental</a><a href="expediente.html" class="active">Expedientes JMR</a><a href="bitacora-terceros.html">Bitácora de terceros</a></nav>
 <main>
 <header><span>MODELO JMR · EXPEDIENTE UNIFICADO</span><h1>Una empresa, un expediente</h1>
 <p>Valoración, artículo fundamental, edición de supuestos, auditoría y sensibilidades. Cada sección consulta las páginas oficiales existentes; editar la hoja <strong>no</strong> publica automáticamente una revisión.</p></header>
@@ -78,6 +92,25 @@ footer a{color:inherit}
 </details>
 <div id="auditModes" class="sensitivity-modes" role="group" aria-label="Tipo de auditoría" hidden><button type="button" class="active" data-audit="auditoria" aria-pressed="true">Auditoría narrativa</button><button type="button" data-audit="auditoriaIntegral" aria-pressed="false">Auditoría integral</button></div>
 <div id="sensitivityModes" class="sensitivity-modes" role="group" aria-label="Tipo de sensibilidad" hidden><button type="button" class="active" data-sensitivity="sensibilidades" aria-pressed="true">DCF · Prioritaria</button><button type="button" data-sensitivity="sensibilidadMultiples" aria-pressed="false">Múltiplos · Base</button></div>
+<section id="reviewPanel" class="review-panel" aria-label="Revisión visual y puntos de auditoría" hidden>
+<h3>Tu revisión del análisis</h3>
+<p class="review-help">Escribe qué quieres revisar antes de solicitar la auditoría. Estas observaciones pertenecen únicamente a la revisión activa de esta empresa. <strong>Guardar no ejecuta una auditoría ni modifica el DCF.</strong></p>
+<p class="review-help" id="reviewCompanyMeta">Cargando revisión oficial…</p>
+<form id="reviewForm">
+<div class="review-fields">
+<label for="auditReviewStatus">Estado de tu revisión
+<select id="auditReviewStatus" name="estado" required>
+<option value="EN_REVISION">En revisión</option>
+<option value="LISTO">Listo para auditoría</option>
+<option value="REHACER">Hay que rehacer</option>
+</select></label>
+<label for="auditReviewNotes">Puntos específicos para la auditoría
+<textarea id="auditReviewNotes" maxlength="12000" placeholder="Ej. Revisar ROIC terminal, reinversión, margen EBIT, múltiplos y la fuente de crecimiento del año 3. Una observación por línea."></textarea></label>
+</div>
+<div class="review-actions"><button id="saveAuditRequest" type="submit">Guardar mi revisión</button><button id="connectReviewGitHub" type="button">Conectar GitHub</button><button id="reloadAuditRequest" type="button">Recargar notas</button><span id="reviewSaveStatus" role="status" aria-live="polite"></span></div>
+</form>
+<p class="review-disclosure">Los puntos se almacenan por ticker y revisión en un repositorio <strong>público</strong> de GitHub; no escribas información confidencial. Si no tienes una sesión con permiso de escritura, solo se conserva un borrador local en este navegador hasta que pulses Guardar.</p>
+</section>
 <div class="panelbar"><p id="viewHelp"></p><a id="openOriginal" target="_self" href="visor.html">Abrir vista completa ↗</a></div>
 <iframe id="viewFrame" title="Contenido del expediente seleccionado" loading="eager"></iframe></section>
 <div id="empty">Elige una empresa para consultar sus secciones sin cambiar de expediente.</div>

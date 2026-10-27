@@ -5,7 +5,8 @@ const ROOT='JuanMaRobledo/Modelo-JMR-datos';
 const RAW='https://raw.githubusercontent.com/'+ROOT+'/main/';
 const CONTENTS='https://api.github.com/repos/'+ROOT+'/contents/';
 const el=id=>document.getElementById(id);
-const state={catalog:{valoraciones:[],analisis:[],auditorias:[]},files:[],ticker:'',view:'valoracion',ready:false};
+const initialView=new URLSearchParams(location.search).get('seccion')==='analisis'?'analisis':'valoracion';
+const state={catalog:{valoraciones:[],analisis:[],auditorias:[]},files:[],ticker:'',view:initialView,ready:false,loc:null,reviewSha:null,reviewLoading:false};
 const TICKER=/^[A-Z0-9._-]{1,24}$/;
 function valid(x){x=String(x||'').trim().toUpperCase();return TICKER.test(x)?x:'';}
 function tickerFromName(x){return String(x||'').match(/^([A-Za-z0-9._]+)-/)?.[1]?.toUpperCase()||'';}
@@ -34,9 +35,9 @@ async function loadInventory(){
     state.catalog=catalog||{};
     state.files=files.filter(f=>f.type==='file'&&/\.json$/i.test(f.name));
     state.ready=true;
-    const tickers=[...new Set(state.files.map(f=>tickerFromName(f.name)).filter(Boolean))].sort();
+    const tickers=[...new Set((state.catalog.valoraciones||[]).map(path=>tickerFromName(String(path).split('/').pop())).filter(Boolean))].sort();
     el('tickers').replaceChildren(...tickers.map(t=>{const opt=document.createElement('option');opt.value=t;return opt;}));
-    status(tickers.length+' empresas con archivo vigente en datos; '+(state.catalog.valoraciones||[]).length+' figuran en el catálogo oficial. Las diferencias requieren conciliación.');
+    status(tickers.length+' empresas activas en el catálogo oficial. Los archivos históricos no aparecen como fichas vigentes.');
     const requested=valid(new URLSearchParams(location.search).get('ticker'));
     if(requested)openCompany(requested);else if(state.ticker)openCompany(state.ticker);
   }catch(e){
@@ -49,8 +50,8 @@ function pages(t){
   const officialPath=fromCatalog(state.catalog.valoraciones,t);
   const candidates=state.files.filter(f=>tickerFromName(f.name)===t);
   const inDirectory=candidates.some(f=>f.path===officialPath);
-  const mostRecent=candidates.sort((a,b)=>b.name.localeCompare(a.name,'en',{numeric:true}))[0];
-  const path=(officialPath&&inDirectory)?officialPath:(mostRecent?.path||'');
+  // Nunca elegir automáticamente el último nombre del directorio: puede ser un expediente archivado.
+  const path=(officialPath&&inDirectory)?officialPath:'';
   const analysisPath=fromCatalog(state.catalog.analisis,t);
   const auditPath=fromCatalog(state.catalog.auditorias,t);
   const v=path?'visor.html?path='+encodeURIComponent(path):'visor.html?ticker='+encodeURIComponent(t);
@@ -149,10 +150,18 @@ async function saveAuditNotes(){
 function openCompany(input){
   const t=valid(input);
   if(!t){status('Ticker inválido. Usa letras, números, punto, guion o subrayado.','error');return;}
-  state.ticker=t;el('ticker').value=t;
+  state.ticker=t;state.loc=null;state.reviewSha=null;el('ticker').value=t;
+  el('reviewPanel').hidden=true;
+  el('reviewSaveStatus').textContent='';
   const u=new URL(location.href);u.searchParams.set('ticker',t);history.replaceState({},'',u.pathname+u.search+u.hash);
   el('companyTitle').textContent='Expediente '+t;
   const p=pages(t);
+  if(!p.official){
+    el('dossier').hidden=true;el('empty').hidden=false;
+    el('empty').textContent='No hay una valoración vigente en el catálogo oficial para '+t+'. Consulta el archivo histórico por separado; no se mezclará con la ficha activa.';
+    status(t+' no figura con una valoración vigente en el catálogo.','warning');return;
+  }
+  loadAuditRequest(t,p);
   const official=p.official&&!!p.analysisPath&&!!p.auditPath;
   el('revisionNotice').textContent=official
     ? 'Valoración, análisis y auditoría constan en el catálogo. Esto no certifica por sí solo que compartan revisión ni que la auditoría esté aprobada.'
@@ -172,6 +181,7 @@ function showView(view){
   const sensitivity=view==='sensibilidades',auditing=view==='auditoria';
   el('sensitivityModes').hidden=!sensitivity;
   el('auditModes').hidden=!auditing;
+  el('reviewPanel').hidden=!(view==='analisis'&&state.loc&&state.loc.revision);
   showDetail(sensitivity?(state.sensitivityMode||'sensibilidades'):auditing?(state.auditMode||'auditoria'):view);
 }
 function showDetail(kind){
@@ -197,6 +207,127 @@ el('auditReviewNotes').addEventListener('input',function(){
 });
 el('saveAuditRequest').addEventListener('click',saveAuditNotes);
 el('connectAuditGithub').addEventListener('click',()=>GhOAuth.startLogin());
+
+function noteMessage(message,bad){
+  const target=el('reviewSaveStatus');
+  target.textContent=message;
+  target.dataset.level=bad?'error':'neutral';
+}
+function reviewDraftKey(loc){
+  return 'jmr-review-draft-v1:'+loc.ticker+':'+loc.revision;
+}
+function reviewPath(loc){
+  // La ruta es estable, la auditoría de ChatGPT/Claude la resolverá por revisión activa.
+  return 'auditorias/solicitudes/'+loc.ticker+'/'+loc.revision+'.json';
+}
+function saveLocalDraft(){
+  const loc=state.loc;
+  if(!loc||!loc.revision)return;
+  const key=reviewDraftKey(loc);
+  const value=JSON.stringify({estadoRevision:el('auditReviewStatus').value,puntos:el('auditReviewNotes').value,
+      actualizadoEn:new Date().toISOString(),revisionId:loc.revision});
+  try{localStorage.setItem(key,value);}catch(_){}
+  noteMessage('Borrador local en este navegador. Pulsa Guardar para enviarlo a GitHub.');
+}
+function getLocalDraft(loc){
+  try{
+    const s=localStorage.getItem(reviewDraftKey(loc));
+    const parsed=s?JSON.parse(s):null;
+    if(parsed&&parsed.revisionId===loc.revision)return parsed;
+  }catch(_){}
+  return null;
+}
+function reviewFields(request){
+  const statuses=['EN_REVISION','LISTO','REHACER'];
+  el('auditReviewStatus').value=statuses.includes(request?.estadoRevision)?request.estadoRevision:'EN_REVISION';
+  el('auditReviewNotes').value=typeof request?.puntos==='string'?request.puntos:'';
+}
+async function fetchAuditStored(loc){
+  const r=await fetch(CONTENTS+reviewPath(loc)+'?ref=main',{cache:'no-store'});
+  if(r.status===404)return {body:null,sha:null};
+  if(!r.ok)throw new Error('No se pudo consultar la revisión guardada (HTTP '+r.status+').');
+  const x=await r.json();
+  if(!x.sha||!x.content)throw new Error('Revisión incompleta en GitHub.');
+  const data=JSON.parse(GhOAuth.b64DecodeUnicode(x.content.replace(/\s/g,'')));
+  if(data.schema!=='jmr-audit-request-v1'||data.ticker!==loc.ticker||data.revisionId!==loc.revision){
+    throw new Error('La revisión guardada no corresponde a la ficha activa. No se mezclaron datos.');
+  }
+  return {body:data,sha:x.sha};
+}
+async function loadAuditRequest(t,p){
+  const marker=t+'|'+p.valPath;
+  state.reviewLoading=true;
+  el('reviewForm').hidden=true;
+  el('reviewCompanyMeta').textContent='Leyendo revisión de la valoración oficial…';
+  try{
+    if(!p.official||!p.valPath)throw new Error('No hay valoración oficial activa.');
+    const record=await fetchJSON(RAW+p.valPath);
+    if(state.ticker!==t||marker!==t+'|'+pages(t).valPath)return;
+    const revision=String(record.revisionId||'').trim();
+    if(record.ticker!==t||!/^[A-Za-z0-9._-]{1,90}$/.test(revision))throw new Error('El registro no identifica una revisión válida; guardado bloqueado.');
+    const loc={ticker:t,revision:revision,fechaCorte:String(record.fecha||''),valoracionPath:p.valPath};
+    state.loc=loc;state.reviewSha=null;
+    el('reviewPanel').hidden=state.view!=='analisis';
+    el('reviewCompanyMeta').textContent=t+' · Revisión '+loc.revision+' · Corte '+(loc.fechaCorte||'N/D');
+    const stored=await fetchAuditStored(loc);
+    if(state.ticker!==t||state.loc!==loc)return;
+    state.reviewSha=stored.sha;
+    const draft=getLocalDraft(loc);
+    const remoteDate=Date.parse(stored.body?.actualizadoEn||'')||0;
+    const localDate=Date.parse(draft?.actualizadoEn||'')||0;
+    const localPreferred=!!draft&&(!stored.body||localDate>remoteDate);
+    reviewFields(localPreferred?draft:stored.body);
+    el('reviewForm').hidden=false;
+    noteMessage(localPreferred?'Borrador local sin publicar; guárdalo en GitHub.':stored.body?'Revisión cargada desde GitHub.':'No hay observaciones guardadas para esta revisión.');
+    el('connectReviewGitHub').textContent=GhOAuth.getGhToken()?'GitHub conectado':'Conectar GitHub';
+    el('connectReviewGitHub').disabled=!!GhOAuth.getGhToken();
+  }catch(e){
+    if(state.ticker===t)noteMessage('No se pudo preparar la revisión: '+e.message,true);
+  }finally{if(state.ticker===t)state.reviewLoading=false;}
+}
+async function saveAuditRequest(){
+  const loc=state.loc;
+  if(!loc||loc.ticker!==state.ticker||state.reviewLoading){noteMessage('Todavía no se cargó una revisión oficial.',true);return;}
+  const estado=el('auditReviewStatus').value;
+  const puntos=el('auditReviewNotes').value.trim();
+  if(!['EN_REVISION','LISTO','REHACER'].includes(estado)){noteMessage('Estado no válido.',true);return;}
+  if(estado==='REHACER'&&!puntos){noteMessage('Describe qué debe rehacerse antes de guardar ese estado.',true);return;}
+  const token=GhOAuth.getGhToken();
+  if(!token){saveLocalDraft();noteMessage('Borrador local. Conecta GitHub para guardar en el expediente.',true);return;}
+  const button=el('saveAuditRequest');
+  button.disabled=true;
+  noteMessage('Guardando en GitHub con comprobación de versión…');
+  try{
+    // Control optimista: nunca se pisa una edición publicada desde otro dispositivo.
+    const latest=await fetchAuditStored(loc);
+    if(latest.sha!==state.reviewSha)throw new Error('Otra sesión actualizó las notas. Recarga antes de guardar; tu borrador local queda conservado.');
+    if(state.ticker!==loc.ticker||state.loc!==loc)throw new Error('Se cambió de empresa. No se escribió nada.');
+    const data={schema:'jmr-audit-request-v1',ticker:loc.ticker,revisionId:loc.revision,
+      fechaCorte:loc.fechaCorte,valoracionPath:loc.valoracionPath,estadoRevision:estado,puntos:puntos,
+      auditoriaSolicitada:false,actualizadoEn:new Date().toISOString(),
+      instruccion:'Cuando el usuario solicite auditar esta empresa, leer estos puntos y la revisión indicada. Estado LISTO significa revisión visual terminada, no auditoría aprobada.'};
+    const body={message:'Revisión visual '+loc.ticker+' '+loc.revision,content:GhOAuth.b64EncodeUnicode(JSON.stringify(data,null,2)+'\n'),branch:'main'};
+    if(state.reviewSha)body.sha=state.reviewSha;
+    const res=await fetch(CONTENTS+reviewPath(loc),{method:'PUT',
+      headers:{'Accept':'application/vnd.github+json','Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify(body)});
+    if(!res.ok){const err=await res.json().catch(()=>({}));throw new Error(err.message||('GitHub devolvió HTTP '+res.status));}
+    const result=await res.json();
+    if(!result.content?.sha)throw new Error('GitHub no confirmó la versión escrita.');
+    state.reviewSha=result.content.sha;
+    try{localStorage.removeItem(reviewDraftKey(loc));}catch(_){}
+    noteMessage('Guardado en GitHub · '+loc.ticker+' · '+loc.revision+'. La auditoría no se ejecutó.');
+  }catch(e){saveLocalDraft();noteMessage('No guardado en GitHub: '+e.message,true);}
+  finally{button.disabled=false;}
+}
+el('reviewForm').addEventListener('submit',e=>{e.preventDefault();saveAuditRequest();});
+el('auditReviewStatus').addEventListener('change',saveLocalDraft);
+el('auditReviewNotes').addEventListener('input',saveLocalDraft);
+el('connectReviewGitHub').addEventListener('click',()=>GhOAuth.startLogin());
+el('reloadAuditRequest').addEventListener('click',()=>{
+ if(state.loc)loadAuditRequest(state.loc.ticker,pages(state.loc.ticker));
+});
+
 el('lookup').addEventListener('submit',e=>{e.preventDefault();openCompany(el('ticker').value);});
 el('reload').addEventListener('click',loadInventory);
 document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>showView(b.dataset.view)));
@@ -210,6 +341,12 @@ el('viewFrame').addEventListener('load',function(){
     if(!doc||doc.getElementById('jmr-dossier-embed'))return;
     const style=doc.createElement('style');style.id='jmr-dossier-embed';
     style.textContent='nav.appnav,#jmr-market-nav{display:none!important}';
+    // En la ficha el análisis se lee como artículo, sin mostrar las herramientas
+    // de edición heredadas ni duplicar el selector de empresas.
+    if(doc.location.pathname.endsWith('/research.html')){
+      style.textContent+='body.research-page .hero,body.research-page .disclaimer,body.research-page .tabs,body.research-page #ghConnectBanner,body.research-page .setup-panel,body.research-page .analysis-actions,body.research-page #editorToolbar{display:none!important}';
+      style.textContent+='body.research-page .wrap{max-width:none;width:100%;padding:0 12px 32px}body.research-page .editor-grid{display:block!important}body.research-page .preview-shell{max-width:none;width:100%;margin:0}body.research-page .panel[data-panel=editor]{padding:0;border:0;display:block}';
+    }
     doc.head.appendChild(style);
     // Un enlace al expediente dentro de un iframe no debe crear un expediente
     // dentro de sí mismo. Los enlaces a este módulo vuelven al nivel superior.
