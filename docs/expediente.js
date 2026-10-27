@@ -61,6 +61,7 @@ function pages(t){
     analisis:{href:a,help:analysisPath?'Análisis asociado en el catálogo oficial; verificar que corresponda a la misma revisión.':'Biblioteca filtrada por ticker. No se atribuye automáticamente un informe antiguo a esta revisión.'},
     supuestos:{href:'editor-hoja.html?ticker='+encodeURIComponent(t),help:'Edición real en Google Sheets solo con autorización y permisos; guardar aquí NO republica el expediente.'},
     auditoria:{href:'auditorias.html?ticker='+encodeURIComponent(t),help:auditPath?'Auditoría narrativa incluida en el catálogo oficial; cotejar dictamen y revisión con la valoración. Auditoría integral disponible desde la página de auditorías.':'No hay auditoría narrativa oficial para esta empresa. La página indica el estado real, sin sustituirla por otra empresa.'},
+    auditoriaIntegral:{href:'auditoria-integral.html?ticker='+encodeURIComponent(t),help:'Auditoría integral DCF, supuestos, materialidad y dictamen técnico, filtrada por empresa. No sustituye la auditoría narrativa del expediente.'},
     sensibilidades:{href:v,help:'Sensibilidades DCF: consultar las matrices de la valoración oficial y la hoja fuente. Recalcular en el Visor es una simulación, no edita el expediente.'},
     sensibilidadMultiples:{href:'auditoria-multiplos.html?ticker='+encodeURIComponent(t),help:'Sensibilidades por múltiplo en el escenario Base; no reemplazan las matrices prioritarias del DCF.'}
   };
@@ -87,14 +88,20 @@ function showView(view){
   if(!state.ticker)return;
   state.view=view;
   document.querySelectorAll('[data-view]').forEach(b=>{const selected=b.dataset.view===view;b.classList.toggle('active',selected);b.setAttribute('aria-selected',String(selected));});
-  const sensitivity=view==='sensibilidades';
+  const sensitivity=view==='sensibilidades',auditing=view==='auditoria';
   el('sensitivityModes').hidden=!sensitivity;
-  showDetail(sensitivity?(state.sensitivityMode||'sensibilidades'):view);
+  el('auditModes').hidden=!auditing;
+  showDetail(sensitivity?(state.sensitivityMode||'sensibilidades'):auditing?(state.auditMode||'auditoria'):view);
 }
 function showDetail(kind){
   if(!state.ticker)return;
   const d=pages(state.ticker)[kind];if(!d)return;
   if(kind==='sensibilidades'||kind==='sensibilidadMultiples')state.sensitivityMode=kind;
+  if(kind==='auditoria'||kind==='auditoriaIntegral')state.auditMode=kind;
+  document.querySelectorAll('[data-audit]').forEach(b=>{
+    const selected=b.dataset.audit===kind;
+    b.classList.toggle('active',selected);b.setAttribute('aria-pressed',String(selected));
+  });
   document.querySelectorAll('[data-sensitivity]').forEach(b=>{
     const selected=b.dataset.sensitivity===kind;
     b.classList.toggle('active',selected);b.setAttribute('aria-pressed',String(selected));
@@ -107,6 +114,7 @@ el('lookup').addEventListener('submit',e=>{e.preventDefault();openCompany(el('ti
 el('reload').addEventListener('click',loadInventory);
 document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>showView(b.dataset.view)));
 document.querySelectorAll('[data-sensitivity]').forEach(b=>b.addEventListener('click',()=>showDetail(b.dataset.sensitivity)));
+document.querySelectorAll('[data-audit]').forEach(b=>b.addEventListener('click',()=>showDetail(b.dataset.audit)));
 el('viewFrame').addEventListener('load',function(){
   // Mismo origen: ocultar solamente la navegación duplicada, sin tocar los
   // botones, selectores, formularios o cálculos de la página original.
