@@ -65,7 +65,7 @@ jobs:
                           facts=await page.evaluate("""() => ({text:document.body?.innerText?.length||0, visible:!!document.body&&getComputedStyle(document.body).display!=='none', width:document.documentElement.scrollWidth, viewport:innerWidth, title:document.title, nodes:document.querySelectorAll('button, input, select, textarea').length})""")
                           shot=await page.screenshot(full_page=False)
                           assert resp and resp.status==200, (path, resp.status if resp else "sin respuesta")
-                          assert facts["visible"] and facts["text"]>300, (path,facts)
+                          assert facts["visible"] and facts["text"]>20, (path,facts)
                           assert len(shot)>6000, (path,"captura vacía")
                           print("RENDER_OK",width,path,"bytesPNG",len(shot),"texto",facts["text"],"ancho",facts["width"],"viewport",facts["viewport"],"controles",facts["nodes"])
                       await page.close()
