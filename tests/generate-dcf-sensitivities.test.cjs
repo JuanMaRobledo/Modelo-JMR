@@ -1,7 +1,10 @@
 'use strict';
 const test=require('node:test');
 const assert=require('node:assert/strict');
-const {runDCFDetalle}=require('../docs/jmr_engine.js');
+const fs=require('node:fs'),vm=require('node:vm');
+const scope={module:{exports:{}},console};
+vm.runInNewContext(fs.readFileSync(__dirname+'/../docs/jmr_engine.js','utf8'),scope);
+const {runDCFDetalle}=scope.module.exports;
 const {build}=require('../scripts/generate_dcf_sensitivities.cjs');
 
 const p={

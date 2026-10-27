@@ -3,6 +3,11 @@ on:
   pull_request:
     paths:
       - 'docs/jmr_engine.js'
+      - 'docs/valuation-board.js'
+      - 'docs/visor.html'
+      - 'scripts/generate_dcf_sensitivities.cjs'
+      - 'tests/generate-dcf-sensitivities.test.cjs'
+      - 'tests/unweighted-scenarios.test.cjs'
       - 'tests/nvda-r2-engine.cjs'
       - 'tests/nke-r2-engine.cjs'
       - 'tests/fixtures/nvda-r2.json'
@@ -11,6 +16,11 @@ on:
     branches: [main]
     paths:
       - 'docs/jmr_engine.js'
+      - 'docs/valuation-board.js'
+      - 'docs/visor.html'
+      - 'scripts/generate_dcf_sensitivities.cjs'
+      - 'tests/generate-dcf-sensitivities.test.cjs'
+      - 'tests/unweighted-scenarios.test.cjs'
       - 'tests/nvda-r2-engine.cjs'
       - 'tests/nke-r2-engine.cjs'
       - 'tests/fixtures/nvda-r2.json'
@@ -26,3 +36,4 @@ jobs:
         with:
           node-version: '24'
       - run: node --test tests/nvda-r2-engine.cjs tests/nke-r2-engine.cjs tests/terminal-capital.cjs tests/seven-method-refresh.test.cjs
+      - run: node --test tests/generate-dcf-sensitivities.test.cjs tests/unweighted-scenarios.test.cjs
