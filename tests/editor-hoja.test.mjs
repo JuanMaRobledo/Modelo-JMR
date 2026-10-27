@@ -116,3 +116,22 @@ test('los siete múltiplos se verifican contra fórmulas reales de Sheets, no so
   assert.equal(check(sheet).filter(x=>x.hasFormula&&x.hasValue).length,6);
   assert.equal(check(sheet).find(x=>x.method==='P/BV').hasFormula,false);
 });
+
+test('XP muestra pestañas financieras reales y cuatro múltiplos de fórmula con tres N/A justificados',()=>{
+  const context={};context.globalThis=context;
+  vm.runInNewContext(formatter,context);vm.runInNewContext(source,context);
+  const x=context.JmrSheetEditor;
+  const names=['Input sheet','Valuation output','Descuento de múltiplos','XP Datos financieros','XP FCFE','XP Múltiplos','XP Control'];
+  assert.equal(x.findMainSheet('input',names,'XP'),'XP Datos financieros');
+  assert.equal(x.findMainSheet('valuation',names,'XP'),'XP FCFE');
+  assert.equal(x.findMainSheet('multiples',names,'XP'),'XP Múltiplos');
+  const sheet={'XP Múltiplos':{},'XP Control':{B16:{v:'4 calculados; 3 N/A financieros'}}};
+  for(const c of ['I6','I9','I12','I15'])sheet['XP Múltiplos'][c]={v:12.5,formula:'=A5+B5'};
+  const checks=x.multiplesFormulaAudit(sheet,'XP');
+  assert.equal(checks.length,7);
+  assert.equal(checks.filter(c=>c.hasValue&&c.hasFormula).length,4);
+  assert.equal(checks.filter(c=>c.exempt).length,3);
+  sheet['XP Control'].B16.v='';
+  assert.equal(x.multiplesFormulaAudit(sheet,'XP').filter(c=>c.exempt).length,0);
+  assert.equal(x.multiplesFormulaAudit({'Descuento de múltiplos':{}},'NKE').filter(c=>c.exempt).length,0);
+});
