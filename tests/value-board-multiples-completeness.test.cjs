@@ -56,3 +56,41 @@ test('negative cash-flow prices are preserved and P/S aliases do not duplicate P
   assert.equal(d.metodos[3].hoy.base, -10);
   assert.equal(d.multiplesCoverage.calculated, 7);
 });
+
+test('ONON y otras operativas recuperadas muestran 7/7 y no solo META/NKE/NFLX', () => {
+  const r = record();
+  r.ticker = 'ONON';
+  r.tipo = 'Crecimiento';
+  r.metodos = names.map(nombre => ({ nombre, peso: 0 }));
+  const d = board.fromRecord(r);
+  assert.equal(d.multiplesCoverage.calculated, 7);
+  assert.deepEqual(Array.from(d.multiplesCoverage.pending), []);
+  assert.match(board.html(d), /Múltiplos calculados: 7\/7/);
+});
+
+test('SHAK informa métodos no calculados aunque tengan fórmula y peso cero', () => {
+  const r = record();
+  r.ticker = 'SHAK';
+  r.tipo = 'Crecimiento';
+  r.metodos = names.map(nombre => ({ nombre, peso: 0 }));
+  r.multiplesRelativosInformativos.methods =
+    r.multiplesRelativosInformativos.methods.filter(x => !['EV/FCFF', 'P/FCFE'].includes(x.nombre));
+  const d = board.fromRecord(r);
+  assert.equal(d.multiplesCoverage.calculated, 5);
+  assert.deepEqual(Array.from(d.multiplesCoverage.pending), ['EV/FCFF', 'P/FCFE']);
+  assert.match(board.html(d), /Múltiplos calculados: 5\/7/);
+});
+
+test('no exige los siete industriales a un modelo FCFE financiero ni a un holding SOTP', () => {
+  const financial = record();
+  financial.ticker = 'XP';
+  financial.tipo = 'Financiera: plataforma de inversión; FCFE/Ke';
+  financial.metodos = names.map(nombre => ({ nombre, peso: 0 }));
+  assert.equal(board.fromRecord(financial).multiplesCoverage, undefined);
+  const holding = record();
+  holding.ticker = 'GRUPOARGOS';
+  holding.tipo = 'Holding';
+  holding.valoracionHolding = { estado: 'PRELIMINAR', nav: { base: 18000 } };
+  holding.metodos = names.map(nombre => ({ nombre, peso: 0 }));
+  assert.equal(board.fromRecord(holding).multiplesCoverage, undefined);
+});
