@@ -26,21 +26,28 @@
     var page = location.pathname.split('/').pop() || 'index.html';
     var research = page === 'research.html';
     var marketPage = research || ['visor.html', 'colombia.html', 'portafolio.html', 'mi-bitacora.html', 'calculadora.html'].indexOf(page) >= 0;
-    var target = marketPage && page !== 'colombia.html' ? page : 'visor.html';
     var qs = col ? '?mercado=colombia' : '';
-    nav.setAttribute('aria-label', 'Navegación principal');
+    var activeInternational = page==='visor.html' && !col;
+    var activeColombia = (page==='visor.html' && col)||page==='colombia.html';
+    nav.setAttribute('aria-label', 'Navegación principal JMR');
+    // Cada enlace lleva a una ruta canónica estable, nunca al documento de origen
+    // bajo otra etiqueta. La navegación contextual se limita a la segunda fila.
     nav.innerHTML = link('https://cartera-two-eta.vercel.app/', 'JMR', false, 'jmr-home') +
-      link('research.html', 'Análisis fundamental', page === 'research.html') +
-      link('expediente.html', 'Expedientes JMR', page === 'expediente.html') +
+      link('research.html', 'Análisis fundamental', research&&!col) +
+      link('expediente.html', 'Empresas · expediente', page === 'expediente.html') +
+      link('visor.html', 'Valoraciones internacionales', activeInternational) +
+      link('visor.html?mercado=colombia', 'Valoraciones Colombia', activeColombia) +
+      link('editor-hoja.html', 'Hojas del modelo', page === 'editor-hoja.html') +
+      link('auditorias.html', 'Auditoría narrativa', page === 'auditorias.html') +
+      link('auditoria-integral.html', 'Auditoría integral', page === 'auditoria-integral.html') +
+      link('auditoria-multiplos.html', 'Auditoría de múltiplos', page === 'auditoria-multiplos.html') +
       link('bitacora-terceros.html', 'Bitácora de terceros', page === 'bitacora-terceros.html') +
-      link(target, 'Internacionales', marketPage && !col) +
-      link(target + '?mercado=colombia', 'Colombia', marketPage && col) +
       link('screener.html', 'Screener', page === 'screener.html') +
       link('calculadora.html' + qs, 'Calculadora DCF', page === 'calculadora.html') +
       link('portafolio.html' + qs, 'Portafolio', page === 'portafolio.html') +
       link('mi-bitacora.html' + qs, 'Mi bitácora', page === 'mi-bitacora.html') +
-      link('editor-hoja.html', 'Supuestos', page === 'editor-hoja.html') +
-      link('auditoria-integral.html', 'Auditoría', page === 'auditoria-integral.html');
+      link('damodaran.html', 'Damodaran', page === 'damodaran.html') +
+      link('historicos.html', 'Histórico', page === 'historicos.html');
     var sub = document.getElementById('jmr-market-nav');
     if (!sub) { sub = document.createElement('nav'); sub.id = 'jmr-market-nav'; sub.className = 'jmr-market-nav'; nav.after(sub); }
     sub.hidden = !marketPage;
