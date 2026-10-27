@@ -67,6 +67,20 @@ iframe{display:block;width:100%;height:max(620px,78vh);border:0;background:var(-
 .catalog-empty{padding:24px 15px;border:1px dashed var(--border);border-radius:12px;color:var(--ink-soft)}
 @media(max-width:650px){.catalog-cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.catalog-card{min-height:150px;padding:12px}.catalog-card strong{font-size:20px}.catalog-card.active{padding:11px}}
 
+
+/* Identidad visual consistente entre fichas y artículo abierto. */
+.card-identity,.overview-identity{display:flex;align-items:center;gap:12px;min-width:0}
+.overview-identity{align-items:flex-start;gap:15px}
+.card-logo-wrap,.overview-logo-wrap{display:grid;place-items:center;position:relative;flex:none;background:#fff;border:1px solid var(--border,#ddd);border-radius:12px;overflow:hidden}
+.card-logo-wrap{width:54px;height:54px}
+.overview-logo-wrap{width:72px;height:72px}
+.card-logo-image,.overview-logo-image{width:100%;height:100%;object-fit:contain;padding:5px}
+.card-logo-fallback,.overview-logo-fallback{font:800 14px system-ui,Arial;color:#3730a3}
+.card-links{display:flex;gap:7px;flex-wrap:wrap;margin-top:auto;align-items:center}
+.card-action,.card-open{border-radius:8px;border:1px solid var(--border,#ddd);padding:8px 10px;background:var(--surface,#fff);color:var(--accent,#4f46e5);text-decoration:none;font-size:12px;font-weight:700;cursor:pointer}
+.card-open:hover,.card-action:hover{border-color:var(--accent,#4f46e5)}
+.card-identity strong{min-width:0;overflow-wrap:anywhere}
+@media(max-width:650px){.card-logo-wrap{height:44px;width:44px}.overview-logo-wrap{width:50px;height:50px}.card-links{align-items:stretch}.card-links>*{flex:1 1 auto;text-align:center}}
 #empty{padding:60px 24px;text-align:center;color:var(--ink-soft,#59645b)}
 .audit-notes{padding:14px 20px;background:var(--surface-2,#f1f5f9);border-block:1px solid var(--border,#ddd)}
 .audit-notes summary{cursor:pointer;font-weight:750;font-size:15px}
@@ -89,13 +103,13 @@ footer a{color:inherit}
 <form id="lookup"><label for="ticker">Empresa / ticker<input id="ticker" list="tickers" placeholder="MSFT, PYPL, ADBE…" autocomplete="off" spellcheck="false" required></label><datalist id="tickers"></datalist><button type="submit">Abrir expediente</button><button type="button" id="reload">Actualizar catálogo</button></form>
 <p id="status" role="status" aria-live="polite">Buscando estudios vigentes…</p>
 <section id="catalogSection" class="catalog-section" aria-label="Fichas de empresas vigentes">
-<div class="catalog-heading"><div><h2>Mis fichas de análisis</h2><p>Una ficha por empresa y revisión oficial. Valoración, análisis y auditoría se consultan en el mismo expediente.</p></div><label for="catalogSearch">Buscar empresa<input id="catalogSearch" type="search" placeholder="Escribe ticker o empresa…" autocomplete="off"></label></div>
+<div class="catalog-heading"><div><h2>Mis fichas de análisis</h2><p>Abre cada artículo en una pestaña nueva o consulta su expediente para valoraciones, auditoría y observaciones.</p></div><label for="catalogSearch">Buscar empresa<input id="catalogSearch" type="search" placeholder="Escribe ticker o empresa…" autocomplete="off"></label></div>
 <div id="catalogCards" class="catalog-cards" role="list" aria-live="polite"></div>
 <p id="catalogEmpty" class="catalog-empty" hidden>No hay fichas vigentes para mostrar. Revisa el filtro o actualiza el catálogo; los históricos se consultan aparte.</p>
 <p class="catalog-footnote">Aquí aparecen las revisiones activas del catálogo oficial, no todos los archivos históricos. <a href="historicos.html">Consultar históricos</a>.</p>
 </section>
 <section id="dossier" class="panel" hidden>
-<div class="overview"><div><h2 id="companyTitle"></h2><p id="revisionNotice"></p></div><a id="sheetLink" href="editor-hoja.html" hidden>Abrir todas las hojas del modelo ↗</a></div>
+<div class="overview"><div class="overview-identity"><span id="companyLogo" aria-label="Logo de empresa"></span><div><h2 id="companyTitle"></h2><p id="revisionNotice"></p></div></div><a id="sheetLink" href="editor-hoja.html" hidden>Abrir todas las hojas del modelo ↗</a></div>
 <div class="tabs" role="tablist" aria-label="Secciones del expediente">
 <button type="button" data-view="valoracion" role="tab" aria-selected="true" class="active">Valoración</button>
 <button type="button" data-view="analisis" role="tab" aria-selected="false">Análisis fundamental</button>
@@ -106,6 +120,8 @@ footer a{color:inherit}
 
 <div id="auditModes" class="sensitivity-modes" role="group" aria-label="Tipo de auditoría" hidden><button type="button" class="active" data-audit="auditoria" aria-pressed="true">Auditoría narrativa</button><button type="button" data-audit="auditoriaIntegral" aria-pressed="false">Auditoría integral</button></div>
 <div id="sensitivityModes" class="sensitivity-modes" role="group" aria-label="Tipo de sensibilidad" hidden><button type="button" class="active" data-sensitivity="sensibilidades" aria-pressed="true">DCF · Prioritaria</button><button type="button" data-sensitivity="sensibilidadMultiples" aria-pressed="false">Múltiplos · Base</button></div>
+<div class="panelbar"><p id="viewHelp"></p><a id="openOriginal" target="_self" href="visor.html">Abrir vista completa ↗</a></div>
+<iframe id="viewFrame" title="Contenido del expediente seleccionado" loading="eager"></iframe>
 <section id="reviewPanel" class="review-panel" aria-label="Revisión visual y puntos de auditoría" hidden>
 <h3>Tu revisión del análisis</h3>
 <p class="review-help">Escribe qué quieres revisar antes de solicitar la auditoría. Estas observaciones pertenecen únicamente a la revisión activa de esta empresa. <strong>Guardar no ejecuta una auditoría ni modifica el DCF.</strong></p>
@@ -125,9 +141,8 @@ footer a{color:inherit}
 </form>
 <p class="review-disclosure">Los puntos se almacenan por ticker y revisión en un repositorio <strong>público</strong> de GitHub; no escribas información confidencial. Si no tienes una sesión con permiso de escritura, solo se conserva un borrador local en este navegador hasta que pulses Guardar.</p>
 </section>
-<div class="panelbar"><p id="viewHelp"></p><a id="openOriginal" target="_self" href="visor.html">Abrir vista completa ↗</a></div>
-<iframe id="viewFrame" title="Contenido del expediente seleccionado" loading="eager"></iframe></section>
+</section>
 <div id="empty">Elige una empresa para consultar sus secciones sin cambiar de expediente.</div>
 <footer>Fuentes: <code>Modelo-JMR-datos</code> y Google Sheets. Un archivo en el repositorio no implica auditoría aprobada ni publicación oficial.
 <a href="https://github.com/JuanMaRobledo/Modelo-JMR/blob/main/docs/PROCESO_UNICO_JMR.md" target="_blank" rel="noopener noreferrer">Procedimiento único para ChatGPT, Claude y Gemini ↗</a></footer>
-</main><script src="expediente.js?v=20261027-catalogo-fichas-v2"></script></body></html>
+</main><script src="expediente.js?v=20261027-analisis-logos-tab-v1"></script></body></html>
