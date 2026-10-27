@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0f172a">
-<title>Editor de hoja · Modelo JMR</title>
+<title>Hojas del modelo · Modelo JMR</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="favicon.ico">
 <link rel="stylesheet" href="jmr-theme.css">
 <link rel="stylesheet" href="jmr-fullwidth.css">
-<link rel="stylesheet" href="editor-hoja.css?v=20261020">
+<link rel="stylesheet" href="editor-hoja.css?v=20261026-vista-completa">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body class="sheet-editor-page">
@@ -17,13 +17,13 @@
 <script src="mercado.js"></script>
 <nav class="appnav" aria-label="Navegación principal">
   <a href="https://cartera-two-eta.vercel.app/">JMR</a>
-  <a href="index.html">Referencias</a>
+  <a href="research.html">Inicio</a>
   <a href="visor.html">Internacionales</a>
   <a href="visor.html?mercado=colombia">Colombia</a>
   <a href="screener.html">Screener</a>
   <a href="research.html">Análisis fundamental</a>
   <a href="calculadora.html">Calculadora DCF</a>
-  <a href="editor-hoja.html" class="active" aria-current="page">Editor de hoja</a>
+  <a href="editor-hoja.html" class="active" aria-current="page">Hojas del modelo</a>
   <a href="portafolio.html">Portafolio</a>
   <a href="damodaran.html">Damodaran</a>
   <a href="auditoria-multiplos.html">Auditoría de múltiplos</a>
@@ -32,7 +32,7 @@
 <main class="editor-main">
   <header class="editor-header">
     <span class="eyebrow">MODELO JMR · HOJA OFICIAL</span>
-    <h1>Editor de hoja</h1>
+    <h1>Hojas del modelo JMR</h1>
     <p>Importa la valoración guardada por ticker, consulta todas las pestañas y corrige los valores de entrada permitidos. Las fórmulas permanecen protegidas; ningún cambio se publica automáticamente en el análisis fundamental.</p>
   </header>
   <form id="lookup" class="lookup-grid">
@@ -57,10 +57,22 @@
         <a id="calcLink">Simular sensibilidad</a>
       </div>
     </div>
+    <section class="model-sheets" aria-label="Hojas principales del modelo">
+      <div class="section-heading">
+        <div><span class="eyebrow">HOJAS COMPLETAS</span><h3>Detalle del modelo financiero</h3></div>
+        <p>Los mismos datos de Google Sheets, con mejor presentación. Sin cálculos paralelos.</p>
+      </div>
+      <div class="model-sheet-tabs" id="modelSheetTabs" role="group" aria-label="Accesos directos a las hojas del modelo">
+        <button type="button" data-sheet-kind="input">Input Sheet</button>
+        <button type="button" data-sheet-kind="valuation">Valuation Output</button>
+        <button type="button" data-sheet-kind="multiples">Múltiplos</button>
+        <button type="button" data-sheet-kind="financial">Financial Multiples</button>
+      </div>
+    </section>
     <div class="toolbar">
-      <label for="sheetPicker">Pestaña del libro</label>
-      <select id="sheetPicker" aria-label="Seleccionar pestaña del libro"></select>
-      <strong id="sheetName"></strong>
+      <div class="toolbar-title"><label for="sheetPicker">Pestaña del libro</label><select id="sheetPicker" aria-label="Seleccionar pestaña del libro"></select></div>
+      <div class="toolbar-title"><span class="eyebrow">HOJA SELECCIONADA</span><strong id="sheetName"></strong></div>
+      <button type="button" id="toggleFullSheet" class="secondary" aria-pressed="true">Ver por bloques</button>
     </div>
     <div class="range-toolbar">
       <div class="page-controls">
@@ -76,7 +88,12 @@
       </form>
     </div>
     <p id="rangeLabel" class="range-label"></p>
-    <div class="sheet-grid" id="sheetTable" tabindex="0" aria-label="Vista de celdas de la hoja"></div>
+    <div class="sheet-grid" id="sheetTable" tabindex="0" aria-label="Vista completa de las celdas de la hoja, con desplazamiento horizontal y vertical"></div>
+    <aside class="cell-inspector" id="cellInspector" aria-live="polite" aria-label="Detalle de celda">
+      <div><span class="eyebrow">CELDA ORIGINAL</span><strong id="inspectorAddress">Selecciona una celda</strong></div>
+      <div><span class="inspector-label">Valor mostrado</span><span id="inspectorValue">Consulta un valor, su dirección y su fórmula original.</span></div>
+      <div><span class="inspector-label">Fórmula en Google Sheets</span><code id="inspectorFormula">—</code></div>
+    </aside>
     <p class="editor-hint">Celdas con borde destacado: editables. <strong>ƒx</strong>: fórmula protegida. Los datos históricos numéricos de los estados y los supuestos autorizados pueden corregirse; otras celdas son de consulta. Las tasas porcentuales se muestran en % y se guardan con su escala original.</p>
     <aside class="save-panel" aria-label="Cambios preparados">
       <div>
@@ -90,11 +107,11 @@
       </div>
       <p id="conflict" hidden>La hoja cambió desde tu lectura. Reimporta antes de volver a guardar.</p>
     </aside>
-    <p class="disclaimer">La escritura requiere sesión autorizada en el despliegue con servidor y acceso de la cuenta de servicio a esa hoja. En GitHub Pages, la vista puede ser de solo lectura. Después de guardar, revisa y republica expresamente el análisis si corresponde: no se actualiza automáticamente el texto histórico.</p>
+    <p class="disclaimer">La visualización consulta el libro completo disponible. En hojas muy extensas se usa paginación sin omitir celdas. La escritura requiere sesión autorizada en el despliegue con servidor y acceso de la cuenta de servicio a esa hoja. En GitHub Pages, la vista puede ser de solo lectura. Después de guardar, revisa y republica expresamente el análisis si corresponde: no se actualiza automáticamente el texto histórico.</p>
   </section>
 </main>
 <script src="jmr-number-format.js?v=20261020-dos-decimales"></script>
 <script src="model-sync.js?v=20261020-editor"></script>
-<script src="editor-hoja.js?v=20261020-editor"></script>
+<script src="editor-hoja.js?v=20261026-vista-completa"></script>
 </body>
 </html>
