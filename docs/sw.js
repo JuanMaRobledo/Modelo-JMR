@@ -1,7 +1,10 @@
-const CACHE = "modelo-jmr-v173-ebit-growth-20261022";
+const CACHE = "modelo-jmr-v175-expedientes-20261026";
 const APP_SHELL = [
   "catalog-reset.js",
   "index.html",
+  "bitacora-terceros.html",
+  "expediente.html",
+  "expediente.js",
   "colombia.html",
   "colombia/app.js",
   "colombia/core.js",

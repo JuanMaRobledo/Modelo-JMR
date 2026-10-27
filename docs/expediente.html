@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Expediente por empresa · Modelo JMR</title>
+<link rel="icon" href="favicon.ico"><link rel="stylesheet" href="jmr-theme.css">
+<style>
+:root{color-scheme:light dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg,#f7f8f6);color:var(--ink,#14251d);font:14px/1.55 system-ui,Arial,sans-serif}
+.appnav{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:8px;padding:14px 20px;background:var(--surface,#fff);border-bottom:1px solid var(--border,#dbe0db)}
+.appnav a{color:var(--ink);text-decoration:none;white-space:nowrap;padding:8px 11px}
+main{max-width:1550px;margin:auto;padding:clamp(16px,2vw,32px)}
+h1{font:clamp(27px,3.7vw,43px)/1.2 Georgia,serif;margin:4px 0 10px}
+header p{max-width:930px;color:var(--ink-soft,#59645b)}
+form{display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin:20px 0}
+label{display:grid;gap:4px;font-weight:600}
+input,button{font:inherit}
+input{min-width:175px;background:var(--surface,#fff);color:var(--ink);border:1px solid var(--border,#c7d3ca);border-radius:8px;padding:11px}
+button{border:1px solid var(--border,#c7d3ca);background:var(--surface,#fff);color:var(--ink);border-radius:8px;padding:11px 15px;cursor:pointer}
+button.active,button[type=submit]{background:var(--ink,#173128);color:var(--surface,#fff)}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #ad8c4b;outline-offset:2px}
+#status{min-height:26px;color:var(--ink-soft,#57665b);margin:12px 0}
+#status[data-level=warning]{color:#a66714}
+#status[data-level=error]{color:#b32d2d}
+.panel{border:1px solid var(--border,#dbe0db);border-radius:13px;background:var(--surface,#fff);overflow:hidden}
+.overview{padding:15px 20px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+#companyTitle{font:25px Georgia,serif;margin:0}
+#revisionNotice{font-size:12px;max-width:780px;color:var(--ink-soft,#59645b);margin:5px 0}
+.tabs{display:flex;gap:7px;overflow:auto;padding:12px;background:var(--surface,#fff);border-top:1px solid var(--border,#ddd);border-bottom:1px solid var(--border,#ddd)}
+.tabs button{white-space:nowrap;flex:none;font-weight:600;padding:10px 14px}
+.sensitivity-modes{display:flex;flex-wrap:wrap;gap:8px;padding:12px 17px;border-bottom:1px solid var(--border,#ddd)}
+.sensitivity-modes button{font-weight:600;font-size:12px;padding:8px 12px}
+.panelbar{padding:10px 17px;display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+.panelbar p{margin:0;color:var(--ink-soft,#59645b);font-size:12px}
+.panelbar a{color:var(--accent,#856327);font-weight:700}
+iframe{display:block;width:100%;height:max(620px,78vh);border:0;background:var(--surface,#fff)}
+#empty{padding:60px 24px;text-align:center;color:var(--ink-soft,#59645b)}
+[hidden]{display:none!important}
+footer{margin-top:20px;color:var(--ink-soft,#59645b);font-size:12px}
+footer a{color:inherit}
+@media(max-width:680px){form input{min-width:0;width:min(75vw,320px)}main{padding:12px}.overview{padding:12px}.tabs{padding:8px}iframe{height:82vh}}
+</style></head><body>
+<script src="auth.js"></script><script src="mercado.js"></script>
+<nav class="appnav" aria-label="Navegación principal"><a href="research.html">Análisis fundamental</a><a href="expediente.html" class="active">Expedientes JMR</a><a href="bitacora-terceros.html">Bitácora de terceros</a></nav>
+<main>
+<header><span>MODELO JMR · EXPEDIENTE UNIFICADO</span><h1>Una empresa, un expediente</h1>
+<p>Valoración, artículo fundamental, edición de supuestos, auditoría y sensibilidades. Cada sección consulta las páginas oficiales existentes; editar la hoja <strong>no</strong> publica automáticamente una revisión.</p></header>
+<form id="lookup"><label for="ticker">Empresa / ticker<input id="ticker" list="tickers" placeholder="MSFT, PYPL, ADBE…" autocomplete="off" spellcheck="false" required></label><datalist id="tickers"></datalist><button type="submit">Abrir expediente</button><button type="button" id="reload">Actualizar catálogo</button></form>
+<p id="status" role="status" aria-live="polite">Buscando estudios vigentes…</p>
+<section id="dossier" class="panel" hidden>
+<div class="overview"><div><h2 id="companyTitle"></h2><p id="revisionNotice"></p></div><a id="sheetLink" href="editor-hoja.html" hidden>Abrir hoja de supuestos ↗</a></div>
+<div class="tabs" role="tablist" aria-label="Secciones del expediente">
+<button type="button" data-view="valoracion" role="tab" aria-selected="true" class="active">Valoración</button>
+<button type="button" data-view="analisis" role="tab" aria-selected="false">Análisis fundamental</button>
+<button type="button" data-view="supuestos" role="tab" aria-selected="false">Supuestos</button>
+<button type="button" data-view="auditoria" role="tab" aria-selected="false">Auditoría</button>
+<button type="button" data-view="sensibilidades" role="tab" aria-selected="false">Sensibilidades</button>
+</div>
+<div id="auditModes" class="sensitivity-modes" role="group" aria-label="Tipo de auditoría" hidden><button type="button" class="active" data-audit="auditoria" aria-pressed="true">Auditoría narrativa</button><button type="button" data-audit="auditoriaIntegral" aria-pressed="false">Auditoría integral</button></div>
+<div id="sensitivityModes" class="sensitivity-modes" role="group" aria-label="Tipo de sensibilidad" hidden><button type="button" class="active" data-sensitivity="sensibilidades" aria-pressed="true">DCF · Prioritaria</button><button type="button" data-sensitivity="sensibilidadMultiples" aria-pressed="false">Múltiplos · Base</button></div>
+<div class="panelbar"><p id="viewHelp"></p><a id="openOriginal" target="_self" href="visor.html">Abrir vista completa ↗</a></div>
+<iframe id="viewFrame" title="Contenido del expediente seleccionado" loading="eager"></iframe></section>
+<div id="empty">Elige una empresa para consultar sus secciones sin cambiar de expediente.</div>
+<footer>Fuentes: <code>Modelo-JMR-datos</code> y Google Sheets. Un archivo en el repositorio no implica auditoría aprobada ni publicación oficial.
+<a href="https://github.com/JuanMaRobledo/Modelo-JMR/blob/main/docs/PROCESO_UNICO_JMR.md" target="_blank" rel="noopener noreferrer">Procedimiento único para ChatGPT, Claude y Gemini ↗</a></footer>
+</main><script src="expediente.js?v=20261026c"></script></body></html>

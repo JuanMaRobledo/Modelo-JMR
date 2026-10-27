@@ -30,13 +30,17 @@
     var qs = col ? '?mercado=colombia' : '';
     nav.setAttribute('aria-label', 'Navegación principal');
     nav.innerHTML = link('https://cartera-two-eta.vercel.app/', 'JMR', false, 'jmr-home') +
-      link('index.html', 'Referencias', page === 'index.html') +
+      link('research.html', 'Análisis fundamental', page === 'research.html') +
+      link('expediente.html', 'Expedientes JMR', page === 'expediente.html') +
+      link('bitacora-terceros.html', 'Bitácora de terceros', page === 'bitacora-terceros.html') +
       link(target, 'Internacionales', marketPage && !col) +
       link(target + '?mercado=colombia', 'Colombia', marketPage && col) +
       link('screener.html', 'Screener', page === 'screener.html') +
       link('calculadora.html' + qs, 'Calculadora DCF', page === 'calculadora.html') +
       link('portafolio.html' + qs, 'Portafolio', page === 'portafolio.html') +
-      link('mi-bitacora.html' + qs, 'Mi bitácora', page === 'mi-bitacora.html');
+      link('mi-bitacora.html' + qs, 'Mi bitácora', page === 'mi-bitacora.html') +
+      link('editor-hoja.html', 'Supuestos', page === 'editor-hoja.html') +
+      link('auditoria-integral.html', 'Auditoría', page === 'auditoria-integral.html');
     var sub = document.getElementById('jmr-market-nav');
     if (!sub) { sub = document.createElement('nav'); sub.id = 'jmr-market-nav'; sub.className = 'jmr-market-nav'; nav.after(sub); }
     sub.hidden = !marketPage;

@@ -1,0 +1,36 @@
+name: Expediente único JMR
+on:
+  pull_request:
+    paths:
+      - 'docs/expediente.html'
+      - 'docs/expediente.js'
+      - 'docs/index.html'
+      - 'docs/bitacora-terceros.html'
+      - 'docs/mercado.js'
+      - 'docs/research.js'
+      - 'docs/visor.html'
+      - 'docs/sw.js'
+      - 'tests/expediente.test.mjs'
+      - '.github/workflows/expediente.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'docs/expediente.html'
+      - 'docs/expediente.js'
+      - 'docs/index.html'
+      - 'docs/bitacora-terceros.html'
+      - 'docs/mercado.js'
+      - 'docs/research.js'
+      - 'docs/visor.html'
+      - 'docs/sw.js'
+      - 'tests/expediente.test.mjs'
+      - '.github/workflows/expediente.yml'
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/expediente.test.mjs

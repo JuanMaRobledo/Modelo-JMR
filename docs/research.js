@@ -1406,7 +1406,8 @@
         (r.valuationSync && r.valuationSync.sourcePath) || '';
       if(!/^valoraciones\/[A-Za-z0-9._-]+\.json$/.test(visorPath)) visorPath = '';
       var visorLink=visorPath?'<a class="btn" href="visor.html?path='+encodeURIComponent(visorPath)+(typeof jmrMercadoQS==='function'?jmrMercadoQS():'')+'">Ver en el Visor</a>':'';
-      return '<article class="analysis-card" data-id="'+escapeHtml(r.id)+'"><div class="card-head">'+logo+'<div class="card-title"><strong>'+escapeHtml(r.title||r.company)+(typeof JmrDecision!=='undefined'?JmrDecision.badge(r.decision):'')+'</strong><span class="ticker">'+escapeHtml(r.ticker||'—')+' · '+escapeHtml(r.company||'')+'</span></div></div>'+(excerpt?'<p class="card-excerpt">'+escapeHtml(excerpt)+'</p>':'')+'<div class="card-meta"><span>'+escapeHtml(r.date||'Sin fecha')+'</span><span>'+(r.remotePath?'GitHub + local':'Solo local')+'</span></div><div class="card-actions"><button class="btn" data-action="open" type="button">Abrir</button>'+visorLink+'<button class="btn danger" data-action="delete" type="button">Borrar</button></div></article>';
+      var dossierLink=/^[A-Za-z0-9._-]{1,24}$/.test(r.ticker||'')?'<a class="btn" href="expediente.html?ticker='+encodeURIComponent(r.ticker)+'">Expediente JMR</a>':'';
+      return '<article class="analysis-card" data-id="'+escapeHtml(r.id)+'"><div class="card-head">'+logo+'<div class="card-title"><strong>'+escapeHtml(r.title||r.company)+(typeof JmrDecision!=='undefined'?JmrDecision.badge(r.decision):'')+'</strong><span class="ticker">'+escapeHtml(r.ticker||'—')+' · '+escapeHtml(r.company||'')+'</span></div></div>'+(excerpt?'<p class="card-excerpt">'+escapeHtml(excerpt)+'</p>':'')+'<div class="card-meta"><span>'+escapeHtml(r.date||'Sin fecha')+'</span><span>'+(r.remotePath?'GitHub + local':'Solo local')+'</span></div><div class="card-actions"><button class="btn" data-action="open" type="button">Abrir</button>'+dossierLink+visorLink+'<button class="btn danger" data-action="delete" type="button">Borrar</button></div></article>';
     }).join('');
     wireLogoFallbacks(holder);
     setStatus('libraryStatus',list.length+' análisis · '+(getGhToken()?'GitHub disponible':'almacenamiento local'));
@@ -1553,6 +1554,18 @@
   // sirve como enlace directo compartible a un análisis puntual.
   var pdfMode = new URLSearchParams(location.search).get('pdfmode') === '1';
   var deepLinkId = new URLSearchParams(location.search).get('id');
+  // La ficha JMR puede pedir un informe EXACTO del catálogo, nunca seleccionar
+  // a ciegas una revisión anterior del mismo ticker.
+  var deepLinkAnalysisPath = new URLSearchParams(location.search).get('analisis');
+  function openCatalogResearch(){
+    if(!deepLinkAnalysisPath || deepLinkId) return;
+    if(!/^analisis\/[A-Za-z0-9._-]+\.json$/.test(deepLinkAnalysisPath)){
+      setStatus('libraryStatus','Ruta de análisis inválida en el expediente.','bad');return;
+    }
+    var rec=getLocalLibrary().find(function(r){return r.remotePath===deepLinkAnalysisPath;});
+    if(rec){fillEditor(rec);}
+    else setStatus('libraryStatus','El análisis de la revisión indicada no está accesible. No se abrirá otra revisión en su lugar.','bad');
+  }
   function applyDeepLinkId() {
     if (!deepLinkId) return false;
     var rec = getLocalLibrary().find(function (r) { return r.id === deepLinkId; });
@@ -1597,10 +1610,12 @@
   syncRemote().then(function (n) {
     applyDeepLinkFilter();
     if (deepLinkId) applyDeepLinkId();
+    else openCatalogResearch();
     return pushLocalOnlyToRemote();
   }).catch(function (err) {
     applyDeepLinkFilter();
     if (deepLinkId) applyDeepLinkId();
+    else openCatalogResearch();
     setStatus('libraryStatus',err.message,'bad');
   }).finally(function () {
     // Señal para api/pdf.js: se espera este flag en vez de un timeout fijo,
