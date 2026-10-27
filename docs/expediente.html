@@ -47,11 +47,11 @@ footer a{color:inherit}
 <form id="lookup"><label for="ticker">Empresa / ticker<input id="ticker" list="tickers" placeholder="MSFT, PYPL, ADBE…" autocomplete="off" spellcheck="false" required></label><datalist id="tickers"></datalist><button type="submit">Abrir expediente</button><button type="button" id="reload">Actualizar catálogo</button></form>
 <p id="status" role="status" aria-live="polite">Buscando estudios vigentes…</p>
 <section id="dossier" class="panel" hidden>
-<div class="overview"><div><h2 id="companyTitle"></h2><p id="revisionNotice"></p></div><a id="sheetLink" href="editor-hoja.html" hidden>Abrir hoja de supuestos ↗</a></div>
+<div class="overview"><div><h2 id="companyTitle"></h2><p id="revisionNotice"></p></div><a id="sheetLink" href="editor-hoja.html" hidden>Abrir todas las hojas del modelo ↗</a></div>
 <div class="tabs" role="tablist" aria-label="Secciones del expediente">
 <button type="button" data-view="valoracion" role="tab" aria-selected="true" class="active">Valoración</button>
 <button type="button" data-view="analisis" role="tab" aria-selected="false">Análisis fundamental</button>
-<button type="button" data-view="supuestos" role="tab" aria-selected="false">Supuestos</button>
+<button type="button" data-view="supuestos" role="tab" aria-selected="false">Hojas del modelo</button>
 <button type="button" data-view="auditoria" role="tab" aria-selected="false">Auditoría</button>
 <button type="button" data-view="sensibilidades" role="tab" aria-selected="false">Sensibilidades</button>
 </div>
@@ -62,4 +62,4 @@ footer a{color:inherit}
 <div id="empty">Elige una empresa para consultar sus secciones sin cambiar de expediente.</div>
 <footer>Fuentes: <code>Modelo-JMR-datos</code> y Google Sheets. Un archivo en el repositorio no implica auditoría aprobada ni publicación oficial.
 <a href="https://github.com/JuanMaRobledo/Modelo-JMR/blob/main/docs/PROCESO_UNICO_JMR.md" target="_blank" rel="noopener noreferrer">Procedimiento único para ChatGPT, Claude y Gemini ↗</a></footer>
-</main><script src="expediente.js?v=20261026c"></script></body></html>
+</main><script src="expediente.js?v=20261026-hojas"></script></body></html>

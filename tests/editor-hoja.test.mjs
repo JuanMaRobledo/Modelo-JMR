@@ -62,7 +62,7 @@ test('API guarda entradas y fuentes originales, sin editar fórmulas o resultado
   assert.throws(()=>validateChanges(sheets,[changes[0],changes[0]]));
 });
 test('pestaña visible, todas las hojas disponibles, guardado explícito',()=>{
-  assert.match(html,/<title>Editor de hoja/);
+  assert.match(html,/<title>Hojas del modelo/);
   assert.match(html,/id="sheetPicker"/);
   assert.match(html,/id="sheetTable"/);
   assert.match(html,/id="saveChanges"/);
@@ -73,4 +73,31 @@ test('pestaña visible, todas las hojas disponibles, guardado explícito',()=>{
   assert.match(source,/snapshot\.revision,changes/);
   assert.match(source,/global\.confirm\('¿Guardar/);
   assert.doesNotMatch(source,/google(?:-|_)service(?:-|_)account/i);
+});
+
+test('cuatro accesos abren hojas reales sin crear datos ni hojas ficticias',()=>{
+  const context={};context.globalThis=context;vm.runInNewContext(formatter,context);vm.runInNewContext(source,context);
+  const {findMainSheet,mainKind}=context.JmrSheetEditor;
+  const names=['Income Statement','Input sheet','Valuation output','Descuento de múltiplos','Financial Multiples','P/E','P/S'];
+  assert.equal(findMainSheet('input',names),'Input sheet');
+  assert.equal(findMainSheet('valuation',names),'Valuation output');
+  assert.equal(findMainSheet('multiples',names),'Descuento de múltiplos');
+  assert.equal(findMainSheet('financial',names),'Financial Multiples');
+  assert.equal(mainKind('P/E'),'multiples');
+  assert.equal(mainKind('Financial Multiples'),'financial');
+  assert.equal(findMainSheet('financial',['Input sheet','Valuation output']),'');
+  assert.equal(findMainSheet('multiples',['Input sheet','Valuation output','P/E']),'P/E');
+  for(const name of ['input','valuation','multiples','financial'])assert.match(html,new RegExp('data-sheet-kind="'+name+'"'));
+});
+
+test('la vista íntegra permite consultar fórmulas sin crear un cálculo paralelo',()=>{
+  for(const id of ['cellInspector','inspectorFormula','inspectorValue','modelSheetTabs','toggleFullSheet','rangeToolbar'])assert.match(html,new RegExp('id="'+id+'"'));
+  assert.match(source,/MAX_FULL_CELLS\s*=\s*30000/);
+  assert.match(source,/var all=fullSheet&&canFull/);
+  assert.match(source,/var endRow=all\?max.row:/);
+  assert.match(source,/var endCol=all\?max.col:/);
+  assert.match(source,/c\?\.formula\|\|'—/);
+  assert.match(source,/fullSheet=false;table\(\)/);
+  assert.match(source,/method:'PATCH'/);
+  assert.match(source,/isEditable\(selected,address,c,!!snapshot.writable\)/);
 });

@@ -19,8 +19,58 @@
     var percent=/%\s*$/.test(String(cell.w||''));
     return {percent:percent,scale:percent?100:1,value:JmrDisplayNumber.editValue(value,percent?100:1)};
   }
-  var snapshot=null,ticker='',selected='',firstRow=1,firstCol=1,pageRows=30,pageCols=9;
+  // La fuente sigue siendo exactamente el libro leído de Google Sheets.
+  // Las cuatro vistas son accesos a hojas reales, sin generar datos nuevos.
+  function normalizeName(s){return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase();}
+  function findMainSheet(kind,names){
+    var list=names||[], normalized=list.map(normalizeName);
+    var preferred={
+      input:['input sheet','input','inputs'],
+      valuation:['valuation output','valuation outputs'],
+      multiples:['descuento de multiplos','multiplos','multiples','ev/ebit','ev/ebitda','p/e','p/ventas','p/s','p/bv'],
+      financial:['financial multiples','financial multiple','financial multiples worksheet']
+    }[kind]||[];
+    for(var p of preferred){var index=normalized.indexOf(p);if(index>=0)return list[index];}
+    if(kind==='multiples')return list.find(function(n){return /^(ev\/|p\/|multip|descuento de m)/i.test(normalizeName(n));})||'';
+    if(kind==='financial')return list.find(function(n){return /^financial multiples?/i.test(normalizeName(n));})||'';
+    return '';
+  }
+  function mainKind(name){
+    var n=normalizeName(name);
+    if(n==='input sheet'||n==='input'||n==='inputs')return 'input';
+    if(n==='valuation output'||n==='valuation outputs')return 'valuation';
+    if(n.startsWith('financial multiple'))return 'financial';
+    if(n.startsWith('descuento de multip')||n==='multiples'||n==='multiplos'||/^(ev\/|p\/)/.test(n))return 'multiples';
+    return '';
+  }
+  function sectionType(sheet,source,row,maxCol){
+    var label=String(source['A'+row]?.v||'').trim();
+    if(!label)return '';
+    var nonempty=0;
+    for(var i=2;i<=Math.min(maxCol,12);i++){var cell=source[colName(i)+row];if(cell&&cell.v!==null&&cell.v!==undefined&&cell.v!=='')nonempty++;}
+    if(nonempty===0&&label.length>=4)return ' section-row';
+    if(/^(valor intr[ií]nseco|estimated value|intrinsic value|price per share|valor por acci[oó]n|dcf base|valor empresa|equity value|total weighted)/i.test(label))return ' value-row';
+    return '';
+  }
+  var snapshot=null,ticker='',selected='',firstRow=1,firstCol=1,pageRows=30,pageCols=9,fullSheet=true;
   var drafts=new Map(),busy=false,loader=0,dimensions={};
+  var MAX_FULL_CELLS=30000;
+  function refreshShortcuts(){
+    var names=Object.keys(snapshot?.sheets||{});
+    document.querySelectorAll('#modelSheetTabs [data-sheet-kind]').forEach(function(button){
+      var name=findMainSheet(button.dataset.sheetKind,names),active=!!name&&mainKind(selected)===button.dataset.sheetKind;
+      button.disabled=!name;
+      button.title=name?'Abrir '+name:'Esta pestaña no está en el libro importado';
+      button.classList.toggle('active',active);
+      button.setAttribute('aria-pressed',String(active));
+    });
+  }
+  function inspect(address){
+    var c=snapshot?.sheets?.[selected]?.[address];
+    byId('inspectorAddress').textContent=c?selected+'!'+address:'Selecciona una celda';
+    byId('inspectorValue').textContent=c?JmrDisplayNumber.formatCell(c):'Sin valor en esta celda';
+    byId('inspectorFormula').textContent=c?.formula||'— (dato o texto, sin fórmula)';
+  }
   function setStatus(msg,type){var n=byId('status');n.textContent=msg;n.dataset.kind=type||'neutral';}
   function setMode(){
     var n=byId('editState');
@@ -45,22 +95,33 @@
     firstCol=Math.min(Math.max(1,firstCol),max.col);
     byId('startRow').value=firstRow;
     byId('startCol').value=colName(firstCol);
-    byId('rangeLabel').textContent='Filas '+firstRow+'–'+Math.min(max.row,firstRow+pageRows-1)+
-      ' · columnas '+colName(firstCol)+'–'+colName(Math.min(max.col,firstCol+pageCols-1))+
-      ' · '+Object.keys(source).length+' celdas cargadas';
+    var canFull=max.row*max.col<=MAX_FULL_CELLS;
+    var all=fullSheet&&canFull;
+    var startRow=all?1:firstRow,startCol=all?1:firstCol;
+    var endRow=all?max.row:Math.min(max.row,firstRow+pageRows-1);
+    var endCol=all?max.col:Math.min(max.col,firstCol+pageCols-1);
+    byId('toggleFullSheet').disabled=!canFull;
+    byId('toggleFullSheet').textContent=!canFull?'Hoja extensa · vista por bloques':all?'Ver por bloques':'Ver hoja completa';
+    byId('toggleFullSheet').setAttribute('aria-pressed',String(all));
+    byId('toggleFullSheet').title=canFull?'Cambiar modo de visualización':'La hoja es muy grande para mostrarla toda a la vez; todas sus celdas están accesibles por bloques.';
+    byId('rangeToolbar').hidden=all;
+    byId('rangeLabel').textContent=(all?'Hoja completa · ':(!canFull?'Hoja extensa, sin omitir celdas · ':'Vista por bloques · '))+
+      'filas '+startRow+'–'+endRow+' de '+max.row+
+      ' · columnas '+colName(startCol)+'–'+colName(endCol)+' de '+colName(max.col)+
+      ' · '+Object.keys(source).length+' celdas con datos';
     var display='<table class="workbook-table"><thead><tr><th scope="col" class="row-label">Fila</th>';
-    for(var col=firstCol;col<=Math.min(max.col,firstCol+pageCols-1);col++)
+    for(var col=startCol;col<=endCol;col++)
       display+='<th scope="col">'+colName(col)+'</th>';
     display+='</tr></thead><tbody>';
-    for(var row=firstRow;row<=Math.min(max.row,firstRow+pageRows-1);row++){
-      display+='<tr><th scope="row" class="row-label">'+row+'</th>';
-      for(var ci=firstCol;ci<=Math.min(max.col,firstCol+pageCols-1);ci++){
+    for(var row=startRow;row<=endRow;row++){
+      display+='<tr class="'+sectionType(selected,source,row,max.col)+'"><th scope="row" class="row-label">'+row+'</th>';
+      for(var ci=startCol;ci<=endCol;ci++){
         var address=colName(ci)+row,c=source[address],id=selected+'!'+address,d=drafts.get(id);
-        if(!c){display+='<td class="empty-cell" aria-label="'+address+' vacía"></td>';continue;}
+        if(!c){display+='<td class="empty-cell'+(ci===startCol?' first-source-col':'')+'" data-cell="'+address+'" aria-label="'+address+' vacía"></td>';continue;}
         var edit=isEditable(selected,address,c,!!snapshot.writable),n=normalizedNumber(c);
         if(edit){
           var fmt=formatNumber(c,d?d.value:n);
-          display+='<td class="editable-cell'+(d?' dirty':'')+'" title="'+esc(address)+' · dato editable">'+
+          display+='<td class="editable-cell'+(d?' dirty':'')+(ci===startCol?' first-source-col':'')+'" data-cell="'+esc(address)+'" title="'+esc(address)+' · dato editable">'+
             '<label class="cell-label" for="cell-'+esc(address)+'">'+esc(address)+'</label>'+
             '<input id="cell-'+esc(address)+'" aria-label="'+esc(selected+' '+address)+'" type="number" step="0.01" '+
             'data-address="'+esc(address)+'" data-scale="'+fmt.scale+'" data-initial-display="'+
@@ -68,7 +129,7 @@
             (fmt.percent?'<span class="cell-unit">%</span>':'')+'</td>';
         }else{
           var label=JmrDisplayNumber.formatCell(c);
-          display+='<td class="'+(c.formula?'formula-cell':'readonly-cell')+'" title="'+esc(address+(c.formula?' · fórmula protegida: '+c.formula:' · solo lectura'))+'">'+
+          display+='<td class="'+(c.formula?'formula-cell':'readonly-cell')+(ci===startCol?' first-source-col':'')+'" data-cell="'+esc(address)+'" title="'+esc(address+(c.formula?' · fórmula protegida: '+c.formula:' · solo lectura'))+'">'+
             '<div class="cell-display">'+esc(label)+'</div>'+(c.formula?'<small>ƒx</small>':'')+'</td>';
         }
       }
@@ -76,10 +137,10 @@
     }
     display+='</tbody></table>';
     host.innerHTML=display;
-    byId('prevRows').disabled=firstRow<=1;
-    byId('nextRows').disabled=firstRow+pageRows>max.row;
-    byId('prevCols').disabled=firstCol<=1;
-    byId('nextCols').disabled=firstCol+pageCols>max.col;
+    byId('prevRows').disabled=all||firstRow<=1;
+    byId('nextRows').disabled=all||firstRow+pageRows>max.row;
+    byId('prevCols').disabled=all||firstCol<=1;
+    byId('nextCols').disabled=all||firstCol+pageCols>max.col;
   }
   function pending(){
     var n=byId('pendingChanges'),save=byId('saveChanges'),discard=byId('discardChanges');
@@ -94,16 +155,21 @@
     byId('pendingList').innerHTML=html.join('');
   }
   function selectSheet(name){
-    selected=name;firstRow=1;firstCol=1;
+    if(!snapshot?.sheets?.[name])return;
+    selected=name;firstRow=1;firstCol=1;fullSheet=true;
     byId('sheetName').textContent=name;
     byId('sheetPicker').value=name;
+    refreshShortcuts();
+    inspect(null);
     table();
   }
   function openSnapshot(result){
     snapshot=result;dimensions={};drafts.clear();
     var list=Object.keys(result.sheets||{});
     if(!list.length)throw new Error('La hoja no contiene pestañas legibles.');
-    var chosen=list.includes('Input sheet')?'Input sheet':list[0];
+    var querySheet=new URLSearchParams(global.location.search).get('sheet');
+    var requested=list.find(function(n){return normalizeName(n)===normalizeName(querySheet);});
+    var chosen=requested||findMainSheet('input',list)||list[0];
     byId('sheetPicker').innerHTML=list.map(function(name){
       return '<option value="'+esc(name)+'">'+esc(name)+'</option>';
     }).join('');
@@ -185,6 +251,20 @@
   function bind(){
     byId('lookup').addEventListener('submit',function(e){e.preventDefault();load();});
     byId('sheetPicker').addEventListener('change',function(){selectSheet(this.value);});
+    byId('modelSheetTabs').addEventListener('click',function(e){
+      var btn=e.target.closest('button[data-sheet-kind]');
+      if(!btn||btn.disabled||!snapshot)return;
+      var name=findMainSheet(btn.dataset.sheetKind,Object.keys(snapshot.sheets));
+      if(name)selectSheet(name);
+    });
+    byId('toggleFullSheet').addEventListener('click',function(){
+      if(!snapshot||!selected)return;
+      fullSheet=!fullSheet;firstRow=1;firstCol=1;table();
+    });
+    byId('sheetTable').addEventListener('click',function(e){
+      var cell=e.target.closest('td[data-cell]');
+      if(cell)inspect(cell.dataset.cell);
+    });
     byId('sheetTable').addEventListener('change',change);
     byId('prevRows').addEventListener('click',function(){firstRow=Math.max(1,firstRow-pageRows);table();});
     byId('nextRows').addEventListener('click',function(){firstRow+=pageRows;table();});
@@ -194,7 +274,7 @@
       e.preventDefault();
       var row=Number(byId('startRow').value),col=colNumber(byId('startCol').value.trim().toUpperCase());
       if(!Number.isSafeInteger(row)||row<1||!Number.isSafeInteger(col)||col<1){setStatus('Rango inválido.','error');return;}
-      firstRow=row;firstCol=col;table();
+      firstRow=row;firstCol=col;fullSheet=false;table();
     });
     byId('saveChanges').addEventListener('click',save);
     byId('discardChanges').addEventListener('click',discard);
@@ -202,6 +282,6 @@
     var fromUrl=new URLSearchParams(global.location.search).get('ticker');
     if(fromUrl){byId('ticker').value=fromUrl;load();}
   }
-  global.JmrSheetEditor={isEditable,coordinates,colName,formatNumber};
+  global.JmrSheetEditor={isEditable,coordinates,colName,formatNumber,normalizeName,findMainSheet,mainKind,sectionType};
   if(typeof document!=='undefined'&&byId('lookup'))bind();
 })(typeof window!=='undefined'?window:globalThis);

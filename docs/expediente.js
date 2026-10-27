@@ -59,7 +59,7 @@ function pages(t){
     valPath:path,official:!!officialPath&&inDirectory,analysisPath,auditPath,
     valoracion:{href:v,help:officialPath&&inDirectory?'Valoración indicada en el catálogo oficial.':'La valoración disponible aún no figura en el catálogo oficial; no se presenta como validada.'},
     analisis:{href:a,help:analysisPath?'Análisis asociado en el catálogo oficial; verificar que corresponda a la misma revisión.':'Biblioteca filtrada por ticker. No se atribuye automáticamente un informe antiguo a esta revisión.'},
-    supuestos:{href:'editor-hoja.html?ticker='+encodeURIComponent(t),help:'Edición real en Google Sheets solo con autorización y permisos; guardar aquí NO republica el expediente.'},
+    supuestos:{href:'editor-hoja.html?ticker='+encodeURIComponent(t),help:'Libro original completo: Input Sheet, Valuation Output, Múltiplos y Financial Multiples. Los cambios permitidos requieren autorización y no republican el expediente.'},
     auditoria:{href:'auditorias.html?ticker='+encodeURIComponent(t),help:auditPath?'Auditoría narrativa incluida en el catálogo oficial; cotejar dictamen y revisión con la valoración. Auditoría integral disponible desde la página de auditorías.':'No hay auditoría narrativa oficial para esta empresa. La página indica el estado real, sin sustituirla por otra empresa.'},
     auditoriaIntegral:{href:'auditoria-integral.html?ticker='+encodeURIComponent(t),help:'Auditoría integral DCF, supuestos, materialidad y dictamen técnico, filtrada por empresa. No sustituye la auditoría narrativa del expediente.'},
     sensibilidades:{href:v,help:'Sensibilidades DCF: consultar las matrices de la valoración oficial y la hoja fuente. Recalcular en el Visor es una simulación, no edita el expediente.'},
