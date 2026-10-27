@@ -346,7 +346,20 @@
         if(!holder)return; // Los nuevos paneles de matrices económicas no son pestañas crudas.
         if(holder.dataset.jmrFilled)return;
         var found=get(index,holder.getAttribute('data-jmr-sheet'));
-        holder.innerHTML=found?(holder.getAttribute('data-jmr-sheet')===(/Sensibilidad (?:por múltiplo|múltiplos META)/.test(holder.getAttribute('data-jmr-sheet'))?multiplesSensitivity(record):safeTable(found.html,190))):'<p class="jmr-sheet-note">No se publicó esta tabla.</p>';
+        var sheetName=holder.getAttribute('data-jmr-sheet');
+        var isStaleQual=found && sheetName==='Cualitativo' &&
+          /Adquisición de Topaz Labs|Acuerdo Comercial con Disney/.test(found.html);
+        // La pestaña cruda tiene rótulos específicos de otra empresa presentes
+        // en la maestra antigua. No presentar como análisis de este emisor.
+        if(isStaleQual){
+          holder.innerHTML='<p class="jmr-sheet-note">La tabla Cualitativo procede de una plantilla heredada con rótulos de otra empresa. No es información verificada del emisor. Consulte el análisis fundamental de esta revisión o abra la hoja original para revisar sus celdas. No se modificaron datos financieros.</p>';
+        }else if(!found){
+          holder.innerHTML='<p class="jmr-sheet-note">No se publicó esta tabla.</p>';
+        }else if(/Sensibilidad (?:por múltiplo|múltiplos META)/.test(sheetName)){
+          holder.innerHTML=multiplesSensitivity(record);
+        }else{
+          holder.innerHTML=safeTable(found.html,190);
+        }
         holder.dataset.jmrFilled='1';
         JmrDisplayNumber.formatTable(holder);
       });
