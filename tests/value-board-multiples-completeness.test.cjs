@@ -68,9 +68,9 @@ test('ONON y otras operativas recuperadas muestran 7/7 y no solo META/NKE/NFLX',
   assert.match(board.html(d), /Múltiplos calculados: 7\/7/);
 });
 
-test('SHAK informa métodos no calculados aunque tengan fórmula y peso cero', () => {
+test('un emisor informa métodos no calculados aunque tengan fórmula y peso cero', () => {
   const r = record();
-  r.ticker = 'SHAK';
+  r.ticker = 'TEST';
   r.tipo = 'Crecimiento';
   r.metodos = names.map(nombre => ({ nombre, peso: 0 }));
   r.multiplesRelativosInformativos.methods =

@@ -12,8 +12,7 @@
     NU:['EV/EBITDA','EV/FCFF','P/FCFE','P/OCF'],
     PAGS:['EV/EBITDA','EV/FCFF'],
     PFDAVVNDA:['EV/EBITDA','EV/FCFF','P/FCFE','P/OCF'],
-    PFGRUPOARG:['EV/FCFF','P/FCFE','P/OCF'],
-    SHAK:['EV/FCFF','P/FCFE']
+    PFGRUPOARG:['EV/FCFF','P/FCFE','P/OCF']
   };
   function finite(x){ return typeof x === 'number' && isFinite(x); }
   function byName(rows, name){ return (rows || []).find(function(x){ return x.nombre === name; }); }

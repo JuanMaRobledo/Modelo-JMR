@@ -7,7 +7,7 @@
     "commit": "44d546d6b88a7d84d8c24e029b3f03d501a50a55"
   },
   "disclaimer": "Versiones históricas y copias de trabajo; los controles automáticos NO son auditoría económica certificada.",
-  "count": 39,
+  "count": 38,
   "records": [
     {
       "ticker": "AAPL",
@@ -404,17 +404,6 @@
         "mosAfter": 63.21436132749782,
         "notes": "Se corrigió la masa de probabilidad ordinaria a 85%; DCF intacto."
       },
-      "hasDrivePair": true,
-      "linkedToCurrent": false
-    },
-    {
-      "ticker": "SHAK",
-      "region": "Internacionales",
-      "valuationPath": "valoraciones/SHAK-1790595627129.json",
-      "analysisPath": "analisis/SHAK-research-1790597619437-xvczr.json",
-      "archivedSheetUrl": "https://docs.google.com/spreadsheets/d/10N3mUa5f-IMoTiNj3MiXi4TdsY3aKJc5Z0ssWRd_dig/edit?usp=drivesdk",
-      "archivedAnalysisUrl": "https://docs.google.com/document/d/1I4pEXu6HHUhkcddeC6KnZxNSwlBFlbe81_NefQLMR9Q/edit?usp=drivesdk",
-      "workingSheet": null,
       "hasDrivePair": true,
       "linkedToCurrent": false
     },
