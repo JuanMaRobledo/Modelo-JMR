@@ -1,4 +1,4 @@
-const CACHE = "modelo-jmr-v183-analisis-logos-20261027";
+const CACHE = "modelo-jmr-v184-adbe-lectura-dcf-20261027";
 const APP_SHELL = [
   "catalog-reset.js",
   "index.html",
