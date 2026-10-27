@@ -27,6 +27,8 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #ad8c
 #revisionNotice{font-size:12px;max-width:780px;color:var(--ink-soft,#59645b);margin:5px 0}
 .tabs{display:flex;gap:7px;overflow:auto;padding:12px;background:var(--surface,#fff);border-top:1px solid var(--border,#ddd);border-bottom:1px solid var(--border,#ddd)}
 .tabs button{white-space:nowrap;flex:none;font-weight:600;padding:10px 14px}
+.sensitivity-modes{display:flex;flex-wrap:wrap;gap:8px;padding:12px 17px;border-bottom:1px solid var(--border,#ddd)}
+.sensitivity-modes button{font-weight:600;font-size:12px;padding:8px 12px}
 .panelbar{padding:10px 17px;display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
 .panelbar p{margin:0;color:var(--ink-soft,#59645b);font-size:12px}
 .panelbar a{color:var(--accent,#856327);font-weight:700}
@@ -53,9 +55,10 @@ footer a{color:inherit}
 <button type="button" data-view="auditoria" role="tab" aria-selected="false">Auditoría</button>
 <button type="button" data-view="sensibilidades" role="tab" aria-selected="false">Sensibilidades</button>
 </div>
+<div id="sensitivityModes" class="sensitivity-modes" role="group" aria-label="Tipo de sensibilidad" hidden><button type="button" class="active" data-sensitivity="sensibilidades" aria-pressed="true">DCF · Prioritaria</button><button type="button" data-sensitivity="sensibilidadMultiples" aria-pressed="false">Múltiplos · Base</button></div>
 <div class="panelbar"><p id="viewHelp"></p><a id="openOriginal" target="_self" href="visor.html">Abrir vista completa ↗</a></div>
 <iframe id="viewFrame" title="Contenido del expediente seleccionado" loading="eager"></iframe></section>
 <div id="empty">Elige una empresa para consultar sus secciones sin cambiar de expediente.</div>
 <footer>Fuentes: <code>Modelo-JMR-datos</code> y Google Sheets. Un archivo en el repositorio no implica auditoría aprobada ni publicación oficial.
 <a href="https://github.com/JuanMaRobledo/Modelo-JMR/blob/main/docs/PROCESO_UNICO_JMR.md" target="_blank" rel="noopener noreferrer">Procedimiento único para ChatGPT, Claude y Gemini ↗</a></footer>
-</main><script src="expediente.js?v=20261026"></script></body></html>
+</main><script src="expediente.js?v=20261026b"></script></body></html>
