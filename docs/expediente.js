@@ -27,16 +27,14 @@ async function fetchJSON(url){
 async function loadInventory(){
   status('Consultando catálogo e inventario vigente…');
   try{
-    const [catalog,files]=await Promise.all([
-      fetchJSON(RAW+'catalogo.json'),
-      fetchJSON(CONTENTS+'valoraciones?ref=main')
-    ]);
-    if(!Array.isArray(files))throw new Error('El inventario de valoraciones no es una lista.');
-    state.catalog=catalog||{};
-    state.files=files.filter(f=>f.type==='file'&&/\.json$/i.test(f.name));
+    const catalog=await fetchJSON(RAW+'catalogo.json');
+    if(!catalog||!Array.isArray(catalog.valoraciones))throw new Error('Catálogo oficial inválido.');
+    state.catalog=catalog;
+    state.files=[]; // Nunca depender del inventario histórico ni de una segunda API para construir las fichas.
     state.ready=true;
     const tickers=[...new Set((state.catalog.valoraciones||[]).map(path=>tickerFromName(String(path).split('/').pop())).filter(Boolean))].sort();
     el('tickers').replaceChildren(...tickers.map(t=>{const opt=document.createElement('option');opt.value=t;return opt;}));
+    renderCatalogCards();
     status(tickers.length+' empresas activas en el catálogo oficial. Los archivos históricos no aparecen como fichas vigentes.');
     const requested=valid(new URLSearchParams(location.search).get('ticker'));
     if(requested)openCompany(requested);else if(state.ticker)openCompany(state.ticker);
@@ -46,12 +44,50 @@ async function loadInventory(){
     if(requested)openCompany(requested);
   }
 }
+
+function catalogMarket(t){
+  const p=new URLSearchParams(location.search);
+  const market=p.get('mercado');
+  if(market!=='colombia'&&market!=='internacional')return true;
+  const isColombia=typeof window.jmrEsCOP==='function'?window.jmrEsCOP({ticker:t}):false;
+  return market==='colombia'?isColombia:!isColombia;
+}
+function renderCatalogCards(){
+  const q=String(el('catalogSearch').value||'').trim().toUpperCase();
+  const paths=Array.isArray(state.catalog.valoraciones)?state.catalog.valoraciones:[];
+  const tickers=[...new Set(paths.map(p=>tickerFromName(String(p).split('/').pop())).filter(valid))].sort();
+  const matching=tickers.filter(t=>catalogMarket(t)&&(!q||t.includes(q)));
+  const grid=el('catalogCards');
+  grid.replaceChildren();
+  const fragment=document.createDocumentFragment();
+  matching.forEach(t=>{
+    const p=pages(t);
+    const card=document.createElement('button');
+    card.type='button';card.className='catalog-card'+(state.ticker===t?' active':'');
+    card.setAttribute('role','listitem');
+    card.setAttribute('aria-label','Abrir expediente de '+t);
+    const h=document.createElement('strong');h.textContent=t;card.appendChild(h);
+    const info=document.createElement('small');
+    info.textContent='Valoración vigente en catálogo';
+    card.appendChild(info);
+    const supports=document.createElement('span');supports.className='card-caption';
+    supports.textContent=(p.analysisPath?'Análisis disponible':'Análisis pendiente')+' · '+(p.auditPath?'Auditoría disponible':'Auditoría pendiente');
+    card.appendChild(supports);
+    const action=document.createElement('span');action.className='card-action';action.textContent='Abrir ficha completa';card.appendChild(action);
+    card.addEventListener('click',()=>{openCompany(t);el('dossier').scrollIntoView({behavior:'smooth',block:'start'});});
+    fragment.appendChild(card);
+  });
+  grid.appendChild(fragment);
+  el('catalogEmpty').hidden=matching.length>0;
+  el('catalogSection').hidden=false;
+}
+
 function pages(t){
   const officialPath=fromCatalog(state.catalog.valoraciones,t);
-  const candidates=state.files.filter(f=>tickerFromName(f.name)===t);
-  const inDirectory=candidates.some(f=>f.path===officialPath);
-  // Nunca elegir automáticamente el último nombre del directorio: puede ser un expediente archivado.
-  const path=(officialPath&&inDirectory)?officialPath:'';
+  // La ruta del catálogo es canónica; si falta el JSON real se mostrará un error al abrirlo,
+  // pero un fallo de la API de inventario no puede vaciar el catálogo en el móvil.
+  const inDirectory=!!officialPath&&/^valoraciones\/[A-Za-z0-9._-]+\.json$/.test(officialPath);
+  const path=inDirectory?officialPath:'';
   const analysisPath=fromCatalog(state.catalog.analisis,t);
   const auditPath=fromCatalog(state.catalog.auditorias,t);
   const v=path?'visor.html?path='+encodeURIComponent(path):'visor.html?ticker='+encodeURIComponent(t);
@@ -68,89 +104,11 @@ function pages(t){
   };
 }
 
-const DRAFT_PREFIX='jmr-audit-draft-v1:';
-let noteRequestVersion=0;
-function auditNoteLocation(t){
-  const p=pages(t);
-  if(!p.official||!/^valoraciones\/[A-Za-z0-9._-]+\.json$/.test(p.valPath))return null;
-  const filename=p.valPath.split('/').pop();
-  return {revision:p.valPath,path:'auditorias/solicitudes/'+filename,draftKey:DRAFT_PREFIX+filename};
-}
-function auditNoteStatus(message){el('auditReviewStatus').textContent=message;}
-function auditNoteLink(path){
-  const a=el('auditReviewLink');a.hidden=!path;
-  if(path)a.href='https://github.com/'+ROOT+'/blob/main/'+path;
-}
-function getAuditDraft(key){try{return localStorage.getItem(key)||'';}catch(e){return '';}}
-function storeAuditDraft(key,value){try{localStorage.setItem(key,value);}catch(e){auditNoteStatus('No se pudo guardar localmente; conserva una copia del texto.');}}
-async function readAuditNotes(t){
-  const request=++noteRequestVersion;
-  const loc=auditNoteLocation(t),area=el('auditReviewNotes');
-  area.value='';el('saveAuditRequest').disabled=!loc;
-  el('connectAuditGithub').hidden=!!GhOAuth.getGhToken();
-  auditNoteLink('');
-  if(!loc){auditNoteStatus('La valoración todavía no está conciliada en catálogo; no se puede adjuntar una nota oficial.');return;}
-  const draft=getAuditDraft(loc.draftKey);
-  area.value=draft;
-  auditNoteStatus(draft?'Borrador local recuperado; no se ha publicado.':'Consultando observaciones guardadas…');
-  try{
-    const res=await fetch(CONTENTS+loc.path+'?ref=main',{cache:'no-store'});
-    if(request!==noteRequestVersion||state.ticker!==t)return;
-    if(res.status===404){auditNoteStatus(draft?'Borrador local pendiente de sincronizar.':'No hay observaciones guardadas para esta revisión.');return;}
-    if(!res.ok)throw Error('HTTP '+res.status);
-    const file=await res.json();
-    const record=JSON.parse(GhOAuth.b64DecodeUnicode(String(file.content||'').replace(/\s+/g,'')));
-    if(request!==noteRequestVersion||state.ticker!==t)return;
-    if(record.schema!=='jmr-audit-request-v1'||record.ticker!==t||record.valuationPath!==loc.revision)throw Error('La solicitud guardada pertenece a otra revisión.');
-    if(!draft)area.value=String(record.observaciones||'');
-    auditNoteLink(loc.path);
-    auditNoteStatus(draft?'Borrador local pendiente. También existe una versión publicada.':'Observaciones sincronizadas con GitHub para esta revisión.');
-  }catch(e){if(request===noteRequestVersion&&state.ticker===t)auditNoteStatus('No se pudo consultar GitHub: '+e.message+'. Se conserva el borrador local.');}
-}
-async function saveAuditNotes(){
-  const t=state.ticker,loc=auditNoteLocation(t),notes=el('auditReviewNotes').value.trim();
-  if(!loc){auditNoteStatus('Primero se requiere una valoración en el catálogo oficial.');return;}
-  if(!notes){auditNoteStatus('Escribe al menos una observación antes de guardar.');return;}
-  storeAuditDraft(loc.draftKey,notes);
-  if(!GhOAuth.getGhToken()){
-    el('connectAuditGithub').hidden=false;
-    auditNoteStatus('Borrador local conservado. Conecta GitHub para que la auditoría lo pueda leer desde cualquier sesión.');
-    return;
-  }
-  const button=el('saveAuditRequest');button.disabled=true;
-  auditNoteStatus('Guardando observaciones…');
-  try{
-    const url=CONTENTS+loc.path;
-    const headers=Object.assign({'Content-Type':'application/json'},GhOAuth.ghHeaders());
-    const r=await fetch(url+'?ref=main',{headers,cache:'no-store'});
-    if(!r.ok&&r.status!==404)throw Error('Error consultando versión anterior: HTTP '+r.status);
-    const previous=r.ok?await r.json():null;
-    if(state.ticker!==t||auditNoteLocation(t)?.path!==loc.path)throw Error('Cambió el expediente durante el guardado.');
-    let createdAt=new Date().toISOString();
-    if(previous){
-      const old=JSON.parse(GhOAuth.b64DecodeUnicode(String(previous.content||'').replace(/\s+/g,'')));
-      if(old.valuationPath!==loc.revision||old.ticker!==t)throw Error('Conflicto de versión: no se sobrescribirá otro expediente.');
-      createdAt=old.createdAt||createdAt;
-    }
-    const doc={schema:'jmr-audit-request-v1',ticker:t,valuationPath:loc.revision,
-      analysisPath:pages(t).analysisPath||null,estado:'PENDIENTE_AUDITORIA',
-      observaciones:notes,createdAt,updatedAt:new Date().toISOString()};
-    const payload={message:'Registrar observaciones de auditoría '+t,content:GhOAuth.b64EncodeUnicode(JSON.stringify(doc,null,2)),branch:'main'};
-    if(previous)payload.sha=previous.sha;
-    const saved=await fetch(url,{method:'PUT',headers,body:JSON.stringify(payload)});
-    if(!saved.ok){const response=await saved.json().catch(()=>({}));throw Error(response.message||'HTTP '+saved.status);}
-    if(state.ticker!==t)throw Error('Guardado en GitHub; cambió la empresa. Comprueba su expediente.');
-    try{localStorage.removeItem(loc.draftKey);}catch(e){}
-    auditNoteLink(loc.path);
-    auditNoteStatus('Observaciones guardadas para '+t+'. Al pedir su auditoría se consultará este archivo.');
-  }catch(e){auditNoteStatus('No se pudo guardar en GitHub: '+e.message+'. Borrador local conservado.');}
-  finally{if(state.ticker===t)button.disabled=false;}
-}
-
 function openCompany(input){
   const t=valid(input);
   if(!t){status('Ticker inválido. Usa letras, números, punto, guion o subrayado.','error');return;}
   state.ticker=t;state.loc=null;state.reviewSha=null;el('ticker').value=t;
+  renderCatalogCards();
   el('reviewPanel').hidden=true;
   el('reviewSaveStatus').textContent='';
   const u=new URL(location.href);u.searchParams.set('ticker',t);history.replaceState({},'',u.pathname+u.search+u.hash);
@@ -201,13 +159,6 @@ function showDetail(kind){
   const frame=el('viewFrame');
   if(frame.getAttribute('src')!==d.href)frame.setAttribute('src',d.href);
 }
-el('auditReviewNotes').addEventListener('input',function(){
-  const loc=auditNoteLocation(state.ticker);
-  if(loc){storeAuditDraft(loc.draftKey,this.value);auditNoteStatus('Borrador guardado localmente; pulsa «Guardar para auditoría en GitHub» para sincronizar.');}
-});
-el('saveAuditRequest').addEventListener('click',saveAuditNotes);
-el('connectAuditGithub').addEventListener('click',()=>GhOAuth.startLogin());
-
 function noteMessage(message,bad){
   const target=el('reviewSaveStatus');
   target.textContent=message;
@@ -234,6 +185,8 @@ function getLocalDraft(loc){
     const s=localStorage.getItem(reviewDraftKey(loc));
     const parsed=s?JSON.parse(s):null;
     if(parsed&&parsed.revisionId===loc.revision)return parsed;
+    const legacy=localStorage.getItem('jmr-audit-draft-v1:'+loc.valoracionPath.split('/').pop());
+    if(legacy)return {estadoRevision:'EN_REVISION',puntos:legacy,actualizadoEn:new Date().toISOString(),revisionId:loc.revision};
   }catch(_){}
   return null;
 }
@@ -244,7 +197,19 @@ function reviewFields(request){
 }
 async function fetchAuditStored(loc){
   const r=await fetch(CONTENTS+reviewPath(loc)+'?ref=main',{cache:'no-store'});
-  if(r.status===404)return {body:null,sha:null};
+  if(r.status===404){
+    // Compatibilidad con las solicitudes previas escritas por nombre de archivo.
+    const legacyPath='auditorias/solicitudes/'+loc.valoracionPath.split('/').pop();
+    const old=await fetch(CONTENTS+legacyPath+'?ref=main',{cache:'no-store'});
+    if(old.status===404)return {body:null,sha:null};
+    if(!old.ok)throw new Error('No se pudo comprobar la solicitud histórica: HTTP '+old.status);
+    const file=await old.json();
+    const past=JSON.parse(GhOAuth.b64DecodeUnicode(String(file.content||'').replace(/\s/g,'')));
+    if(past.schema==='jmr-audit-request-v1'&&past.ticker===loc.ticker&&past.valuationPath===loc.valoracionPath){
+      return {body:{estadoRevision:'EN_REVISION',puntos:String(past.observaciones||''),actualizadoEn:past.updatedAt||past.createdAt||'',revisionId:loc.revision},sha:null};
+    }
+    throw new Error('La nota histórica no corresponde a esta revisión.');
+  }
   if(!r.ok)throw new Error('No se pudo consultar la revisión guardada (HTTP '+r.status+').');
   const x=await r.json();
   if(!x.sha||!x.content)throw new Error('Revisión incompleta en GitHub.');
@@ -328,6 +293,7 @@ el('reloadAuditRequest').addEventListener('click',()=>{
  if(state.loc)loadAuditRequest(state.loc.ticker,pages(state.loc.ticker));
 });
 
+el('catalogSearch').addEventListener('input',renderCatalogCards);
 el('lookup').addEventListener('submit',e=>{e.preventDefault();openCompany(el('ticker').value);});
 el('reload').addEventListener('click',loadInventory);
 document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>showView(b.dataset.view)));
