@@ -25,6 +25,21 @@ test('expediente muestra cinco secciones y protege estados', () => {
   }
   assert.match(js,/cat[aá]logo oficial|catálogo oficial/);
   assert.match(js,/NO republica|no se presenta como validada/i);
+  assert.match(js,/auditorias\.html\?ticker=/);
+  assert.match(js,/auditoria-multiplos\.html\?ticker=/);
+  assert.match(html,/data-sensitivity="sensibilidades"/);
+  assert.match(html,/data-sensitivity="sensibilidadMultiples"/);
+});
+
+test('resuelve auditoría narrativa .md exacta, no la confunde con JSON',()=>{
+  const js=get('docs/expediente.js');
+  const source=js.match(/function fromCatalog\([\s\S]*?\n(?=function status)/)?.[0];
+  assert.ok(source,'extractor fromCatalog ausente');
+  const fn=new Function(source+'; return fromCatalog;')();
+  assert.equal(fn(['auditorias/narrativas/NFLX.md'],'NFLX'),'auditorias/narrativas/NFLX.md');
+  assert.equal(fn(['valoraciones/NFLX-1792548021734.json'],'NFLX'),'valoraciones/NFLX-1792548021734.json');
+  assert.equal(fn(['auditorias/narrativas/NNFLX.md'],'NFLX'),'');
+  assert.equal(fn([], 'NFLX'),'');
 });
 
 test('navegación general y biblioteca permiten abrir el expediente', () => {
