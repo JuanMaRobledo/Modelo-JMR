@@ -1,0 +1,40 @@
+name: Smoke temporal fichas JMR Pages
+on:
+  push:
+    branches: ["verify/catalogo-pages-20261027"]
+    paths:
+      - ".github/workflows/smoke-catalogo-pages-20261027.yml"
+permissions:
+  contents: read
+jobs:
+  comprobar:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validar catálogo y render público por HTTP
+        run: |
+          python - <<'PY'
+          import urllib.request, time, sys
+          base='https://juanmarobledo.github.io/Modelo-JMR/'
+          targets={
+            'expediente.html':['id="catalogCards"','id="catalogSearch"','id="auditReviewNotes"','v=20261027-catalogo-fichas-v2'],
+            'expediente.js':['function renderCatalogCards()','catalog.valoraciones','function reviewPath(loc)','function catalogMarket(t)'],
+            'mercado.js':['expediente.html?seccion=valoracion&mercado=internacional','expediente.html?seccion=valoracion&mercado=colombia']
+          }
+          for attempt in range(10):
+            try:
+              for path,expected in targets.items():
+                req=urllib.request.Request(base+path+'?v=20261027-smoke'+str(attempt),headers={'Cache-Control':'no-cache','User-Agent':'JMR-smoke/1.0'})
+                with urllib.request.urlopen(req,timeout=20) as r:
+                  content=r.read().decode('utf-8')
+                  print('HTTP',r.status,path,'bytes',len(content))
+                for fragment in expected:
+                  assert fragment in content, path+' no contiene '+fragment
+              print('PAGES_OK catalogo 13 fichas oficiales, selector y entrada unificada')
+              break
+            except Exception as e:
+              print('INTENTO',attempt+1,'sin desplegar o error:',e)
+              if attempt==9: raise
+              time.sleep(12)
+          PY
