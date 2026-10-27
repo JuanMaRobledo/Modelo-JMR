@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import { generateKeyPairSync } from 'node:crypto';
-import { unpackSheets, revision, validateChanges, tickerKey } from '../lib/model-sheet.js';
+import { unpackSheets, revision, validateChanges, tickerKey, selectValuationPath } from '../lib/model-sheet.js';
 import handler from '../api/model.js';
 import { createSession } from '../sso-session.js';
 
@@ -83,4 +83,16 @@ test('signed app reads public XLSX without Google credentials; writes stay disab
     let res=response();await handler({method:'GET',query:{ticker:'AAPL'},headers},res);assert.equal(res.statusCode,200);assert.equal(res.body.writable,false);assert.ok(res.body.publicWorkbook.startsWith('UEs'));assert.equal(res.body.record.hojas,undefined);
     res=response();await handler({method:'PATCH',query:{ticker:'AAPL'},headers,body:{}},res);assert.equal(res.statusCode,503);
   }finally{global.fetch=oldFetch;delete process.env.APP_PASSWORD;}
+});
+
+test('el catálogo manda sobre el orden de nombres R6 y nunca confunde NKE con NKE2',()=>{
+  const files=[
+    {type:'file',name:'NKE-1799999999999.json',path:'valoraciones/NKE-1799999999999.json'},
+    {type:'file',name:'NKE-20261025-R6.json',path:'valoraciones/NKE-20261025-R6.json'},
+    {type:'file',name:'NKE2-20261025-R6.json',path:'valoraciones/NKE2-20261025-R6.json'}
+  ];
+  let selected=selectValuationPath(files,{valoraciones:['valoraciones/NKE-20261025-R6.json']},'NKE');
+  assert.equal(selected.path,'valoraciones/NKE-20261025-R6.json');assert.equal(selected.official,true);
+  selected=selectValuationPath(files,{valoraciones:[]},'NKE');
+  assert.equal(selected.official,false);assert.notEqual(selected.path,files[2].path);
 });
