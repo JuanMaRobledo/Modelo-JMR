@@ -1,0 +1,33 @@
+name: Vista íntegra de hojas JMR
+on:
+  pull_request:
+    paths:
+      - 'docs/editor-hoja.html'
+      - 'docs/editor-hoja.js'
+      - 'docs/editor-hoja.css'
+      - 'docs/expediente.html'
+      - 'docs/expediente.js'
+      - 'docs/sw.js'
+      - 'tests/editor-hoja.test.mjs'
+      - '.github/workflows/vista-hojas.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'docs/editor-hoja.html'
+      - 'docs/editor-hoja.js'
+      - 'docs/editor-hoja.css'
+      - 'docs/expediente.html'
+      - 'docs/expediente.js'
+      - 'docs/sw.js'
+      - 'tests/editor-hoja.test.mjs'
+      - '.github/workflows/vista-hojas.yml'
+jobs:
+  sheets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check docs/editor-hoja.js
+      - run: node --test tests/editor-hoja.test.mjs tests/expediente.test.mjs
