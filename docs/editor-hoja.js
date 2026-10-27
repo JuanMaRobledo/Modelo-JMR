@@ -212,7 +212,8 @@
     byId('researchLink').href='research.html?ticker='+encodeURIComponent(ticker);
     byId('calcLink').href='calculadora.html?ticker='+encodeURIComponent(ticker);
     setMode();selectSheet(chosen);pending();updateMultiplesStatus();
-    if(result.writable)setStatus('Libro importado. Edita las celdas permitidas y confirma “Guardar cambios en Google Sheets”.','ok');
+    if(result.catalogAvailable && !result.official)setStatus('Hoja recuperada fuera del catálogo oficial: solo lectura hasta conciliar esta versión. No se modificarán fórmulas ni resultados.','warn');
+    else if(result.writable)setStatus('Libro oficial importado. Edita solo celdas permitidas y confirma “Guardar cambios en Google Sheets”.','ok');
     else setStatus('Libro importado en solo lectura. Para editar en esta pestaña se necesita la conexión de escritura del servidor. Puedes abrir la hoja original.','warn');
   }
   async function load(){
