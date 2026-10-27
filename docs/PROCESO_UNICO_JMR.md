@@ -4,7 +4,7 @@
 
 ## Una instrucción para cualquier herramienta
 
-> Valora, analiza y audita **<TICKER>** siguiendo el proceso oficial JMR. Lee `Modelo-JMR/modelo/REGLAS_VIGENTES.md` y los tres prompts vigentes; trabaja sobre la **hoja oficial de esa empresa** o crea una copia nueva de la maestra cuando se trate de una valoración nueva. Conserva fórmulas y selectores, justifica todas las entradas, realiza los controles y entrega valoración, análisis fundamental completo y auditoría **de la misma revisión**. **No publiques** antes de disponer de autorización y de comprobar los controles.
+> Valora y analiza **<TICKER>** siguiendo el proceso oficial JMR. Lee `modelo/REGLAS_VIGENTES.md` y los prompts vigentes. Utiliza la hoja oficial de la empresa o una copia nueva limpia de la plantilla. Conserva fórmulas, justifica entradas y completa los controles técnicos. Tras autorización, entrega valoración y análisis en un expediente preliminar **EN_REVISIÓN**. Cuando solicite auditoría, lee primero mis observaciones de esa revisión y realiza la auditoría económica independiente.
 
 Esa instrucción funciona **solo si el entorno tiene acceso a los repositorios, datos, hojas y herramientas necesarias**. El nombre «JMR» por sí solo no permite a una IA externa conocer el proceso. Si falta conexión, autorización o capacidad de ejecutar un control, se reporta como tal; nunca se afirma que se ejecutó.
 
@@ -21,20 +21,22 @@ Esa instrucción funciona **solo si el entorno tiene acceso a los repositorios, 
 2. **Elegir operación:** **recuperar** (reunir última hoja/revisión, sin recalcular por defecto); **actualizar** (solo nueva evidencia/entradas y sus impactos); o **valorar desde cero** (copia nueva de plantilla, nunca reutilización silenciosa). No mezclar las tres sin documentar la razón.
 3. **Valoración:** evidencia primaria, hasta 10 años + LTM donde esté disponible, supuestos con fuentes, cuatro historias, DCF/FCFE/SOTP según negocio, siete múltiplos calculados, sensibilidades e inverso exigibles. La IA obtiene datos crudos y estima supuestos; **la hoja realiza los cálculos**. No alterar fórmulas, pestañas, selectores ni escribir precios objetivos sobre resultados calculados.
 4. **Análisis fundamental:** desarrollar las 18 secciones y los dos niveles definidos en las reglas, usando cifras de **esa valoración**, sin recalcularlas ni sustituir el artículo completo por una nota breve.
-5. **Auditoría:** revisar evidencia, entradas, supuestos, razonabilidad económica, fórmulas, materialidad y coherencia entre hoja, valor y artículo. Distinguir VERIFICADO, VERIFICADO CON RESERVA MATERIAL y PENDIENTE; reportar pruebas ejecutadas y no ejecutadas.
-6. **Puerta técnica:** para una valoración nueva usar, desde `JMR-valuation`, `bash scripts/valorar.sh <TICKER> <ID_COPIA_NUEVA> "<PARES>" "<INDUSTRIA>"`. Sin el quinto argumento el script prepara y controla, **no publica**. Cuando corresponda, comprobar `bash scripts/controles_todas.sh <TICKER>` y la integridad/unificación de hoja según las reglas. Los controles que requieran credenciales o ejecución externa no pueden sustituirse por apreciaciones de la IA.
-7. **Publicación:** tras autorización, usar los mecanismos oficiales, confirmar la escritura en la hoja y la actualización de las **tres piezas alineadas con la misma revisión** en el catálogo de datos y en la app. Verificar que la aplicación realmente lee la revisión prevista. Archivar las sustituidas sin borrar el historial.
+5. **Revisión del usuario:** tras controles técnicos aprobados y autorización, publicar valoración + análisis como EN_REVISIÓN. Guardar opcionalmente las observaciones de la ficha en GitHub por ticker y revisión, sin modificarlas mientras el usuario escribe.
+6. **Auditoría posterior:** cuando el usuario diga «Audita <TICKER>», resolver primero el archivo activo desde `catalogo.json`, leer `auditorias/solicitudes/<archivo-de-la-valoración>.json` si existe, y comprobar esos puntos más los mínimos independientes de crecimiento, márgenes, ROIC, reinversión, WACC/Ke, valor terminal, DCF, múltiplos y materialidad. Dictaminar VERIFICADO, VERIFICADO CON RESERVA MATERIAL o PENDIENTE.
+7. **Puerta técnica:** para una valoración nueva usar, desde `JMR-valuation`, `bash scripts/valorar.sh <TICKER> <ID_COPIA_NUEVA> "<PARES>" "<INDUSTRIA>"`. Sin el quinto argumento el script prepara y controla, **no publica**. Cuando corresponda, comprobar `bash scripts/controles_todas.sh <TICKER>` y la integridad/unificación de hoja según las reglas. Los controles que requieran credenciales o ejecución externa no pueden sustituirse por apreciaciones de la IA.
+8. **Publicación:** tras autorización y controles, confirmar la escritura en la hoja y el par valoración + análisis alineados como EN_REVISIÓN en el catálogo y la app; una vez solicitada y efectuada la auditoría, adjuntar la tercera pieza de esa misma revisión. Archivar versiones anteriores sin borrar su historial.
 
 ## Tres estados distintos, nunca confundidos
 
 - **Cambios preparados:** propuestas de entradas, todavía no guardadas en Google Sheets.
 - **Cambios en hoja confirmados:** `PATCH /api/model` autorizado, cotejo de valores de retorno, recálculo propio de Google Sheets. **No equivale a estudio publicado**.
-- **Estudio publicado:** valoración, análisis y auditoría vinculados a la revisión y disponibles en el catálogo/app después de controles. **No equivale a dictamen VERIFICADO** si la auditoría contiene reservas materiales o está pendiente.
+- **Expediente preliminar EN_REVISIÓN:** valoración y análisis de la misma revisión, visibles tras controles y autorización, sin dictamen económico independiente.
+- **Expediente auditado:** las tres piezas pertenecen a la misma revisión; el dictamen es VERIFICADO, VERIFICADO CON RESERVA MATERIAL o PENDIENTE.
 
 En la aplicación, `editor-hoja.html?ticker=<T>` modifica celdas permitidas si hay sesión y permisos; `visor.html` / «Recalcular» realiza hipótesis locales, sin editar la hoja. `expediente.html?ticker=<T>` reúne Valoración, Análisis fundamental, Supuestos, Auditoría y Sensibilidades usando las páginas oficiales existentes.
 
 ## Salida y entrega entre agentes
 
-Cada IA debe dejar el mismo resumen estructurado: **ticker, operación, corte, revisión, `sheet_id`, enlaces de las tres piezas, estado de los controles, faltantes materiales, qué se modificó y estado de publicación (NO PUBLICADO/PUBLICADO)**. No reiniciar un trabajo ya completado; retomar desde el primer paso realmente pendiente y distinguir hecho verificado de intención.
+Cada IA debe dejar el mismo resumen estructurado: **ticker, operación, corte, revisión, `sheet_id`, enlaces de las tres piezas, estado de los controles, faltantes materiales, qué se modificó y estado de publicación (NO PUBLICADO/EN_REVISIÓN/AUDITADO)**. No reiniciar un trabajo ya completado; retomar desde el primer paso realmente pendiente y distinguir hecho verificado de intención.
 
 **Esta guía no cambia el método, las ponderaciones, los resultados ni las fórmulas.** Cualquier cambio metodológico se hace únicamente en `REGLAS_VIGENTES.md`, con revisión y pruebas.
