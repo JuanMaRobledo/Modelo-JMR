@@ -295,7 +295,7 @@
     var zones = zoneKv(zoneBasis, z.value) + zoneKv('Zona Deep Value', z.deepValue) + zoneKv('Zona histórica', z.historica);
     return '<section class="valuation-block linked-valuation"><span class="linked-tag">✓ Vinculado con el Visor · ' + escapeHtml(lv.sourcePath || '') + '</span>' + visorLink + '<h2>Valoración cuantitativa (Visor)</h2>' +
       boardHtml + '<div class="linked-grid">' + kv('Fecha de valoración', escapeHtml(lv.fechaValoracion || lv.fecha || '—')) +
-      kv('Precio al día del análisis', money(lv.precioAnalisis)) +
+      kv('Precio del corte de valoración', money(typeof lv.precio === 'number' ? lv.precio : lv.precioAnalisis)) +
       kv('Fecha de consulta del precio guardado', escapeHtml(lv.precioReferenciaConsultadoAt || 'No registrada; no equivale a la fecha de valoración')) +
       zones + '</div></section>';
   }
