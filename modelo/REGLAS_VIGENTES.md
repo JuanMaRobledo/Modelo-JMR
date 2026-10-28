@@ -1,6 +1,6 @@
 # Reglas vigentes del Modelo JMR
 
-**Versión 12 · 27-oct-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
+**Versión 13 · 28-oct-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
 (`docs/prompts/*.md`), `METODOLOGIA.md`, una habilidad o un comentario de código dice otra cosa, prevalece este
 documento. Una regla nueva no se agrega como «regla del día X» en un prompt: se cambia aquí, se sube la versión y se
 anota en el registro de cambios del final.
@@ -98,6 +98,14 @@ anota en el registro de cambios del final.
 - Antes de entregar, comprobar integridad de fórmulas contra la versión de plantilla, las siete salidas o sus excepciones justificadas, puentes EV/equity, unidades y acciones, dividendos sin duplicar y descuento por fecha. Hoja, valoración y análisis deben usar la misma revisión. La auditoría registra estos controles también para métodos con peso cero.
 
 **Anexos de apoyo (no son prompts; las reglas siguen aquí):** [`docs/prompts/precision-financiera-2026-10-09.md`](../docs/prompts/precision-financiera-2026-10-09.md) (evidencia, corte, tasas, UDM y publicación) y [`docs/prompts/contrato-historias-multiplos-20261017.md`](../docs/prompts/contrato-historias-multiplos-20261017.md) (fórmulas y ejes de las matrices de múltiplos de la Base).
+
+### 5B. Derechos de preferentes y utilidad común (PREF-01, 28-oct-2026)
+
+P/E y EPS deben usar utilidad atribuible al accionista común. Financials Multiples conserva la utilidad consolidada y añade un puente separado: utilidad común = utilidad consolidada − dividendos preferentes devengados − asignación participante no monetaria. P/FCFE usa el flujo antes de derechos preferentes menos los pagos efectivos a preferentes. P/BV conserva el puente patrimonial: restar las distribuciones de caja pertinentes y registrar otros movimientos de equity; no restar otra vez una asignación de beneficios sin salida de caja. Conciliar devengo, pago y pasivos de dividendos en la documentación del caso.
+
+En ausencia demostrada de preferentes, los tres puentes conservan los valores previos. Si existen preferentes y faltan entradas o evidencia, bloquear el resultado afectado; no sustituir datos ausentes por cero. El mantenimiento de fórmulas se registra en la plantilla oficial con respaldo y regresión antes de incorporarlo a copias nuevas; no habilita cambios libres de fórmulas durante una valoración. FCFF y OCF conservan sus definiciones operativas.
+
+El valor contable, el nominal/redención, el valor de mercado y las acciones de conversión son conceptos distintos. Las preferentes convertibles exigen conciliación de reclamación y dilución sin doble conteo; su coste esperado no se presume igual al cupón dividido por su precio. PREF-01 no certifica automáticamente esa valoración ni el WACC de un caso concreto.
 
 ## 6. Controles de publicación
 
@@ -215,6 +223,7 @@ Hojas de trabajo conservadas tras el archivo del 24-oct-2026 (identidad document
 
 | Versión | Fecha | Cambio |
 |---|---|---|
+| 13 | 28-oct-2026 | §5B: puentes separados de utilidad común, FCFE y patrimonio para preferentes; mantenimiento autorizado, respaldos y regresión. Sin recalcular otras empresas ni certificar WACC de híbridos. |
 | 12 | 27-oct-2026 | §8A: proceso híbrido, controles técnicos antes de la publicación preliminar, observaciones por revisión y auditoría posterior. Sin cambios financieros. |
 | 11 | 26-oct-2026 | §11 nuevo: hojas unificadas (formato de la maestra, fórmulas y selectores intactos, sin pestañas añadidas), reparto IA (datos crudos y supuestos) y fórmulas (cálculo); control `unificacion_hojas.py`. Auditoría v1.3: porqué de cada supuesto y fuente de todos los datos de entrada. Sin cambios en valores de empresas. |
 | 10 | 26-oct-2026 | Conciliación de prompts: el contrato de historias y múltiplos pasa a matrices solo en la Base; el MOS de METODOLOGIA y de los prompts de Colombia se aplica sobre el DCF/SOTP Base; los anexos de precisión y de múltiplos se enlazan desde §6. Sin cambios en fórmulas ni en valores de empresas. |
