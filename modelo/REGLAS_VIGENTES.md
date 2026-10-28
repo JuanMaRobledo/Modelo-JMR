@@ -1,6 +1,6 @@
 # Reglas vigentes del Modelo JMR
 
-**Versión 13 · 28-oct-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
+**Versión 14 · 28-oct-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
 (`docs/prompts/*.md`), `METODOLOGIA.md`, una habilidad o un comentario de código dice otra cosa, prevalece este
 documento. Una regla nueva no se agrega como «regla del día X» en un prompt: se cambia aquí, se sube la versión y se
 anota en el registro de cambios del final.
@@ -106,6 +106,8 @@ P/E y EPS deben usar utilidad atribuible al accionista común. Financials Multip
 En ausencia demostrada de preferentes, los tres puentes conservan los valores previos. Si existen preferentes y faltan entradas o evidencia, bloquear el resultado afectado; no sustituir datos ausentes por cero. El mantenimiento de fórmulas se registra en la plantilla oficial con respaldo y regresión antes de incorporarlo a copias nuevas; no habilita cambios libres de fórmulas durante una valoración. FCFF y OCF conservan sus definiciones operativas.
 
 El valor contable, el nominal/redención, el valor de mercado y las acciones de conversión son conceptos distintos. Las preferentes convertibles exigen conciliación de reclamación y dilución sin doble conteo; su coste esperado no se presume igual al cupón dividido por su precio. PREF-01 no certifica automáticamente esa valoración ni el WACC de un caso concreto.
+
+**PREF-02:** `Cost of capital worksheet!B97` distingue `Yield simple` (preferente perpetua simple) de `Retorno esperado híbrido`. En este último caso, D63 usa el retorno esperado B98, con fuente B99; si falta, bloquea el WACC. El puente opcional B104:B109 pondera a mercado el retorno del componente financiero y el de conversión; para una opción, K_opción = Rf + (Ke − Rf) × (S·delta / valor_opción). Los dividendos efectivos B51 permanecen separados. En ausencia de preferentes D63=0. El método y los límites contractuales se documentan por emisor; las plantillas permanecen sin parámetros de empresas. Mantenimiento autorizado de preferentes, con respaldo y regresión; no obliga a recalcular otras empresas durante el reinicio de CELH.
 
 ## 6. Controles de publicación
 
@@ -223,6 +225,7 @@ Hojas de trabajo conservadas tras el archivo del 24-oct-2026 (identidad document
 
 | Versión | Fecha | Cambio |
 |---|---|---|
+| 14 | 28-oct-2026 | PREF-02: coste esperado de híbridos, cupón separado y control de faltantes; respaldos y regresión. |
 | 13 | 28-oct-2026 | §5B: puentes separados de utilidad común, FCFE y patrimonio para preferentes; mantenimiento autorizado, respaldos y regresión. Sin recalcular otras empresas ni certificar WACC de híbridos. |
 | 12 | 27-oct-2026 | §8A: proceso híbrido, controles técnicos antes de la publicación preliminar, observaciones por revisión y auditoría posterior. Sin cambios financieros. |
 | 11 | 26-oct-2026 | §11 nuevo: hojas unificadas (formato de la maestra, fórmulas y selectores intactos, sin pestañas añadidas), reparto IA (datos crudos y supuestos) y fórmulas (cálculo); control `unificacion_hojas.py`. Auditoría v1.3: porqué de cada supuesto y fuente de todos los datos de entrada. Sin cambios en valores de empresas. |
