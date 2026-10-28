@@ -1,9 +1,11 @@
 # Reglas vigentes del Modelo JMR
 
-**Versión 15 · 28-oct-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
+**Versión 16 · 28-oct-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
 (`docs/prompts/*.md`), `METODOLOGIA.md`, una habilidad o un comentario de código dice otra cosa, prevalece este
 documento. Una regla nueva no se agrega como «regla del día X» en un prompt: se cambia aquí, se sube la versión y se
 anota en el registro de cambios del final.
+
+**Doble método:** desde esta versión las valoraciones seleccionan `Método A` o `Método B` por revisión. La selección normativa y precedencia se describen en [`METODOS_VALORACION.md`](METODOS_VALORACION.md), con reglas particulares en [`METODO_A_JMR.md`](METODO_A_JMR.md) y copia íntegra del método anterior en [`METODO_B_JMR.md`](METODO_B_JMR.md). El presente documento mantiene las reglas **compartidas** de cálculo, plantilla y publicación. Sin selección explícita, la compatibilidad histórica sigue siendo B, nunca A por defecto.
 
 ## 1. Valor principal y margen de seguridad
 
@@ -223,10 +225,19 @@ Hojas de trabajo conservadas tras el archivo del 24-oct-2026 (identidad document
 
 **Entregables.** El análisis fundamental siempre completo (§9). La auditoría explica el porqué de cada supuesto estimado y la fuente de **todos** los datos de entrada, con un inventario que cubra todas las celdas de entrada (prompt de auditoría v1.3).
 
+## 12. Dos métodos de estimación de supuestos (28-oct-2026)
+
+- **Método A:** nueva calibración por drivers operativos, clases de referencia de crecimiento y rentabilidad, margen y reinversión consistentes, persistencia del ROIC y seguimiento prospectivo. Se especifica en [`METODO_A_JMR.md`](METODO_A_JMR.md). No constituye una metodología de cálculo distinta: las fórmulas, siete múltiplos, cuatro historias, MOS, condiciones de publicación y plantillas son las mismas.
+- **Método B:** el procedimiento JMR anterior, preservado sin cambios de fondo como instantánea completa v15 en [`METODO_B_JMR.md`](METODO_B_JMR.md). Estudios anteriores sin etiqueta se interpretan B sin reescribir sus cifras.
+- Para nuevas valoraciones registrar método/version/fecha/revisión/hoja en el expediente conforme a [`METODOS_VALORACION.md`](METODOS_VALORACION.md). Prohibido mezclar supuestos A y B en una sola revisión. Las comparaciones se hacen con copias aisladas y mismo corte. No introducir un selector en la plantilla ni pestañas de auditoría.
+- **Prioridad normativa:** estos controles comunes (integridad, contabilidad, fórmulas, autoría, fuente, materiales y publicación) rigen ambos métodos. Las diferencias de **calibración** entre A y B siguen el método expresamente elegido; el archivo B no se reescribe por cambios futuros sin registrar revisión.
+- La existencia de estos documentos no certifica integración del selector a la app ni validación predictiva de A. Las pruebas automáticas y el seguimiento se documentarán antes de proclamar su calibración superior.
+
 ## Registro de cambios
 
 | Versión | Fecha | Cambio |
 |---|---|---|
+| 16 | 28-oct-2026 | Coexisten dos métodos de calibración: A (drivers/tasas base/ROIC) y B (instantánea íntegra de las reglas v15); cálculo, plantilla y auditoría permanecen compartidos. No hay recálculo de empresas ni cambio de motor. |
 | 15 | 28-oct-2026 | Plantillas oficiales reducidas de 61 a 46 pestañas; las auditorías se mantienen en Google Sheets independientes después de revisión visual. Se preservaron respaldos. Validación automática de perfil pendiente. |
 | 14 | 28-oct-2026 | PREF-02: coste esperado de híbridos, cupón separado y control de faltantes; respaldos y regresión. |
 | 13 | 28-oct-2026 | §5B: puentes separados de utilidad común, FCFE y patrimonio para preferentes; mantenimiento autorizado, respaldos y regresión. Sin recalcular otras empresas ni certificar WACC de híbridos. |
