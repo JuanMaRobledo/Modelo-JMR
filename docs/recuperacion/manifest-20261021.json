@@ -95,17 +95,6 @@
       "linkedToCurrent": false
     },
     {
-      "ticker": "CMG",
-      "region": "Internacionales",
-      "valuationPath": "valoraciones/CMG-1790595601973.json",
-      "analysisPath": "analisis/CMG-research-1790597372260-oos55.json",
-      "archivedSheetUrl": "https://docs.google.com/spreadsheets/d/1HPmGMdHC8cdN_vmALeY-cxXYswGqPybz6-YQljTBNAs/edit?usp=drivesdk",
-      "archivedAnalysisUrl": "https://docs.google.com/document/d/1AqIZx9Xkw2uYCdTdzSQASt--2WsDhsDw56Q10zixkQ0/edit?usp=drivesdk",
-      "workingSheet": null,
-      "hasDrivePair": true,
-      "linkedToCurrent": false
-    },
-    {
       "ticker": "DPZ",
       "region": "Internacionales",
       "valuationPath": "valoraciones/DPZ-1790595610921.json",
