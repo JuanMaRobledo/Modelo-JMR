@@ -3260,9 +3260,10 @@
       (hasApiKey() ? ' — actualizando al precio de hoy…' : '');
     // El expediente puede conservar en precioAnalisis un precio de una edición
     // anterior (ADBE/ONON, octubre 2026). Para el corte, manda rec.precio,
-    // que coincide con Input sheet!D1. No llamar 'precio de hoy' a rec.precio.
-    currentPrecioAnalisis = (typeof rec.precio === 'number' && isFinite(rec.precio))
-      ? rec.precio : ((typeof rec.precioAnalisis === 'number' && isFinite(rec.precioAnalisis)) ? rec.precioAnalisis : null);
+    // que coincide con Input sheet!D1. La referencia fija del corte es rec.precioAnalisis;
+    // rec.precio puede ser la cotización más reciente capturada al guardar el Excel.
+    currentPrecioAnalisis = (typeof rec.precioAnalisis === 'number' && isFinite(rec.precioAnalisis))
+      ? rec.precioAnalisis : ((typeof rec.precio === 'number' && isFinite(rec.precio)) ? rec.precio : null);
     renderPriceCompare(currentPrecioAnalisis, null);
     currentPosicion = rec.posicion ? Object.assign({}, rec.posicion) : null;
     if(currentPosicion && currentPosicion.dcfEsperado == null && rec.valorEsperado &&
