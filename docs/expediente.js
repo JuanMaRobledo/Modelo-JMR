@@ -157,14 +157,18 @@ function openCompany(input){
   }
   loadAuditRequest(t,p);
   const official=p.official&&!!p.analysisPath&&!!p.auditPath;
-  el('revisionNotice').textContent=official
-    ? 'Valoración, análisis y auditoría constan en el catálogo. Esto no certifica por sí solo que compartan revisión ni que la auditoría esté aprobada.'
-    : 'Expediente en consulta: faltan piezas del catálogo oficial o todavía no están conciliadas. No se equipara archivo existente a estudio publicado.';
+  const revisionVisual=p.official&&!!p.analysisPath&&!p.auditPath;
+  el('revisionNotice').textContent=revisionVisual
+    ? 'Valoración y análisis EN REVISIÓN. Expediente preliminar para revisión visual del usuario; auditoría económica independiente PENDIENTE. Los cálculos no están certificados económicamente.'
+    : official
+      ? 'Valoración, análisis y auditoría constan en el catálogo. Esto no certifica por sí solo que compartan revisión ni que la auditoría esté aprobada.'
+      : 'Expediente en consulta: faltan piezas del catálogo oficial o todavía no están conciliadas. No se equipara archivo existente a estudio publicado.';
   el('dossier').hidden=false;el('empty').hidden=true;
   el('sheetLink').hidden=false;el('sheetLink').href=p.supuestos.href;
   const first=p.valPath?'valoracion': 'analisis';
   showView(state.view&&p[state.view]?state.view:first);
   if(!p.official)status(t+' · Sin entrada oficial completa de valoración en catálogo; consulta disponible con reservas.','warning');
+  else if(revisionVisual)status(t+' · Valoración y análisis EN REVISIÓN; pendiente tu revisión visual antes de auditoría económica.');
   else status(t+' · Valoración en catálogo; análisis y auditoría deben cotejarse con esa misma revisión.');
 }
 function showView(view){
