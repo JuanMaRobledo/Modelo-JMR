@@ -51,11 +51,11 @@ def main():
             browser = pw.chromium.launch(executable_path=os.environ.get("CHROMIUM_PATH") or None)
             try:
                 context = browser.new_context()
-                context.add_init_script(""" + '"""' + """
+                context.add_init_script("""
                     if (location.hostname === '127.0.0.1') {
                         localStorage.setItem('jmr-auth-ok-v1', '1');
                     }
-                """ + '"""' + """)
+                """)
                 context.on("page", lambda page: page.on("pageerror", lambda error: errors.append(str(error))))
 
                 def raw(route):
