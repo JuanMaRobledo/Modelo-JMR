@@ -7,7 +7,7 @@
     "commit": "44d546d6b88a7d84d8c24e029b3f03d501a50a55"
   },
   "disclaimer": "Versiones históricas y copias de trabajo; los controles automáticos NO son auditoría económica certificada.",
-  "count": 39,
+  "count": 36,
   "records": [
     {
       "ticker": "AAPL",
@@ -79,17 +79,6 @@
       "analysisPath": "analisis/BSX-research-1790597191582-gnvjr.json",
       "archivedSheetUrl": "https://docs.google.com/spreadsheets/d/1rG1p7VxzgOF-dhNGcSKGhhXlQvXGRXdtwLGKFWIXg80/edit?usp=drivesdk",
       "archivedAnalysisUrl": "https://docs.google.com/document/d/1k8INgzgxlM_RE5VAX43_kjnYjNa3fz7CbsTrx-zgTCg/edit?usp=drivesdk",
-      "workingSheet": null,
-      "hasDrivePair": true,
-      "linkedToCurrent": false
-    },
-    {
-      "ticker": "CELH",
-      "region": "Internacionales",
-      "valuationPath": "valoraciones/CELH-1790595594623.json",
-      "analysisPath": "analisis/CELH-research-1790597282768-kjm45.json",
-      "archivedSheetUrl": "https://docs.google.com/spreadsheets/d/1DwZnQxKoJYZT-J1MGpH2_M1gb_AFogkHSd8wWXEIjOo/edit?usp=drivesdk",
-      "archivedAnalysisUrl": "https://docs.google.com/document/d/1BkXHlT8xOuvYFls8bz1Xe8FQPBNTzgMSIs0jX6oGtwA/edit?usp=drivesdk",
       "workingSheet": null,
       "hasDrivePair": true,
       "linkedToCurrent": false
