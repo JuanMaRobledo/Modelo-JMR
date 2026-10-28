@@ -1,6 +1,6 @@
 # MÉTODO A — Calibración fundamental basada en evidencia
 
-**Identificador:** `A` · **Versión:** `A-1.1` · **Fecha:** 28-oct-2026 · **Estado:** especificación normativa para nuevas valoraciones; todavía sin validación prospectiva.
+**Identificador:** `A` · **Versión:** `A-1.2` · **Fecha:** 28-oct-2026 · **Estado:** especificación normativa para nuevas valoraciones; todavía sin validación prospectiva.
 
 > Este es un método JMR alternativo de **estimación y justificación de supuestos**. Utiliza exactamente el mismo motor de valoración que el Método B (DCF/FCFE/SOTP según compañía, siete múltiplos, escenarios, MOS y control técnico). No modifica fórmulas de Google Sheets, selectores, fuentes contables ni las reglas operativas de publicación. Sus reglas particulares prevalecen sobre las recomendaciones de calibración del Método B; los controles comunes de `modelo/REGLAS_VIGENTES.md` prevalecen en cálculos, materialidad, seguridad y publicación.
 
@@ -63,6 +63,18 @@ La hoja `Supuestos Recomendados`, dentro de las 46 pestañas existentes, contien
 
 **Documentos primarios:** Damodaran, *Looking Forward: Estimating Growth* (§Sales to Capital and ROIC), https://people.stern.nyu.edu/adamodar/pdfiles/papers/growth.pdf ; Damodaran, *Valuation Today* (§3 Sales to Invested Capital), https://pages.stern.nyu.edu/~adamodar/pdfiles/execs/val2day2023.pdf ; para híbridos usar también la conciliación de crédito/fondeo del emisor y la distinción FCFF/FCFE en https://pages.stern.nyu.edu/~adamodar/New_Home_Page/littlebook/bankvaluedriver.htm .
 
+
+### A.5.2 Calibración de valor razonable, sin recortes duplicados (A-1.2)
+
+1. **Paridad del corte antes de comparar modelos:** confrontar ingresos de inicio en igual fecha (FY o LTM), mismas unidades/moneda, ajustes I+D/arrendamientos, acciones, deuda financiera y financiación de clientes, tasas y horizontes. Un DCF de FY2025 a 2035 y otro desde LTM jun-2026 no son comparables por precio objetivo sin rebasar fechas. Desglosar diferencias: periodo inicial, ingresos, margen, reinversión, WACC, g, ROIC terminal y puente EV-equity.
+2. **Tres anclas, no un promedio rígido:** proponer rangos de S/C marginal con (i) Δventas/Δcapital *de periodos homogéneos*, (ii) capacidad instalada y productividad marginal probable, (iii) clase de referencia y segmentos compatibles. La Base es el juicio mejor sustentado, no el mínimo histórico ni el máximo del sector; documentar tanto ventajas de red como necesidad de financiar crédito.
+3. **ROIC terminal ligado a ventaja durable, no al precio:** usar ROIC histórico ajustado, trayectoria explicita y evidencia de persistencia competitiva. Damodaran considera razonables excesos modestos de ~4–5 puntos sobre WACC en estabilidad para empresas con ventajas duraderas, **como guía de calibración, no tope automático universal**. Si se sostiene un exceso mayor, exigir datos por segmento y duración verificable; no asumir que ROIC del año 10 persiste para siempre. Calcular reinversión terminal = NOPAT × g/ROIC terminal. Sensibilizar convergencia/fade por años y el peso del valor terminal.
+4. **Coherencia en el margen:** documentar mecanismo de mejora (mix publicidad/pagos, eficiencia logística, promociones, provisiones) en el mismo perímetro contable, sin capitalizar I+D y contarla otra vez como reducción permanente del gasto. Seleccionar trayectoria de mejora plausible, no penalizar simultáneamente el mismo riesgo mediante margen, WACC y probabilidades.
+5. **Negocio mixto Commerce/Fintech:** no equiparar la cartera crediticia con capex industrial ni considerar los fondos de clientes como caja disponible; tampoco restar toda financiación fintech como deuda industrial sin su activo asociado. Si falta SOTP/FCFE de actividad financiera, la cifra consolidada se rotula **EN_REVISION con reserva material** y se presentan sensibilidades; no certificar por proximidad al mercado.
+6. **Prueba de sustitución:** antes de cambiar un supuesto mantener la foto anterior; modificar solamente la copia nueva, verificar DCF Base, sensibilidad g/WACC/ROIC, mos, dependencias de fórmulas y marcas de estado. Nunca elevar el valor por comparación con AZ Stocks ni bajar hipótesis para conseguir un MOS aparente. Conservar método B y revisiones A previas intactos.
+
+**Caso piloto MELI A2:** una calibración concreta con EBIT objetivo 14,5%, Sales-to-Capital marginal 2,25 (años1–5) y 2,55 (6–10), ROIC terminal 15%, WACC inicial 10,84%/terminal 10,20% y g terminal 4%; los números son juicios bajo revisión, **no nuevos defaults para otras compañías**. La foto original MELI A1 mantiene su valor. Fuentes: Damodaran [Looking Forward: Estimating Growth](https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/growth.pdf), [Terminal value](https://pages.stern.nyu.edu/adamodar/New_Home_Page/littlebook/terminalvalue.htm), [Equity Emails (average vs. marginal S/C)](https://pages.stern.nyu.edu/~adamodar/New_Home_Page/eqUGemail.html); [MELI Q2-2026 SEC](https://www.sec.gov/Archives/edgar/data/1099590/000109959026000021/meli-20260805xex991.htm).
+
 ## A.6 Persistencia competitiva y valor terminal
 
 - Estimar la duración del spread `ROIC − WACC` a partir de churn/retención, efectos de red, regulación, propiedad intelectual, márgenes de competidores, ventajas de costo, escala, amenaza de sustitución y evidencia contraria.
@@ -85,7 +97,7 @@ Se mantienen las reglas JMR vigentes: Rf, ERP y CRP del corte compatible; beta b
 
 Antes de cargar en la copia de Google Sheets producir una **ficha de calibración por cada entrada material**, con campos:
 
-1. `variable`, `unidad`, `periodo`, `celda_objetivo` y `metodo=A`, `version=A-1.0`;
+1. `variable`, `unidad`, `periodo`, `celda_objetivo` y `metodo=A`, `version=A-1.2`;
 2. `[Dato]`: histórico/LTM normalizado, ajuste, fuente primaria, URL/página, fecha de publicación y fecha de corte;
 3. `[Referencia]`: pares/cohorte/sector, criterios, N, distribución disponible, tratamiento contable y fecha;
 4. `[Juicio]`: valor propuesto, mecanismo causal, intervalo razonable, justificación a favor y evidencia que lo contradice;
@@ -103,7 +115,7 @@ Guardar **fuera de la plantilla y fuera de la auditoría**, por ticker/revisión
 ## A.11 Integración y comparación con B
 
 - Las valoraciones existentes sin etiqueta mantienen método **B (legado)**; no se recalculan.
-- En una valoración **nueva** consignar `metodo_valoracion: A`, `version_metodo: A-1.1`, `fecha_corte`, `revision_id`, `sheet_id` en el expediente/JSON. Si se comparan A y B para una empresa, dos revisiones o ejecuciones **aisladas**, con mismos datos y fecha de corte y copia de plantilla por método; no mezclar inputs A y B en una sola ficha vigente.
+- En una valoración **nueva** consignar `metodo_valoracion: A`, `version_metodo: A-1.2`, `fecha_corte`, `revision_id`, `sheet_id` en el expediente/JSON. Si se comparan A y B para una empresa, dos revisiones o ejecuciones **aisladas**, con mismos datos y fecha de corte y copia de plantilla por método; no mezclar inputs A y B en una sola ficha vigente.
 - Misma estructura oficial de 46 pestañas. La ficha A se registra en `Origen de los Supuestos` o evidencia externa del expediente, **no** añadiendo pestañas a la plantilla. Auditoría posterior, si la solicita el usuario, en un Google Sheets separado, sin cambiar los valores originales.
 - El estado `EN_REVISIÓN` exige controles técnicos vigentes; la nueva metodología **no está estadísticamente validada** hasta contar con seguimiento real suficiente.
 
