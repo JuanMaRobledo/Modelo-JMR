@@ -2,7 +2,7 @@ name: CMG R1 · integrar expediente en rama sin producción
 on:
   push:
     branches: [ccr-e19723cb-q1m72p]
-    paths: ['.github/workflows/cmg-r1-smoke-20261028.yml']
+    paths: ['.github/workflows/cmg-r1-smoke-20261028.yml', 'tests/cmg_reinicio_smoke.py']
   workflow_dispatch:
 permissions:
   contents: read
@@ -61,7 +61,7 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
       - name: Bloquear publicación mientras no pase el gate completo
-        if: steps.gate.outcome != 'success'
+        if: ${{ always() && steps.gate.outcome != 'success' }}
         run: |
           echo 'BLOQUEADO: catálogo global/validación no pasó aunque el smoke individual pudiera pasar.'
           exit 1
