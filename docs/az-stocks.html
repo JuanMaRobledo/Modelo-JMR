@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101c31">
+<title>AZ stocks · MercadoLibre MELI · Modelo JMR</title>
+<meta name="description" content="MELI valorada con el modelo independiente AZ stocks: DCF por perpetuidad y múltiplo de salida EV/EBITDA, 2026–2035.">
+<link rel="icon" href="favicon.ico">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="jmr-theme.css">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.55}
+main{max-width:1160px;margin:auto;padding:28px 20px 84px}
+h1,h2,h3,p{margin-top:0}
+h1{font-size:clamp(30px,5vw,50px);line-height:1.13;letter-spacing:-.035em;margin:10px 0}
+h2{font-size:22px;margin-bottom:14px}h3{font-size:15px;margin-bottom:8px}
+a{color:var(--accent)}
+.hero{padding:30px 30px 28px;border:1px solid var(--border-soft);background:var(--surface);border-radius:22px;box-shadow:var(--shadow)}
+.eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:800;color:var(--ink-faint)}
+.heading{display:flex;align-items:start;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.status{border:1px solid var(--border);color:var(--ink-soft);border-radius:100px;padding:6px 12px;font-size:12px;font-weight:750}
+.lead{max-width:72ch;color:var(--ink-soft);font-size:14px;margin:12px 0 22px}
+.big-value{font-size:clamp(38px,7vw,64px);font-weight:800;letter-spacing:-.05em;line-height:1.2;font-variant-numeric:tabular-nums}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.kpi{padding:16px;border-radius:14px;background:var(--surface-2);border:1px solid var(--border-soft)}
+.label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-faint)}
+.number{font-size:22px;font-weight:750;letter-spacing:-.035em;font-variant-numeric:tabular-nums}
+.positive{color:var(--positive)}
+.muted{color:var(--ink-soft);font-size:13px}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+.actions a{display:inline-flex;text-decoration:none;padding:11px 16px;border:1px solid var(--border);border-radius:10px;font-size:13px;font-weight:700;color:var(--ink)}
+.actions a.primary{background:var(--accent);border-color:var(--accent);color:white}
+.section{margin-top:26px;background:var(--surface);border:1px solid var(--border-soft);border-radius:18px;padding:22px;box-shadow:var(--shadow)}
+.section-intro{color:var(--ink-soft);font-size:14px}
+.tablewrap{width:100%;overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:690px;font-variant-numeric:tabular-nums}
+th,td{padding:12px 13px;border-bottom:1px solid var(--border-soft);text-align:right;vertical-align:middle}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;background:var(--surface-2);color:var(--ink-soft);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+td{font-size:13px}
+tr.base td{font-weight:800;background:var(--accent-soft)}
+.inline-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.assumption{padding:16px;background:var(--surface-2);border-radius:12px}
+.assumption strong{font-size:19px;display:block;margin:5px 0}
+.notice{border-left:3px solid #bd8b3d;padding:12px 16px;background:var(--surface-2);border-radius:4px;font-size:13px;color:var(--ink-soft)}
+details{border-top:1px solid var(--border-soft);padding:13px 0}
+summary{font-weight:700;cursor:pointer}
+.source-list{font-size:13px;line-height:1.8;padding-left:20px}
+footer{padding:18px 0;color:var(--ink-faint);font-size:12px}
+@media(max-width:800px){.kpis{grid-template-columns:repeat(2,1fr)}.inline-grid{grid-template-columns:1fr 1fr}.hero{padding:22px 18px}.section{padding:18px}}
+@media(max-width:530px){.kpis,.inline-grid{grid-template-columns:1fr 1fr}.number{font-size:19px}main{padding:18px 12px 50px}.section{padding:16px}h2{font-size:19px}}
+</style>
+</head>
+<body>
+<nav class="appnav" aria-label="Navegación principal JMR"></nav>
+<main>
+<section class="hero">
+  <div class="heading"><div><span class="eyebrow">AZ stocks · Valoraciones independientes</span><h1>MercadoLibre <span style="color:var(--ink-faint)">MELI</span></h1></div><span class="status">EN REVISIÓN · 28 OCT 2026</span></div>
+  <p class="lead">Valoración de MercadoLibre construida con el <strong>modelo AZ stocks reconstruido</strong>, independiente del Modelo JMR. Flujos de caja proyectados para 2026–2035, descuento por WACC y dos métodos de valor terminal. Cifras preliminares: no corresponden a la valoración oficial de AZ Stocks ni a una auditoría económica aprobada.</p>
+  <span class="label">Valor intrínseco base · USD por acción</span>
+  <div class="big-value">US$ 2.960,56</div>
+  <p class="muted">40% perpetuidad + 60% múltiplo de salida · 50,6973 millones de acciones diluidas</p>
+  <div class="kpis">
+    <div class="kpi"><span class="label">Precio al 28-oct-2026</span><div class="number">US$ 1.673,09</div></div>
+    <div class="kpi"><span class="label">Potencial estimado</span><div class="number positive">+76,95%</div></div>
+    <div class="kpi"><span class="label">WACC</span><div class="number">11,61%</div></div>
+    <div class="kpi"><span class="label">Horizonte explícito</span><div class="number">10 años</div></div>
+  </div>
+  <div class="actions">
+    <a class="primary" href="https://docs.google.com/spreadsheets/d/1B4kK3V3lgg8QDkTvrcUStYnNu_Dy4jBxHE4Gj7vscSo/edit" target="_blank" rel="noopener noreferrer">Abrir hoja AZ stocks · MELI</a>
+    <a href="https://docs.google.com/spreadsheets/d/1B4kK3V3lgg8QDkTvrcUStYnNu_Dy4jBxHE4Gj7vscSo/edit#gid=503251639" target="_blank" rel="noopener noreferrer">Outputs y sensibilidades</a>
+    <a href="https://docs.google.com/spreadsheets/d/1B4kK3V3lgg8QDkTvrcUStYnNu_Dy4jBxHE4Gj7vscSo/edit#gid=1001" target="_blank" rel="noopener noreferrer">Inputs y supuestos</a>
+  </div>
+</section>
+
+<section class="section">
+  <h2>Valor por escenario y método</h2>
+  <p class="section-intro">Dólares por acción. Las cifras proceden de las fórmulas de la hoja MELI creada el 28 de octubre de 2026; el valor combinado utiliza pesos fijos de 40%/60%.</p>
+  <div class="tablewrap"><table><thead><tr><th>Escenario</th><th>DCF perpetuidad</th><th>DCF salida EBITDA</th><th>Valor combinado</th><th>Potencial vs. precio</th></tr></thead><tbody>
+    <tr><td>Optimista</td><td>US$ 4.013,88</td><td>US$ 7.201,84</td><td>US$ 5.926,66</td><td>+254,23%</td></tr>
+    <tr class="base"><td>Base</td><td>US$ 2.111,53</td><td>US$ 3.526,58</td><td>US$ 2.960,56</td><td>+76,95%</td></tr>
+    <tr><td>Pesimista</td><td>US$ 620,48</td><td>US$ 1.115,17</td><td>US$ 917,30</td><td>−45,17%</td></tr>
+  </tbody></table></div>
+  <p class="muted" style="margin-top:13px">Los resultados pueden variar al editar los supuestos en Google Sheets; esta pantalla registra la instantánea al corte del 28-oct-2026.</p>
+</section>
+
+<section class="section">
+  <h2>Supuestos del escenario base</h2>
+  <div class="inline-grid">
+    <div class="assumption"><span class="label">Ingresos FY2025</span><strong>US$ 28.893 M</strong><span class="muted">Año fiscal base</span></div>
+    <div class="assumption"><span class="label">Deuda neta Q2 2026</span><strong>US$ 6.425 M</strong><span class="muted">Definición reportada por MELI</span></div>
+    <div class="assumption"><span class="label">Crecimiento ingresos FY2026</span><strong>46%</strong><span class="muted">Hipótesis; converge a 8% en FY2035</span></div>
+    <div class="assumption"><span class="label">Margen EBIT FY2026</span><strong>7,5%</strong><span class="muted">Hipótesis; llega a 15,5% en FY2035</span></div>
+    <div class="assumption"><span class="label">Crecimiento perpetuo</span><strong>2,50%</strong><span class="muted">Escenario base</span></div>
+    <div class="assumption"><span class="label">Salida EV / EBITDA</span><strong>13,0×</strong><span class="muted">Escenario base; comparable pendiente</span></div>
+  </div>
+  <div class="notice" style="margin-top:18px"><strong>Limitación material.</strong> El motor reconstruido proyecta FCFF con Capex, D&amp;A y capital de trabajo simplificados. En MELI, la cartera de crédito de Mercado Pago, el costo de fondeo y el capital regulatorio pueden modificar sustancialmente el flujo disponible. Los múltiplos de salida, beta, costo de capital y supuestos de reinversión no han sido validados mediante una auditoría económica independiente. <strong>No considerar la cifra objetivo como certificada.</strong></div>
+</section>
+
+<section class="section">
+  <h2>Consultar el modelo completo</h2>
+  <p class="section-intro">La hoja contiene cinco pestañas nativas con fórmulas vinculadas. La plantilla limpia original permanece intacta.</p>
+  <div class="inline-grid">
+    <div class="assumption"><h3>Outputs</h3><p class="muted">Valoraciones por ambos métodos, escenario y sensibilidades WACC/crecimiento terminal.</p></div>
+    <div class="assumption"><h3>Inputs</h3><p class="muted">Proyección de crecimiento, márgenes, tasas, capital de trabajo y múltiplos por escenario.</p></div>
+    <div class="assumption"><h3>Model</h3><p class="muted">Proyecciones 2026–2035: ingresos, EBIT, EBITDA, impuestos y FCFF.</p></div>
+    <div class="assumption"><h3>Competitive Analysis</h3><p class="muted">Matriz de comparables para completar y contrastar 13× EV/EBITDA.</p></div>
+    <div class="assumption"><h3>Ratios</h3><p class="muted">Ratios derivados, vinculados a entradas y proyecciones.</p></div>
+  </div>
+  <div class="actions"><a class="primary" href="https://docs.google.com/spreadsheets/d/1B4kK3V3lgg8QDkTvrcUStYnNu_Dy4jBxHE4Gj7vscSo/edit" target="_blank" rel="noopener noreferrer">Abrir libro de cálculo</a></div>
+</section>
+
+<section class="section">
+  <h2>Fuentes y metodología</h2>
+  <details open><summary>Fuentes principales</summary>
+  <ul class="source-list">
+    <li><a href="https://www.sec.gov/Archives/edgar/data/1099590/000109959026000021/meli-20260805xex991.htm" target="_blank" rel="noopener noreferrer">MercadoLibre: resultados y cifras reportadas, Q2 2026</a>.</li>
+    <li><a href="https://www.sec.gov/Archives/edgar/data/1099590/000109959026000023/meli-20260630.htm" target="_blank" rel="noopener noreferrer">MercadoLibre: formulario 10-Q de junio 2026</a>.</li>
+    <li><a href="https://stockanalysis.com/stocks/meli/history/" target="_blank" rel="noopener noreferrer">Histórico de precios MELI: cierre 28-oct-2026</a>.</li>
+    <li><a href="https://azstocks.substack.com/p/mercadolibre-english-version" target="_blank" rel="noopener noreferrer">AZ Stocks: artículo público sobre MELI</a> (referencia metodológica de pesos y salida; esta valoración es reconstruida, no una reproducción certificada).</li>
+  </ul></details>
+  <details><summary>Proceso de revisión</summary><p class="muted">Estado EN_REVISION. Primero se publica la valoración y el análisis para inspección visual. La auditoría económica independiente se realizará únicamente cuando se solicite, sin confundirla con la publicación preliminar.</p></details>
+</section>
+<footer>AZ stocks · Caso MELI · 2026-10-28 · Modelo separado del JMR · Valores indicativos, no consejo individual de inversión.</footer>
+</main>
+<script src="mercado.js"></script>
+<script src="auth.js"></script>
+</body></html>
