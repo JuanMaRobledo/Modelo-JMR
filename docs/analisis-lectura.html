@@ -320,7 +320,7 @@ async function valuationSnapshot(catalog,analysis){
       '<td class="flag-secondary">'+esc(w? 'Seleccionado en valoración':'Referencia sin ponderar'+(m.estado?' · '+m.estado:''))+'</td></tr>';
     }).join('');
     const box=el('multiplesSnapshot');
-    const sheet=safeUrl(v.hojaGoogle||'');
+    const sheet=v.hojaGoogle?safeUrl(v.hojaGoogle):null;
     box.innerHTML='<h2 id="multiplos-de-valoracion">Múltiplos de valoración · todos los métodos</h2>'+
       '<p class="multiples-intro">Los precios a valor presente corresponden al promedio descontado de FY+1, FY+2 y FY+3 según la hoja. El precio al cierre de FY+3 es una cifra diferente. Ningún múltiplo sustituye el valor intrínseco Base principal.</p>'+
       '<table><thead><tr><th>Método</th><th>Valor presente · Base</th><th>Precio FY+3 · Base</th><th>Peso vigente</th><th>Condición</th></tr></thead><tbody>'+
