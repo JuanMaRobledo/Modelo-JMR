@@ -1,6 +1,6 @@
 # Reglas vigentes del Modelo JMR
 
-**Versión 14 · 28-oct-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
+**Versión 15 · 28-oct-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
 (`docs/prompts/*.md`), `METODOLOGIA.md`, una habilidad o un comentario de código dice otra cosa, prevalece este
 documento. Una regla nueva no se agrega como «regla del día X» en un prompt: se cambia aquí, se sube la versión y se
 anota en el registro de cambios del final.
@@ -210,14 +210,16 @@ Hojas de trabajo conservadas tras el archivo del 24-oct-2026 (identidad document
 
 **Reparto.** Lo que la IA aporta es (1) conseguir los **datos crudos** con su fuente primaria y (2) **estimar los supuestos** y explicar por qué. Todo cálculo lo hacen las fórmulas de la hoja. La IA no escribe resultados sobre celdas con fórmula, no «calibra» una salida y no reconstruye un cálculo fuera de la hoja.
 
-**Formato único.** Toda valoración nace como copia nueva de la plantilla maestra vigente (`reference/plantillas.json`; Maestra, IA y Manual comparten la misma estructura) y conserva ese formato sin importar quién la diligencie, sea una IA o una persona:
-- las mismas pestañas, en el mismo orden y con las mismas dimensiones; no se añaden, quitan, renombran ni reordenan. Los soportes propios de una empresa (conciliaciones con la SEC, matrices adicionales, registros de revisión) van a `Modelo-JMR-datos/evidencia/<T>-<revisión>/`, no a la hoja;
+**Formato único.** Cada nueva valoración parte de una copia de la plantilla maestra vigente (registro en `JMR-valuation/reference/plantillas.json`), compartida por IA y Manual. Desde 28-oct-2026 el formato oficial contiene 46 pestañas de valoración, datos y supuestos. Las copias históricas de 61 pestañas conservan su versión:
+- las mismas 46 pestañas del perfil vigente, en el mismo orden y con las mismas dimensiones; no se añaden, quitan, renombran ni reordenan en una valoración individual. Los soportes propios de una empresa (conciliaciones SEC, registros de revisión y auditorías) van a expedientes independientes y no agregan pestañas a la valoración;
 - todas las fórmulas de la plantilla intactas: una fórmula sustituida por un número, o editada, es un hallazgo bloqueante;
 - **todos los selectores** (validaciones de datos: `B12`, `B22`, `B26`, selectores de método, de historia y de ponderación) con su validación original. Cambiar una opción es elegir de la lista; un selector reemplazado por un valor o eliminado es un hallazgo bloqueante.
 
 **Datos crudos.** Se diligencian todos los datos de entrada aplicables, cada uno con fuente (nota de la celda o pestaña `Origen de los Supuestos`: documento, URL, período, página o nota, fecha de consulta). La materialidad del §4B decide qué faltante secundario no bloquea; nunca se inventa un cero.
 
-**Control.** `python3 scripts/unificacion_hojas.py --copy-id <ID> --salida <ruta>` (JMR-valuation) debe dar UNIFICADA antes de publicar, y se repite al auditar.
+**Auditoría independiente.** Una vez publicada la valoración y el análisis como EN_REVISIÓN, el usuario hace la revisión visual. La auditoría económica se inicia solo cuando la solicita y se documenta en un **Google Sheets independiente por ticker y revisión**, vinculado al expediente. No se añaden pestañas de auditoría a la valoración ni se modifican sus resultados.
+
+**Control.** Las valoraciones nuevas deben compararse con el perfil oficial de 46 pestañas; los expedientes históricos de 61 pestañas conservan su perfil original. Antes de confiar en el resultado UNIFICADA de `scripts/unificacion_hojas.py`, se debe adaptar el validador a los dos perfiles y validar referencias, fórmulas y selectores. No declarar la regresión integral superada hasta ejecutar ese control.
 
 **Entregables.** El análisis fundamental siempre completo (§9). La auditoría explica el porqué de cada supuesto estimado y la fuente de **todos** los datos de entrada, con un inventario que cubra todas las celdas de entrada (prompt de auditoría v1.3).
 
@@ -225,6 +227,7 @@ Hojas de trabajo conservadas tras el archivo del 24-oct-2026 (identidad document
 
 | Versión | Fecha | Cambio |
 |---|---|---|
+| 15 | 28-oct-2026 | Plantillas oficiales reducidas de 61 a 46 pestañas; las auditorías se mantienen en Google Sheets independientes después de revisión visual. Se preservaron respaldos. Validación automática de perfil pendiente. |
 | 14 | 28-oct-2026 | PREF-02: coste esperado de híbridos, cupón separado y control de faltantes; respaldos y regresión. |
 | 13 | 28-oct-2026 | §5B: puentes separados de utilidad común, FCFE y patrimonio para preferentes; mantenimiento autorizado, respaldos y regresión. Sin recalcular otras empresas ni certificar WACC de híbridos. |
 | 12 | 27-oct-2026 | §8A: proceso híbrido, controles técnicos antes de la publicación preliminar, observaciones por revisión y auditoría posterior. Sin cambios financieros. |
