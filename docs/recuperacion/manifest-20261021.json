@@ -7,7 +7,7 @@
     "commit": "44d546d6b88a7d84d8c24e029b3f03d501a50a55"
   },
   "disclaimer": "Versiones históricas y copias de trabajo; los controles automáticos NO son auditoría económica certificada.",
-  "count": 36,
+  "count": 35,
   "records": [
     {
       "ticker": "AAPL",
@@ -17,25 +17,6 @@
       "archivedSheetUrl": "https://docs.google.com/spreadsheets/d/1I79juYVxnQAKUC8nC7snBvZXbvzUXWALxRFXulGrNQI/edit?usp=drivesdk",
       "archivedAnalysisUrl": "https://docs.google.com/document/d/1sP0VCfFx3ap4iAfcsxBiJ6_ZRpq7yTu39tlmVYdzzas/edit?usp=drivesdk",
       "workingSheet": null,
-      "hasDrivePair": true,
-      "linkedToCurrent": false
-    },
-    {
-      "ticker": "ADBE",
-      "region": "Internacionales",
-      "valuationPath": "valoraciones/ADBE-1789572982820.json",
-      "analysisPath": "analisis/ADBE-research-1790475622244-a6a92.json",
-      "archivedSheetUrl": "https://docs.google.com/spreadsheets/d/1guj3OWGXdslx2I0ROmbCg5z-4f7zhVqcSg19D9HnGNg/edit?usp=drivesdk",
-      "archivedAnalysisUrl": "https://docs.google.com/document/d/1LstisxtHb621Qj392tRIfmuGqQ3wDJs_Lz7ZGxYMuts/edit?usp=drivesdk",
-      "workingSheet": {
-        "url": "https://docs.google.com/spreadsheets/d/109BWIyF2fZ8QjULt2dQAAL6JXMdo89IcKI6rcZoyuNo/edit",
-        "baseBefore": 392.9600099404326,
-        "baseAfter": 392.9600099404326,
-        "terminalBefore": 0.035,
-        "terminalAfter": 0.035,
-        "mosAfter": 255.4240064612812,
-        "notes": "Se registró 90% de masa ordinaria; ROIC 25% del expediente conservado."
-      },
       "hasDrivePair": true,
       "linkedToCurrent": false
     },
