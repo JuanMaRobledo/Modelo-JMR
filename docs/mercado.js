@@ -38,6 +38,7 @@
       link('expediente.html', 'Expedientes JMR', (page==='expediente.html'&&params.get('seccion')!=='analisis')||['editor-hoja.html','auditorias.html','auditoria-integral.html','auditoria-multiplos.html'].indexOf(page) >= 0) +
       link('expediente.html?seccion=valoracion&mercado=internacional', 'Valoraciones internacionales', activeInternational) +
       link('expediente.html?seccion=valoracion&mercado=colombia', 'Valoraciones Colombia', activeColombia) +
+      link('az-stocks.html', 'AZ stocks', page === 'az-stocks.html') +
       link('bitacora-terceros.html', 'Bitácora de terceros', page === 'bitacora-terceros.html') +
       link('screener.html', 'Screener', page === 'screener.html') +
       link('calculadora.html' + qs, 'Calculadora DCF', page === 'calculadora.html') +
