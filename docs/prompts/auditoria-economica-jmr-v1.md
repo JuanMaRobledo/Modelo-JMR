@@ -113,7 +113,9 @@ Bibliografía trazable con URL, fuente, fecha de publicación, período, fecha c
 
 ## FORMATO UNIFICADO DE LA HOJA — OBLIGATORIO (REGLAS §11)
 
-Antes del dictamen verifica, sin escribir, que la hoja auditada conserva el formato de la plantilla maestra vigente (`reference/plantillas.json`): las mismas pestañas y en el mismo orden, **todas las fórmulas intactas** (una fórmula reemplazada por un número es hallazgo bloqueante), **todos los selectores** (listas desplegables y casillas como `B12`, `B22`, `B26`, selectores de método y de historia) con su validación original, y ninguna pestaña añadida. La IA solo diligencia datos crudos y estima supuestos en las celdas de entrada. Si tienes acceso, ejecuta `python3 scripts/unificacion_hojas.py --copy-id <ID> --salida <ruta>` y adjunta su estado (UNIFICADA / NO UNIFICADA); si no, marca **[NO VERIFICADO]**.
+**Separación desde 28-oct-2026:** la auditoría se documenta en un Google Sheets distinto por ticker y revisión, tras la revisión visual del usuario. No se crean pestañas de auditoría dentro del archivo de valoración.
+
+Antes del dictamen verifica, sin escribir, que la hoja auditada conserva el formato de la plantilla maestra vigente (`reference/plantillas.json`): las pestañas del perfil oficial aplicable (46 en las plantillas nuevas; 61 solo en el legado) y en el mismo orden, **todas las fórmulas intactas** (una fórmula reemplazada por un número es hallazgo bloqueante), **todos los selectores** (listas desplegables y casillas como `B12`, `B22`, `B26`, selectores de método y de historia) con su validación original, y ninguna pestaña añadida. La IA solo diligencia datos crudos y estima supuestos en las celdas de entrada. Si tienes acceso, ejecuta `python3 scripts/unificacion_hojas.py --copy-id <ID> --salida <ruta>` y adjunta su estado (UNIFICADA / NO UNIFICADA); si no, marca **[NO VERIFICADO]**.
 
 ## CONTROL DE ENTREGA — OBLIGATORIO
 
