@@ -1,0 +1,44 @@
+name: CMG R1 · integrar expediente en rama sin producción
+on:
+  push:
+    branches: [ccr-e19723cb-q1m72p]
+    paths: ['.github/workflows/cmg-r1-smoke-20261028.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Obtener catálogo de la misma rama
+        run: |
+          git clone --depth 1 --branch ccr-e19723cb-q1m72p https://github.com/JuanMaRobledo/Modelo-JMR-datos.git ../Modelo-JMR-datos
+      - name: Validar catálogo e integridad con sus contratos vigentes
+        run: |
+          node ../Modelo-JMR-datos/scripts/validar_catalogo.cjs
+          node ../Modelo-JMR-datos/scripts/auditar_integridad.cjs
+      - name: Instalar Playwright y navegador
+        run: |
+          python -m pip install 'playwright>=1.48'
+          python -m playwright install --with-deps chromium
+      - name: Probar expediente, lector, visor y controles de revisión
+        run: |
+          python tests/cmg_reinicio_smoke.py
+      - name: Registrar capturas de revisión local
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cmg-r1-prueba-visual-solo-rama
+          path: ../Modelo-JMR-datos/evidencia/CMG-2026-10-28-R1-REINICIO/playwright/
+          if-no-files-found: ignore
+          retention-days: 7
