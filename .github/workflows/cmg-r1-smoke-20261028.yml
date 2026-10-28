@@ -23,7 +23,20 @@ jobs:
       - name: Obtener catálogo de la misma rama
         run: |
           git clone --depth 1 --branch ccr-e19723cb-q1m72p https://github.com/JuanMaRobledo/Modelo-JMR-datos.git ../Modelo-JMR-datos
-      - name: Validar catálogo e integridad con sus contratos vigentes
+      - name: Diagnosticar enlaces de todo el catálogo sin cambiar datos
+        run: |
+          node - <<'JS'
+          const fs=require('fs'),root='../Modelo-JMR-datos/';
+          const c=JSON.parse(fs.readFileSync(root+'catalogo.json'));
+          for(const p of c.analisis){
+            const a=JSON.parse(fs.readFileSync(root+p));
+            if(!c.valoraciones.includes(a.linkedValuation?.sourcePath))
+              console.log('ENLACE SIN VALORACION:',p,'->',a.linkedValuation?.sourcePath);
+          }
+          JS
+      - name: Validar catálogo e integridad con contratos vigentes
+        id: gate
+        continue-on-error: true
         run: |
           node ../Modelo-JMR-datos/scripts/validar_catalogo.cjs
           node ../Modelo-JMR-datos/scripts/auditar_integridad.cjs
@@ -34,11 +47,21 @@ jobs:
       - name: Probar expediente, lector, visor y controles de revisión
         run: |
           python tests/cmg_reinicio_smoke.py
+      - name: Copiar capturas al workspace del workflow
+        if: always()
+        run: |
+          mkdir -p cmg-smoke-capturas
+          cp -n ../Modelo-JMR-datos/evidencia/CMG-2026-10-28-R1-REINICIO/playwright/* cmg-smoke-capturas/ 2>/dev/null || true
       - name: Registrar capturas de revisión local
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: cmg-r1-prueba-visual-solo-rama
-          path: ../Modelo-JMR-datos/evidencia/CMG-2026-10-28-R1-REINICIO/playwright/
+          path: cmg-smoke-capturas/
           if-no-files-found: ignore
           retention-days: 7
+      - name: Bloquear publicación mientras no pase el gate completo
+        if: steps.gate.outcome != 'success'
+        run: |
+          echo 'BLOQUEADO: catálogo global/validación no pasó aunque el smoke individual pudiera pasar.'
+          exit 1
