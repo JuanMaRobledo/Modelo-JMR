@@ -1,6 +1,6 @@
 # Reglas vigentes del Modelo JMR
 
-**Versión 16 · 28-oct-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
+**Versión 17 · 28-oct-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
 (`docs/prompts/*.md`), `METODOLOGIA.md`, una habilidad o un comentario de código dice otra cosa, prevalece este
 documento. Una regla nueva no se agrega como «regla del día X» en un prompt: se cambia aquí, se sube la versión y se
 anota en el registro de cambios del final.
@@ -75,6 +75,14 @@ anota en el registro de cambios del final.
 - **Salvedad NO bloqueante:** impacto máximo individual **<2 %** y total conservador **<3 %** del valor principal, sin cruzar la decisión/MOS y sin defecto crítico de identidades, fórmulas, unidades, moneda, fechas, deuda, acciones, tasas, escenarios o doble conteo. Los umbrales son política operativa JMR, no criterio estadístico ni aval a inventar ceros.
 - **Revisión material:** impacto igual o mayor a 2 % individual o 3 % acumulado, cruce de decisión, o efecto plausible sin límite verificable: no declarar completamente verificado; recalcular o corregir. Una incertidumbre cuantificada y material puede figurar como «VERIFICADO CON RESERVA MATERIAL», nunca como validado sin reserva. Un error estructural o de fuente crítica es **PENDIENTE**, aunque la estimación puntual dé impacto pequeño.
 - Estados por empresa y versión: **VERIFICADO**, **VERIFICADO CON RESERVA MATERIAL** o **PENDIENTE**. Las salvedades inmateriales son hallazgos *dentro* de VERIFICADO (no un estado eterno). Cada auditoría registra ID, causa, evidencia, `V_base`, alternativa, impacto individual y acumulado, decisión, si bloquea, motivo, responsable y prueba ejecutada/no ejecutada. No se marca «NO APLICA» algo que aplica, ni «VALIDADO» un candado cuyos requisitos técnicos sigan fallando. El dictamen distingue certificación aritmética, fuentes y juicio económico.
+
+### 4C. Calidad de la reinversión y compatibilidad financiera (versión 17)
+
+- El panel diagnóstico de `Supuestos Recomendados` se mantiene **dentro** de las 46 hojas oficiales Maestra, IA y Manual. Muestra relación promedio `Ventas/Capital`, S/C futuro, lag, reinversión año 1, `Reinversión/NOPAT`, reinversión indicativa lag 0, ROIC año 10/terminal y tasa terminal `g/ROIC`. Es un **control**, no modifica automáticamente las entradas ni el DCF. En plantillas en blanco las fórmulas deben quedar vacías hasta cargar una compañía, sin inyectar datos de MELI.
+- El analista nunca iguala automáticamente S/C medio al marginal, ni considera un FCFF negativo, `Reinversión/NOPAT > 100 %` o ROIC año 10 diferente al terminal como **error probado**. Requieren explicación contable, datos comparables y una prueba de materialidad antes de cambiar entradas.
+- En mixtas Commerce/Fintech/Crédito, conciliar préstamo/activos de clientes, fondeo de cartera, fondos y caja restringidos, provisiones, margen, capital regulatorio y financiamiento al pasar de EV a equity. Utilizar FCFE/ROE en negocios financieros cuando sea posible y SOTP por segmentos cuando existan datos fiables; si falta separación, documentar reserva material y no inventar asignaciones ni doble contar deuda y capital.
+- No cambiar el desfase de reinversión del DCF sin prueba causal. Una comparación del primer año con lag 0 es **solo indicativa**; una valoración alternativa exige recalcular diez años de FCFF y perpetuidad con el mismo alcance, moneda y corte. Conservar `Valor Base` original para medir el cambio y los umbrales de materialidad del §4B.
+- En valores existentes, la nueva alerta puede cambiar su **prioridad de revisión** pero NO reemplaza resultados históricos. Un cambio de supuestos genera una revisión nueva y separada con la misma secuencia: valoración y análisis preliminares `EN_REVISION`, revisión visual del usuario y luego, solo bajo solicitud, auditoría económica externa a la plantilla. Para A aplicar detalle de `METODO_A_JMR.md` §A.5.1; B histórico se preserva.
 
 ## 5. Múltiplos de salida
 
@@ -237,6 +245,7 @@ Hojas de trabajo conservadas tras el archivo del 24-oct-2026 (identidad document
 
 | Versión | Fecha | Cambio |
 |---|---|---|
+| 17 | 28-oct-2026 | §4C: control de calidad de reinversión, lag, S/C marginal y ROIC, puente de empresas híbridas y revisión versionada de legados; sin alterar motores DCF, versiones pasadas ni auditoría. |
 | 16 | 28-oct-2026 | Coexisten dos métodos de calibración: A (drivers/tasas base/ROIC) y B (instantánea íntegra de las reglas v15); cálculo, plantilla y auditoría permanecen compartidos. No hay recálculo de empresas ni cambio de motor. |
 | 15 | 28-oct-2026 | Plantillas oficiales reducidas de 61 a 46 pestañas; las auditorías se mantienen en Google Sheets independientes después de revisión visual. Se preservaron respaldos. Validación automática de perfil pendiente. |
 | 14 | 28-oct-2026 | PREF-02: coste esperado de híbridos, cupón separado y control de faltantes; respaldos y regresión. |
