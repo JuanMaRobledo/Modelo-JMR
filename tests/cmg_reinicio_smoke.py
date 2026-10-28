@@ -107,6 +107,13 @@ def main():
                 frame.get_by_text("Valor intrínseco principal", exact=False).first.wait_for()
                 assert "24,94" in frame.locator("body").inner_text() or "24.94" in frame.locator("body").inner_text()
                 checks.append("Expediente inicia en DCF Base")
+                precio_corte = frame.locator('#rPrecioAnalisis').inner_text(timeout=10000)
+                assert '31.95' in precio_corte or '31,95' in precio_corte, ('Precio del corte mal mostrado', precio_corte)
+                checks.append('Precio fechado 30-sep-2026 = USD 31,95, separado de cotización reciente')
+                notice = page.locator('#revisionNotice').inner_text()
+                assert 'EN REVISIÓN' in notice and 'PENDIENTE' in notice, ('Estado preliminar ambiguo', notice)
+                checks.append('Etiqueta EN REVISION sin auditoría económica anticipada')
+
                 page.screenshot(path=str(evidence / "expediente-dcf.png"), full_page=True)
                 page.locator('[data-view="analisis"]').click()
                 page.locator("#reviewPanel").wait_for(state="visible")
