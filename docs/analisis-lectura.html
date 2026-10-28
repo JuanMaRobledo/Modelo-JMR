@@ -59,6 +59,36 @@ h1{font:clamp(28px,4.2vw,47px)/1.16 Georgia,serif;margin:4px 0 6px}
 .flag-secondary{font-weight:600;font-size:12px;color:var(--ink-soft,#475569)}
 @media(max-width:700px){.reader-toc ol{columns:1}.valuation-hero .value{font-size:clamp(36px,10vw,58px)}}
 
+/* Cabecera financiera común: DCF/FCFE/SOTP principal, comparación de mercado y cuatro historias. */
+.valuation-hero{padding:0;overflow:hidden}
+.valuation-core{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(270px,1fr)}
+.valuation-main{padding:clamp(22px,3vw,38px);background:var(--surface,#fff)}
+.valuation-market{padding:clamp(22px,3vw,38px);border-left:1px solid var(--border,#ddd);background:var(--surface-2,#f1f5f9);display:flex;flex-direction:column;justify-content:center}
+.valuation-hero .eyebrow{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft,#475569)}
+.valuation-hero .value{font:750 clamp(40px,6vw,75px)/1.1 Georgia,serif;letter-spacing:-.035em;color:var(--ink,#0f172a);margin:12px 0 6px;overflow-wrap:anywhere}
+.valuation-hero .value small{display:block;font:600 12px/1.5 system-ui,Arial,sans-serif;letter-spacing:0;color:var(--ink-soft,#475569);margin-top:6px}
+.valuation-market .price{font:750 clamp(30px,3.7vw,49px)/1.18 Georgia,serif;letter-spacing:-.025em;margin:9px 0;overflow-wrap:anywhere}
+.valuation-market .price-note{font-size:12px;color:var(--ink-soft,#475569);line-height:1.55;margin:8px 0 0}
+.valuation-market .upside{display:inline-flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:12px;font-size:13px;font-weight:650}
+.valuation-market .upside strong{font-size:20px;color:var(--ink,#0f172a)}
+.valuation-market .upside strong.positive{color:var(--positive,#15803d)}
+.valuation-market .upside strong.negative{color:var(--negative,#b91c1c)}
+.valuation-section{padding:20px clamp(18px,3vw,38px);border-top:1px solid var(--border,#ddd)}
+.valuation-section h2{font-size:16px;line-height:1.3;font-weight:800;margin:0 0 14px}
+.scenario-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}
+.scenario-card{min-width:0;padding:14px 16px;border-radius:12px;border:1px solid var(--border,#ddd);background:var(--surface,#fff)}
+.scenario-card.is-base{border:2px solid var(--accent,#4f46e5);padding:13px 15px}
+.scenario-card .scenario-name{display:block;font-size:12px;font-weight:750;color:var(--ink-soft,#475569)}
+.scenario-card strong{display:block;font-size:clamp(19px,2.3vw,27px);line-height:1.25;letter-spacing:-.025em;margin:8px 0;overflow-wrap:anywhere}
+.scenario-card small{font-size:11px;color:var(--ink-soft,#475569);line-height:1.35;display:block}
+.valuation-footer{padding:14px clamp(18px,3vw,38px) 19px;border-top:1px solid var(--border,#ddd)}
+.valuation-footer .weighted{font-size:13px;display:flex;gap:8px 22px;flex-wrap:wrap;align-items:center}
+.valuation-footer .weighted strong{font-size:20px}
+.valuation-hero .note{font-size:12px;line-height:1.6;color:var(--ink-soft,#475569);margin:10px 0 0}
+@media(max-width:760px){.valuation-core{grid-template-columns:1fr}.valuation-market{border-left:0;border-top:1px solid var(--border,#ddd)}.scenario-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:380px){.scenario-grid{grid-template-columns:1fr 1fr;gap:7px}.scenario-card{padding:12px 10px}.scenario-card.is-base{padding:11px 9px}.scenario-card strong{font-size:18px}}
+
+
 [hidden]{display:none!important}
 @media(max-width:650px){.identity{align-items:flex-start;gap:11px}.logo{width:54px;height:54px;border-radius:11px;padding:4px}.reader{padding:18px}.reader h2{font-size:22px}.topbar{padding:12px 15px}}
 @media print{.topbar,.actions,.status,.bottom{display:none}body{background:white;color:black}.reader{border:0;box-shadow:none;padding:0}main{max-width:none;padding:0}}
@@ -177,27 +207,110 @@ function tableScroll(root){
     table.parentElement.insertBefore(wrap,table);wrap.append(table);
   });
 }
-async function valuationSnapshot(catalog){
-  // Inicio controlado por empresa: ADBE es la revisión piloto de conciliación.
-  if(ticker!=='ADBE')return;
+function officialNumber(x){
+  if(x===null||x===undefined||x==='')return null;
+  const n=Number(x);
+  return Number.isFinite(n)&&n>=0?n:null;
+}
+function moneyValue(n,currency){
+  if(n===null)return '—';
+  if(n>0&&n<0.005)return currency==='COP'?'Menos de COP 0,01':'Menos de US$ 0,01';
+  return (currency==='COP'?'COP ':'US$ ')+new Intl.NumberFormat('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2}).format(n);
+}
+function scenarioValues(v){
+  const histories=(v.valorEsperado&&Array.isArray(v.valorEsperado.historias)?v.valorEsperado.historias:
+    v.escenariosDCF&&Array.isArray(v.escenariosDCF.historias)?v.escenariosDCF.historias:
+    Array.isArray(v.escenariosDCF)?v.escenariosDCF:[]);
+  const byId={}; histories.forEach(h=>{if(h&&h.id)byId[h.id]=officialNumber(h.valor??h.value_usd);});
+  const dcf=(v.descuentoMultiples||{}).dcfHoy||{};
+  return {
+    conservador:byId.B??officialNumber(dcf.conservador),
+    base:officialNumber(v.valorPrincipal)??byId.A??officialNumber(dcf.base),
+    optimista:byId.D??officialNumber(dcf.optimista),
+    disrupcion:byId.C??officialNumber(v.valorEsperado?.disrupcionSeparada?.valor)
+  };
+}
+function labelMethod(v){
+  const method=String(v.metodoPrincipal||'DCF FCFF').trim();
+  return (/SOTP/i.test(method)?'SOTP':/FCFE/i.test(method)?'DCF FCFE':/DCF/i.test(method)?'DCF FCFF':method).slice(0,45);
+}
+async function refreshCurrentQuote(t,base,reference,currency){
+  const priceEl=el('jmrCurrentPrice'),labelEl=el('jmrPriceLabel'),
+    upsideEl=el('jmrUpside'),upsideLabel=el('jmrUpsideLabel'),noteEl=el('jmrMarketNote');
+  if(!priceEl||!labelEl||!upsideEl||!noteEl)return;
+  function setComparison(price,isCurrent){
+    labelEl.textContent=isCurrent?'Precio actual · último disponible':'Precio de referencia de la valoración';
+    priceEl.textContent=moneyValue(price,currency);
+    upsideLabel.textContent=isCurrent?'Potencial frente al precio actual':'Potencial frente al precio de referencia';
+    if(price!==null&&price>0){
+      const change=(base/price-1)*100;
+      upsideEl.textContent=(change>=0?'+':'−')+new Intl.NumberFormat('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2}).format(Math.abs(change))+'%';
+      upsideEl.className=change>=0?'positive':'negative';
+    }else{upsideEl.textContent='—';upsideEl.className='';}
+  }
+  setComparison(reference,false);
+  if(reference===null)noteEl.textContent='No hay precio de referencia verificable en esta valoración.';
+  try{
+    // El API de Vercel devuelve la última cotización disponible; no garantiza tiempo real ni mercado abierto.
+    const res=await fetch('/api/quotes?symbols='+encodeURIComponent(t),{cache:'no-store',credentials:'same-origin'});
+    if(!res.ok)throw new Error('Cotización no disponible');
+    const body=await res.json(),latest=officialNumber(body?.prices?.[t]);
+    if(latest===null||latest<=0)throw new Error('Precio no publicado por la fuente');
+    setComparison(latest,true);
+    const consulted=body.asOf&&Number.isFinite(Date.parse(body.asOf))?
+      new Date(body.asOf).toLocaleString('es-CO',{dateStyle:'medium',timeStyle:'short'}):'fecha no disponible';
+    noteEl.textContent='Fuente: '+String(body.source||'servicio de cotizaciones')+
+      ' · consultado: '+consulted+'. Último precio disponible, puede estar retrasado.';
+  }catch(_){
+    noteEl.textContent=(reference!==null?'No se obtuvo una cotización actual. Comparación con precio de referencia guardado.':
+      'No se pudo obtener una cotización actual ni un precio de referencia verificable.');
+  }
+}
+async function valuationSnapshot(catalog,analysis){
   const official=(catalog.valoraciones||[]).find(p=>typeof p==='string'&&/^valoraciones\/[A-Za-z0-9._-]+\.json$/.test(p)&&tickerOfPath(p)===ticker);
-  if(!official)throw new Error('ADBE no tiene valoración oficial asociada en el catálogo.');
+  if(!official)throw new Error('No hay valoración oficial para '+ticker+' asociada al catálogo.');
   const res=await fetch(ROOT+official.split('/').map(encodeURIComponent).join('/'),{cache:'no-store'});
-  if(!res.ok)throw new Error('La valoración oficial de Adobe no está disponible ('+res.status+').');
+  if(!res.ok)throw new Error('No se encontró la valoración oficial de '+ticker+' (HTTP '+res.status+').');
   const v=await res.json();
-  if(String(v.ticker||'').toUpperCase()!==ticker)throw new Error('La valoración publicada no corresponde a Adobe.');
-  const base=Number(v.valorPrincipal), expected=Number(v.valorEsperado&&v.valorEsperado.valor),price=Number(v.precioAnalisis??v.precio);
-  if(!Number.isFinite(base)||base<=0)throw new Error('El DCF Base no tiene un valor válido.');
+  if(String(v.ticker||'').toUpperCase()!==ticker)throw new Error('La valoración oficial no corresponde a '+ticker+'.');
+  const scenarios=scenarioValues(v),base=scenarios.base;
+  if(base===null||base<=0)throw new Error('El valor intrínseco Base publicado no es válido.');
+  const currency=String(v.currency||v.moneda||'USD').toUpperCase()==='COP'?'COP':'USD';
+  const price=officialNumber(v.precioAnalisis??v.precio);
+  const expected=officialNumber(v.valorEsperado?.valor);
+  const currentRevision=String(v.revisionId||v.publicationRevisionId||'').trim();
+  const analysisRevision=String(analysis?.valoracionRevisionId||analysis?.revisionId||'').trim();
+  const mismatch=!!(currentRevision&&analysisRevision&&currentRevision!==analysisRevision);
+  const noteRevision=mismatch?'Atención: el análisis y la valoración declaran revisiones distintas ('+
+    esc(analysisRevision)+' / '+esc(currentRevision)+'). Verifica la conciliación editorial.':'Valoración oficial '+esc(currentRevision||'sin identificador de revisión')+'.';
+  const names=[
+    ['Conservador','conservador','Escenario ordinario'],
+    ['Base','base','Valor central del modelo'],
+    ['Optimista','optimista','Escenario ordinario'],
+    ['Disrupción','disrupcion','Se muestra por separado; no entra al promedio']
+  ];
+  const rows=names.map(([name,key,sub])=>
+    '<div class="scenario-card'+(key==='base'?' is-base':'')+'"><span class="scenario-name">'+name+
+    '</span><strong>'+moneyValue(scenarios[key],currency)+'</strong><small>'+sub+'</small></div>').join('');
   const snapshot=el('valuationSnapshot');
-  snapshot.innerHTML='<div class="eyebrow">Valor intrínseco principal · DCF FCFF · escenario Base</div>'+
-    '<strong class="value">'+formatUSD(base)+' <small>por acción</small></strong>'+
-    '<div class="supporting">'+
-    '<div><span>Precio de referencia del análisis</span><strong>'+formatUSD(price)+'</strong></div>'+
-    '<div><span>Promedio ponderado de escenarios · secundario</span><strong>'+formatUSD(expected)+'</strong></div>'+
-    '<div><span>Escenario conservador · DCF hoy</span><strong>'+formatUSD(v.descuentoMultiples?.dcfHoy?.conservador)+'</strong></div>'+
-    '<div><span>Escenario optimista · DCF hoy</span><strong>'+formatUSD(v.descuentoMultiples?.dcfHoy?.optimista)+'</strong></div></div>'+
-    '<p class="note">Fuente: valoración oficial '+esc(v.revisionId||'')+'. El DCF Base es el valor central; la ponderación y los múltiplos no lo reemplazan. Precio de referencia histórico, no cotización en tiempo real.</p>';
+  snapshot.innerHTML=
+    '<div class="valuation-core">'+
+      '<div class="valuation-main"><div class="eyebrow">Valor intrínseco · '+esc(labelMethod(v))+' · escenario Base</div>'+
+        '<div class="value">'+moneyValue(base,currency)+'<small>por acción · valor central, no promedio de múltiplos</small></div></div>'+
+      '<div class="valuation-market"><div class="eyebrow" id="jmrPriceLabel">Precio de referencia de la valoración</div>'+
+        '<div class="price" id="jmrCurrentPrice">'+moneyValue(price,currency)+'</div>'+
+        '<div class="upside"><span id="jmrUpsideLabel">Potencial frente al precio de referencia</span>'+
+          '<strong id="jmrUpside">—</strong></div>'+
+        '<p class="price-note" id="jmrMarketNote">Precio del corte '+esc(String(v.precioReferenciaFecha||v.fecha||'sin fecha'))+
+          '. Consultando última cotización disponible…</p></div></div>'+
+    '<div class="valuation-section"><h2>Valor intrínseco por escenario</h2><div class="scenario-grid">'+rows+'</div></div>'+
+    '<div class="valuation-footer">'+
+      '<div class="weighted"><span>Promedio ponderado de escenarios (secundario)</span><strong>'+moneyValue(expected,currency)+'</strong></div>'+
+      '<p class="note">'+noteRevision+' Disrupción no se incluye en el promedio. '+
+      'El precio de mercado es orientativo y no modifica el valor intrínseco calculado ni los supuestos oficiales.</p></div>';
   snapshot.hidden=false;
+  // El artículo y el índice permanecen disponibles aunque falle el servicio de mercado.
+  refreshCurrentQuote(ticker,base,price,currency).catch(()=>{});
   const discount=v.descuentoMultiples||{}, methods=Array.isArray(discount.metodos)?discount.metodos:[];
   if(methods.length){
     const rows=methods.map(m=>{
@@ -207,11 +320,13 @@ async function valuationSnapshot(catalog){
       '<td class="flag-secondary">'+esc(w? 'Seleccionado en valoración':'Referencia sin ponderar'+(m.estado?' · '+m.estado:''))+'</td></tr>';
     }).join('');
     const box=el('multiplesSnapshot');
+    const sheet=safeUrl(v.hojaGoogle||'');
     box.innerHTML='<h2 id="multiplos-de-valoracion">Múltiplos de valoración · todos los métodos</h2>'+
-      '<p class="multiples-intro">Los precios a valor presente corresponden al promedio descontado de FY+1, FY+2 y FY+3 según la hoja. El precio al cierre de FY+3 es una cifra diferente. Ningún múltiplo sustituye el DCF Base principal.</p>'+
+      '<p class="multiples-intro">Los precios a valor presente corresponden al promedio descontado de FY+1, FY+2 y FY+3 según la hoja. El precio al cierre de FY+3 es una cifra diferente. Ningún múltiplo sustituye el valor intrínseco Base principal.</p>'+
       '<table><thead><tr><th>Método</th><th>Valor presente · Base</th><th>Precio FY+3 · Base</th><th>Peso vigente</th><th>Condición</th></tr></thead><tbody>'+
       rows+'</tbody></table>'+
-      '<p class="multiples-intro">Múltiplos consolidados a valor presente, escenario Base: <strong>'+formatUSD(discount.multiplesHoy?.base)+'</strong>. Comparación secundaria, no valor intrínseco central. <a href="'+esc(v.hojaGoogle||'')+'" target="_blank" rel="noopener noreferrer">Consultar hoja de valoración ↗</a></p>';
+      '<p class="multiples-intro">Múltiplos consolidados a valor presente, escenario Base: <strong>'+formatUSD(discount.multiplesHoy?.base)+'</strong>. Comparación secundaria, no valor intrínseco central.'+
+      (sheet?' <a href="'+esc(sheet)+'" target="_blank" rel="noopener noreferrer">Consultar hoja de valoración ↗</a>':'')+'</p>';
     box.hidden=false;tableScroll(box);
   }
 }
@@ -246,7 +361,7 @@ try{
     tableScroll(el('technical'));
     el('level2').hidden=false;
   }
-  try{await valuationSnapshot(catalog);}catch(e){
+  try{await valuationSnapshot(catalog,record);}catch(e){
     // El artículo sigue disponible aunque falle la conciliación de valoración.
     const note=document.createElement('p');
     note.className='status error';
