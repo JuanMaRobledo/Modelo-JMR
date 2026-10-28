@@ -1,5 +1,7 @@
 # PROMPT MAESTRO 1/3 — VALORACIÓN JMR · v5 · 21-OCT-2026
 
+**Selección de método (28-oct-2026):** antes de cualquier juicio sobre supuestos, identificar `metodo_valoracion = A|B` y `version_metodo`. Leer [`modelo/METODOS_VALORACION.md`](../../modelo/METODOS_VALORACION.md) y después [`modelo/METODO_A_JMR.md`](../../modelo/METODO_A_JMR.md) o [`modelo/METODO_B_JMR.md`](../../modelo/METODO_B_JMR.md). Método A usa drivers, outside view y controles conjuntos; Método B conserva el proceso tradicional. Compartir exclusivamente motores y controles del documento `modelo/REGLAS_VIGENTES.md`. Los estudios anteriores sin etiqueta son B; **nunca convertirlos a A silenciosamente**. Una valoración nueva sin método explícito debe indicar que se aplicará B por compatibilidad o solicitar selección antes de estimar. La existencia de esta instrucción **no equivale a un selector automático en la app**.
+
 **Alcance exclusivo:** valorar UNA empresa (una clase de acción, una fecha de corte) con criterio Damodaran. Este
 prompt no crea el análisis fundamental ni la auditoría. Debe dar el mismo resultado con cualquier modelo de lenguaje:
 todo lo necesario está escrito aquí y las herramientas son opcionales. Reglas de la casa con versión:
@@ -23,7 +25,8 @@ todo lo necesario está escrito aquí y las herramientas son opcionales. Reglas 
    historias, probabilidades ni textos de otra empresa; los comparables entran solo como comparables declarados.
 5. **Aritmética.** Muestra las fórmulas y verifica cada resultado clave dos veces (por ejemplo, el puente de valor
    operativo a valor por acción). Si un control no cuadra, dilo; no lo redondees para que cuadre.
-6. **Salida.** Entrega los bloques del paso 9 en el orden indicado. Al final, la ficha JSON del paso 9.10, que es la
+6. **Método y procedencia.** Junto a cada hipótesis material documentar el método A/B, la versión, la evidencia a favor y en contra, la fuente, la fecha y la razón de selección. Para A generar fichas de calibración por variable con cohortes y coherencia de drivers; para B aplicar los criterios intactos. En el expediente JSON guardar `metodo_valoracion` y `version_metodo` asociados a `revision_id`, `sheet_id`, `fecha_corte`.
+7. **Salida.** Entrega los bloques del paso 9 en el orden indicado. Al final, la ficha JSON del paso 9.10, que es la
    que leen los scripts del modelo.
 
 ## 1. Datos de entrada
