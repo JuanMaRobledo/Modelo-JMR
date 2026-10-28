@@ -29,13 +29,13 @@ Cada **nueva revisión** debe registrar al inicio en el expediente de valoració
   "revision_id": "TICKER-AAAAMMDD-R1",
   "fecha_corte": "AAAA-MM-DD",
   "metodo_valoracion": "A",
-  "version_metodo": "A-1.0",
+  "version_metodo": "A-1.1",
   "sheet_id": "ID_REAL_DE_LA_COPIA_DE_LA_PLANTILLA",
   "fuentes_supuestos": "Origen de los Supuestos y/o evidencia por revisión"
 }
 ```
 
-- Valores válidos: `A`/`A-1.0` o `B`/`B-15`. No se admiten etiquetas mixtas `A+B` en una sola revisión.
+- Para revisiones nuevas: `A`/`A-1.1` o `B`/`B-15`; se conserva `A`/`A-1.0` para expedientes anteriores. No se admiten etiquetas mixtas `A+B` en una sola revisión.
 - **Nuevas valoraciones:** escoger A o B explícitamente. Si no se indica cuál, el proceso **no debe inventarlo**; se conserva B como compatibilidad de herramientas anteriores, pero se informa la elección B antes de valorar. No se activa A silenciosamente.
 - **Revisiones previas sin campo:** interpretar como `B` legado para lectura y comparación, **sin reescribir archivos, resultados, estados ni auditorías**.
 - Toda ficha de A requiere trazabilidad de drivers, tasas base y coherencia según A. No basta declarar `A` en el JSON.
@@ -49,3 +49,7 @@ Para comparar una empresa usar mismo emisor, clase, fecha de corte, moneda, esta
 ## Puerta mínima de implementación
 
 Esta versión crea la normativa y la opción de selección **documental**. No se ha añadido un selector gráfico a la app ni se ha cambiado el cálculo en producción. Para automatizar el campo se requiere incorporar lectura y persistencia de `metodo_valoracion` al ejecutor y al catálogo, probar compatibilidad con expedientes legados, pasar regresión y autorizar la integración. Nunca declarar operativa una selección automática que no esté implementada y verificada.
+
+## Control A-1.1 de reinversión (28-oct-2026)
+
+Para toda revisión nueva A, completar y explicar el panel de reinversión del tab existente `Supuestos Recomendados` y el puente de financiaciones según `METODO_A_JMR.md` §A.5.1 y `REGLAS_VIGENTES.md` §4C. Las versiones históricas A-1.0 y B-15 conservan inputs y resultados originales. El panel compartido de las plantillas es preventivo y no constituye activación automática del método A, recálculo de empresas, ni auditoría económica.
