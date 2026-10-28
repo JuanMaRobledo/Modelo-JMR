@@ -103,7 +103,7 @@ Guardar **fuera de la plantilla y fuera de la auditoría**, por ticker/revisión
 ## A.11 Integración y comparación con B
 
 - Las valoraciones existentes sin etiqueta mantienen método **B (legado)**; no se recalculan.
-- En una valoración **nueva** consignar `metodo_valoracion: A`, `version_metodo: A-1.0`, `fecha_corte`, `revision_id`, `sheet_id` en el expediente/JSON. Si se comparan A y B para una empresa, dos revisiones o ejecuciones **aisladas**, con mismos datos y fecha de corte y copia de plantilla por método; no mezclar inputs A y B en una sola ficha vigente.
+- En una valoración **nueva** consignar `metodo_valoracion: A`, `version_metodo: A-1.1`, `fecha_corte`, `revision_id`, `sheet_id` en el expediente/JSON. Si se comparan A y B para una empresa, dos revisiones o ejecuciones **aisladas**, con mismos datos y fecha de corte y copia de plantilla por método; no mezclar inputs A y B en una sola ficha vigente.
 - Misma estructura oficial de 46 pestañas. La ficha A se registra en `Origen de los Supuestos` o evidencia externa del expediente, **no** añadiendo pestañas a la plantilla. Auditoría posterior, si la solicita el usuario, en un Google Sheets separado, sin cambiar los valores originales.
 - El estado `EN_REVISIÓN` exige controles técnicos vigentes; la nueva metodología **no está estadísticamente validada** hasta contar con seguimiento real suficiente.
 
