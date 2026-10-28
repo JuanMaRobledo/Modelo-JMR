@@ -1,6 +1,6 @@
 # MÉTODO A — Calibración fundamental basada en evidencia
 
-**Identificador:** `A` · **Versión:** `A-1.0` · **Fecha:** 28-oct-2026 · **Estado:** especificación normativa para nuevas valoraciones; todavía sin validación prospectiva.
+**Identificador:** `A` · **Versión:** `A-1.1` · **Fecha:** 28-oct-2026 · **Estado:** especificación normativa para nuevas valoraciones; todavía sin validación prospectiva.
 
 > Este es un método JMR alternativo de **estimación y justificación de supuestos**. Utiliza exactamente el mismo motor de valoración que el Método B (DCF/FCFE/SOTP según compañía, siete múltiplos, escenarios, MOS y control técnico). No modifica fórmulas de Google Sheets, selectores, fuentes contables ni las reglas operativas de publicación. Sus reglas particulares prevalecen sobre las recomendaciones de calibración del Método B; los controles comunes de `modelo/REGLAS_VIGENTES.md` prevalecen en cálculos, materialidad, seguridad y publicación.
 
@@ -46,6 +46,22 @@ Si faltan desgloses, emplear un puente top-down con mercado/cartera de pedidos y
 - `ROIC = NOPAT / Capital invertido` y `ROIC ≈ margen EBIT después de impuestos × (Ventas / Capital invertido)` son **chequeos de consistencia** para definiciones homogéneas. No inferir automáticamente ROIC incremental multiplicando margen por Sales-to-Capital marginal.
 - Estimar separadamente rentabilidad sobre capital existente y **RONIC** de inversión nueva cuando existan datos. Si capital invertido es negativo o casi nulo, no utilizar ratios distorsionados como calibradores.
 - La proyección debe explicar dónde se reinvierte cada incremento material y cómo produce crecimiento; comprobar que mayores ingresos exigen inversión o capacidad ociosa demostrada.
+
+
+### A.5.1 Regla operativa obligatoria de calibración de reinversión (A-1.1)
+
+La hoja `Supuestos Recomendados`, dentro de las 46 pestañas existentes, contiene un panel **diagnóstico** (sin valores empresariales en las plantillas en blanco). Para cada revisión A nueva, el analista debe registrar y comprobar lo siguiente antes de cerrar los supuestos:
+
+1. **Periodo y contabilidad comparables.** Calcular por separado `Ventas/Capital invertido` (cociente promedio meramente descriptivo) y `ΔIngresos/Reinversión asociada` o `ΔIngresos/ΔCapital invertido ajustado` (ratio marginal). Normalizar I+D, adquisiciones, arrendamientos, caja operativa y financiamiento, con los **mismos periodos y perímetros**; no aceptar una variación LTM contra doce meses no comparables. Divisiones por cero, capital negativo, cambios contables y cifras ausentes → N/D documentado, no cero.
+2. **Desfase explícito.** Identificar si la inversión del año n financia ventas de n o n+1. Probar los lags 0 y 1 **en copias de cálculo separadas**, manteniendo el resto de los supuestos, y comparar el valor presente de **todos** los flujos, incluido el terminal. El delta de reinversión del primer año es una señal y **NO** el cambio total en valoración; no elegir un lag porque aumente el precio.
+3. **Reinversión económica trazable.** Reconciliar `capex − D&A + ΔNWC no monetario + adquisiciones + inversión I+D capitalizada y otros ajustes necesarios` con reinversión prevista. El mecanismo debe explicar capacidad instalada, capex de mantenimiento/expansión, crecimiento en ingresos y adquisiciones. Un `FCFF < 0` o `reinv/NOPAT > 100%` es admisible en empresas en expansión: **requiere explicación y pruebas, no una corrección automática**.
+4. **ROIC/RONIC y terminal.** Mostrar ROIC actual, ROIC año 10, ROIC terminal y la diferencia; distinguir retorno sobre capital existente de marginal, y comprobar `reinversión estable = NOPAT × g/ROIC_terminal`, `g < WACC` y, cuando corresponda, `g < ROIC`. Una caída brusca en el año terminal puede ser un juicio válido, pero debe constar su causa y su impacto; no elevarlo sin evidencia competitiva.
+5. **Negocios híbridos que financian clientes o préstamos.** Antes de usar FCFF consolidado, identificar Commerce/Operaciones y Fintech/Crédito; separar ingresos, EBIT/provisiones, cartera de crédito, capital propio exigido, financiamiento fintech, fondos y caja restringida. Para actividades financieras puras usar FCFE/Ke y capital regulatorio/patrimonial cuando la información lo permita; para híbridas decidir un puente de segmentos económicamente consistente o SOTP. **No aplicar automáticamente FCFE bancario a toda fintech ni restar como deuda industrial la financiación crediticia y los fondos de clientes sin conciliar la contrapartida.** Evitar doble conteo al recomponer equity y WACC.
+6. **Discrepancias y relevancia.** Si el histórico marginal, el ratio implícito, el desfase o el puente financiero no se pueden justificar, registrar N/D y rango de impacto, señalando `POR_REVISAR_REINVERSION`. Aplicar los umbrales comunes de materialidad sobre escenarios alternativos completos y simultáneamente consistentes, **sin** sobrescribir una valoración ya publicada. Un dato insuficiente o una clasificación ambigua no autoriza retocar el DCF para subir su precio.
+
+**Flujo de corrección de legados:** identificar primero las empresas potencialmente afectadas, priorizar híbridas y casos con diferencias materiales; preservar `revision_id`, supuestos y valores originales; crear un nuevo expediente con nuevo corte y método explícito; mantenerlo `EN_REVISION` hasta la revisión visual; realizar auditoría económica independiente solamente después de que el usuario la solicite. Las plantillas no contienen pestañas de auditoría.
+
+**Documentos primarios:** Damodaran, *Looking Forward: Estimating Growth* (§Sales to Capital and ROIC), https://people.stern.nyu.edu/adamodar/pdfiles/papers/growth.pdf ; Damodaran, *Valuation Today* (§3 Sales to Invested Capital), https://pages.stern.nyu.edu/~adamodar/pdfiles/execs/val2day2023.pdf ; para híbridos usar también la conciliación de crédito/fondeo del emisor y la distinción FCFF/FCFE en https://pages.stern.nyu.edu/~adamodar/New_Home_Page/littlebook/bankvaluedriver.htm .
 
 ## A.6 Persistencia competitiva y valor terminal
 
