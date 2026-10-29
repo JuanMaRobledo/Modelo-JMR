@@ -253,7 +253,8 @@ function scenarioValues(v){
     const value=active??older??(savedHistorical?savedValue:null);
     result[key]=value;
     result.historical=result.historical||isHistoric;
-    result.incomplete=result.incomplete||active===null;
+    // Disrupción queda fuera del promedio ordinario; no lo bloquea si falta.
+    if(id!=='C')result.incomplete=result.incomplete||active===null;
     result.provenance[key]=isHistoric?'Referencia R4 · pendiente de recalcular en R5':
       active!==null?(id==='A'?'Valor central de la revisión actual':
         id==='C'?'Revisión actual · fuera del promedio':'Escenario de la revisión actual'):
