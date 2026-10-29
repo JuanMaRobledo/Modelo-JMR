@@ -179,3 +179,49 @@ test('catálogo muestra tarjetas clicables para las rutas oficiales y evita IDs 
   assert.doesNotMatch(html,/id="auditNotesPanel"/);
   assert.match(js,/jmr-audit-draft-v1:/,'notas antiguas recuperables');
 });
+
+test('lector de análisis muestra cuatro escenarios, tres referencias R4 y Base R5',()=>{
+  const reader=get('docs/analisis-lectura.html');
+  const marker='<script>\n(async function()';
+  const at=reader.indexOf(marker);
+  assert.ok(at>=0,'script del lector no encontrado');
+  const script=reader.slice(at+8,reader.indexOf('</script>',at));
+  const start=script.indexOf('function officialNumber(x){');
+  const end=script.indexOf('function labelMethod(v){',start);
+  assert.ok(start>=0&&end>start,'helpers de escenarios ausentes');
+  const values=new Function(script.slice(start,end)+';return scenarioValues;')();
+  const v={
+    valorPrincipal:287.20493379569007,
+    valorEsperado:{valor:null,historias:[
+      {id:'A',valor:287.20493379569007},
+      {id:'B',valor:null,referenciaHistoricaR4:218.95909260326206},
+      {id:'D',valor:null,referenciaHistoricaR4:475.95535696106674},
+      {id:'C',valor:null,referenciaHistoricaR4:125.92905008869238}
+    ]},
+    descuentoMultiples:{dcfHoy:{base:287.20493379569007}}
+  };
+  const result=values(v);
+  assert.equal(result.base,287.20493379569007);
+  assert.equal(result.conservador,218.95909260326206);
+  assert.equal(result.optimista,475.95535696106674);
+  assert.equal(result.disrupcion,125.92905008869238);
+  assert.equal(result.historical,true);
+  assert.equal(result.incomplete,true);
+  for(const key of ['conservador','optimista','disrupcion']){
+    assert.ok(result.provenance[key].includes('Referencia R4'));
+    assert.ok(result.provenance[key].includes('recalcular en R5'));
+  }
+  assert.ok(script.includes('expected=scenarios.incomplete?null:'));
+  assert.ok(script.includes('Pendiente de recalcular'));
+  assert.ok(script.includes('scenarios.provenance[key]'));
+  const other=values({valorPrincipal:90,valorEsperado:{historias:[
+    {id:'A',valor:90},{id:'B',valor:70},{id:'D',valor:110},{id:'C',valor:20}
+  ]}});
+  assert.equal(other.historical,false);
+  assert.equal(other.incomplete,false);
+  assert.equal(other.conservador,70);
+  const onlyDisruptionMissing=values({valorPrincipal:90,valorEsperado:{historias:[
+    {id:'A',valor:90},{id:'B',valor:70},{id:'D',valor:110}
+  ]}});
+  assert.equal(onlyDisruptionMissing.incomplete,false);
+});
