@@ -420,7 +420,11 @@ try{
   try{
     const currentValuation=await valuationSnapshot(catalog,record);
     // El suplemento persistido en el JSON oficial tiene prioridad. No duplicarlo.
-    if(window.JmrAnalysisDepth && !String(record.articleHtml||record.html||'').includes('data-jmr-depth=')){
+    const officialArticle=String(record.articleHtml||record.html||'');
+    const officialWords=officialArticle.replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim().split(/\s+/).filter(Boolean).length;
+    // Aplicar suplemento automático solo a informes breves y no ampliados.
+    // Los 17 estudios corregidos ya guardan su ampliación en el JSON oficial.
+    if(window.JmrAnalysisDepth && officialWords<2500 && !officialArticle.includes('data-jmr-depth=')){
       const expanded=JmrAnalysisDepth.render(record,currentValuation);
       if(expanded){
         const insert=document.createElement('div');
