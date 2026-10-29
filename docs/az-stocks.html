@@ -116,6 +116,13 @@ footer{padding:18px 0;color:var(--ink-faint);font-size:12px}
     <div><span class="az-pill">EN REVISIÓN</span> <span class="muted">28 oct 2026</span></div>
     <span class="az-card-open">Abrir ficha completa →</span>
   </a>
+  <a class="az-company-card" href="az-celh.html?ticker=CELH" data-ticker="CELH" data-name="Celsius Holdings" aria-label="Abrir ficha AZ Stocks de Celsius Holdings">
+    <div class="az-company-top"><span class="az-company-initials" aria-hidden="true">C</span><div><h2>Celsius Holdings</h2><p>NASDAQ: CELH · Bebidas energéticas</p></div></div>
+    <div><span class="label">DCF a perpetuidad · valor principal</span><div class="az-company-value">US$ 26,85</div></div>
+    <div class="az-card-meta"><span>Precio: US$ 27,98</span><span>Potencial −4,0%</span></div>
+    <div><span class="az-pill">EN REVISIÓN</span> <span class="muted">28 oct 2026</span></div>
+    <span class="az-card-open">Abrir ficha completa →</span>
+  </a>
  </div>
  <p id="az-no-search" class="az-no-search" hidden>No hay fichas que coincidan con esa búsqueda.</p>
  <p class="muted" style="margin-top:15px">Solo se muestran valoraciones AZ stocks creadas y disponibles; no se mezclan las fichas oficiales del Modelo JMR.</p>
@@ -258,11 +265,12 @@ footer{padding:18px 0;color:var(--ink-faint);font-size:12px}
   "use strict";
   var params=new URLSearchParams(location.search);
   var ticker=(params.get("ticker")||"").toUpperCase().trim();
+  if(ticker==="CELH"){location.replace("az-celh.html?ticker=CELH"+location.hash);return;}
   var catalog=document.getElementById("az-catalog"),dossier=document.getElementById("az-dossier");
   if(ticker==="MELI"){catalog.hidden=true;dossier.hidden=false;document.title="MELI · Ficha de valoración · AZ stocks";}
-  else if(ticker){document.getElementById("az-cards").hidden=true;var p=document.getElementById("az-no-search");p.hidden=false;p.textContent="No existe una ficha AZ stocks para "+ticker+". Volver a la biblioteca para consultar MELI.";}
-  var search=document.getElementById("az-search"),card=document.querySelector(".az-company-card");
-  search.addEventListener("input",function(){var show=/MELI|MERCADOLIBRE/i.test(search.value)||search.value.trim()==="";card.hidden=!show;document.getElementById("az-no-search").hidden=show;});
+  else if(ticker){document.getElementById("az-cards").hidden=true;var p=document.getElementById("az-no-search");p.hidden=false;p.textContent="No existe una ficha AZ stocks para "+ticker+". Volver a la biblioteca para consultar MELI o CELH.";}
+  var search=document.getElementById("az-search"),cards=Array.from(document.querySelectorAll(".az-company-card"));
+  search.addEventListener("input",function(){var term=search.value.trim().toLowerCase(),any=false;cards.forEach(function(card){var hay=(card.dataset.ticker+" "+card.dataset.name).toLowerCase();var show=!term||hay.indexOf(term)>=0;card.hidden=!show;if(show)any=true;});document.getElementById("az-no-search").hidden=any;});
   var tabs=Array.from(document.querySelectorAll("[data-az-tab]"));
   var views=Array.from(document.querySelectorAll("[data-az-view]"));
   var allowed=tabs.map(function(x){return x.dataset.azTab;});
