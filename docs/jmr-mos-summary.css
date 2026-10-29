@@ -16,3 +16,26 @@
 @media(max-width:1000px){.jmr-mos-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:600px){.jmr-mos-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.jmr-mos-metric{padding:10px}.jmr-mos-metric>strong{font-size:19px}}
 @media(max-width:360px){.jmr-mos-grid{grid-template-columns:1fr}}
+
+/* Jerarquía simple: tres precios y dos desplazamientos con el mismo denominador (precio de mercado). */
+.jmr-mos-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.jmr-mos-metric>strong{font-size:clamp(20px,2vw,28px)}
+.jmr-mos-comparisons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px}
+.jmr-mos-comparison{display:flex;flex-direction:column;gap:3px;padding:12px;border:1px solid var(--border,#dbe0db);border-radius:11px;min-width:0}
+.jmr-mos-comparison>span{font-size:12px;color:var(--ink-soft,#596b5f);line-height:1.5}
+.jmr-mos-comparison>strong{font-size:clamp(18px,1.7vw,24px);font-variant-numeric:tabular-nums}
+.jmr-mos-comparison>strong[data-tone="premium"]{color:var(--negative,#a43d37)}
+.jmr-mos-comparison>strong[data-tone="discount"]{color:var(--positive,#18794e)}
+.jmr-mos-comparison>small{font-size:11px;color:var(--ink-soft,#596b5f);line-height:1.5}
+.jmr-mos-scenarios{margin-top:16px;border-top:1px solid var(--border,#dbe0db);padding-top:14px}
+.jmr-mos-scenarios-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px 20px;flex-wrap:wrap;margin-bottom:10px}
+.jmr-mos-scenarios-head strong{font-size:14px}
+.jmr-mos-scenarios-head span{font-size:11px;color:var(--ink-soft,#596b5f)}
+.jmr-mos-story-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+.jmr-mos-story{display:flex;flex-direction:column;gap:4px;min-width:0;padding:11px 12px;border:1px solid var(--border,#dbe0db);border-radius:10px}
+.jmr-mos-story>span{font-size:12px;color:var(--ink-soft,#596b5f)}
+.jmr-mos-story>strong{font-size:clamp(16px,1.6vw,22px);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.jmr-mos-story>small{font-size:11px;color:var(--ink-soft,#596b5f);line-height:1.45}
+.jmr-mos-story.is-base{border-color:var(--accent,#347759)}
+@media(max-width:760px){.jmr-mos-story-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.jmr-mos-grid{grid-template-columns:1fr}.jmr-mos-comparisons{grid-template-columns:1fr}}
