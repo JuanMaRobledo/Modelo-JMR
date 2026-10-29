@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#101c31">
+<title>CELH · AZ Stocks · Valoración y análisis</title><meta name="description" content="Ficha independiente AZ Stocks de CELH: DCF de perpetuidad, salida EBITDA, reinversión, ROIC, sensibilidad y revisión visual.">
+<link rel="icon" href="favicon.ico"><link rel="manifest" href="manifest.json"><link rel="stylesheet" href="jmr-theme.css">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.55}
+main{max-width:1160px;margin:auto;padding:28px 20px 84px}
+h1,h2,h3,p{margin-top:0}
+h1{font-size:clamp(30px,5vw,50px);line-height:1.13;letter-spacing:-.035em;margin:10px 0}
+h2{font-size:22px;margin-bottom:14px}h3{font-size:15px;margin-bottom:8px}
+a{color:var(--accent)}
+.hero{padding:30px 30px 28px;border:1px solid var(--border-soft);background:var(--surface);border-radius:22px;box-shadow:var(--shadow)}
+.eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:800;color:var(--ink-faint)}
+.heading{display:flex;align-items:start;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.status{border:1px solid var(--border);color:var(--ink-soft);border-radius:100px;padding:6px 12px;font-size:12px;font-weight:750}
+.lead{max-width:72ch;color:var(--ink-soft);font-size:14px;margin:12px 0 22px}
+.big-value{font-size:clamp(38px,7vw,64px);font-weight:800;letter-spacing:-.05em;line-height:1.2;font-variant-numeric:tabular-nums}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.kpi{padding:16px;border-radius:14px;background:var(--surface-2);border:1px solid var(--border-soft)}
+.label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-faint)}
+.number{font-size:22px;font-weight:750;letter-spacing:-.035em;font-variant-numeric:tabular-nums}
+.positive{color:var(--positive)}
+.muted{color:var(--ink-soft);font-size:13px}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+.actions a{display:inline-flex;text-decoration:none;padding:11px 16px;border:1px solid var(--border);border-radius:10px;font-size:13px;font-weight:700;color:var(--ink)}
+.actions a.primary{background:var(--accent);border-color:var(--accent);color:white}
+.section{margin-top:26px;background:var(--surface);border:1px solid var(--border-soft);border-radius:18px;padding:22px;box-shadow:var(--shadow)}
+.section-intro{color:var(--ink-soft);font-size:14px}
+.tablewrap{width:100%;overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:690px;font-variant-numeric:tabular-nums}
+th,td{padding:12px 13px;border-bottom:1px solid var(--border-soft);text-align:right;vertical-align:middle}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;background:var(--surface-2);color:var(--ink-soft);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+td{font-size:13px}
+tr.base td{font-weight:800;background:var(--accent-soft)}
+.inline-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.assumption{padding:16px;background:var(--surface-2);border-radius:12px}
+.assumption strong{font-size:19px;display:block;margin:5px 0}
+.notice{border-left:3px solid #bd8b3d;padding:12px 16px;background:var(--surface-2);border-radius:4px;font-size:13px;color:var(--ink-soft)}
+details{border-top:1px solid var(--border-soft);padding:13px 0}
+summary{font-weight:700;cursor:pointer}
+.source-list{font-size:13px;line-height:1.8;padding-left:20px}
+footer{padding:18px 0;color:var(--ink-faint);font-size:12px}
+@media(max-width:800px){.kpis{grid-template-columns:repeat(2,1fr)}.inline-grid{grid-template-columns:1fr 1fr}.hero{padding:22px 18px}.section{padding:18px}}
+@media(max-width:530px){.kpis,.inline-grid{grid-template-columns:1fr 1fr}.number{font-size:19px}main{padding:18px 12px 50px}.section{padding:16px}h2{font-size:19px}}
+
+/* Fichas AZ stocks: se utiliza el mismo lenguaje visual de expediente JMR. */
+[hidden]{display:none!important}
+.az-library-head{display:flex;align-items:end;justify-content:space-between;gap:18px;flex-wrap:wrap}
+.az-search{display:grid;gap:5px;min-width:min(100%,260px);font-size:12px;font-weight:700;color:var(--ink-soft)}
+.az-search input,.review-form textarea,.review-form select{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--border);padding:11px 12px;border-radius:9px;width:100%}
+.az-search input:focus-visible,.az-tabs button:focus-visible,.review-form textarea:focus-visible,.review-form select:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.az-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,290px),1fr));gap:14px;margin-top:20px}
+.az-company-card{display:flex;flex-direction:column;gap:10px;border:1px solid var(--border);background:var(--surface);box-shadow:var(--shadow);border-radius:16px;padding:20px;color:var(--ink);text-decoration:none;min-height:240px;transition:transform .15s,border-color .15s}
+.az-company-card:hover,.az-company-card:focus-visible{transform:translateY(-2px);border-color:var(--accent)}
+.az-company-top{display:flex;align-items:center;gap:12px}
+.az-company-initials{display:grid;place-items:center;background:var(--accent-soft);border:1px solid var(--border-soft);color:var(--accent-ink);width:50px;height:50px;border-radius:12px;font-weight:900}
+.az-company-card h2{font-size:22px;margin:0;letter-spacing:-.015em}
+.az-company-card p{margin:0;color:var(--ink-soft);font-size:12px}
+.az-company-value{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.035em}
+.az-card-meta{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--ink-soft)}
+.az-card-open{margin-top:auto;font-size:13px;font-weight:750;color:var(--accent)}
+.az-breadcrumb{display:flex;align-items:center;gap:10px;margin:0 0 14px;font-size:13px;font-weight:650}
+.az-breadcrumb a{color:var(--ink-soft);text-decoration:none}
+.az-breadcrumb a:hover{text-decoration:underline}
+.az-tabs{position:sticky;top:0;z-index:4;display:flex;gap:8px;overflow-x:auto;white-space:nowrap;padding:11px 3px;margin:14px 0 20px;border-bottom:1px solid var(--border);background:var(--bg)}
+.az-tabs button{cursor:pointer;padding:11px 15px;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--ink-soft);font:700 13px system-ui,-apple-system,sans-serif;flex:none}
+.az-tabs button.active,.az-tabs button[aria-selected="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-ink)}
+.az-tabs button:hover{border-color:var(--accent)}
+.az-dossier-top{margin-top:0}
+.az-method-cards{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:12px;margin:16px 0}
+.az-method{border:1px solid var(--border-soft);border-radius:13px;padding:18px;background:var(--surface-2)}
+.az-method.primary{background:var(--accent-soft);border:2px solid var(--accent)}
+.az-method .number{margin-top:7px;display:block}
+.az-method .minor{font-size:12px;color:var(--ink-soft);display:block;margin-top:5px}
+.az-scenario-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0 18px}
+.az-scenario{padding:17px 16px;border:1px solid var(--border);border-radius:13px;background:var(--surface)}
+.az-scenario.base{border-color:var(--accent);background:var(--accent-soft)}
+.az-scenario .label{margin-bottom:5px}
+.az-scenario .number{font-size:25px}
+.az-two-col{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.az-analysis-card{border:1px solid var(--border-soft);padding:18px;border-radius:13px;background:var(--surface-2)}
+.az-analysis-card h3{font-size:16px}
+.az-analysis-card p{color:var(--ink-soft);font-size:14px;line-height:1.6;margin:0}
+.az-no-search{padding:20px;border:1px dashed var(--border);border-radius:12px;color:var(--ink-soft)}
+.review-form{display:grid;gap:14px}
+.review-fields{display:grid;grid-template-columns:minmax(180px,250px) minmax(0,1fr);gap:14px}
+.review-form label{font-size:13px;font-weight:700;display:grid;gap:8px}
+.review-form textarea{min-height:125px;resize:vertical;line-height:1.5}
+.review-buttons{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.review-buttons button{padding:10px 14px;cursor:pointer;font:700 13px system-ui;color:var(--ink);background:var(--surface);border:1px solid var(--border);border-radius:9px}
+.az-pill{font-size:12px;border:1px solid var(--border);padding:6px 10px;border-radius:999px;white-space:nowrap}
+@media(max-width:780px){.az-method-cards{grid-template-columns:1fr 1fr}.az-method.primary{grid-column:1/-1}.az-two-col{grid-template-columns:1fr}.review-fields{grid-template-columns:1fr}.az-scenario-cards{grid-template-columns:1fr 1fr}}
+@media(max-width:490px){.az-scenario-cards{grid-template-columns:1fr}.az-method-cards{grid-template-columns:1fr}.az-method.primary{grid-column:auto}.az-cards{grid-template-columns:1fr}.az-tabs{top:0}.az-tabs button{padding:10px 12px}}
+
+</style></head><body>
+<nav class="appnav" aria-label="Navegación principal JMR"></nav>
+<main><div class="az-breadcrumb"><a href="az-stocks.html">AZ stocks · Biblioteca</a><span aria-hidden="true">›</span><strong>Celsius Holdings · CELH</strong></div>
+<div class="az-tabs" role="tablist" aria-label="Secciones del expediente AZ Stocks de CELH">
+<button type="button" class="active" data-az-tab="valoracion" role="tab" aria-selected="true">Valoración</button>
+<button type="button" data-az-tab="analisis" role="tab" aria-selected="false">Análisis fundamental</button>
+<button type="button" data-az-tab="supuestos" role="tab" aria-selected="false">Supuestos</button>
+<button type="button" data-az-tab="sensibilidades" role="tab" aria-selected="false">Sensibilidades</button>
+<button type="button" data-az-tab="modelo" role="tab" aria-selected="false">Hojas del modelo</button>
+<button type="button" data-az-tab="revision" role="tab" aria-selected="false">Revisión visual</button></div>
+<section class="hero" data-az-view="valoracion"><div class="heading"><div><span class="eyebrow">AZ stocks · modelo independiente</span><h1>Celsius Holdings · CELH</h1><p class="lead">DCF a perpetuidad por FCFF de 10 años, con método de múltiplo de salida EV/EBITDA separado. Referencia contable: LTM junio de 2026. Cifras USD/acción; revisión AZ-CELH-20261028-R1.</p></div><span class="status">EN REVISIÓN</span></div>
+<div class="big-value">US$ 26,85</div><p class="muted">Valor intrínseco BASE · DCF perpetuidad, valor presente. Precio al 28-oct-2026: US$27,98. Potencial −4,0 %.</p>
+<div class="az-method-cards"><div class="az-method primary"><span class="label">Principal · DCF perpetuidad</span><strong class="number">US$ 26,85</strong><span class="minor">Perpetuidad g 3%, WACC 9,49%</span></div><div class="az-method"><span class="label">Salida múltiplo EBITDA</span><strong class="number">US$ 32,20</strong><span class="minor">13× EV/EBITDA terminal</span></div><div class="az-method"><span class="label">Combinado secundario</span><strong class="number">US$ 30,06</strong><span class="minor">40 % perpetuidad · 60 % múltiplo</span></div></div>
+<div class="az-scenario-cards"><div class="az-scenario"><span class="label">Pesimista</span><div class="number">US$ 11,09</div><span class="muted">DCF perpetuidad · −60,4 %</span></div><div class="az-scenario base"><span class="label">Base</span><div class="number">US$ 26,85</div><span class="muted">DCF perpetuidad · −4,0 %</span></div><div class="az-scenario"><span class="label">Optimista</span><div class="number">US$ 50,67</div><span class="muted">DCF perpetuidad · +81,1 %</span></div></div>
+<h3>Escenarios y métodos</h3><div class="tablewrap"><table><thead><tr><th>Escenario</th><th>DCF perpetuidad</th><th>DCF salida EV/EBITDA</th><th>Combinado AZ (secundario)</th></tr></thead><tbody>
+<tr><td>Optimista</td><td>US$50,67</td><td>US$65,85</td><td>US$59,78</td></tr><tr class="base"><td>Base</td><td>US$26,85</td><td>US$32,20</td><td>US$30,06</td></tr><tr><td>Pesimista</td><td>US$11,09</td><td>US$12,56</td><td>US$11,97</td></tr>
+</tbody></table></div><p class="muted">El peso 40/60 sigue el diseño de la ficha AZ; el DCF a perpetuidad permanece como medida principal. Los valores son una instantánea de la hoja fuente, no una cotización dinámica.</p>
+<div class="actions"><a class="primary" href="https://docs.google.com/spreadsheets/d/1XwrLhGg05F4qt63wkfqcdZpHE-SSz5PdPV6Lba9vptY/edit" target="_blank" rel="noopener noreferrer">Abrir cálculos AZ en Google Sheets</a><a href="az-stocks.html">Volver a biblioteca</a></div></section>
+<section class="section" data-az-view="analisis" hidden><h2>Análisis fundamental · CELH</h2><div class="az-two-col">
+<article class="az-analysis-card"><h3>Negocio y calidad</h3><p>Plataforma Celsius, Alani Nu y Rockstar, con mayor cobertura PepsiCo. La ventaja depende del poder de marca y productividad por punto de distribución, no solo de compras. Crecimiento proforma 1S26 aproximadamente 12 %, frente al 49,8 % reportado por consolidación.</p></article>
+<article class="az-analysis-card"><h3>Crecimiento y competencia</h3><p>El 2T26 proforma creció apenas 1,7 %. Celsius marca cayó 11,7 % en ventas, mientras Alani Nu expandió distribución. En el caso Base, el crecimiento parte de 8 % en el primer año, no del +50 % contable semestral, y se modera a 4,5 % al décimo año.</p></article>
+<article class="az-analysis-card"><h3>Márgenes operativos</h3><p>Margen bruto reportado 48,1 % en 2T26, 340 pb menos interanual. EBIT GAAP LTM ~US$160,3m; el puente de terminación de distribuidor eleva EBIT recurrente estimado a ~US$573,1m (18,8 %). El AZ Base modela 18,5 % a 19,5 % y converge a 19 % al año 10.</p></article>
+<article class="az-analysis-card"><h3>Financiación y preferentes</h3><p>Deuda convencional cercana a US$693m, caja US$631m y dos series de preferentes de Pepsi. Se descuenta un valor económico estimado de preferentes ~US$1.460m como reclamación adicional, en vez de ignorarlas o sumar sus acciones a comunes al mismo tiempo.</p></article>
+<article class="az-analysis-card"><h3>Reinversión económica</h3><p>AZ proyecta CAPEX entre 2,8 % y 2,4 % de ingresos, frente al CAPEX contable del 1S26 de US$25,0m, más Δcapital de trabajo; el gasto de marketing sigue dentro del EBIT. No incorpora adquisiciones adicionales, a diferencia de un Sales-to-Capital que incluya M&amp;A recurrente.</p></article>
+<article class="az-analysis-card"><h3>ROIC y riesgos</h3><p>ROIC normalizado aproximado 14,4 % sobre capital invertido, con trayectoria de 15 % en año1, 19,4 % año5 y 22,1 % año10 implícitos en AZ. Ese último nivel exige una mejora material de productividad: es la principal condición a contrastar con los resultados, además de WACC y terminal.</p></article>
+</div><div class="notice" style="margin-top:16px"><strong>Dictamen:</strong> Bajo AZ el precio de referencia US$27,98 es cercano al intrínseco Base US$26,85; no aparece una brecha de compra suficientemente amplia. Los resultados mejoran solo si se sostienen conjuntamente la recuperación de márgenes, rentabilidad del capital y ventaja de distribución. No se realizó auditoría económica final.</div></section>
+<section class="section" data-az-view="supuestos" hidden><h2>Supuestos Base · AZ Stocks</h2><div class="inline-grid">
+<div class="assumption"><span class="label">Ventas LTM jun-2026</span><strong>US$3.047,3m</strong><span class="muted">Perímetro con Alani Nu y Rockstar</span></div>
+<div class="assumption"><span class="label">Crecimiento años 1 / 10</span><strong>8 % / 4,5 %</strong><span class="muted">Año2 9 %, disminuye gradualmente</span></div>
+<div class="assumption"><span class="label">EBIT años 1 / 5 / 10</span><strong>18,5 / 19,5 / 19 %</strong><span class="muted">Partida normalizada LTM 18,8 %</span></div>
+<div class="assumption"><span class="label">NWC / ventas</span><strong>9 % inicial</strong><span class="muted">Converge a 8 % en año10</span></div>
+<div class="assumption"><span class="label">WACC / g terminal</span><strong>9,49 / 3,0 %</strong><span class="muted">WACC calculado con beta1,05 y ERP5 %</span></div>
+<div class="assumption"><span class="label">Múltiplo de salida</span><strong>13×</strong><span class="muted">EV/EBITDA hipótesis, no mediana validada</span></div></div>
+<div class="notice" style="margin-top:18px"><strong>Conciliación entre metodologías:</strong> la reinversión AZ del año1 es aproximadamente US$71m (CAPEX − D&amp;A + ΔNWC), lo que implica S/C incremental ~3,42, frente al 1,60 explícito JMR A-1.2. ROIC estimado pasa de 14,4 % a 22,1 % al año10 en AZ; esa mejora es plausible solo con mayor escala y disciplina de capital. El AZ no obliga a financiar nuevas adquisiciones.</div></section>
+<section class="section" data-az-view="sensibilidades" hidden><h2>Sensibilidades · DCF perpetuidad</h2><p class="section-intro">El motor nativo calcula matrices cruzadas de WACC y crecimiento terminal, y por separado WACC y múltiplo EV/EBITDA de salida. Se actualizan automáticamente al cambiar Inputs.</p>
+<div class="az-two-col"><div class="az-analysis-card"><h3>Costo de capital</h3><span class="number">9,49 %</span><p>La divergencia frente al JMR vigente (WACC inicial 7,30 %) explica una fracción sustancial de la diferencia de valor. La hoja permite variar ±1 y ±2 puntos porcentuales.</p></div><div class="az-analysis-card"><h3>Perpetuidad</h3><span class="number">g 3,00 %</span><p>El crecimiento terminal está por debajo del WACC. No confundir el ROIC terminal con un múltiplo de salida, ni trasladar un g de 4 % JMR sin actualizar la reinversión.</p></div></div>
+<div class="actions"><a class="primary" href="https://docs.google.com/spreadsheets/d/1XwrLhGg05F4qt63wkfqcdZpHE-SSz5PdPV6Lba9vptY/edit#gid=503251639" target="_blank" rel="noopener noreferrer">Abrir matrices en Outputs</a></div></section>
+<section class="section" data-az-view="modelo" hidden><h2>Hojas del modelo y trazabilidad</h2><p class="section-intro">Cinco pestañas AZ Stocks independientes; plantilla original y expediente JMR no fueron sobrescritos.</p><div class="inline-grid">
+<div class="assumption"><h3>Outputs</h3><p class="muted">Escenarios, DCF, múltiplos y matrices.</p></div>
+<div class="assumption"><h3>Inputs</h3><p class="muted">Crecimiento, márgenes, CAPEX, capital de trabajo y puente de ROIC.</p></div>
+<div class="assumption"><h3>Model</h3><p class="muted">10 años de flujos FCFF y su descuento.</p></div>
+<div class="assumption"><h3>Competitive Analysis</h3><p class="muted">Pares y evaluación cualitativa; ancla 13× pendiente de mediana empírica.</p></div>
+<div class="assumption"><h3>Ratios</h3><p class="muted">Ratios operativos y valoración derivados.</p></div></div><div class="actions"><a class="primary" href="https://docs.google.com/spreadsheets/d/1XwrLhGg05F4qt63wkfqcdZpHE-SSz5PdPV6Lba9vptY/edit" target="_blank" rel="noopener noreferrer">Abrir AZ Stocks — CELH</a></div></section>
+<section class="section" data-az-view="analisis" hidden><h2>Fuentes</h2><ul class="source-list"><li><a href="https://www.sec.gov/Archives/edgar/data/1341766/000134176626000050/celh-20260630.htm" target="_blank" rel="noopener noreferrer">SEC 10-Q junio2026, notas, balance y flujos</a></li><li><a href="https://ir.celsiusholdingsinc.com/news/news-details/2026/Celsius-Holdings-Reports-Second-Quarter-2026-Financial-Results/default.aspx" target="_blank" rel="noopener noreferrer">Celsius resultados 2T2026</a></li><li><a href="https://www.financecharts.com/stocks/CELH/summary/price" target="_blank" rel="noopener noreferrer">Precio de cierre CELH 28-oct-2026</a></li><li><a href="https://docs.google.com/spreadsheets/d/1XwrLhGg05F4qt63wkfqcdZpHE-SSz5PdPV6Lba9vptY/edit" target="_blank" rel="noopener noreferrer">Google Sheets AZ Stocks — CELH</a></li></ul><p class="muted">Este es un modelo reconstruido conforme al método general AZ Stocks, no una valoración emitida por su autor ni una certificación de sus supuestos.</p></section>
+<section class="section" data-az-view="revision" hidden><h2>Revisión visual · CELH</h2><p class="section-intro">Anota puntos para la auditoría independiente posterior. Borrador local: las observaciones no se sincronizan con GitHub ni con Google Sheets.</p>
+<form id="az-review-form" class="review-form"><div class="review-fields"><label>Estado<select id="az-review-state"><option value="EN_REVISION">En revisión</option><option value="LISTO">Listo para solicitar auditoría</option><option value="REHACER">Hay que rehacer</option></select></label><label>Observaciones<textarea id="az-review-notes" maxlength="12000" placeholder="Revisar WACC 9,49%, CAPEX 2,8%, ROIC 22,1% terminal, múltiplo 13×..."></textarea></label></div><div class="review-buttons"><button type="submit">Guardar borrador local</button><button type="button" id="az-copy-review">Copiar observaciones</button><span id="az-review-message" class="muted" role="status" aria-live="polite"></span></div></form><p class="muted">Referencia AZ-CELH-20261028-R1 · estado publicado EN_REVISION. El selector no inicia auditoría económica por sí mismo.</p></section>
+<footer>AZ stocks · CELH · 28-oct-2026 · independiente del Modelo JMR · Estimaciones sujetas a revisión.</footer></main>
+<script>(function(){"use strict";var ticker="CELH";var tabs=Array.from(document.querySelectorAll("[data-az-tab]")),views=Array.from(document.querySelectorAll("[data-az-view]"));function openTab(tab,update){if(!tabs.some(function(b){return b.dataset.azTab===tab}))tab="valoracion";tabs.forEach(function(b){var yes=b.dataset.azTab===tab;b.classList.toggle("active",yes);b.setAttribute("aria-selected",String(yes));b.tabIndex=yes?0:-1});views.forEach(function(s){s.hidden=s.dataset.azView!==tab});if(update)history.replaceState(null,"",location.pathname+"?ticker="+ticker+(tab==="valoracion"?"":"#"+tab))}tabs.forEach(function(b,i){b.addEventListener("click",function(){openTab(b.dataset.azTab,true)});b.addEventListener("keydown",function(e){if(e.key!=="ArrowLeft"&&e.key!=="ArrowRight")return;e.preventDefault();var x=(i+(e.key==="ArrowRight"?1:tabs.length-1))%tabs.length;tabs[x].focus();openTab(tabs[x].dataset.azTab,true)})});openTab(decodeURIComponent(location.hash.slice(1)),false);window.addEventListener("hashchange",function(){openTab(decodeURIComponent(location.hash.slice(1)),false)});var k="az-stocks:CELH:AZ-CELH-20261028-R1:revision",state=document.getElementById("az-review-state"),notes=document.getElementById("az-review-notes"),m=document.getElementById("az-review-message");try{var raw=localStorage.getItem(k);if(raw){var o=JSON.parse(raw);if(["EN_REVISION","LISTO","REHACER"].includes(o.status))state.value=o.status;notes.value=String(o.notes||"")}}catch(e){m.textContent="El almacenamiento local no está disponible."}document.getElementById("az-review-form").addEventListener("submit",function(e){e.preventDefault();try{localStorage.setItem(k,JSON.stringify({status:state.value,notes:notes.value,savedAt:new Date().toISOString()}));m.textContent="Borrador guardado en este navegador"}catch(err){m.textContent="No se pudo guardar localmente; usa Copiar observaciones"}});document.getElementById("az-copy-review").addEventListener("click",function(){var t="AZ stocks · CELH · AZ-CELH-20261028-R1\nEstado: "+state.value+"\nObservaciones:\n"+notes.value;if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){m.textContent="Observaciones copiadas"},function(){m.textContent="No se pudo copiar"})}else{notes.select();m.textContent="Selecciona y copia el texto"}})})();</script><script src="mercado.js"></script><script src="auth.js"></script></body></html>
