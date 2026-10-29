@@ -419,7 +419,8 @@ try{
   }
   try{
     const currentValuation=await valuationSnapshot(catalog,record);
-    if(window.JmrAnalysisDepth){
+    // El suplemento persistido en el JSON oficial tiene prioridad. No duplicarlo.
+    if(window.JmrAnalysisDepth && !String(record.articleHtml||record.html||'').includes('data-jmr-depth=')){
       const expanded=JmrAnalysisDepth.render(record,currentValuation);
       if(expanded){
         const insert=document.createElement('div');
