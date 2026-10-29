@@ -8,7 +8,7 @@ const el=id=>document.getElementById(id);
 const initialView=new URLSearchParams(location.search).get('seccion')==='analisis'?'analisis':'valoracion';
 const state={catalog:{valoraciones:[],analisis:[],auditorias:[]},files:[],ticker:'',view:initialView,ready:false,loc:null,reviewSha:null,reviewLoading:false,mosRequest:0};
 const TICKER=/^[A-Z0-9._-]{1,24}$/;
-function valid(x){x=String(x||'').trim().toUpperCase();return TICKER.test(x)?x:'';}
+function valid(x){x=String(x||'').trim().toUpperCase();if(x==='GOOG')x='GOOGL';return TICKER.test(x)?x:'';}
 function tickerFromName(x){return String(x||'').match(/^([A-Za-z0-9._]+)-/)?.[1]?.toUpperCase()||'';}
 function fromCatalog(arr,t){
   if(!Array.isArray(arr))return '';
