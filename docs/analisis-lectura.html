@@ -78,6 +78,8 @@ h1{font:clamp(28px,4.2vw,47px)/1.16 Georgia,serif;margin:4px 0 6px}
 .scenario-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}
 .scenario-card{min-width:0;padding:14px 16px;border-radius:12px;border:1px solid var(--border,#ddd);background:var(--surface,#fff)}
 .scenario-card.is-base{border:2px solid var(--accent,#4f46e5);padding:13px 15px}
+.scenario-card.is-historical{background:var(--surface-2,#f6f7f9);border-style:dashed}
+.scenario-card.is-historical small{font-weight:650}
 .scenario-card .scenario-name{display:block;font-size:12px;font-weight:750;color:var(--ink-soft,#475569)}
 .scenario-card strong{display:block;font-size:clamp(19px,2.3vw,27px);line-height:1.25;letter-spacing:-.025em;margin:8px 0;overflow-wrap:anywhere}
 .scenario-card small{font-size:11px;color:var(--ink-soft,#475569);line-height:1.35;display:block}
@@ -222,14 +224,43 @@ function scenarioValues(v){
   const histories=(v.valorEsperado&&Array.isArray(v.valorEsperado.historias)?v.valorEsperado.historias:
     v.escenariosDCF&&Array.isArray(v.escenariosDCF.historias)?v.escenariosDCF.historias:
     Array.isArray(v.escenariosDCF)?v.escenariosDCF:[]);
-  const byId={}; histories.forEach(h=>{if(h&&h.id)byId[h.id]=officialNumber(h.valor??h.value_usd);});
-  const dcf=(v.descuentoMultiples||{}).dcfHoy||{};
-  return {
-    conservador:byId.B??officialNumber(dcf.conservador),
-    base:officialNumber(v.valorPrincipal)??byId.A??officialNumber(dcf.base),
-    optimista:byId.D??officialNumber(dcf.optimista),
-    disrupcion:byId.C??officialNumber(v.valorEsperado?.disrupcionSeparada?.valor)
+  const byId=Object.fromEntries(histories.filter(h=>h&&h.id).map(h=>[h.id,h]));
+  // La ficha puede conservar los escenarios del modelo anterior como antecedentes.
+  // Nunca tratar una referencia histórica como un DCF calculado en la revisión actual.
+  const visible=Array.isArray(v.escenariosVisibles?.historias)?v.escenariosVisibles.historias:[];
+  const refs={
+    B:visible.find(h=>h.nombre==='Conservador'),
+    A:visible.find(h=>h.nombre==='Base'),
+    D:visible.find(h=>h.nombre==='Optimista'),
+    C:visible.find(h=>h.nombre==='Disrupción')
   };
+  const dcf=(v.descuentoMultiples||{}).dcfHoy||{};
+  const keys=[
+    ['B','conservador',dcf.conservador],
+    ['A','base',v.valorPrincipal??dcf.base],
+    ['D','optimista',dcf.optimista],
+    ['C','disrupcion',v.valorEsperado?.disrupcionSeparada?.valor]
+  ];
+  const result={provenance:{},historical:false,incomplete:false};
+  keys.forEach(([id,key,fallback])=>{
+    const story=byId[id];
+    const active=officialNumber(story?.valor??story?.value_usd)??officialNumber(fallback);
+    const older=officialNumber(story?.referenciaHistoricaR4);
+    const saved=refs[id];
+    const savedValue=officialNumber(saved?.valor);
+    const savedHistorical=/R4_REFERENCIA|NO_HOMOLOGADO/i.test(String(saved?.estado||''));
+    const isHistoric=active===null&&(older!==null||(savedHistorical&&savedValue!==null));
+    const value=active??older??(savedHistorical?savedValue:null);
+    result[key]=value;
+    result.historical=result.historical||isHistoric;
+    result.incomplete=result.incomplete||active===null;
+    result.provenance[key]=isHistoric?'Referencia R4 · pendiente de recalcular en R5':
+      active!==null?(id==='A'?'Valor central de la revisión actual':
+        id==='C'?'Revisión actual · fuera del promedio':'Escenario de la revisión actual'):
+      'Pendiente de cálculo';
+    if(id==='C'&&isHistoric)result.provenance[key]+=' · fuera del promedio';
+  });
+  return result;
 }
 function labelMethod(v){
   const method=String(v.metodoPrincipal||'DCF FCFF').trim();
@@ -280,7 +311,7 @@ async function valuationSnapshot(catalog,analysis){
   if(base===null||base<=0)throw new Error('El valor intrínseco Base publicado no es válido.');
   const currency=String(v.currency||v.moneda||'USD').toUpperCase()==='COP'?'COP':'USD';
   const price=officialNumber(v.precioAnalisis??v.precio);
-  const expected=officialNumber(v.valorEsperado?.valor);
+  const expected=scenarios.incomplete?null:officialNumber(v.valorEsperado?.valor);
   const currentRevision=String(v.revisionId||v.publicationRevisionId||'').trim();
   const analysisRevision=String(analysis?.valoracionRevisionId||analysis?.revisionId||'').trim();
   const mismatch=!!(currentRevision&&analysisRevision&&currentRevision!==analysisRevision);
@@ -293,8 +324,11 @@ async function valuationSnapshot(catalog,analysis){
     ['Disrupción','disrupcion','Se muestra por separado; no entra al promedio']
   ];
   const rows=names.map(([name,key,sub])=>
-    '<div class="scenario-card'+(key==='base'?' is-base':'')+'"><span class="scenario-name">'+name+
-    '</span><strong>'+moneyValue(scenarios[key],currency)+'</strong><small>'+sub+'</small></div>').join('');
+    '<div class="scenario-card'+(key==='base'?' is-base':'')+
+    (scenarios.provenance[key].startsWith('Referencia R4')?' is-historical':'')+
+    '"><span class="scenario-name">'+name+
+    '</span><strong>'+moneyValue(scenarios[key],currency)+'</strong><small>'+
+    esc(scenarios.provenance[key] || sub)+'</small></div>').join('');
   const snapshot=el('valuationSnapshot');
   snapshot.innerHTML=
     '<div id="jmrMosAnalysis" class="jmr-mos-summary" aria-label="Precio de compra con MOS 35% y comparación al mercado"></div>'+ 
@@ -309,8 +343,11 @@ async function valuationSnapshot(catalog,analysis){
           '. Consultando última cotización disponible…</p></div></div>'+
     '<div class="valuation-section"><h2>Valor intrínseco por escenario</h2><div class="scenario-grid">'+rows+'</div></div>'+
     '<div class="valuation-footer">'+
-      '<div class="weighted"><span>Promedio ponderado de escenarios (secundario)</span><strong>'+moneyValue(expected,currency)+'</strong></div>'+
-      '<p class="note">'+noteRevision+' Disrupción no se incluye en el promedio. '+
+      '<div class="weighted"><span>Promedio ponderado de escenarios (secundario)</span><strong>'+
+        (expected===null?'Pendiente de recalcular':moneyValue(expected,currency))+'</strong></div>'+
+      '<p class="note">'+noteRevision+' '+
+      (scenarios.historical?'Las cifras marcadas como R4 son antecedentes y NO se promedian con el DCF Base R5. ':
+        'Disrupción no se incluye en el promedio. ')+
       'El precio de mercado es orientativo y no modifica el valor intrínseco calculado ni los supuestos oficiales.</p></div>';
   snapshot.hidden=false;
   // El artículo y el índice permanecen disponibles aunque falle el servicio de mercado.
