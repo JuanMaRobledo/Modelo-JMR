@@ -86,6 +86,18 @@ h1{font:clamp(28px,4.2vw,47px)/1.16 Georgia,serif;margin:4px 0 6px}
 .valuation-footer{padding:14px clamp(18px,3vw,38px) 19px;border-top:1px solid var(--border,#ddd)}
 .valuation-footer .weighted{font-size:13px;display:flex;gap:8px 22px;flex-wrap:wrap;align-items:center}
 .valuation-footer .weighted strong{font-size:20px}
+/* Lectura de largo formato: suplemento económico documentado junto al artículo oficial. */
+.jmr-depth{border-top:2px solid var(--border,#ddd);margin-top:35px;padding-top:22px}
+.jmr-depth-intro{background:var(--surface-2,#f7f8fa);border-radius:12px;padding:17px 20px;margin-bottom:20px}
+.reader .jmr-depth-intro>h2{margin-top:0}
+.jmr-depth-section{margin-top:25px}
+.jmr-depth-section h2{font-size:clamp(19px,2.2vw,25px);line-height:1.25;margin:22px 0 13px}
+.jmr-depth-section p{max-width:85ch;line-height:1.8;margin:11px 0 17px}
+.jmr-depth-section table{width:100%;border-collapse:collapse;margin:16px 0;overflow-wrap:anywhere}
+.jmr-depth-section th,.jmr-depth-section td{padding:10px;border-bottom:1px solid var(--border,#ddd);text-align:left;vertical-align:top}
+.jmr-depth-section th{background:var(--surface-2,#f7f8fa)}
+.jmr-depth-section ul{padding-left:20px;line-height:1.7}
+@media(max-width:600px){.jmr-depth-intro{padding:14px}.jmr-depth-section table{font-size:12px}.jmr-depth-section th,.jmr-depth-section td{padding:8px 5px}}
 .valuation-hero .note{font-size:12px;line-height:1.6;color:var(--ink-soft,#475569);margin:10px 0 0}
 @media(max-width:760px){.valuation-core{grid-template-columns:1fr}.valuation-market{border-left:0;border-top:1px solid var(--border,#ddd)}.scenario-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:380px){.scenario-grid{grid-template-columns:1fr 1fr;gap:7px}.scenario-card{padding:12px 10px}.scenario-card.is-base{padding:11px 9px}.scenario-card strong{font-size:18px}}
@@ -96,6 +108,7 @@ h1{font:clamp(28px,4.2vw,47px)/1.16 Georgia,serif;margin:4px 0 6px}
 @media print{.topbar,.actions,.status,.bottom{display:none}body{background:white;color:black}.reader{border:0;box-shadow:none;padding:0}main{max-width:none;padding:0}}
 </style>
 <script src="jmr-mos-summary.js"></script>
+<script src="jmr-analysis-depth.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
 </head><body>
 <nav class="topbar" aria-label="Navegación"><strong>MODELO JMR · ANÁLISIS FUNDAMENTAL</strong><a id="back" href="expediente.html?seccion=analisis">Volver al expediente ↗</a></nav>
@@ -371,6 +384,7 @@ async function valuationSnapshot(catalog,analysis){
       (sheet?' <a href="'+esc(sheet)+'" target="_blank" rel="noopener noreferrer">Consultar hoja de valoración ↗</a>':'')+'</p>';
     box.hidden=false;tableScroll(box);
   }
+  return v;
 }
 
 try{
@@ -403,11 +417,23 @@ try{
     tableScroll(el('technical'));
     el('level2').hidden=false;
   }
-  try{await valuationSnapshot(catalog,record);}catch(e){
-    // El artículo sigue disponible aunque falle la conciliación de valoración.
+  try{
+    const currentValuation=await valuationSnapshot(catalog,record);
+    if(window.JmrAnalysisDepth){
+      const expanded=JmrAnalysisDepth.render(record,currentValuation);
+      if(expanded){
+        const insert=document.createElement('div');
+        renderContent(insert,expanded);
+        insert.dataset.revision=String(currentValuation.revisionId||'');
+        el('article').append(insert);
+        tableScroll(el('article'));
+      }
+    }
+  }catch(e){
+    // El artículo sigue disponible aunque falle la valoración o el suplemento.
     const note=document.createElement('p');
     note.className='status error';
-    note.textContent='No se pudo mostrar el resumen de valoración: '+e.message;
+    note.textContent='No se pudo mostrar el resumen y ampliación de valoración: '+e.message;
     el('article').before(note);
   }
   navigation();
