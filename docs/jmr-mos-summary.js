@@ -128,7 +128,7 @@
     ['upside','move-to-buy'].forEach(function(key){
       var el = container.querySelector('[data-mos="' + key + '"]');
       if (el) el.dataset.tone = calc[key === 'upside' ? 'upsideToIntrinsic' : 'moveToBuy'] === null ?
-        'neutral' : (key === 'upside' ? detailTone(-calc.gapIntrinsic) : detailTone(-calc.gapMOS));
+        'neutral' : (key === 'upside' ? detailTone(calc.gapIntrinsic) : detailTone(calc.gapMOS));
     });
     return calc;
   }
