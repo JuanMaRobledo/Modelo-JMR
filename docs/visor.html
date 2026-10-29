@@ -20,6 +20,8 @@
 <script src="gh_oauth.js"></script>
 <script src="jmr-audit-links.js?v=20261020"></script>
 <script src="valuation-board.js"></script>
+<script src="jmr-mos-summary.js"></script>
+<link rel="stylesheet" href="jmr-mos-summary.css">
 <script src="jmr-multiples-axes.js?v=20261018-realejes"></script>
 <script src="jmr-economic-multiples.js?v=20261018-justificados"></script>
 <script src="jmr-report-sheets.js?v=20261023-matrices"></script>
@@ -714,6 +716,8 @@
       </div>
     </div>
 
+    <section id="jmrMosVisor" class="jmr-mos-summary" aria-label="Valor intrínseco, precio de compra con MOS 35% y comparación de mercado" hidden></section>
+
     <div class="gh-row" style="margin:-4px 0 18px;">
       <button class="gh-btn" id="downloadPdfBtn" type="button" hidden>Descargar PDF</button>
       <span class="gh-status" id="downloadPdfStatus"></span>
@@ -1128,6 +1132,7 @@
   var currentResumen = null;
   var currentTicker = null;
   var currentPrecioAnalisis = null;
+  var currentLiveQuote = null;
   // Ruta en Modelo-JMR-datos de la valoración guardada que se está viendo
   // ahora mismo (null si lo que se ve viene de un Excel recién subido, sin
   // guardar todavía) — el PDF real solo puede generarse para una valoración
@@ -1414,9 +1419,35 @@
     elL.textContent = 'Precio con MOS sobre el DCF';
     if(d && typeof d.base === 'number' && isFinite(mos)) elM.textContent = fmtMoney(d.conservador*(1-mos)) + ' – ' + fmtMoney(d.base*(1-mos));
   }
+  // Encabezado financiero independiente del horizonte FY+3 y de las selecciones de múltiplos.
+  function renderMosHeader(){
+    var host = document.getElementById('jmrMosVisor');
+    if(!host || !currentResumen || typeof JmrMosSummary === 'undefined') return;
+    var latest = currentLiveQuote !== null;
+    var price = latest ? currentLiveQuote : currentPrecioAnalisis;
+    JmrMosSummary.render(host,currentResumen,{price:price,latest:latest,
+      source:latest?'cotización consultada por el visor':null});
+  }
+  // Consulta sin API key del usuario. Nunca presenta el precio almacenado como cotización en vivo.
+  async function refreshMosMarket(rec){
+    if(!rec || !rec.ticker || String(rec.currency||rec.moneda||'USD').toUpperCase()==='COP') return;
+    try{
+      var reply = await fetch('/api/quotes?symbols='+encodeURIComponent(rec.ticker),{cache:'no-store'});
+      if(!reply.ok) return;
+      var body = await reply.json(), q = Number(body && body.prices && body.prices[rec.ticker]);
+      if(currentResumen !== rec || !(q > 0) || !Number.isFinite(q)) return;
+      // Si FMP actualiza posteriormente, la misma cabecera se recalcula con ese precio.
+      currentLiveQuote = q;
+      var at = body.asOf && Number.isFinite(Date.parse(body.asOf)) ?
+        new Date(body.asOf).toLocaleString('es-CO',{dateStyle:'medium',timeStyle:'short'}):'fecha no disponible';
+      JmrMosSummary.render(document.getElementById('jmrMosVisor'),rec,
+        {price:q,latest:true,source:body.source||'servicio de cotizaciones',asOf:at});
+    }catch(_){/* El precio guardado sigue identificado como referencia. */}
+  }
   function renderHeadline(){
     if(!currentResumen) return;
     renderMosDcf();
+    renderMosHeader();
     renderValueBoard();
     // Valor esperado de las historias (sección Damodaran del análisis), junto al DCF.
     var veBox = document.getElementById('hlVE');
@@ -1625,6 +1656,7 @@
       '. Precio de hoy: ' + (fuentePrecio || 'guardado con la valoración') + '. Fuente del costo: ' + pos.fuente + '.';
   }
   function renderPriceCompare(precioAnalisis, precioHoy){
+    currentLiveQuote = (typeof precioHoy === "number" && isFinite(precioHoy) && precioHoy > 0) ? precioHoy : null;
     document.getElementById('rPrecioAnalisis').textContent = fmtMoney(precioAnalisis);
     document.getElementById('rPrecioHoy').textContent = fmtMoney(precioHoy);
     var cambioEl = document.getElementById('rCambio');
@@ -3330,6 +3362,7 @@
     currentResumen = rec;
     currentTicker = rec.ticker || null;
     renderHeadline();
+    refreshMosMarket(rec).catch(function(){});
     renderCrecimiento(rec.crecimientoImplicito);
     // Precarga lo que se haya escrito a mano en Cualitativo (incluida
     // Gobierno Corporativo) y en Análisis Fundamental la última vez que se
