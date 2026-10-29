@@ -76,13 +76,22 @@
   // DCF completo; tres historias ordinarias ponderadas y disrupción separada.
   function veFrom(v) {
     if (!v) return null;
-    var all = (v.historias || []).filter(function (x) { return num(x.valor) != null; });
-    var h = all.filter(function (x) { return ['A','B','D'].indexOf(x.id) >= 0; });
-    if (!h.length) return null;
-    var weighted = h.every(function(x){return num(x.probabilidad)!=null && x.probabilidad>=0;}), total = h.reduce(function(s,x){return s+(num(x.probabilidad)||0);},0);
+    var all = Array.isArray(v.historias) ? v.historias : [];
+    var h = all.filter(function(x){return x && ['A','B','D'].indexOf(x.id)>=0;});
+    if (!h.some(function(x){return num(x.valor)!=null;})) return null;
+    var dis = all.find(function(x){return x && x.id==='C';}) || null;
+    var incomplete = h.length !== 3 || h.some(function(x){return num(x.valor)===null;}) ||
+      (dis && num(dis.valor)===null);
+    var weighted = h.every(function(x){return num(x.probabilidad)!=null && x.probabilidad>=0;});
+    var total = h.reduce(function(s,x){return s+(num(x.probabilidad)||0);},0);
     weighted = weighted && total>0;
-    var average = h.length===3 ? h.reduce(function(s,x){return s+x.valor*(weighted?x.probabilidad/total:1/3);},0) : null;
-    return { valor: average, tipoPromedio: weighted?'ponderado':'aritmetico', fecha: v.fecha || '', historias: h, disrupcion: all.find(function(x){return x.id==='C';}) || null, escenariosUnificados: v.escenariosUnificados === true, historiaCentralId: v.historiaCentralId || 'A', dcfBaseTecnicoAnterior: num(v.dcfBaseTecnicoAnterior) };
+    var average = !incomplete ? h.reduce(function(s,x){
+      return s+x.valor*(weighted?x.probabilidad/total:1/3);
+    },0) : null;
+    return {valor:average,tipoPromedio:weighted?'ponderado':'aritmetico',fecha:v.fecha||'',
+      historias:h,disrupcion:dis,historiasPendientes:incomplete,
+      escenariosUnificados:v.escenariosUnificados===true,historiaCentralId:v.historiaCentralId||'A',
+      dcfBaseTecnicoAnterior:num(v.dcfBaseTecnicoAnterior)};
   }
   function histFrom(h) {
     if (!h || !Array.isArray(h.metodos)) return null;
@@ -422,9 +431,30 @@ function fromRecord(rec, extra) {
     var h = centralStory(d), values = d.ve.historias.map(function(x) { return x.valor; }), basis = mosBasis(d);
     return '<div class="jvb-ve">' + primaryHtml(d) + storiesTable(d) + '<div class="jvb-scen"><span>Rango <b>' + money(Math.min.apply(null, values)) + ' – ' + money(Math.max.apply(null, values)) + '</b></span>' + (d.mos != null ? '<span>MOS ' + pct(d.mos) + ' sobre ' + basis.label + ' <b>' + money(basis.value * (1-d.mos)) + '</b></span>' : '') + '</div>' + averageHtml(d) + stressHtml(d) + '<p class="jvb-venote">Cada historia se valora con un DCF completo. ' + (d.ve.valor == null ? 'Promedio pendiente: faltan valores de alguna de las tres historias. ' : 'El promedio usa exclusivamente Conservador, Base y Optimista; los pesos se renormalizan si hay probabilidades asignadas. ') + 'El MOS se aplica sobre ' + basis.label + '. El rango muestra desenlaces, no un intervalo de confianza.</p><details class="jvb-vedet"><summary>Referencia técnica de la hoja anterior</summary><p class="jvb-venote">Antiguo caso técnico Base de la hoja ' + money(d.ve.dcfBaseTecnicoAnterior != null ? d.ve.dcfBaseTecnicoAnterior : (d.dcf.hoy && d.dcf.hoy.base)) + '. Se conserva para calibrar el motor y los supuestos auxiliares de múltiplos; no representa la tesis Base.</p></details></div>';
   }
+  // Si la última revisión solo recalculó Base, seguir mostrando los cuatro
+  // escenarios con su procedencia. Nunca promediar valores de R4 con Base R5.
+  function pendingStoriesHtml(d) {
+    var ve=d.ve, all=(ve.historias||[]).concat(ve.disrupcion?[ve.disrupcion]:[]);
+    var names={A:'Base',B:'Conservador',C:'Disrupción',D:'Optimista'};
+    var rows=['B','A','D','C'].map(function(id){
+      var h=all.find(function(x){return x.id===id;});
+      if(!h)return '';
+      var val=num(h.valor),historic=num(h.referenciaHistoricaR4);
+      var amount=val!==null?val:historic;
+      var note=val!==null?'Revisión activa':'Referencia R4; pendiente de recalcular con cohortes R5';
+      var label=names[id]+(id==='C'?' · fuera del promedio':'');
+      return '<tr><td><b>'+esc(label)+'</b></td><td class="n">'+money(amount)+
+        '</td><td>'+esc(note)+'</td><td class="n">'+(val!==null?vsPrecio(val,d.precio):'—')+'</td></tr>';
+    }).join('');
+    return '<div class="jvb-ve"><h4>Cuatro escenarios de valoración</h4>' +
+      '<p class="jvb-venote">Solo el DCF Base pertenece a la revisión actual. Los restantes se muestran como referencias históricas identificadas; NO constituyen un conjunto homogéneo y no se publica un promedio.</p>'+
+      '<div class="jvb-tw"><table class="jvb-table"><thead><tr><th>Escenario</th><th>Valor por acción</th><th>Estado y procedencia</th><th>Potencial vs. precio</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+      '<p class="jvb-venote">La historia de Disrupción nunca entra al promedio de los tres escenarios ordinarios. El MOS se calcula exclusivamente sobre DCF Base.</p></div>';
+  }
   function veHtml(d) {
     var ve = d && d.ve;
     if (!ve) return '';
+    if (ve.historiasPendientes) return pendingStoriesHtml(d);
     if (unified(d)) return unifiedHtml(d);
     var dcf = d.dcf && d.dcf.hoy ? d.dcf.hoy.base : null;
     var letras = ve.historias.map(function (h) { return storyName(h).split(' · ')[0]; });

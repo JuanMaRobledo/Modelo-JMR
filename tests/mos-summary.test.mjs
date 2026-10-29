@@ -55,3 +55,25 @@ test('cabeceras de expediente, artículo y visor usan el mismo cálculo y fuente
   assert.match(visor,/renderMosHeader\(\)/);
   assert.match(js,/Precio guardado con la valoración; puede estar desactualizado/);
 });
+
+test('distancias al valor intrínseco y MOS usan el precio de hoy como denominador',()=>{
+  const f=summary();
+  const rec={descuentoMultiples:{dcfHoy:{base:287.20493379569007}}};
+  const x=f.calculate(rec,324.89);
+  assert.ok(Math.abs(x.upsideToIntrinsic-(x.base/324.89-1))<1e-12);
+  assert.ok(Math.abs(x.moveToBuy-(x.precioMOS/324.89-1))<1e-12);
+  assert.ok(x.upsideToIntrinsic<0&&x.moveToBuy<0);
+  assert.ok(Math.abs(x.gapIntrinsic-(324.89/x.base-1))<1e-12);
+  assert.ok(Math.abs(x.gapMOS-(324.89/x.precioMOS-1))<1e-12);
+  const cheap=f.calculate(rec,150);
+  assert.ok(cheap.upsideToIntrinsic>0&&cheap.moveToBuy>0);
+});
+test('escenarios históricos pendientes son visibles sin inventar promedio R5',()=>{
+  const js=get('docs/jmr-mos-summary.js');
+  const board=get('docs/valuation-board.js');
+  new Script(js);new Script(board);
+  assert.match(js,/Referencia R4 · sin recalcular en R5/);
+  assert.match(js,/Escenarios de valoración/);
+  assert.match(board,/return pendingStoriesHtml\(d\)/);
+  assert.match(board,/no se publica un promedio/);
+});
