@@ -1,0 +1,18 @@
+/* Cabecera de valor JMR: compartida entre expediente, análisis y visor. */
+.jmr-mos-summary{margin:0;border-block:1px solid var(--border,#dbe0db);background:var(--surface,#fff);padding:17px clamp(15px,2.2vw,25px);color:var(--ink,#182e29)}
+.jmr-mos-summary[hidden]{display:none!important}
+.jmr-mos-heading{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:7px 18px;margin-bottom:13px}
+.jmr-mos-heading strong{font-size:16px;letter-spacing:-.015em}
+.jmr-mos-heading span{font-size:12px;color:var(--ink-soft,#617064)}
+.jmr-mos-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.jmr-mos-metric{display:grid;align-content:start;gap:3px;padding:12px;background:var(--surface-2,#f5f7f4);border:1px solid var(--border,#dbe0db);border-radius:11px;min-width:0}
+.jmr-mos-metric>span{font-size:11.5px;line-height:1.35;color:var(--ink-soft,#596b5f)}
+.jmr-mos-metric>strong{font-size:clamp(17px,1.7vw,23px);line-height:1.25;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.jmr-mos-metric>small{font-size:11px;line-height:1.45;color:var(--ink-soft,#596b5f)}
+.jmr-mos-target{background:color-mix(in srgb,var(--accent,#347759) 7%,var(--surface,#fff));border-color:var(--accent,#347759)}
+.jmr-mos-metric>small[data-tone="premium"]{color:var(--negative,#a43d37)}
+.jmr-mos-metric>small[data-tone="discount"]{color:var(--positive,#18794e)}
+.jmr-mos-source{margin:10px 0 0;font-size:11px;line-height:1.5;color:var(--ink-soft,#647068)}
+@media(max-width:1000px){.jmr-mos-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:600px){.jmr-mos-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.jmr-mos-metric{padding:10px}.jmr-mos-metric>strong{font-size:19px}}
+@media(max-width:360px){.jmr-mos-grid{grid-template-columns:1fr}}

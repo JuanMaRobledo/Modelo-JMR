@@ -6,7 +6,7 @@ const RAW='https://raw.githubusercontent.com/'+ROOT+'/main/';
 const CONTENTS='https://api.github.com/repos/'+ROOT+'/contents/';
 const el=id=>document.getElementById(id);
 const initialView=new URLSearchParams(location.search).get('seccion')==='analisis'?'analisis':'valoracion';
-const state={catalog:{valoraciones:[],analisis:[],auditorias:[]},files:[],ticker:'',view:initialView,ready:false,loc:null,reviewSha:null,reviewLoading:false};
+const state={catalog:{valoraciones:[],analisis:[],auditorias:[]},files:[],ticker:'',view:initialView,ready:false,loc:null,reviewSha:null,reviewLoading:false,mosRequest:0};
 const TICKER=/^[A-Z0-9._-]{1,24}$/;
 function valid(x){x=String(x||'').trim().toUpperCase();return TICKER.test(x)?x:'';}
 function tickerFromName(x){return String(x||'').match(/^([A-Za-z0-9._]+)-/)?.[1]?.toUpperCase()||'';}
@@ -139,10 +139,41 @@ function pages(t){
   };
 }
 
+// Se muestra por encima de las pestañas, siempre vinculado al JSON oficial del catálogo.
+// Nunca usa una revisión distinta ni convierte una cotización guardada en precio «actual».
+async function loadMosSummary(t,p,requestId){
+  const host=el('mosSummary');
+  if(!p.valPath||typeof JmrMosSummary==='undefined')return;
+  let rec;
+  try{
+    rec=await fetchJSON(RAW+p.valPath);
+    if(state.ticker!==t||state.mosRequest!==requestId)return;
+    if(rec.ticker&&String(rec.ticker).toUpperCase()!==t)throw new Error('Ticker diferente del catálogo');
+    const reference=Number(rec.precioAnalisis??rec.precio);
+    const validRef=Number.isFinite(reference)&&reference>0?reference:null;
+    const summary=JmrMosSummary.render(host,rec,{price:validRef,latest:false});
+    if(!summary)return;
+    // Un precio COP no se compara con una cotización USD. La API solo se usa en fichas USD.
+    if(String(rec.currency||rec.moneda||'USD').toUpperCase()==='COP')return;
+    try{
+      const resp=await fetch('/api/quotes?symbols='+encodeURIComponent(t),{cache:'no-store',credentials:'same-origin'});
+      if(!resp.ok)throw new Error('Sin cotización');
+      const body=await resp.json(),last=Number(body?.prices?.[t]);
+      if(state.ticker!==t||state.mosRequest!==requestId)return;
+      if(Number.isFinite(last)&&last>0){
+        const at=body.asOf&&Number.isFinite(Date.parse(body.asOf))?
+          new Date(body.asOf).toLocaleString('es-CO',{dateStyle:'medium',timeStyle:'short'}):'fecha no disponible';
+        JmrMosSummary.render(host,rec,{price:last,latest:true,source:body.source||'API de cotizaciones',asOf:at});
+      }
+    }catch(_){/* Se conserva explícitamente el precio de referencia del estudio. */}
+  }catch(_){if(state.ticker===t&&state.mosRequest===requestId)host.hidden=true;}
+}
+
 function openCompany(input){
   const t=valid(input);
   if(!t){status('Ticker inválido. Usa letras, números, punto, guion o subrayado.','error');return;}
-  state.ticker=t;state.loc=null;state.reviewSha=null;el('ticker').value=t;
+  state.ticker=t;state.loc=null;state.reviewSha=null;const mosRequest=++state.mosRequest;el('ticker').value=t;
+  el('mosSummary').hidden=true;
   renderCatalogCards();
   el('reviewPanel').hidden=true;
   el('reviewSaveStatus').textContent='';
@@ -163,6 +194,7 @@ function openCompany(input){
   el('dossier').hidden=false;el('empty').hidden=true;
   el('sheetLink').hidden=false;el('sheetLink').href=p.supuestos.href;
   readAuditNotes(t);
+  loadMosSummary(t,p,mosRequest).catch(()=>{});
   const first=p.valPath?'valoracion': 'analisis';
   showView(state.view&&p[state.view]?state.view:first);
   if(!p.official)status(t+' · Sin entrada oficial completa de valoración en catálogo; consulta disponible con reservas.','warning');
