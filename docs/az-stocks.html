@@ -130,6 +130,13 @@ footer{padding:18px 0;color:var(--ink-faint);font-size:12px}
     <div><span class="az-pill">EN REVISIÓN</span> <span class="muted">28 oct 2026</span></div>
     <span class="az-card-open">Abrir ficha completa →</span>
   </a>
+  <a class="az-company-card" href="az-bsx.html?ticker=BSX" data-ticker="BSX" data-name="Boston Scientific" aria-label="Abrir ficha AZ Stocks de Boston Scientific">
+    <div class="az-company-top"><span class="az-company-initials" aria-hidden="true">B</span><div><h2>Boston Scientific</h2><p>NYSE: BSX · Dispositivos médicos</p></div></div>
+    <div><span class="label">DCF perpetuidad · valor principal</span><div class="az-company-value">US$ 36,11</div></div>
+    <div class="az-card-meta"><span>Precio: US$ 42,43</span><span>Potencial −14,9%</span></div>
+    <div><span class="az-pill">EN REVISIÓN</span> <span class="muted">28 oct 2026</span></div>
+    <span class="az-card-open">Abrir ficha completa →</span>
+  </a>
  </div>
  <p id="az-no-search" class="az-no-search" hidden>No hay fichas que coincidan con esa búsqueda.</p>
  <p class="muted" style="margin-top:15px">Solo se muestran valoraciones AZ stocks creadas y disponibles; no se mezclan las fichas oficiales del Modelo JMR.</p>
@@ -274,9 +281,10 @@ footer{padding:18px 0;color:var(--ink-faint);font-size:12px}
   var ticker=(params.get("ticker")||"").toUpperCase().trim();
   if(ticker==="CELH"){location.replace("az-celh.html?ticker=CELH"+location.hash);return;}
   if(ticker==="ADBE"){location.replace("az-adbe.html?ticker=ADBE"+location.hash);return;}
+  if(ticker==="BSX"){location.replace("az-bsx.html?ticker=BSX"+location.hash);return;}
   var catalog=document.getElementById("az-catalog"),dossier=document.getElementById("az-dossier");
   if(ticker==="MELI"){catalog.hidden=true;dossier.hidden=false;document.title="MELI · Ficha de valoración · AZ stocks";}
-  else if(ticker){document.getElementById("az-cards").hidden=true;var p=document.getElementById("az-no-search");p.hidden=false;p.textContent="No existe una ficha AZ stocks para "+ticker+". Volver a la biblioteca para consultar MELI, CELH o ADBE.";}
+  else if(ticker){document.getElementById("az-cards").hidden=true;var p=document.getElementById("az-no-search");p.hidden=false;p.textContent="No existe una ficha AZ stocks para "+ticker+". Volver a la biblioteca para consultar MELI, CELH, ADBE o BSX.";}
   var search=document.getElementById("az-search"),cards=Array.from(document.querySelectorAll(".az-company-card"));
   search.addEventListener("input",function(){var term=search.value.trim().toLowerCase(),any=false;cards.forEach(function(card){var hay=(card.dataset.ticker+" "+card.dataset.name).toLowerCase();var show=!term||hay.indexOf(term)>=0;card.hidden=!show;if(show)any=true;});document.getElementById("az-no-search").hidden=any;});
   var tabs=Array.from(document.querySelectorAll("[data-az-tab]"));
