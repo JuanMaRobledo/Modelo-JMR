@@ -1,10 +1,12 @@
-const CACHE = "modelo-jmr-v185-indice-unico-20261027";
+const CACHE = "modelo-jmr-v186-mos35-20261029";
 const APP_SHELL = [
   "catalog-reset.js",
   "index.html",
   "bitacora-terceros.html",
   "expediente.html",
   "expediente.js",
+  "jmr-mos-summary.js",
+  "jmr-mos-summary.css",
   "analisis-lectura.html",
   "colombia.html",
   "colombia/app.js",
