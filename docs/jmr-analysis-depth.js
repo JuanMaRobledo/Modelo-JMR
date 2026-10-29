@@ -64,7 +64,7 @@ function render(analysis,v){
  const prof=PROFILES[t]||fallback,s=(v.revisionSupuestos&&typeof v.revisionSupuestos==='object'&&!Array.isArray(v.revisionSupuestos))?v.revisionSupuestos:{};
  const price=pick(v,['precioAnalisis','precio']),value=pick(v,['valorPrincipal']);
  const mos=norm(v.precioMOS)??(norm(value)!==null?value*0.65:null);
- const isBank=/FCFE|bank|banc|financiero/i.test(String(v.metodoPrincipal||'')+' '+String(v.tipo||'')),method=isBank?'FCFE de capital bancario':'FCFF empresarial';
+ const isHolding=/SOTP|holding|nav/i.test(String(v.metodoPrincipal||'')+' '+String(v.tipo||'')),isBank=!isHolding&&/FCFE|bank|banc|financiero/i.test(String(v.metodoPrincipal||'')+' '+String(v.tipo||'')),method=isHolding?'SOTP de participaciones':isBank?'FCFE de capital bancario':'FCFF empresarial';
  const rev=String(v.revisionId||v.revision_id||'revisión activa'),h=(v.valorEsperado?.historias||[]);
  const scenarios=['B','A','D','C'].map(id=>{
    const x=h.find(z=>z&&z.id===id)||{};
@@ -80,7 +80,7 @@ function render(analysis,v){
  const trajectory=Array.isArray(s.crecimientoBase)?s.crecimientoBase:Array.isArray(s.crecimientoAnios)?s.crecimientoAnios:Array.isArray(s.growthBase)?s.growthBase:null;
  const margin=pick(s,['margenEBITAjusRND','margenEBITAno10','ebitMarginTarget','margenEBITObjetivo','margenEBITObjetivoAno10','margenEBITAjusRND']);
  const capex=pick(s,['capexLtmMillones','capexPPEAndSoftwareUSDm','capexLtmUSDm']);
- const cfo=pick(s,['cfoLtmMillones','cfoFY26USDm','ltmCFO_DKKm']);
+ const cfo=pick(s,['cfoLtmMillones','cfoFY26USDm']);
  const FCF=pick(s,['fcfLtmMillones','fcffLtmObservadoMillones']);
  const reinv=pick(s,['reinvY1USDm','reinvestmentYear1USDm','reinversionAnio1USDm','reinvestmentYear1USDm','reinvestmentYear1USDm']);
  const ebit=pick(s,['ebitGaapLtmMillones','ebitGAAPLtmMillones','ebitGAAPFY26USDm']);
@@ -110,7 +110,7 @@ function render(analysis,v){
  p('Un margen ascendente es defendible cuando existe una razón operativa: mezcla más rentable, productividad, costos fijos que crecen por debajo de las ventas o menor gasto de adquisición por cliente. No basta con escoger un margen que lleve al valor deseado. Tampoco debe atribuirse al crecimiento de IA o de una nueva línea el mismo margen que el negocio histórico sin considerar soporte, energía, infraestructura, garantías y mantenimiento.')+
  p('La evaluación más útil consiste en escribir qué se sacrifica para llegar al margen objetivo: si aumenta el esfuerzo comercial o la amortización de activos, el EBIT puede crecer menos que las ventas. También interesa contrastar beneficio neto por acción con EBIT y FCFF; recompras o beneficios financieros extraordinarios pueden producir EPS favorable sin mejorar la rentabilidad operacional.'));
  out+=section('D. Reinversión, capital requerido y demora de monetización',
- p('El crecimiento requiere un denominador: activos tangibles e intangibles, capital de trabajo, adquisiciones y capital regulatorio donde corresponda. '+(isBank?'Aquí la restricción decisiva es la retención de patrimonio que permite aumentar activos ponderados por riesgo. No se debe restar a la utilidad bancaria un CapEx industrial ficticio ni tratar depósitos como deuda empresarial ordinaria.':
+ p('El crecimiento requiere un denominador: activos tangibles e intangibles, capital de trabajo, adquisiciones y capital regulatorio donde corresponda. '+(isHolding?'La cartera de participaciones y la deuda de matriz deben reconciliarse sin sumar dos veces los activos subyacentes. El valor de una subsidiaria no es automáticamente flujo libre distribuible al accionista de la holding.':isBank?'Aquí la restricción decisiva es la retención de patrimonio que permite aumentar activos ponderados por riesgo. No se debe restar a la utilidad bancaria un CapEx industrial ficticio ni tratar depósitos como deuda empresarial ordinaria.':
  'Para una compañía no financiera, la reinversión se reconcilia con CapEx neto de depreciación, aumento de capital de trabajo y otros activos económicos identificables. Sales-to-capital es otra manera de inferir capital incremental y no se suma automáticamente a un calendario físico que ya refleja la misma expansión.')+
  (reinv!==null?' La reinversión proyectada del primer año indicada en el expediente es '+money(reinv,'USD')+' millones; necesita contrastarse con el NOPAT y los activos creados.':''))+
  p((stc!==null?'El Sales-to-Capital de la primera etapa que figura en los supuestos es '+stc.toLocaleString('es-CO',{maximumFractionDigits:2})+'×. ':'')+
@@ -127,7 +127,7 @@ function render(analysis,v){
  p('El capital invertido puede aumentar antes que el resultado cuando se abren mercados, se desarrollan medicamentos o se instalan servidores. Ese rezago reduce el retorno de los primeros años y debe verse después como recuperación de productividad, no como un salto sin explicación en la perpetuidad. En empresas con adquisiciones hay que elegir consistentemente si se mide retorno incluyendo el goodwill; ignorarlo puede aparentar una rentabilidad económica imposible de replicar.')+
  p('Una convergencia competitiva tiene que explicar qué margen y qué intensidad de inversión sobrevivirán al año diez. Si el ROIC terminal supera con amplitud el costo de capital durante décadas, la compañía necesitará una barrera económica verificable; si converge al costo de capital, la opción de crecer aporta menos valor. La brecha entre ROIC y WACC debe contrastarse con comparables depurados, historial propio y el costo de reemplazar la base productiva.'));
  out+=section('F. Costo de capital y valor terminal',
- p('La tasa de descuento debe corresponder al tipo de flujo, moneda y riesgo. '+(isBank?'El FCFE bancario se descuenta al costo de patrimonio, no a un WACC industrial. ':'El FCFF empresarial se descuenta al WACC, con deuda y caja reconciliadas al pasar de enterprise value a equity. ')+
+ p('La tasa de descuento debe corresponder al tipo de flujo, moneda y riesgo. '+(isHolding?'En SOTP deben valorarse por separado las participaciones y conciliar descuentos de holding y deuda a nivel matriz. ':isBank?'El FCFE bancario se descuenta al costo de patrimonio, no a un WACC industrial. ':'El FCFF empresarial se descuenta al WACC, con deuda y caja reconciliadas al pasar de enterprise value a equity. ')+
  (w!==null?'La tasa inicial señalada es '+pct(w)+'. ':'')+
  (terminalW!==null?'La tasa estable, cuando existe explícitamente, es '+pct(terminalW)+'. ':'')+
  (g!==null?'El crecimiento terminal supuesto es '+pct(g)+'. ':'')+
