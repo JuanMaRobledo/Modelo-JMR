@@ -138,6 +138,7 @@ footer{padding:18px 0;color:var(--ink-faint);font-size:12px}
     <span class="az-card-open">Abrir ficha completa →</span>
   </a>
   <a class="az-company-card" href="az-cmg.html?ticker=CMG" data-ticker="CMG" data-name="Chipotle Mexican Grill"><div class="az-company-top"><span class="az-company-initials">C</span><div><h2>Chipotle Mexican Grill</h2><p>NYSE: CMG · Restaurantes</p></div></div><div><span class="label">DCF perpetuidad · valor principal</span><div class="az-company-value">US$ 20,40</div></div><div class="az-card-meta"><span>Precio US$ 28,73</span><span>Potencial −29,0%</span></div><div><span class="az-pill">EN REVISIÓN</span></div><span class="az-card-open">Abrir ficha completa →</span></a>
+  <a class="az-company-card" href="az-nflx.html?ticker=NFLX" data-ticker="NFLX" data-name="Netflix Inc." aria-label="Abrir ficha AZ Stocks de Netflix"><div class="az-company-top"><span class="az-company-initials">N</span><div><h2>Netflix Inc.</h2><p>NASDAQ: NFLX · Streaming y publicidad</p></div></div><div><span class="label">DCF perpetuidad · valor principal</span><div class="az-company-value">US$ 62,67</div></div><div class="az-card-meta"><span>Precio US$ 61,99</span><span>Potencial +1,1%</span></div><div><span class="az-pill">EN REVISIÓN</span><span class="muted">28 oct 2026</span></div><span class="az-card-open">Abrir ficha completa →</span></a>
  </div>
  <p id="az-no-search" class="az-no-search" hidden>No hay fichas que coincidan con esa búsqueda.</p>
  <p class="muted" style="margin-top:15px">Solo se muestran valoraciones AZ stocks creadas y disponibles; no se mezclan las fichas oficiales del Modelo JMR.</p>
@@ -284,6 +285,7 @@ footer{padding:18px 0;color:var(--ink-faint);font-size:12px}
   if(ticker==="ADBE"){location.replace("az-adbe.html?ticker=ADBE"+location.hash);return;}
   if(ticker==="BSX"){location.replace("az-bsx.html?ticker=BSX"+location.hash);return;}
   if(ticker==="CMG"){location.replace("az-cmg.html?ticker=CMG"+location.hash);return;}
+  if(ticker==="NFLX"){location.replace("az-nflx.html?ticker=NFLX"+location.hash);return;}
   var catalog=document.getElementById("az-catalog"),dossier=document.getElementById("az-dossier");
   if(ticker==="MELI"){catalog.hidden=true;dossier.hidden=false;document.title="MELI · Ficha de valoración · AZ stocks";}
   else if(ticker){document.getElementById("az-cards").hidden=true;var p=document.getElementById("az-no-search");p.hidden=false;p.textContent="No existe una ficha AZ stocks para "+ticker+". Volver a la biblioteca para consultar MELI, CELH, ADBE o BSX.";}
