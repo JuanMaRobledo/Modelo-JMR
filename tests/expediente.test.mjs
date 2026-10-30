@@ -13,23 +13,25 @@ test('index redirige al análisis, sin borrar la bitácora de terceros', () => {
   assert.match(third, /var DATA = \[\{/);
 });
 
-test('expediente muestra cinco secciones y protege estados', () => {
-  const html = get('docs/expediente.html');
-  for (const view of ['valoracion','analisis','supuestos','auditoria','sensibilidades']) {
-    assert.match(html, new RegExp('data-view="'+view+'"'));
-  }
-  const js=get('docs/expediente.js');
+test('ficha central contiene siete pestañas, estados e indicadores con origen único',()=>{
+  const html=get('docs/expediente.html'),js=get('docs/expediente.js');
+  const sections=['analisis','valoracion','financieros','indicadores','modelo','sensibilidades','revision'];
+  for(const view of sections)assert.match(html,new RegExp('data-view="'+view+'"'));
+  assert.equal((html.match(/data-view="/g)||[]).length,7);
+  for(const id of ['sheetSubtabs','inlinePanel','viewFrame','reviewPanel','auditReviewNotes'])assert.match(html,new RegExp('id="'+id+'"'));
   new Script(js);
-  for(const page of ['visor.html','research.html','editor-hoja.html','auditoria-integral.html','auditoria-multiplos.html']) {
-    assert.ok(js.includes(page), 'Falta '+page);
-  }
-  assert.match(js,/cat[aá]logo oficial|catálogo oficial/);
-  assert.match(js,/NO republica|no se presenta como validada/i);
-  assert.match(js,/auditorias\.html\?ticker=/);
-  assert.match(js,/auditoria-multiplos\.html\?ticker=/);
-  assert.match(html,/data-sensitivity="sensibilidades"/);
-  assert.match(html,/data-sensitivity="sensibilidadMultiples"/);
-  assert.match(html,/data-audit="auditoriaIntegral"/);
+  for(const name of ['Income Statement','Balance Sheet','Cash Flow Statement','Trailing Valuation',
+    'Eficiencia de capital','Salud Financiera','Input sheet','Valuation output','Cost of capital worksheet'])
+    assert.ok(js.includes(name),name);
+  for(const page of ['visor.html','analisis-lectura.html','editor-hoja.html','auditoria-integral.html'])
+    assert.ok(js.includes(page),page);
+  assert.match(js,/const initialView=.*:'analisis'/);
+  assert.match(js,/function sensitivityHtml\(rec\)/);
+  assert.match(js,/centroConciliado===true/);
+  assert.match(js,/renderSheetSubtabs\(view\)/);
+  assert.match(js,/if\(state\.frameMode==='workbook'/);
+  assert.doesNotMatch(js,/window\.open\(/,'no abrir ventanas automáticamente');
+  assert.doesNotMatch(html,/id="sensitivityModes"/,'sin barra secundaria duplicada');
 });
 
 test('resuelve auditoría narrativa .md exacta, no la confunde con JSON',()=>{
@@ -49,7 +51,8 @@ test('navegación general y biblioteca permiten abrir el expediente', () => {
   const visor=get('docs/visor.html');
   new Script(nav);new Script(research);
   assert.match(nav,/Bitácora de terceros/);
-  assert.match(nav,/Expedientes JMR/);
+  assert.match(nav,/Empresas y análisis/);
+  assert.doesNotMatch(nav,/Expedientes JMR/);
   assert.match(research,/openCatalogResearch/);
   assert.match(visor,/expediente\.html\?ticker=/);
 });
@@ -133,13 +136,14 @@ test('expediente.js solo usa secciones definidas en pages() (evita excepciones a
   const body=js.match(/function pages\(t\)\{[\s\S]*?return \{([\s\S]*?)\n  \};\n\}/)?.[1];
   assert.ok(body,'return de pages()');
   const keys=new Set([...body.matchAll(/^\s{4}(\w+):/gm)].map(m=>m[1]));
-  for(const k of ['valoracion','analisis','supuestos','auditoria','auditoriaIntegral','sensibilidades','sensibilidadMultiples']) assert.ok(keys.has(k),k);
+  for(const k of ['valoracion','analisis','financieros','indicadores','modelo','revision','supuestos','auditoria','sensibilidades']) assert.ok(keys.has(k),k);
   for(const m of js.matchAll(/\bp\.(\w+)\.href/g)) assert.ok(keys.has(m[1]),'p.'+m[1]+' no existe');
 });
 test('menú principal: las vistas por empresa salen de la ficha, no del menú',()=>{
   const nav=get('docs/mercado.js');
-  assert.match(nav,/Expedientes JMR/);
-  for(const f of ['editor-hoja.html\', \'Hojas','auditorias.html\', \'Auditoría narrativa']) assert.ok(!nav.includes("link('"+f),f);
+  assert.match(nav,/Empresas y análisis/);
+  assert.match(nav,/jmr-tools-menu/);
+  assert.doesNotMatch(nav,/Expedientes JMR/);
 });
 test('las páginas por empresa reconocen archivos de revisión TICKER-AAAAMMDD-Rn y no caen en otro ticker',()=>{
   const sources=[get('docs/auditoria-integral.html').match(/arr\[0\]\.filter\(function\(x\)\{return x\.type==="file"&&(\/.*?\/)\.test/)?.[1],
@@ -171,7 +175,8 @@ test('catálogo muestra tarjetas clicables para las rutas oficiales y evita IDs 
   assert.match(js,/catalog\.valoraciones/);
   assert.match(js,/open\.addEventListener\('click',\(\)=>\{openCompany\(t\)/);
   assert.match(js,/card\.addEventListener\('click',event=>/);
-  assert.match(js,/if\(p\.analysisPath\)window\.open\(p\.analisis\.href/);
+  assert.doesNotMatch(js,/window\.open\(/);
+  assert.match(js,/if\(!event\.target\.closest\('button,a'\)\)open\.click\(\)/);
   assert.doesNotMatch(js,/CONTENTS\+'valoraciones\?ref=main'/,'la lista no depende de otra API');
   assert.doesNotMatch(js,/mostRecent\?\.path/);
   assert.match(js,/catalogMarket\(t\)/);
@@ -226,4 +231,19 @@ test('lector de análisis muestra cuatro escenarios, tres referencias R4 y Base 
     {id:'A',valor:90},{id:'B',valor:70},{id:'D',valor:110}
   ]}});
   assert.equal(onlyDisruptionMissing.incomplete,false);
+});
+
+test('subpestañas y revisor quedan dentro de la ficha y preservan una sola revisión',()=>{
+  const js=get('docs/expediente.js'),html=get('docs/expediente.html'),editor=get('docs/editor-hoja.js');
+  for(const tab of ['financieros','indicadores','modelo'])assert.match(js,new RegExp(tab+':\\['));
+  assert.match(js,/jmr-select-source-sheet/);
+  assert.match(js,/jmr-sheet-selected/);
+  assert.match(editor,/event.origin!==global.location.origin/);
+  assert.match(editor,/event.source!==global.parent/);
+  assert.match(editor,/if\(drafts.size\)/);
+  assert.match(js,/view==='revision'/);
+  assert.match(html,/data-view="revision"/);
+  assert.match(js,/state\.valuationRecord=rec/);
+  assert.match(js,/p\.analysisPath\?'/);
+  assert.doesNotMatch(js,/window\.open/);
 });
