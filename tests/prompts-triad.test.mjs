@@ -5,7 +5,7 @@ import fs from 'node:fs';
 const root = new URL('../docs/prompts/', import.meta.url);
 const docs = [
   {file:'valoracion-modelo-jmr-v5.md',role:'1/3',title:'VALORACIÓN',kind:'maestro'},
-  {file:'research-fundamental-jmr-v5.md',role:'2/3',title:'RESEARCH FUNDAMENTAL',kind:'vigente'},
+  {file:'research-fundamental-jmr-v5.md',role:'2/3',title:'ANÁLISIS FUNDAMENTAL',kind:'maestro'},
   {file:'auditoria-economica-jmr-v1.md',role:'3/3',title:'AUDITORÍA',kind:'maestro'}
 ].map(x=>({...x,s:fs.readFileSync(new URL(x.file,root),'utf8')}));
 
@@ -15,17 +15,13 @@ const narrativeChapterNumbers = s => {
   return [...section.matchAll(/^(\d{1,2})\. \*\*/gm)].map(m=>Number(m[1]));
 };
 
-test('existen tres contratos diferenciados: valoración, investigación vigente y auditoría',()=>{
+test('hay tres prompts maestros únicos, separados y rotulados',()=>{
   assert.equal(docs.length,3);
   for(const d of docs){
     assert.match(d.s.split('\n')[0],new RegExp(d.title));
     if(d.kind==='maestro'){
       assert.ok(d.s.startsWith('# PROMPT MAESTRO '+d.role));
       assert.match(d.s,/Alcance exclusivo|Contrato operativo exclusivo/);
-    }else{
-      assert.match(d.s,/^# PROMPT VIGENTE — RESEARCH FUNDAMENTAL/);
-      assert.match(d.s,/Tarea exclusiva de análisis/);
-      assert.match(d.s,/no modificar inputs, Sheets, fórmulas, escenarios, auditorías o catálogo/);
     }
   }
 });
@@ -34,6 +30,8 @@ test('Research vigente: 14 capítulos y Nivel 2; auditoría independiente: 18 se
   assert.deepEqual(narrativeChapterNumbers(docs[1].s),Array.from({length:14},(_,i)=>i+1));
   assert.match(docs[1].s,/5\. \*\*Ciclos de la empresa, del mercado y de la macroeconomía/);
   assert.match(docs[1].s,/## NIVEL 2 — Cálculos, estados y soportes/);
+  assert.match(docs[1].s,/Tarea exclusiva de análisis|Alcance exclusivo — investigación y redacción/);
+  assert.match(docs[1].s,/no modificar inputs, Sheets, fórmulas, escenarios, auditorías o catálogo/);
   assert.match(docs[1].s,/12 apartados verificables/);
   assert.match(docs[1].s,/no crear números, fuentes, matrices ni estimaciones/i);
   assert.deepEqual(headingNumbers(docs[2].s),Array.from({length:18},(_,i)=>i+1));
@@ -70,5 +68,11 @@ test('contratos vigentes: copia de valoración, MOS solo Base y auditoría v1.3'
   assert.match(docs[1].s,/MOS35% calculado únicamente sobre Base/i);
   assert.match(docs[1].s,/no modificar inputs, Sheets, fórmulas, escenarios, auditorías o catálogo/i);
   assert.match(docs[2].s,/prompt_version: auditoria-economica-jmr-v1\.3/i);
+  assert.match(docs[0].s,/matrices Base 5×5 por cada múltiplo prioritario/);
+  assert.doesNotMatch(docs[0].s,/No añadir sensibilidad a múltiplos/);
+  assert.match(docs[2].s,/los 14 capítulos narrativos/);
+  assert.doesNotMatch(docs[2].s,/los 13 capítulos narrativos/);
+  for(const d of docs) assert.doesNotMatch(d.s,/Estilo JMR narrativo vigente \(13 capítulos/);
+
   assert.doesNotMatch(docs[2].s,/auditoria-economica-jmr-v1\.[012]/i);
 });
