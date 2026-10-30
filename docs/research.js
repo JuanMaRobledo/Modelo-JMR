@@ -14,13 +14,21 @@
     UBER: 'assets/logos/uber.svg',
     NKE: 'assets/logos/nike.svg'
   };
+  // Estilo JMR vigente: recorrido narrativo de 13 capítulos (v19).
   var REQUIRED = [
-    'Resumen ejecutivo', 'Modelo de negocio', 'Segmentos y geografía',
-    'Industria y crecimiento', 'Calidad del negocio', 'Ventaja competitiva',
-    'Competencia', 'Gestión y asignación de capital', 'Catalizadores',
-    'Riesgos', 'Bulls say / Bears say', 'Valor con criterio Damodaran', 'Filosofías de inversión',
-    'Noticias y eventos recientes', 'Qué vigilar', 'Preguntas abiertas',
-    'Fuentes', 'Control de calidad final'
+    'Tesis de inversión y conclusión',
+    'La empresa y su modelo económico',
+    'Industria, competencia y ventaja competitiva',
+    'Motores del crecimiento futuro',
+    'Historia financiera y calidad de resultados',
+    'Reinversión, eficiencia del capital y ROIC',
+    'Dirección, gobierno y asignación de capital',
+    'Nuestro proceso de valoración',
+    'Supuestos económicos y su justificación',
+    'Valor intrínseco, escenarios y precio',
+    'Riesgos, tesis contraria y factores de ruptura',
+    'Catalizadores y plan de seguimiento',
+    'Fuentes, limitaciones y estado del estudio'
   ];
   var state = freshState();
   // Los registros v2 contienen artículo completo y cálculos separados.
@@ -129,77 +137,8 @@
       body: doc.body.innerHTML
     };
   }
-  // Compatibilidad de lectura para análisis antiguos cuyo archivo aún no se puede migrar.
-  // Reagrupa DOM, no modifica el registro ni interpreta esto como cierre editorial.
-  function canonicalizeLegacyArticle(html) {
-    var doc = new DOMParser().parseFromString(safeHtml(html), 'text/html');
-    var root = doc.body.querySelector('article') || doc.body;
-    var titles = Array.from(root.querySelectorAll('h2')).map(function(h){
-      return normalizeText(h.textContent).replace(/^\d+\s+/, '');
-    });
-    var canonical = REQUIRED.map(normalizeText);
-    var indexes = canonical.map(function(name){return titles.indexOf(name);});
-    if (indexes.every(function(i,n){return i>=0 && (!n || i>indexes[n-1]);})) return html;
-    var nodes = Array.from(root.children).filter(function(node){
-      return node.tagName === 'SECTION' && node.querySelector('h2');
-    });
-    if (nodes.length < 4) return html;
-    function destination(input) {
-      var t = normalizeText(input).replace(/^\d+\s+/, '');
-      if(/tarjeta/.test(t)) return 1;
-      if(/fuentes|bibliografia|documentos y fuentes/.test(t))return 17;
-      if(/^(control|dictamen|conclusion|decision|verificaciones)|revision visual|proceso de revision/.test(t))return 18;
-      if(/preguntas|limites|pendientes|reservas|incertidumbre/.test(t))return 16;
-      if(/riesgos|regulacion|morosidad|provisiones/.test(t))return 10;
-      if(/vigilar|vigilancia|seguimiento|indicadores/.test(t))return 15;
-      if(/noticia|evento reciente/.test(t))return 14;
-      if(/filosofia/.test(t))return 13;
-      if(/bulls|bears|tesis contraria/.test(t))return 11;
-      if(/cataliz|lanzamiento|guia oficial|guia fy/.test(t))return 9;
-      if(/wacc|costo de capital|coste de capital|descuento|perpetu|roic|reinv|sales.to.capital|multiplo|escenario|sensibilidad|valoracion|dcf|fcff|fcfe|az stocks|crecimiento base|impuesto/.test(t))return 12;
-      if(/gestion|gobierno|administracion|asignacion de capital|recompra|dilucion|sbc/.test(t))return 8;
-      if(/competen|rival/.test(t))return 7;
-      if(/ventaja|moat/.test(t))return 6;
-      if(/geografia|pais|segmentos|clientes por/.test(t))return 3;
-      if(/industria|mercado|tam|cuota|sector/.test(t))return 4;
-      if(/modelo|negocio|unidad economica|suscripcion|publicidad|portafolio/.test(t))return 2;
-      if(/histori|resultado|margen|costos|coste|caja|cfo|balance|deuda|capital trabajo|inventari|capex|ingresos|ltm|guia|roe/.test(t))return 5;
-      if(/tesis|resumen|precio|valor intrinseco/.test(t))return 1;
-      if(/crecim|driver|expansion|demanda/.test(t))return 4;
-      return 16;
-    }
-    var anchor=doc.createComment('inicio-articulo-canonico');
-    root.insertBefore(anchor,nodes[0]);
-    var bins=REQUIRED.map(function(){return [];});
-    nodes.forEach(function(node){
-      var h2=node.querySelector('h2'),name=h2.textContent.trim(),index=destination(name);
-      var h3=doc.createElement('h3');
-      h3.innerHTML=h2.innerHTML;
-      Array.from(h2.attributes).forEach(function(attr){h3.setAttribute(attr.name,attr.value);});
-      h2.replaceWith(h3);
-      bins[index-1].push(node);
-    });
-    var frag=doc.createDocumentFragment();
-    REQUIRED.forEach(function(name,i){
-      var section=doc.createElement('section');
-      section.className='jmr-capitulo-canonico';
-      section.id='jmr-capitulo-'+(i+1);
-      var heading=doc.createElement('h2');
-      heading.textContent=(i+1)+'. '+name;
-      section.appendChild(heading);
-      if(!bins[i].length){
-        var note=doc.createElement('p');
-        note.className='jmr-editorial-gap';
-        note.setAttribute('data-editorial-gap','true');
-        note.textContent='Pendiente de ampliación editorial con evidencia específica de la empresa. Este apartado aún no constituye análisis final.';
-        section.appendChild(note);
-      } else bins[i].forEach(function(node){section.appendChild(node);});
-      frag.appendChild(section);
-    });
-    root.replaceChild(frag,anchor);
-    return doc.body.innerHTML;
-  }
-
+  // Las fichas históricas se muestran intactas hasta su migración editorial:
+  // jamás inventar capítulos faltantes durante la lectura.
   function normalizeText(s) {
     return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
   }
@@ -296,50 +235,49 @@
     return Promise.reject(new Error('Formato no compatible. Usa Markdown, HTML, Word (.docx) o PDF.'));
   }
 
-  // Exigir nombres y orden canónicos; contar 18 h2 numerados no basta
-  // (p. ej. una lista de 18 apartados sobre cálculos no reemplaza el esquema META).
-  function canonicalSectionCoverage(html) {
+  function narrativeCoverage(html) {
     var doc = new DOMParser().parseFromString(html || '', 'text/html');
     var headings = Array.from(doc.body.querySelectorAll('h2')).map(function (h) {
       return normalizeText(h.textContent).replace(/^\d+\s+/, '');
     });
-    var indexes = REQUIRED.map(function (name) { return headings.indexOf(normalizeText(name)); });
+    var positions = REQUIRED.map(function(name){return headings.indexOf(normalizeText(name));});
     return {
-      found: indexes.filter(function (i) { return i >= 0; }).length,
-      ordered: indexes.every(function (i, n) { return i >= 0 && (!n || i > indexes[n - 1]); }),
-      indexes: indexes
+      found: positions.filter(function(i){return i >= 0;}).length,
+      ordered: positions.every(function(i,n){return i >= 0 && (!n || i > positions[n-1]);}),
+      positions: positions
     };
   }
   function checkQuality() {
-    var holder = el('qualityChips'); holder.innerHTML = '';
-    var source = state.articleHtml || state.html;
-    if (!source) return;
-    var coverage = canonicalSectionCoverage(source);
-    REQUIRED.forEach(function (name, i) {
-      var ok = coverage.indexes[i] >= 0;
-      var chip = document.createElement('span');
-      chip.textContent = (ok ? '✓ ' : 'Falta: ') + name;
-      chip.className = ok ? 'ok' : '';
+    var holder=el('qualityChips'); holder.innerHTML='';
+    var source=state.articleHtml || state.html;
+    if(!source)return;
+    var coverage=narrativeCoverage(source);
+    var migr=state.jmrNarrative || {};
+    var pending=Array.isArray(migr.sectionsNeedingResearch)?migr.sectionsNeedingResearch.length:0;
+    var bodyPending=(String(source).match(/data-editorial-gap=/g)||[]).length;
+    var hasLegacy=Boolean(!migr.version && coverage.found!==REQUIRED.length);
+    REQUIRED.forEach(function(name,i){
+      var chip=document.createElement('span'),ok=coverage.positions[i]>=0;
+      chip.textContent=(ok?'✓ ':'Falta: ')+name;chip.className=ok?'ok':'';
       holder.appendChild(chip);
     });
-    var orderChip = document.createElement('span');
-    orderChip.textContent = (coverage.ordered ? '✓ ' : '⚠ ') + 'Orden del índice original (META)';
-    orderChip.className = coverage.ordered ? 'ok' : '';
-    holder.appendChild(orderChip);
-    var twoLevels = Boolean(state.articleHtml && state.calculationHtml);
-    if (twoLevels) {
-      var c2 = document.createElement('span');
-      c2.textContent = '✓ Nivel 2 · Valoración y cálculos';
-      c2.className = 'ok'; holder.appendChild(c2);
-    }
-    var pending=(state.editorialMigration && Array.isArray(state.editorialMigration.missingCanonicalSections)
-      ?state.editorialMigration.missingCanonicalSections.length:0) +
-      (String(source||'').match(/data-editorial-gap=/g)||[]).length;
-    var correct = coverage.found === REQUIRED.length && coverage.ordered && pending === 0;
-    setStatus('analysisStatus', correct
-      ? 'Índice canónico 18/18 en orden. Revisar profundidad, evidencias y supuestos antes de dar por completo el informe.'
-      : 'Pendiente editorial: ' + coverage.found + '/18 títulos canónicos en orden; ' + pending + ' capítulos sin desarrollo verificado. No equivale a un artículo completo.',
-      correct ? 'ok' : 'bad');
+    var indexChip=document.createElement('span');
+    indexChip.textContent=(coverage.ordered?'✓ ':'⚠ ')+'Índice JMR de 13 capítulos';
+    indexChip.className=coverage.ordered?'ok':'';
+    holder.appendChild(indexChip);
+    var technical=document.createElement('span');
+    technical.textContent=(state.calculationHtml?'✓ ':'⚠ ')+'Nivel 2 · Soporte financiero';
+    technical.className=state.calculationHtml?'ok':'';
+    holder.appendChild(technical);
+    var structure=coverage.found===REQUIRED.length && coverage.ordered;
+    var editorialReady=structure && !pending && !bodyPending && !hasLegacy;
+    setStatus('analysisStatus',
+      !structure
+        ? 'Informe en formato anterior: conservar narrativa original y actualizar al Estilo JMR (13 capítulos), sin generar secciones falsas.'
+        : editorialReady
+        ? 'Índice JMR completo. La cobertura técnica, calidad de las fuentes y profundidad económica aún requieren revisión sustantiva.'
+        : 'Índice JMR reorganizado: '+pending+' capítulos requieren investigación específica antes de declarar el análisis completo.',
+      structure?'ok':'bad');
   }
 
   function parseNews(text) {
@@ -502,9 +440,9 @@
     var editorial=editorialArticles[ticker];
     var rawArticle=state.articleHtml||(editorial&&editorial.html)||state.html||'';
     // Los artículos ya divididos en dos niveles son definitivos: no ocultar tablas ni párrafos.
-    var completeArticle=Boolean(state.articleHtml && state.calculationHtml);
+    var completeArticle=Boolean(state.articleHtml);
     var articleHtml=completeArticle?safeHtml(rawArticle):articleForReading(rawArticle,ticker);
-    var article=navigableAnalysis(canonicalizeLegacyArticle(articleHtml),'articulo');
+    var article=navigableAnalysis(articleHtml,'articulo');
     var auditLinks=/^[A-Z0-9._-]{1,24}$/.test(ticker)?'<p class="jmr-audit-links no-print"><strong>Auditorías de '+ticker+':</strong> <a href="auditorias.html?ticker='+encodeURIComponent(ticker)+'">Auditoría narrativa ↗</a> · <a href="auditoria-integral.html?ticker='+encodeURIComponent(ticker)+'">Auditoría integral ↗</a> · <a href="historicos.html?ticker='+encodeURIComponent(ticker)+'">Estado del estudio ↗</a></p>':'';
     var technical=state.calculationHtml?navigableAnalysis(state.calculationHtml,'calculos'):null;
     var linked=state.linkedValuation?buildLinkedValuationHtml(state.linkedValuation):'';
