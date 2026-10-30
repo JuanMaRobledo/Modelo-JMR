@@ -247,3 +247,57 @@ test('subpestañas y revisor quedan dentro de la ficha y preservan una sola revi
   assert.match(js,/p\.analysisPath\?'/);
   assert.doesNotMatch(js,/window\.open/);
 });
+
+test('valoración relativa aparece en todas las fichas y separa FY+3 del valor presente',()=>{
+  const html=get('docs/expediente.html'),js=get('docs/expediente.js');
+  assert.match(html,/id="valuationModes"/);
+  assert.match(html,/id="valuationSummary"/);
+  assert.match(html,/data-valuation="multiplos"/);
+  assert.match(html,/src="jmr-multiples-panel\.js\?v=/);
+  assert.match(js,/JmrMultiplesPanel\.summary\(rec\)/);
+  assert.match(js,/JmrMultiplesPanel\.render\(state\.valuationRecord\)/);
+  assert.match(js,/metodo','multiplos'/);
+  assert.doesNotMatch(js,/window\.open\(/);
+  const sandbox={window:{}};
+  const code=get('docs/jmr-multiples-panel.js');
+  new Script(code).runInNewContext(sandbox);
+  const api=sandbox.window.JmrMultiplesPanel;
+  assert.ok(api && typeof api.render==='function');
+  const adobe={
+    ticker:'ADBE',revisionId:'ADBE-20261028-A3',currency:'USD',valorPrincipal:432.2929874,
+    metodos:[
+      {nombre:'DCF Damodaran',peso:.6,base:587.3},
+      {nombre:'EV/EBITDA',peso:.1142857143,conservador:289.25,base:344.72,optimista:386,valorPresenteBase:256.5},
+      {nombre:'EV/FCFF',peso:.1714285714,base:208.8,valorPresenteBase:152.93},
+      {nombre:'P/E',peso:.0571428571,base:355.58,valorPresenteBase:263.97},
+      {nombre:'P/FCFE',peso:.0571428571,base:214.33,valorPresenteBase:157.4},
+      {nombre:'P/OCF',peso:0,base:217.32,valorPresenteBase:159.59},
+      {nombre:'P/S (P/V)',peso:0,base:314.36},
+      {nombre:'P/BV',peso:0,base:816.37}
+    ],
+    descuentoMultiples:{dcfHoy:{base:432.2929874},multiplesHoy:{conservador:176.7,base:199.02,optimista:215.45},
+      ponderadoHoy:{base:338.98}}
+  };
+  assert.equal(api.aggregates(adobe).multiplesBase,199.02);
+  const ar=api.rows(adobe);
+  assert.equal(ar.length,7);
+  assert.equal(ar.find(r=>r.nombre==='EV/EBITDA').base,344.72);
+  assert.equal(ar.find(r=>r.nombre==='EV/EBITDA').vp,256.5);
+  assert.equal(ar.find(r=>r.nombre==='P/BV').peso,0,'P/BV secundario, no se elimina');
+  const screen=api.render(adobe);
+  for(const value of ['199,02','432,29','338,98','EV/EBITDA','EV/FCFF','P/E','P/FCFE','P/OCF','P/S','P/BV'])
+    assert.ok(screen.includes(value),'debe mostrar '+value);
+  assert.ok(screen.includes('Valor presente Base'),'sin etiquetar precios proyectados como valor presente');
+  const mixed={ticker:'META',metodos:[{nombre:'EV/EBITDA',base:989.29,peso:0}],
+    descuentoMultiples:{metodos:[{nombre:'EV/EBITDA',base:{consolidado:726.70}}]}};
+  const m=api.rows(mixed).find(r=>r.nombre==='EV/EBITDA');
+  assert.equal(m.base,989.29,'no sobrescribir FY+3 con valor presente');
+  assert.equal(m.vp,726.70,'leer descuento desde el detalle');
+  const pending={ticker:'UBER',metodos:[{nombre:'EV/EBITDA',peso:0,base:null}],
+    descuentoMultiples:{multiplesHoy:{base:null}},sensibilidadMultiples:{controles:[
+      {metodo:'EV/EBITDA',estado:'N/D',motivo:'anclas pendientes'}]}};
+  const text=api.render(pending);
+  assert.ok(text.includes('Pendiente'));
+  assert.ok(text.includes('N/D'));
+  assert.ok(!text.includes('US$0,00'));
+});
