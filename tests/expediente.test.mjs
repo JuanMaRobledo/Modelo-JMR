@@ -45,6 +45,14 @@ test('resuelve auditoría narrativa .md exacta, no la confunde con JSON',()=>{
   assert.equal(fn([], 'NFLX'),'');
 });
 
+test('el HTML de la ficha no contiene accesos principales obsoletos', () => {
+  const html=get('docs/expediente.html');
+  const nav=html.match(/<nav class="appnav"[^>]*>[\s\S]*?<\/nav>/)?.[0]||'';
+  assert.match(nav,/>Empresas y análisis<\/a>/);
+  assert.doesNotMatch(nav,/Expedientes JMR|>Análisis fundamental<\/a>/);
+  assert.equal((nav.match(/<a /g)||[]).length,1,'fallback mínimo; el menú definitivo lo crea mercado.js');
+});
+
 test('navegación general y biblioteca permiten abrir el expediente', () => {
   const nav=get('docs/mercado.js');
   const research=get('docs/research.js');
