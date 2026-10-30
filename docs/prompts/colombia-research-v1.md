@@ -1,3 +1,5 @@
+# Compatibilidad: desde el 30-oct-2026 el análisis narrativo de Colombia sigue el Estilo JMR de 13 capítulos del contrato de dos niveles. Este prompt es histórico y se subordina a `modelo/REGLAS_VIGENTES.md` §9 y `docs/ESTILO_ANALISIS_FUNDAMENTAL_JMR.md`.
+
 REGLA GLOBAL JMR · 17-OCT-2026 · HISTORIAS Y SIETE MÚLTIPLOS
 1. La historia determina los supuestos de cada escenario. DCF y múltiplos comparten el crecimiento, margen EBIT e impuestos de Valuation output para esa misma historia; los métodos de valoración permanecen separados. Justificar también el múltiplo de salida por crecimiento, margen/ROE, riesgo, régimen histórico y comparables; los percentiles históricos son una referencia inicial, no una regla automática ni un objetivo que deba coincidir con Toro.
 2. Calcular las cuatro historias completas. El promedio y el rango principal incluyen SOLO Conservador, Base y Optimista. Promedio = suma(p_i × V_i) / suma(p_i), i en esas tres historias, conservando los pesos relativos existentes. Si no hay probabilidades aprobadas, presentar media aritmética de las tres, expresamente rotulada; nunca inventar probabilidades.
