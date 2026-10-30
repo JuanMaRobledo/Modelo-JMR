@@ -286,7 +286,7 @@ function selectWorkbookSheet(view,name){
   const existing=frame.getAttribute('src')||'';
   // Reutilizar el lector ya cargado: no volver a descargar las 46 hojas al cambiar de tabla.
   if(state.frameMode==='workbook'&&existing.includes('editor-hoja.html?ticker='+encodeURIComponent(state.ticker))){
-    frame.contentWindow?.postMessage({type:'jmr-select-source-sheet',ticker:state.ticker,sheet:name},location.origin);
+    frame.contentWindow?.postMessage({type:'jmr-select-source-sheet',ticker:state.ticker,sheet:name,section:view},location.origin);
   }else{
     state.frameMode='workbook';frame.setAttribute('src',href);
   }
@@ -508,7 +508,7 @@ el('viewFrame').addEventListener('load',function(){
   try{
     const doc=this.contentDocument;
     if(state.frameMode==='workbook'&&state.sheet)
-      this.contentWindow?.postMessage({type:'jmr-select-source-sheet',ticker:state.ticker,sheet:state.sheet},location.origin);
+      this.contentWindow?.postMessage({type:'jmr-select-source-sheet',ticker:state.ticker,sheet:state.sheet,section:state.view},location.origin);
     if(!doc||doc.getElementById('jmr-dossier-embed'))return;
     const style=doc.createElement('style');style.id='jmr-dossier-embed';
     style.textContent='nav.appnav,#jmr-market-nav{display:none!important}';
