@@ -121,3 +121,19 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{ou
 .workbook-table tr.value-row td.numeric-cell{font-weight:800}
 .workbook-table .first-source-col .cell-display{text-align:left;font-family:"Public Sans",system-ui,sans-serif;font-variant-numeric:normal}
 @media(max-width:650px){.sheet-category-tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin;padding-bottom:7px}.sheet-category-tabs button{flex:none}.sheet-quick-tabs{flex-wrap:nowrap;overflow-x:auto;padding-bottom:9px}.sheet-quick-tabs button{flex:none;max-width:230px}.open-sheet-window{width:100%;text-align:center}.toolbar{align-items:stretch}}
+
+/* Vista incrustada solo en la ficha única: sin menú, portada ni navegación duplicados. */
+html.jmr-embedded-workbook .appnav,
+html.jmr-embedded-workbook .editor-header,
+html.jmr-embedded-workbook #lookup,
+html.jmr-embedded-workbook #status,
+html.jmr-embedded-workbook .workbook-head,
+html.jmr-embedded-workbook .disclaimer{display:none!important}
+html.jmr-embedded-workbook body.sheet-editor-page{background:var(--surface,#fff)}
+html.jmr-embedded-workbook .editor-main{padding:0 12px 24px}
+html.jmr-embedded-workbook .toolbar{margin:8px 0}
+html.jmr-embedded-workbook #sheetTable{max-height:72vh}
+html.jmr-embedded-workbook[data-embedded-section="financieros"] .model-sheets,
+html.jmr-embedded-workbook[data-embedded-section="indicadores"] .model-sheets{display:none!important}
+html.jmr-embedded-workbook .save-panel{margin-top:15px}
+@media(max-width:680px){html.jmr-embedded-workbook .editor-main{padding:0 5px 15px}html.jmr-embedded-workbook .toolbar{padding:10px}}
