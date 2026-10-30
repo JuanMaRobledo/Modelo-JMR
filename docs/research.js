@@ -104,6 +104,27 @@
 
   // Los encabezados de sección son el eje del índice; las subsecciones
   // quedan anidadas para evitar una lista plana de decenas de entradas.
+  // El histórico de 18 secciones incluía un índice de texto duplicado.
+  // La nueva tabla de contenido la genera el lector, sin tocar la fuente guardada.
+  function prepareJmrNarrative(html, migrated) {
+    if(!migrated)return html;
+    var doc=new DOMParser().parseFromString(safeHtml(html),'text/html');
+    doc.body.querySelectorAll('blockquote').forEach(function(block){
+      var label=block.querySelector('p'),items=block.querySelectorAll('li');
+      if(label && /^índice\s*$/i.test(label.textContent.trim()) && items.length>=10)block.remove();
+    });
+    doc.body.querySelectorAll('section.jmr-preserved-flat').forEach(function(sec){
+      var first=sec.querySelector('h3'),label=first?normalizeText(first.textContent):'';
+      if(!/^las 5 fuerzas de porter$/.test(label))return;
+      var details=doc.createElement('details'),summary=doc.createElement('summary');
+      details.className='jmr-porter-optional';
+      summary.textContent='Análisis competitivo de Porter · lectura opcional';
+      details.appendChild(summary);
+      sec.replaceWith(details);
+      details.appendChild(sec);
+    });
+    return doc.body.innerHTML;
+  }
   function navigableAnalysis(html, scope) {
     var doc = new DOMParser().parseFromString(safeHtml(html), 'text/html');
     var headings = Array.from(doc.body.querySelectorAll('h2,h3'));
@@ -442,7 +463,7 @@
     // Los artículos ya divididos en dos niveles son definitivos: no ocultar tablas ni párrafos.
     var completeArticle=Boolean(state.articleHtml);
     var articleHtml=completeArticle?safeHtml(rawArticle):articleForReading(rawArticle,ticker);
-    var article=navigableAnalysis(articleHtml,'articulo');
+    var article=navigableAnalysis(prepareJmrNarrative(articleHtml,Boolean(state.jmrNarrative)),'articulo');
     var auditLinks=/^[A-Z0-9._-]{1,24}$/.test(ticker)?'<p class="jmr-audit-links no-print"><strong>Auditorías de '+ticker+':</strong> <a href="auditorias.html?ticker='+encodeURIComponent(ticker)+'">Auditoría narrativa ↗</a> · <a href="auditoria-integral.html?ticker='+encodeURIComponent(ticker)+'">Auditoría integral ↗</a> · <a href="historicos.html?ticker='+encodeURIComponent(ticker)+'">Estado del estudio ↗</a></p>':'';
     var technical=state.calculationHtml?navigableAnalysis(state.calculationHtml,'calculos'):null;
     var linked=state.linkedValuation?buildLinkedValuationHtml(state.linkedValuation):'';
