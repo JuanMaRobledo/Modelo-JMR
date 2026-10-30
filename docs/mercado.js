@@ -33,29 +33,23 @@
     nav.setAttribute('aria-label', 'Navegación principal JMR');
     // Cada enlace lleva a una ruta canónica estable, nunca al documento de origen
     // bajo otra etiqueta. Hojas, auditorías y sensibilidades de una empresa se abren desde su ficha. La navegación contextual se limita a la segunda fila.
-    nav.innerHTML = link('https://cartera-two-eta.vercel.app/', 'JMR', false, 'jmr-home') +
-      link('expediente.html?seccion=analisis', 'Análisis fundamental', page==='expediente.html'&&params.get('seccion')==='analisis') +
-      link('expediente.html', 'Expedientes JMR', (page==='expediente.html'&&params.get('seccion')!=='analisis')||['editor-hoja.html','auditorias.html','auditoria-integral.html','auditoria-multiplos.html'].indexOf(page) >= 0) +
-      link('expediente.html?seccion=valoracion&mercado=internacional', 'Valoraciones internacionales', activeInternational) +
-      link('expediente.html?seccion=valoracion&mercado=colombia', 'Valoraciones Colombia', activeColombia) +
-      link('az-stocks.html', 'AZ stocks', page === 'az-stocks.html') +
-      link('bitacora-terceros.html', 'Bitácora de terceros', page === 'bitacora-terceros.html') +
-      link('screener.html', 'Screener', page === 'screener.html') +
-      link('calculadora.html' + qs, 'Calculadora DCF', page === 'calculadora.html') +
-      link('portafolio.html' + qs, 'Portafolio', page === 'portafolio.html') +
-      link('mi-bitacora.html' + qs, 'Mi bitácora', page === 'mi-bitacora.html') +
-      link('damodaran.html', 'Damodaran', page === 'damodaran.html') +
-      link('historicos.html', 'Histórico', page === 'historicos.html');
+    nav.innerHTML =
+      link('expediente.html?seccion=analisis', 'Empresas y análisis', page==='expediente.html' || page==='analisis-lectura.html') +
+      link('https://cartera-two-eta.vercel.app/', 'Cartera', false, 'jmr-home') +
+      '<details class="jmr-tools-menu"><summary>Herramientas</summary><div class="jmr-tools-links">'+
+      link('calculadora.html'+qs,'Calculadora DCF',page==='calculadora.html')+
+      link('screener.html','Screener',page==='screener.html')+
+      link('az-stocks.html','AZ Stocks',page==='az-stocks.html')+
+      link('damodaran.html','Damodaran',page==='damodaran.html')+
+      link('portafolio.html'+qs,'Portafolio JMR',page==='portafolio.html')+
+      link('mi-bitacora.html'+qs,'Mi bitácora',page==='mi-bitacora.html')+
+      '</div></details>' +
+      link('historicos.html', 'Histórico', page==='historicos.html') +
+      link('bitacora-terceros.html', 'Bitácora de terceros', page==='bitacora-terceros.html');
+    // El filtro por mercado y las siete secciones viven en la ficha de empresa.
+    // Ninguna vista técnica crea una segunda barra de navegación global.
     var sub = document.getElementById('jmr-market-nav');
-    if (!sub) { sub = document.createElement('nav'); sub.id = 'jmr-market-nav'; sub.className = 'jmr-market-nav'; nav.after(sub); }
-    sub.hidden = !marketPage;
-    sub.setAttribute('aria-label', 'Secciones de ' + (col ? 'Colombia' : 'Internacionales'));
-    sub.innerHTML = '<span>' + (col ? 'Colombia · COP' : 'Internacionales') + '</span>' +
-      link('expediente.html?seccion=valoracion' + (col?'&mercado=colombia':'&mercado=internacional'), 'Valoraciones', page === 'expediente.html' || page === 'visor.html') +
-      link('research.html' + qs, 'Análisis fundamental', research) +
-      link('mi-bitacora.html' + qs, 'Mi bitácora', page === 'mi-bitacora.html') +
-      link('portafolio.html' + qs, 'Portafolio', page === 'portafolio.html') +
-      (col ? link('colombia.html', 'Datos y expedientes', page === 'colombia.html') : '');
+    if (sub) {sub.hidden=true;sub.innerHTML='';}
     if (marketPage && page !== 'colombia.html') {
       var title = research ? 'Análisis fundamental' : page === 'expediente.html' ? 'Fichas · Modelo JMR' : page === 'visor.html' ? 'Valoraciones · Modelo JMR' : page === 'portafolio.html' ? 'Portafolio' : page === 'mi-bitacora.html' ? 'Mi bitácora' : 'Calculadora DCF';
       var h = document.querySelector('h1'); if (h) h.textContent = title + ' · ' + (col ? 'Colombia' : 'Internacionales');
@@ -75,6 +69,7 @@
   document.addEventListener('DOMContentLoaded', function () {
     var style = document.createElement('style');
     style.textContent = 'nav.appnav{box-sizing:border-box;max-width:100%;overflow-x:auto}@media(min-width:900px){nav.appnav{flex-wrap:wrap}}.jmr-market-nav{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 auto;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--surface)}.jmr-market-nav[hidden]{display:none}.jmr-market-nav>span{font-size:12px;font-weight:700;color:var(--ink-faint);margin-right:12px}.jmr-market-nav a{color:var(--ink-soft);text-decoration:none;padding:8px 12px;border-radius:8px;font-size:13px;font-weight:600}.jmr-market-nav a:hover,.jmr-market-nav a.active{background:var(--accent-soft);color:var(--accent)}@media(max-width:600px){.jmr-market-nav{padding:10px 16px;gap:4px}.jmr-market-nav>span{width:100%}.jmr-market-nav a{padding:8px}}@media print{.jmr-market-nav{display:none!important}}body.pdf-mode .jmr-market-nav{display:none!important}';
+    style.textContent += '.jmr-tools-menu{position:relative;align-self:center;flex:none}.jmr-tools-menu summary{cursor:pointer;list-style:none;padding:8px 11px;border:1px solid var(--border);border-radius:8px;color:var(--ink);font-size:13px;font-weight:700}.jmr-tools-menu summary::-webkit-details-marker{display:none}.jmr-tools-menu[open] summary{background:var(--accent-soft);color:var(--accent)}.jmr-tools-links{position:absolute;top:100%;left:0;z-index:200;display:grid;gap:2px;min-width:200px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px;box-shadow:var(--shadow)}.jmr-tools-links a{padding:9px 11px!important;white-space:nowrap}.jmr-tools-links a:hover{background:var(--surface-2)}@media(max-width:650px){.jmr-tools-links{left:auto;right:0}}';
     document.head.appendChild(style); render();
   });
 })();
