@@ -1,5 +1,5 @@
 # Estilo JMR — análisis fundamental en dos niveles
-**Versión editorial 1.1 — 30 de octubre de 2026.**
+**Versión editorial 1.2 — 30 de octubre de 2026.**
 Inspiración de legibilidad: el research de AZ Stocks (negocio → fundamentales → hipótesis → valoración). No reproducir sus textos ni convertir sus hipótesis en fuente propia. Autoridad: `modelo/REGLAS_VIGENTES.md` §9; los métodos A y B y los cálculos siguen intactos.
 
 ## Propósito
@@ -49,7 +49,7 @@ Portada: empresa, ticker, clase/ADR/moneda, revisión y fecha; tarjeta `Valor in
 8. **Valor terminal y puente hasta la acción:** FCFF terminal, g y g/ROIC, Ke/WACC terminal, TV, VP de flujos/TV, EV, deuda, caja, opciones, participaciones, acciones y Base por acción.
 9. **Escenarios y ciclos:** previas y probabilidades finales, ajustes evidenciados, expectativas, cambios en drivers por ciclo, valores y promedio ordinario sin Disrupción. Si no hay ajuste medido, mostrar la previa intacta.
 10. **Siete múltiplos y conciliación:** EV/EBITDA, EV/FCFF, P/E, P/FCFE, P/OCF, P/S y P/BV; sus métricas, anclas, peso, FY+1/2/3, dividendos, descuento y valor presente, con N/A o N/D justificado; distinguir precios futuros de valores presentes.
-11. **Sensibilidades y DCF inverso:** tres matrices DCF Base 5×5 mínimas (WACC×g, ROIC terminal×g, crecimiento explícito×margen), ampliaciones solo si están verificadas y centro concilia. Sensibilidad por múltiplos Base solo si existe. Ejes reales, precios por acción y fuente. Crecimiento implícito del precio de mercado cuando esté calculado.
+11. **Sensibilidades DCF y de múltiplos + inverso:** tres matrices DCF Base 5×5 mínimas (WACC×g, ROIC terminal×g, crecimiento explícito×margen), ampliaciones solo si están verificadas y centro concilia; siete matrices de múltiplos Base, una por método con denominador y fórmula válido, con múltiplo real × fundamental FY+3 (unidades) y VP por acción como resultado, centro conciliado al VP3 **de ese método**. Añadir ancla observada LTM del múltiplo si existe fuente homogénea (comparativa, nunca sustituye ancla JMR). Mostrar N/D/N/A con causa cuando no pueda producirse matriz legítima. Sensibilidades de múltiplo económicamente justificado son secundarias y NO se confunden con valores por acción. DCF inverso con precio de referencia cuando esté calculado.
 12. **Trazabilidad, reconciliaciones y límites:** fórmula algebraica más celda/fórmula nativa comprobada donde proceda, identidades, controles ejecutados/no ejecutados, advertencias de materialidad, fuente y enlaces.
 
 Prohibido inventar valores, completar ausencias con cero, utilizar matrices de otra revisión o llamar auditado a EN_REVISION. Los informes de financieras usan FCFE/Ke y solvencia; holdings, SOTP. La auditoría económica es un archivo/proceso posterior.

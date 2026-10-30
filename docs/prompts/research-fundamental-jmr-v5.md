@@ -1,4 +1,4 @@
-# PROMPT VIGENTE — RESEARCH FUNDAMENTAL JMR · ESTILO NARRATIVO v20 (30-OCT-2026)
+# PROMPT VIGENTE — RESEARCH FUNDAMENTAL JMR · ESTILO NARRATIVO v21 (30-OCT-2026)
 
 > Esta ruta se conserva por compatibilidad con lectores, automatizaciones y herramientas que todavía consultan `research-fundamental-jmr-v5.md`. El antiguo prompt de 18 capítulos queda histórico en Git. **Este contenido es el vigente.**
 
@@ -39,7 +39,7 @@ Los títulos exactos deben permitir navegación, pero el contenido interno se ad
 
 ## NIVEL 2 — Cálculos, estados y soportes
 
-Crear **los 12 apartados verificables y completos** del índice «Nivel 2» de `docs/ESTILO_ANALISIS_FUNDAMENTAL_JMR.md` de la misma revisión, con sus tablas y cifras, no un resumen de inputs: fuentes/unidades; IS/BS/CFS históricos y LTM; ratios; ajustes R&D/leases/SBC/dilución; inputs efectivamente utilizados por historia y su procedencia; costo de capital descompuesto; DCF anual 10 años (o horizonte real) para cada historia; terminal y EV→equity; ciclos y probabilidades justificadas; siete múltiplos FY+1/2/3 a VP; matrices DCF Base 5×5 y DCF inverso; fórmulas nativas y conciliaciones. Si una matriz o fórmula no pudo leerse, escribir «N/D — fuente/hoja pendiente» y no fabricar una. La operación no modifica Google Sheets ni resultados.
+Crear **los 12 apartados verificables y completos** del índice «Nivel 2» de `docs/ESTILO_ANALISIS_FUNDAMENTAL_JMR.md` de la misma revisión, con sus tablas y cifras, no un resumen de inputs: fuentes/unidades; IS/BS/CFS históricos y LTM; ratios; ajustes R&D/leases/SBC/dilución; inputs efectivamente utilizados por historia y su procedencia; costo de capital descompuesto; DCF anual 10 años (o horizonte real) para cada historia; terminal y EV→equity; ciclos y probabilidades justificadas; siete múltiplos FY+1/2/3 a VP; matrices DCF Base 5×5, **sensibilidades Base 5×5 de cada uno de los siete múltiplos aplicables y una segunda ancla observada cuando esté disponible**, DCF inverso; fórmulas nativas y conciliaciones. Cada múltiplo expone ejes reales, VP por acción, su centro contra VP3 propio y la fuente; N/D/N/A razonado si no puede calcularse. Si una matriz o fórmula no pudo leerse, escribir «N/D — fuente/hoja pendiente» y no fabricar una. La operación no modifica Google Sheets ni resultados.
 
 Para los ciclos: clasificar etapa Damodaran con métricas propias; documentar fase macro/monetaria/crédito/psicología Marks al corte; mapear su impacto sobre el negocio y las cuatro historias. Respetar las previas/ajustes de probabilidad del §3 sin mover pesos salvo cruce de umbral y evidencia fechada. No incorporar información pública posterior al corte retrospectivamente.
 
