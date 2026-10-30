@@ -2,7 +2,7 @@
 
 **Identificador:** `A` · **Versión:** `A-1.2` · **Fecha:** 28-oct-2026 · **Estado:** especificación normativa para nuevas valoraciones; todavía sin validación prospectiva.
 
-> Este es un método JMR alternativo de **estimación y justificación de supuestos**. Utiliza exactamente el mismo motor de valoración que el Método B (DCF/FCFE/SOTP según compañía, siete múltiplos, escenarios, MOS y control técnico). No modifica fórmulas de Google Sheets, selectores, fuentes contables ni las reglas operativas de publicación. Sus reglas particulares prevalecen sobre las recomendaciones de calibración del Método B; los controles comunes de `modelo/REGLAS_VIGENTES.md` prevalecen en cálculos, materialidad, seguridad y publicación.
+> Este es un método JMR alternativo de **estimación y justificación de supuestos**. Utiliza exactamente el mismo motor de valoración que el Método B (DCF/FCFE/SOTP según compañía, cinco múltiplos prioritarios aplicables, P/S y P/BV complementarios opcionales, escenarios, MOS y control técnico). No modifica fórmulas de Google Sheets, selectores, fuentes contables ni las reglas operativas de publicación. Sus reglas particulares prevalecen sobre las recomendaciones de calibración del Método B; los controles comunes de `modelo/REGLAS_VIGENTES.md` prevalecen en cálculos, materialidad, seguridad y publicación.
 
 ## A.1 Propósito y principios
 
@@ -91,7 +91,7 @@ Se mantienen las reglas JMR vigentes: Rf, ERP y CRP del corte compatible; beta b
 - **Cuatro historias completas:** Base, Conservadora, Optimista y Disrupción. Cada historia se formula modificando **drivers económicos**, no aplicando porcentajes simétricos arbitrarios a todas las salidas.
 - Disrupción debe describir causalmente el deterioro: cuota/mercado, margen, capacidad de reinversión, dilución o fracaso, sin duplicar riesgos. Se informa aparte del promedio ordinario de Conservadora/Base/Optimista.
 - Para comparabilidad inicial se mantienen previas por ciclo vital, ajustes de 5 puntos porcentuales basados en disparadores y límites del §3 de reglas comunes. Las tasas base empíricas pueden justificar un ajuste sujeto a ese mecanismo; no sustituir probabilidades automáticamente.
-- **Siete múltiplos obligatorios** EV/EBITDA, EV/FCFF, P/E, P/FCFE, P/OCF, P/S, P/BV: calcular con fórmulas oficiales aunque su peso sea cero, y justificar múltiples de salida con ciclo, fundamentales y tasas según §5. La evidencia de A mejora **inputs**, no inventa un motor nuevo.
+- **Cinco múltiplos prioritarios según aplicabilidad**: EV/EBITDA, EV/FCFF, P/E, P/FCFE y P/OCF. Evaluar sus métricas, calcular solo los válidos con fórmulas oficiales y justificar excepciones N/A/N/D. **P/S y P/BV son complementarios optativos:** se conservan en la plantilla y se documentan si se usan, pero su ausencia o falta de matriz no bloquea publicación. Si tienen peso positivo, deben conciliar. La evidencia de A mejora **inputs**, no inventa un motor nuevo.
 
 ## A.9 Control de coherencia: puerta de aceptación A
 
