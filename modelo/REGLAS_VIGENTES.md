@@ -1,6 +1,6 @@
 # Reglas vigentes del Modelo JMR
 
-**Versión 17 · 28-oct-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
+**Versión 18 · 29-oct-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
 (`docs/prompts/*.md`), `METODOLOGIA.md`, una habilidad o un comentario de código dice otra cosa, prevalece este
 documento. Una regla nueva no se agrega como «regla del día X» en un prompt: se cambia aquí, se sube la versión y se
 anota en el registro de cambios del final.
@@ -190,6 +190,8 @@ El cambio afecta la secuencia y los estados, no el método financiero, fórmulas
 - Desarrollar catalizadores con horizonte y confirmación, riesgos con mecanismos y mitigantes verificables, tesis alcista y bajista, cinco filosofías de inversión, novedades materiales, indicadores con umbrales y preguntas realmente no resueltas. La disrupción se presenta aparte; distinguir hechos, guía, hipótesis y proyecciones sin convertir esa distinción en etiquetas repetidas en la prosa.
 - Interpretar el valor base, los tres escenarios ordinarios, disrupción, promedio ordinario, MOS, métodos y múltiplos elegibles, sensibilidad e inverso aplicable usando la misma revisión oficial. No crear cifras nuevas para completar el texto. Los siete cálculos se rigen por §5A; esta regla editorial no añade matrices opcionales del §8.
 
+**Índice canónico obligatorio (29-oct-2026):** usar los 18 nombres y el orden del prompt 2 original, como el expediente META, no simplemente dieciocho títulos numerados. El Nivel 1 mantiene las 18 secciones de negocio, calidad, ventaja, industria, competencia, gobierno, riesgos, tesis, valor, filosofías, fuentes y control final; los nuevos estudios de CapEx, IA, reinversión, ROIC, Sales-to-Capital, dilución y contraste AZ Stocks se integran como subsecciones pertinentes, sobre todo en §§5, 8 y 12, sin sustituir el esquema. El índice tendrá capítulos principales y subsecciones navegables. Nivel 2 será desplegable, con índice independiente de estados, entradas, fórmulas, salidas, múltiplos y sensibilidades. Si una revisión tiene 18 encabezados con títulos ajenos al índice, se considera **pendiente de restauración editorial**, aunque pase otros controles. Ver contrato detallado en [`docs/CONTRATO_EDITORIAL_DOS_NIVELES.md`](../docs/CONTRATO_EDITORIAL_DOS_NIVELES.md). Esta obligación no altera la valoración publicada ni desencadena una auditoría económica.
+
 **Dos niveles, ambos con contenido:** nivel 1 conserva el artículo completo y las cifras necesarias para entender sus argumentos; empieza con el recuadro visible «Valor intrínseco base:», método y fecha. Nivel 2 contiene estados, ratios, entradas, cálculos y matrices detalladas. Llevar una tabla extensa al nivel 2 no elimina su interpretación económica del nivel 1.
 
 **Actualizar sin recortar:** partir de la última versión completa identificada del artículo, actualizar las secciones afectadas, preservar las restantes y revisar su vigencia y referencias cruzadas. Una nota de cambios, resumen de auditoría o informe de avance se guarda como tal; nunca reemplaza al artículo completo. Si la versión previa es incompleta, recuperar su contenido pertinente y completar las omisiones. Si falta espacio o tiempo, guardar el avance y continuar desde el punto documentado; no presentar una versión abreviada como final.
@@ -245,6 +247,7 @@ Hojas de trabajo conservadas tras el archivo del 24-oct-2026 (identidad document
 
 | Versión | Fecha | Cambio |
 |---|---|---|
+| 18 | 29-oct-2026 | §9: se conserva el índice largo y ordenado de META/AZ Stocks en Nivel 1; ampliaciones financieras como subsecciones; Nivel 2 independiente y cuantitativo. Control de nombres y orden, no solo 18 encabezados; sin recalcular valores. |
 | 17 | 28-oct-2026 | §4C: control de calidad de reinversión, lag, S/C marginal y ROIC, puente de empresas híbridas y revisión versionada de legados; sin alterar motores DCF, versiones pasadas ni auditoría. |
 | 16 | 28-oct-2026 | Coexisten dos métodos de calibración: A (drivers/tasas base/ROIC) y B (instantánea íntegra de las reglas v15); cálculo, plantilla y auditoría permanecen compartidos. No hay recálculo de empresas ni cambio de motor. |
 | 15 | 28-oct-2026 | Plantillas oficiales reducidas de 61 a 46 pestañas; las auditorías se mantienen en Google Sheets independientes después de revisión visual. Se preservaron respaldos. Validación automática de perfil pendiente. |

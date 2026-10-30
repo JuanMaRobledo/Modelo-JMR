@@ -94,23 +94,38 @@
     return doc.body.innerHTML;
   }
 
+  // Los encabezados de sección son el eje del índice; las subsecciones
+  // quedan anidadas para evitar una lista plana de decenas de entradas.
   function navigableAnalysis(html, scope) {
     var doc = new DOMParser().parseFromString(safeHtml(html), 'text/html');
     var headings = Array.from(doc.body.querySelectorAll('h2,h3'));
     if (!headings.length) return { toc: '', body: doc.body.innerHTML };
-    var used = {};
-    var items = headings.map(function (heading, index) {
+    var used = {}, groups = [], current = null;
+    headings.forEach(function (heading, index) {
       var label = heading.textContent.trim();
       var slug = normalizeText(label).replace(/\s+/g, '-').slice(0, 70) || 'seccion-' + (index + 1);
       var base = 'indice-' + scope + '-' + slug;
       used[base] = (used[base] || 0) + 1;
-      var id = base + (used[base] > 1 ? '-' + used[base] : '');
-      heading.id = heading.id || id;
-      id = heading.id;
-      return '<li class="toc-' + heading.tagName.toLowerCase() + '"><a href="#' + escapeHtml(id) + '">' + escapeHtml(label) + '</a></li>';
+      var id = heading.id || (base + (used[base] > 1 ? '-' + used[base] : ''));
+      heading.id = id;
+      var entry = '<a href="#' + escapeHtml(id) + '">' + escapeHtml(label) + '</a>';
+      if (heading.tagName === 'H2' || !current) {
+        current = { entry: entry, subsections: [] };
+        groups.push(current);
+      } else {
+        current.subsections.push(entry);
+      }
     });
+    var items = groups.map(function (group) {
+      var nested = group.subsections.length
+        ? '<details class="research-toc-subsections"><summary>Subsecciones (' + group.subsections.length + ')</summary><ol>' +
+          group.subsections.map(function (entry) { return '<li>' + entry + '</li>'; }).join('') + '</ol></details>'
+        : '';
+      return '<li class="toc-h2">' + group.entry + nested + '</li>';
+    });
+    var levelLabel = scope === 'articulo' ? 'Nivel 1 · Análisis fundamental' : 'Nivel 2 · Cálculos y soportes';
     return {
-      toc: '<nav class="research-toc" aria-label="Tabla de contenidos"><h2>Tabla de contenidos</h2><ol>' + items.join('') + '</ol></nav>',
+      toc: '<nav class="research-toc" aria-label="Índice ' + levelLabel + '"><h2>Índice · ' + levelLabel + '</h2><ol>' + items.join('') + '</ol></nav>',
       body: doc.body.innerHTML
     };
   }
@@ -210,34 +225,47 @@
     return Promise.reject(new Error('Formato no compatible. Usa Markdown, HTML, Word (.docx) o PDF.'));
   }
 
+  // Exigir nombres y orden canónicos; contar 18 h2 numerados no basta
+  // (p. ej. una lista de 18 apartados sobre cálculos no reemplaza el esquema META).
+  function canonicalSectionCoverage(html) {
+    var doc = new DOMParser().parseFromString(html || '', 'text/html');
+    var headings = Array.from(doc.body.querySelectorAll('h2')).map(function (h) {
+      return normalizeText(h.textContent).replace(/^\d+\s+/, '');
+    });
+    var indexes = REQUIRED.map(function (name) { return headings.indexOf(normalizeText(name)); });
+    return {
+      found: indexes.filter(function (i) { return i >= 0; }).length,
+      ordered: indexes.every(function (i, n) { return i >= 0 && (!n || i > indexes[n - 1]); }),
+      indexes: indexes
+    };
+  }
   function checkQuality() {
     var holder = el('qualityChips'); holder.innerHTML = '';
-    if (state.articleHtml && state.calculationHtml) {
-      var matches=Array.from(state.articleHtml.matchAll(/<h2\b[^>]*>\s*(\d+)\.\s*[^<]+<\/h2>/gi))
-      var sections=new Set(matches.map(function(m){return Number(m[1]);}));
-      var complete=Array.from({length:18},function(_,i){return i+1;}).every(function(i){return sections.has(i);});
-      var c1=document.createElement('span');
-      c1.textContent=(complete?'✓ ':'⚠ ')+
-        'Nivel 1 · Análisis fundamental ('+sections.size+'/18 apartados)';
-      c1.className=complete?'ok':'';
-      holder.appendChild(c1);
-      var c2=document.createElement('span');
-      c2.textContent='✓ Nivel 2 · Valoración y cálculos';c2.className='ok';holder.appendChild(c2);
-      setStatus('analysisStatus',complete
-        ?'Dos niveles disponibles. Verifica fuentes e hipótesis económicas antes de considerar el informe auditado.'
-        :'El expediente incluye dos niveles, pero el artículo no conserva los 18 apartados del prompt: requiere restauración editorial.',complete?'ok':'bad');
-      return;
-    }
-    if (!state.html) return;
-    var doc = new DOMParser().parseFromString(state.html, 'text/html');
-    var headings = Array.from(doc.querySelectorAll('h1,h2,h3,h4')).map(function (h) { return normalizeText(h.textContent); });
-    var missing = 0;
-    REQUIRED.forEach(function (name) {
-      var ok = headings.some(function (h) { return h.replace(/^\d+\s+/, '') === normalizeText(name); });
-      var chip = document.createElement('span'); chip.textContent = (ok ? '✓ ' : 'Falta: ') + name; chip.className = ok ? 'ok' : ''; holder.appendChild(chip);
-      if (!ok) missing++;
+    var source = state.articleHtml || state.html;
+    if (!source) return;
+    var coverage = canonicalSectionCoverage(source);
+    REQUIRED.forEach(function (name, i) {
+      var ok = coverage.indexes[i] >= 0;
+      var chip = document.createElement('span');
+      chip.textContent = (ok ? '✓ ' : 'Falta: ') + name;
+      chip.className = ok ? 'ok' : '';
+      holder.appendChild(chip);
     });
-    setStatus('analysisStatus', missing ? 'Documento convertido. Faltan ' + missing + ' secciones del formato maestro; puedes corregirlo en el LLM y volver a subirlo.' : 'Documento completo y compatible con el formato maestro.', missing ? 'bad' : 'ok');
+    var orderChip = document.createElement('span');
+    orderChip.textContent = (coverage.ordered ? '✓ ' : '⚠ ') + 'Orden del índice original (META)';
+    orderChip.className = coverage.ordered ? 'ok' : '';
+    holder.appendChild(orderChip);
+    var twoLevels = Boolean(state.articleHtml && state.calculationHtml);
+    if (twoLevels) {
+      var c2 = document.createElement('span');
+      c2.textContent = '✓ Nivel 2 · Valoración y cálculos';
+      c2.className = 'ok'; holder.appendChild(c2);
+    }
+    var correct = coverage.found === REQUIRED.length && coverage.ordered;
+    setStatus('analysisStatus', correct
+      ? 'Índice canónico 18/18 en orden. Revisar profundidad, evidencias y supuestos antes de dar por completo el informe.'
+      : 'Esquema incompleto o reorganizado (' + coverage.found + '/18 títulos canónicos): restaurar el índice META sin borrar los análisis nuevos.',
+      correct ? 'ok' : 'bad');
   }
 
   function parseNews(text) {
@@ -399,7 +427,9 @@
     var ticker=String(state.ticker||'').trim().toUpperCase();
     var editorial=editorialArticles[ticker];
     var rawArticle=state.articleHtml||(editorial&&editorial.html)||state.html||'';
-    var article=navigableAnalysis(articleForReading(rawArticle,ticker),'articulo');
+    // Los artículos ya divididos en dos niveles son definitivos: no ocultar tablas ni párrafos.
+    var completeArticle=Boolean(state.articleHtml && state.calculationHtml);
+    var article=navigableAnalysis(completeArticle?safeHtml(rawArticle):articleForReading(rawArticle,ticker),'articulo');
     var auditLinks=/^[A-Z0-9._-]{1,24}$/.test(ticker)?'<p class="jmr-audit-links no-print"><strong>Auditorías de '+ticker+':</strong> <a href="auditorias.html?ticker='+encodeURIComponent(ticker)+'">Auditoría narrativa ↗</a> · <a href="auditoria-integral.html?ticker='+encodeURIComponent(ticker)+'">Auditoría integral ↗</a> · <a href="historicos.html?ticker='+encodeURIComponent(ticker)+'">Estado del estudio ↗</a></p>':'';
     var technical=state.calculationHtml?navigableAnalysis(state.calculationHtml,'calculos'):null;
     var linked=state.linkedValuation?buildLinkedValuationHtml(state.linkedValuation):'';
