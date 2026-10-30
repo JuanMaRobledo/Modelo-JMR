@@ -284,7 +284,7 @@
       holder.appendChild(chip);
     });
     var indexChip=document.createElement('span');
-    indexChip.textContent=(coverage.ordered?'✓ ':'⚠ ')+'Índice JMR de 13 capítulos';
+    indexChip.textContent=(coverage.ordered?'✓ ':'⚠ ')+'Índice JMR de 14 capítulos';
     indexChip.className=coverage.ordered?'ok':'';
     holder.appendChild(indexChip);
     var technical=document.createElement('span');
@@ -295,7 +295,7 @@
     var editorialReady=structure && !pending && !bodyPending && !hasLegacy;
     setStatus('analysisStatus',
       !structure
-        ? 'Informe en formato anterior: conservar narrativa original y actualizar al Estilo JMR (13 capítulos), sin generar secciones falsas.'
+        ? 'Informe en formato anterior: conservar narrativa original y actualizar al Estilo JMR (14 capítulos), sin generar secciones falsas.'
         : editorialReady
         ? 'Índice JMR completo. La cobertura técnica, calidad de las fuentes y profundidad económica aún requieren revisión sustantiva.'
         : 'Índice JMR reorganizado: '+pending+' capítulos requieren investigación específica antes de declarar el análisis completo.',
@@ -1579,14 +1579,14 @@
   });
 
   function download(name,text,type){var blob=new Blob([text],{type:type||'text/plain'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url);},1000);}
-  // Dos prompts maestros: el de Research fundamental (v4) y el de valoración
-  // del Modelo JMR (v3, que reemplazó a la v2: múltiplos elegidos con anclas
-  // documentadas e independientes del DCF). Cada uno guarda sus cambios aparte.
+  // Esta página expone dos de los tres prompts maestros: investigación 2/3 y
+  // valoración 1/3. El prompt 3/3 de auditoría se ejecuta separadamente.
+  // Cada uno conserva su propia edición local; las reglas oficiales prevalecen.
   var PROMPTS = {
-    research: { file: 'prompts/research-fundamental-jmr-v5.md', key: PROMPT_KEY, download: 'JMR - PROMPT Research NARRATIVO v19.md',
-      title: 'Estilo JMR v19 · 13 capítulos · dos niveles', btn: 'promptKindResearch',
+    research: { file: 'prompts/research-fundamental-jmr-v5.md', key: PROMPT_KEY, download: 'JMR - PROMPT Research NARRATIVO v23.md',
+      title: 'Estilo JMR v23 · 14 capítulos · dos niveles', btn: 'promptKindResearch',
       help: 'Úsalo en ChatGPT o Claude junto con la tabla del Modelo JMR. La narrativa explica el negocio, los fundamentales y nuestros supuestos; el anexo cuantitativo queda en Nivel 2.',
-      note: 'Adjunta la tabla JMR y los informes disponibles. Revisión 30-oct-2026: Estilo JMR de 13 capítulos, sin Porter obligatorio; Método A/B en la valoración, DCF Base principal, resultados oficiales y Nivel 2 cuantitativo.' },
+      note: 'Adjunta la tabla JMR y los informes disponibles. Revisión 30-oct-2026: Estilo JMR de 14 capítulos, sin Porter obligatorio; Método A/B en la valoración, DCF Base principal, resultados oficiales y Nivel 2 cuantitativo.' },
     valuation: { file: 'prompts/valoracion-modelo-jmr-v5.md', key: 'jmr-valuation-prompt-v5-20261021', download: 'JMR - PROMPT Valoracion VIGENTE v5.md',
       title: 'Prompt de valoración v5 · cualquier modelo de lenguaje', btn: 'promptKindValuation',
       help: 'Arma el Modelo JMR de punta a punta (SEC EDGAR, costo de capital, supuestos anclados, bugs conocidos, guardado en Drive) y elige los múltiplos con tres anclas documentadas: historia depurada, peers ajustados y múltiplo justificado.',
