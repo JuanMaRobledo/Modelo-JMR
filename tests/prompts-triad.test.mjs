@@ -11,7 +11,7 @@ const docs = [
 
 const headingNumbers = s => [...s.matchAll(/^#{2,4}\s+(\d{1,2})\.\s+/gm)].map(m=>Number(m[1]));
 const narrativeChapterNumbers = s => {
-  const section = s.split('## NIVEL 1 — Índice JMR (13 capítulos)')[1]?.split('## NIVEL 2')[0] || '';
+  const section = s.split('## NIVEL 1 — Índice JMR (14 capítulos)')[1]?.split('## NIVEL 2')[0] || '';
   return [...section.matchAll(/^(\d{1,2})\. \*\*/gm)].map(m=>Number(m[1]));
 };
 
@@ -30,8 +30,9 @@ test('existen tres contratos diferenciados: valoración, investigación vigente 
   }
 });
 
-test('Research vigente: 13 capítulos y Nivel 2; auditoría independiente: 18 secciones',()=>{
-  assert.deepEqual(narrativeChapterNumbers(docs[1].s),Array.from({length:13},(_,i)=>i+1));
+test('Research vigente: 14 capítulos y Nivel 2; auditoría independiente: 18 secciones',()=>{
+  assert.deepEqual(narrativeChapterNumbers(docs[1].s),Array.from({length:14},(_,i)=>i+1));
+  assert.match(docs[1].s,/5\. \*\*Ciclos de la empresa, del mercado y de la macroeconomía/);
   assert.match(docs[1].s,/## NIVEL 2 — Cálculos, estados y soportes/);
   assert.match(docs[1].s,/12 apartados verificables/);
   assert.match(docs[1].s,/no crear números, fuentes, matrices ni estimaciones/i);
