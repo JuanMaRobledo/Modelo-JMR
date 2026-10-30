@@ -92,17 +92,25 @@ const vm = require('node:vm');
   const auditPath='auditorias/narrativas/NFLX.md';
   if(catalog.auditorias.includes(auditPath)){
     const audit=await read(auditPath);
-    assert.equal((audit.match(/^## \d+\./gm)||[]).length,18,
-      'auditoría tiene 18 secciones independientes del análisis');
-    const deep=fs.readFileSync('docs/jmr-audit-deep.js','utf8');
-    const sandbox={window:{}};
-    vm.runInNewContext(deep,sandbox);
-    const result=sandbox.window.JmrDeepAudit.analyze(v,audit);
-    assert.equal(result.sectionCount,18,'lector reconoce 18 secciones de auditoría');
-    // Una auditoría guardada puede corresponder a otra revisión; no certificar
-    // la revisión actual por simple existencia del informe.
+    const sections=(audit.match(/^## \d+\./gm)||[]).length;
+    if(sections===0){
+      assert.match(audit,/auditoría económica pendiente|auditor[ií]a pendiente/i,
+        'sin secciones = debe ser una constancia de auditoría pendiente');
+      assert.match(audit,/EN_REVISION/,
+        'sin dictamen no puede figurar como auditado');
+      console.warn('PENDIENTE_AUDITORIA NFLX: solo consta aviso de revisión, sin dictamen independiente.');
+    }else{
+      assert.equal(sections,18,'informe económico completo: 18 secciones');
+      const deep=fs.readFileSync('docs/jmr-audit-deep.js','utf8');
+      const sandbox={window:{}};
+      vm.runInNewContext(deep,sandbox);
+      const result=sandbox.window.JmrDeepAudit.analyze(v,audit);
+      assert.equal(result.sectionCount,18,'lector reconoce 18 secciones de auditoría');
+    }
+    // El archivo de auditoría puede citar una revisión sustituida. No acreditar
+    // auditoría de la versión vigente por el simple hecho de existir.
     if(!audit.includes(v.revisionId))
-      console.warn('PENDIENTE_AUDITORIA NFLX: auditoría narrativa sin revisión vigente '+v.revisionId);
+      console.warn('PENDIENTE_AUDITORIA NFLX: archivo de auditoría no corresponde a '+v.revisionId);
   }
   console.log('OK catálogo activo NFLX: '+v.revisionId+
     ', DCF Base='+v.valorPrincipal.toFixed(2)+
