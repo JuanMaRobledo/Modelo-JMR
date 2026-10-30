@@ -223,7 +223,7 @@
             (fmt.percent?'<span class="cell-unit">%</span>':'')+'</td>';
         }else{
           var label=JmrDisplayNumber.formatCell(c);
-          display+='<td class="'+(c.formula?'formula-cell':'readonly-cell')+(ci===startCol?' first-source-col':'')+'" data-cell="'+esc(address)+'" title="'+esc(address+(c.formula?' · fórmula protegida: '+c.formula:' · solo lectura'))+'">'+
+          display+='<td class="'+(c.formula?'formula-cell':'readonly-cell')+(typeof c.v==='number'?' numeric-cell':'')+(ci===startCol?' first-source-col':'')+'" data-cell="'+esc(address)+'" title="'+esc(address+(c.formula?' · fórmula protegida: '+c.formula:' · solo lectura'))+'">'+
             '<div class="cell-display">'+esc(label)+'</div>'+(c.formula?'<small>ƒx</small>':'')+'</td>';
         }
       }
