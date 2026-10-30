@@ -135,3 +135,37 @@ test('XP muestra pestañas financieras reales y cuatro múltiplos de fórmula co
   assert.equal(x.multiplesFormulaAudit(sheet,'XP').filter(c=>c.exempt).length,0);
   assert.equal(x.multiplesFormulaAudit({'Descuento de múltiplos':{}},'NKE').filter(c=>c.exempt).length,0);
 });
+
+
+test('46 hojas de UBER agrupadas, sin pérdidas ni duplicados; pestañas accesibles y ventana independiente',()=>{
+  const ctx={};ctx.globalThis=ctx;
+  vm.runInNewContext(formatter,ctx);vm.runInNewContext(source,ctx);
+  const expected=[
+    'Duración ventaja · FCFF','Resumen de Valoración','Descuento de múltiplos','Tesis de Inversión y Supuestos',
+    'Origen de los Supuestos','EVFCFF','POCF','PE','PFCFE','EVEBITDA','Financials Multiples',
+    'Input sheet','Valuation output','Income Statement','Balance Sheet','Cash Flow Statement',
+    'Trailing Valuation','Forward Valuation','Dividendos','Márgenes','Eficiencia de capital',
+    'Salud Financiera','Por acción','Option value','Synthetic rating','R& D converter',
+    'Operating lease converter','Cost of capital worksheet','Sector','Failure Rate worksheet',
+    'Country equity risk premiums','Industry Averages(US)','Industry Averages (Global)',
+    'Input Stat Distributioons','Trailing 12 month Worskheet','Crecimiento y Márgenes',
+    'Supuestos Recomendados','Supuestos de los Múltiplos','Escenarios e historias',
+    'Múltiplos históricos','Entradas históricas auxiliares','PV','PBV',
+    'Sensibilidad por múltiplo','Motor sensibilidad DCF','Sensibilidad DCF'
+  ];
+  const groups=ctx.JmrSheetEditor.sheetGroups(expected);
+  assert.equal(expected.length,46);
+  assert.deepEqual([...groups.flatMap(g=>g.names)].sort(),[...expected].sort());
+  assert.equal(new Set(groups.flatMap(g=>g.names)).size,46);
+  assert.equal(groups.find(g=>g.id==='estados').names.length,6);
+  assert.ok(groups.find(g=>g.id==='ratios').names.includes('Trailing Valuation'));
+  assert.ok(groups.find(g=>g.id==='ratios').names.includes('Eficiencia de capital'));
+  assert.ok(groups.find(g=>g.id==='ratios').names.includes('Salud Financiera'));
+  assert.equal(ctx.JmrSheetEditor.sheetGroups(['Income Statement','Nueva hoja']).find(g=>g.id==='otros').names[0],'Nueva hoja');
+  for(const id of ['sheetCategoryTabs','sheetQuickTabs','sheetGroupDescription','openSheetTab'])
+    assert.match(html,new RegExp('id="'+id+'"'));
+  assert.match(html,/id="openSheetTab"[^>]*target="_blank"[^>]*rel="noopener noreferrer"/);
+  assert.match(source,/encodeURIComponent\(selected\)/);
+  assert.match(source,/data-original-sheet/);
+  assert.match(source,/numeric-cell/);
+});

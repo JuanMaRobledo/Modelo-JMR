@@ -39,6 +39,44 @@
     if(kind==='financial')return list.find(function(n){return /^financials? multiples?/i.test(normalizeName(n));})||'';
     return '';
   }
+  // Índice de las hojas nativas: navegación visual, sin duplicación de datos ni fórmulas.
+  // Las hojas ocultas del archivo se ofrecen igualmente para consulta y trazabilidad.
+  var WORKBOOK_GROUPS=[
+    {id:'estados',title:'Estados financieros',description:'Resultados, balance, efectivo y cifras por acción',names:[
+      'Income Statement','Balance Sheet','Cash Flow Statement','Trailing 12 month Worskheet','Por acción','Dividendos']},
+    {id:'valor',title:'DCF y supuestos',description:'Valor intrínseco, hipótesis, costo de capital y escenarios',names:[
+      'Resumen de Valoración','Input sheet','Valuation output','Escenarios e historias',
+      'Tesis de Inversión y Supuestos','Origen de los Supuestos','Supuestos Recomendados',
+      'Duración ventaja · FCFF','Cost of capital worksheet','Sensibilidad DCF',
+      'Motor sensibilidad DCF','Crecimiento y Márgenes']},
+    {id:'ratios',title:'Eficiencia, deuda y valoración histórica',description:'Evolución LTM, capital invertido, solvencia y márgenes',names:[
+      'Trailing Valuation','Forward Valuation','Márgenes','Eficiencia de capital','Salud Financiera']},
+    {id:'multiplos',title:'Múltiplos',description:'Métricas relativas y sus hojas de respaldo',names:[
+      'Descuento de múltiplos','Múltiplos históricos','Financials Multiples',
+      'Supuestos de los Múltiplos','Sensibilidad por múltiplo','Entradas históricas auxiliares',
+      'EVEBITDA','EVFCFF','PE','PFCFE','POCF','PV','PBV']},
+    {id:'apoyo',title:'Anexos y conversores',description:'Opciones, I+D, arrendamientos, sectores y datos auxiliares',names:[
+      'Option value','Synthetic rating','R& D converter','Operating lease converter',
+      'Sector','Failure Rate worksheet','Country equity risk premiums',
+      'Industry Averages(US)','Industry Averages (Global)','Input Stat Distributioons']}
+  ];
+  function sheetGroups(names){
+    var groups=WORKBOOK_GROUPS.map(function(g){return {id:g.id,title:g.title,description:g.description,names:[]};});
+    var seen={};
+    (names||[]).forEach(function(name){
+      var key=normalizeName(name),index=WORKBOOK_GROUPS.findIndex(function(g){
+        return g.names.some(function(x){return normalizeName(x)===key;});
+      });
+      if(seen[key])return;
+      seen[key]=true;
+      if(index<0){
+        var other=groups.find(function(g){return g.id==='otros';});
+        if(!other){other={id:'otros',title:'Otras hojas',description:'Otras pestañas originales del libro',names:[]};groups.push(other);}
+        other.names.push(name);
+      }else groups[index].names.push(name);
+    });
+    return groups.filter(function(g){return g.names.length>0;});
+  }
   function mainKind(name){
     var n=normalizeName(name);
     if(n==='input sheet'||n==='input'||n==='inputs')return 'input';
@@ -107,7 +145,7 @@
        'La equivalencia de fórmulas con la plantilla se verifica por separado.';
     host.dataset.coverage=calculated+accepted===7?'complete':'incomplete';
   }
-  var snapshot=null,ticker='',selected='',firstRow=1,firstCol=1,pageRows=30,pageCols=9,fullSheet=true;
+  var snapshot=null,ticker='',selected='',selectedGroup='',firstRow=1,firstCol=1,pageRows=30,pageCols=9,fullSheet=true;
   var drafts=new Map(),busy=false,loader=0,dimensions={};
   var MAX_FULL_CELLS=30000;
   function refreshShortcuts(){
@@ -185,7 +223,7 @@
             (fmt.percent?'<span class="cell-unit">%</span>':'')+'</td>';
         }else{
           var label=JmrDisplayNumber.formatCell(c);
-          display+='<td class="'+(c.formula?'formula-cell':'readonly-cell')+(ci===startCol?' first-source-col':'')+'" data-cell="'+esc(address)+'" title="'+esc(address+(c.formula?' · fórmula protegida: '+c.formula:' · solo lectura'))+'">'+
+          display+='<td class="'+(c.formula?'formula-cell':'readonly-cell')+(typeof c.v==='number'?' numeric-cell':'')+(ci===startCol?' first-source-col':'')+'" data-cell="'+esc(address)+'" title="'+esc(address+(c.formula?' · fórmula protegida: '+c.formula:' · solo lectura'))+'">'+
             '<div class="cell-display">'+esc(label)+'</div>'+(c.formula?'<small>ƒx</small>':'')+'</td>';
         }
       }
@@ -210,9 +248,35 @@
     });
     byId('pendingList').innerHTML=html.join('');
   }
+  function renderWorkbookNavigation(){
+    var groups=sheetGroups(Object.keys(snapshot?.sheets||{}));
+    if(!groups.length)return;
+    var active=groups.find(function(g){return g.id===selectedGroup;})||groups[0];
+    selectedGroup=active.id;
+    var cats=byId('sheetCategoryTabs'),items=byId('sheetQuickTabs'),count=byId('sheetGroupDescription');
+    if(cats)cats.innerHTML=groups.map(function(g){
+      return '<button type="button" data-sheet-group="'+esc(g.id)+'" aria-pressed="'+(g.id===active.id)+'"'+
+        ' class="'+(g.id===active.id?'active':'')+'">'+esc(g.title)+
+        ' <span class="sheet-group-count">'+g.names.length+'</span></button>';
+    }).join('');
+    if(count)count.textContent=active.description+' · '+active.names.length+' pestaña(s)';
+    if(items)items.innerHTML=active.names.map(function(name){
+      var chosen=name===selected;
+      return '<button type="button" data-original-sheet="'+esc(name)+'" aria-pressed="'+chosen+'"'+
+        ' class="'+(chosen?'active':'')+'">'+esc(name)+'</button>';
+    }).join('');
+    var single=byId('openSheetTab');
+    if(single){
+      single.href='editor-hoja.html?ticker='+encodeURIComponent(ticker)+'&sheet='+encodeURIComponent(selected);
+      single.textContent='Abrir «'+selected+'» en nueva pestaña ↗';
+    }
+  }
   function selectSheet(name){
     if(!snapshot?.sheets?.[name])return;
     selected=name;firstRow=1;firstCol=1;fullSheet=true;
+    var group=sheetGroups(Object.keys(snapshot.sheets)).find(function(g){return g.names.includes(name);});
+    if(group)selectedGroup=group.id;
+    renderWorkbookNavigation();
     byId('sheetName').textContent=name;
     byId('sheetPicker').value=name;
     refreshShortcuts();
@@ -226,8 +290,10 @@
     var querySheet=new URLSearchParams(global.location.search).get('sheet');
     var requested=list.find(function(n){return normalizeName(n)===normalizeName(querySheet);});
     var chosen=requested||findMainSheet('input',list)||list[0];
-    byId('sheetPicker').innerHTML=list.map(function(name){
-      return '<option value="'+esc(name)+'">'+esc(name)+'</option>';
+    byId('sheetPicker').innerHTML=sheetGroups(list).map(function(g){
+      return '<optgroup label="'+esc(g.title)+'">'+g.names.map(function(name){
+        return '<option value="'+esc(name)+'">'+esc(name)+'</option>';
+      }).join('')+'</optgroup>';
     }).join('');
     byId('workbook').hidden=false;
     byId('companyName').textContent=(result.record?.company||result.record?.empresa||ticker)+
@@ -308,6 +374,16 @@
   function bind(){
     byId('lookup').addEventListener('submit',function(e){e.preventDefault();load();});
     byId('sheetPicker').addEventListener('change',function(){selectSheet(this.value);});
+    byId('sheetCategoryTabs').addEventListener('click',function(e){
+      var btn=e.target.closest('button[data-sheet-group]');
+      if(!btn||!snapshot)return;
+      selectedGroup=btn.dataset.sheetGroup;
+      renderWorkbookNavigation();
+    });
+    byId('sheetQuickTabs').addEventListener('click',function(e){
+      var btn=e.target.closest('button[data-original-sheet]');
+      if(btn&&snapshot?.sheets?.[btn.dataset.originalSheet])selectSheet(btn.dataset.originalSheet);
+    });
     byId('modelSheetTabs').addEventListener('click',function(e){
       var btn=e.target.closest('button[data-sheet-kind]');
       if(!btn||btn.disabled||!snapshot)return;
@@ -339,6 +415,6 @@
     var fromUrl=new URLSearchParams(global.location.search).get('ticker');
     if(fromUrl){byId('ticker').value=fromUrl;load();}
   }
-  global.JmrSheetEditor={isEditable,coordinates,colName,formatNumber,normalizeName,findMainSheet,mainKind,sectionType,multiplesFormulaAudit};
+  global.JmrSheetEditor={isEditable,coordinates,colName,formatNumber,normalizeName,findMainSheet,mainKind,sectionType,multiplesFormulaAudit,sheetGroups};
   if(typeof document!=='undefined'&&byId('lookup'))bind();
 })(typeof window!=='undefined'?window:globalThis);

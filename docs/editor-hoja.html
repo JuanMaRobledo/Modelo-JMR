@@ -9,7 +9,7 @@
 <link rel="icon" href="favicon.ico">
 <link rel="stylesheet" href="jmr-theme.css">
 <link rel="stylesheet" href="jmr-fullwidth.css">
-<link rel="stylesheet" href="editor-hoja.css?v=20261026-vista-completa">
+<link rel="stylesheet" href="editor-hoja.css?v=20261030-grupos46">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body class="sheet-editor-page">
@@ -60,7 +60,7 @@
     <section class="model-sheets" aria-label="Hojas principales del modelo">
       <div class="section-heading">
         <div><span class="eyebrow">HOJAS COMPLETAS</span><h3>Detalle del modelo financiero</h3></div>
-        <p>Los mismos datos de Google Sheets, con mejor presentación. Sin cálculos paralelos.</p>
+        <p>Todas las pestañas originales agrupadas por función. Datos intactos y fórmulas protegidas.</p>
       </div>
       <div class="model-sheet-tabs" id="modelSheetTabs" role="group" aria-label="Accesos directos a las hojas del modelo">
         <button type="button" data-sheet-kind="input">Input Sheet</button>
@@ -68,10 +68,15 @@
         <button type="button" data-sheet-kind="multiples">Múltiplos</button>
         <button type="button" data-sheet-kind="financial">Financial Multiples</button>
       </div>
+      <nav id="sheetCategoryTabs" class="sheet-category-tabs" aria-label="Grupos de hojas de cálculo"></nav>
+      <p id="sheetGroupDescription" class="sheet-group-description"></p>
+      <div id="sheetQuickTabs" class="sheet-quick-tabs" role="group" aria-label="Pestañas originales del grupo"></div>
+      <p class="sheet-nav-note">Todas las hojas del libro están disponibles, incluidas las ocultas. Selecciona una pestaña para verla aquí, o ábrela en una ventana independiente. Se muestran valores de Google Sheets; no se recalculan.</p>
     </section>
     <div class="toolbar">
       <div class="toolbar-title"><label for="sheetPicker">Pestaña del libro</label><select id="sheetPicker" aria-label="Seleccionar pestaña del libro"></select></div>
       <div class="toolbar-title"><span class="eyebrow">HOJA SELECCIONADA</span><strong id="sheetName"></strong></div>
+      <a id="openSheetTab" class="open-sheet-window" href="editor-hoja.html" target="_blank" rel="noopener noreferrer">Abrir esta hoja en nueva pestaña ↗</a>
       <button type="button" id="toggleFullSheet" class="secondary" aria-pressed="true">Ver por bloques</button>
     </div>
     <div class="range-toolbar" id="rangeToolbar">
@@ -113,6 +118,6 @@
 </main>
 <script src="jmr-number-format.js?v=20261020-dos-decimales"></script>
 <script src="model-sync.js?v=20261026-catalogo"></script>
-<script src="editor-hoja.js?v=20261027-financiero-xp"></script>
+<script src="editor-hoja.js?v=20261030-grupos46"></script>
 </body>
 </html>
