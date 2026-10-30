@@ -26,6 +26,18 @@ function fromCatalog(arr,t){
     return name.startsWith(t+'-') || name===t+'.MD' || name===t+'.JSON';
   })||'';
 }
+function controlModeloA(t){
+  const path=fromCatalog(state.catalog.valoraciones,t);
+  const control=state.catalog.controlModeloA;
+  // Compatible con catálogos anteriores: no ocultar toda la app durante el despliegue coordinado.
+  if(!control || !control.empresas)return {visible:true,estado:'SIN_CONTROL',detalle:'Método por verificar en esta revisión.'};
+  const item=control.empresas[t];
+  if(!item || !path || item.rutaValoracion!==path)
+    return {visible:false,estado:'SIN_CLASIFICAR',detalle:'Revisión nueva o sin clasificación metodológica; verificar antes de publicar.'};
+  if(item.metodo!=='A-1.2' || item.estado==='EXCLUIDA_HASTA_REHACER_A')
+    return {visible:false,estado:'EXCLUIDA_HASTA_REHACER_A',detalle:'Versión anterior al Modelo A. Rehacer y conservar la revisión previa en el histórico.'};
+  return {visible:true,estado:item.estado,detalle:item.diagnostico||'Revisión pendiente.',multiplos:item.multiplos};
+}
 function status(s,level){el('status').textContent=s;el('status').dataset.level=level||'neutral';}
 async function fetchJSON(url){
   const r=await fetch(url,{cache:'no-store'});
@@ -40,7 +52,7 @@ async function loadInventory(){
     state.catalog=catalog;
     state.files=[]; // Nunca depender del inventario histórico ni de una segunda API para construir las fichas.
     state.ready=true;
-    const tickers=[...new Set((state.catalog.valoraciones||[]).map(path=>tickerFromName(String(path).split('/').pop())).filter(Boolean))].sort();
+    const tickers=[...new Set((state.catalog.valoraciones||[]).map(path=>tickerFromName(String(path).split('/').pop())).filter(Boolean))].filter(t=>controlModeloA(t).visible).sort();
     el('tickers').replaceChildren(...tickers.map(t=>{const opt=document.createElement('option');opt.value=t;return opt;}));
     renderCatalogCards();
     status(tickers.length+' empresas activas en el catálogo oficial. Los archivos históricos no aparecen como fichas vigentes.');
@@ -80,7 +92,7 @@ function companyLogo(t,kind){
 function renderCatalogCards(){
   const q=String(el('catalogSearch').value||'').trim().toUpperCase();
   const paths=Array.isArray(state.catalog.valoraciones)?state.catalog.valoraciones:[];
-  const tickers=[...new Set(paths.map(p=>tickerFromName(String(p).split('/').pop())).filter(valid))].sort();
+  const tickers=[...new Set(paths.map(p=>tickerFromName(String(p).split('/').pop())).filter(valid))].filter(t=>controlModeloA(t).visible).sort();
   const matching=tickers.filter(t=>catalogMarket(t)&&(!q||t.includes(q)));
   const chosenMarket=new URLSearchParams(location.search).get('mercado')||'all';
   document.querySelectorAll('#marketFilters [data-market]').forEach(b=>{
@@ -103,7 +115,7 @@ function renderCatalogCards(){
     const info=document.createElement('small');info.textContent='Valoración vigente en catálogo';
     card.appendChild(info);
     const supports=document.createElement('span');supports.className='card-caption';
-    supports.textContent=(p.analysisPath?'Análisis disponible':'Análisis pendiente')+' · '+(p.auditPath?'Auditoría disponible':'Auditoría pendiente');
+    supports.textContent='Modelo A · '+(controlModeloA(t).estado==='INCOMPLETA_EN_REVISION'?'INCOMPLETA / EN_REVISIÓN · ':'Metodología por verificar · ')+(p.analysisPath?'Análisis disponible':'Análisis pendiente')+' · '+(p.auditPath?'Auditoría disponible':'Auditoría pendiente');
     card.appendChild(supports);
     const actions=document.createElement('div');actions.className='card-links';
     const open=document.createElement('button');open.type='button';open.className='card-open';
@@ -195,6 +207,13 @@ function openCompany(input){
   el('companyTitle').textContent='Expediente '+t;
   el('companyLogo').replaceChildren(companyLogo(t,'overview'));
   const p=pages(t);
+  const metodo=controlModeloA(t);
+  if(!metodo.visible){
+    el('dossier').hidden=true;el('catalogSection').hidden=false;el('empty').hidden=false;
+    el('empty').textContent=t+' no aparece en el análisis vigente: '+metodo.detalle+' Puedes consultar su expediente anterior desde Histórico.';
+    status(t+' · '+metodo.estado,'warning');
+    return;
+  }
   if(!p.official){
     el('dossier').hidden=true;el('empty').hidden=false;
     el('empty').textContent='No hay una valoración vigente en el catálogo oficial para '+t+'. Consulta el archivo histórico por separado; no se mezclará con la ficha activa.';
@@ -204,6 +223,7 @@ function openCompany(input){
   el('revisionNotice').textContent=p.analysisPath
     ? 'Ficha vigente · Análisis y valoración asociados al catálogo. Auditoría: '+(p.auditPath?'disponible para consulta':'pendiente')+'.'
     : 'Valoración en catálogo; análisis fundamental pendiente de publicación. No se muestra un documento anterior como vigente.';
+  if(metodo.estado==='INCOMPLETA_EN_REVISION')el('revisionNotice').textContent+=' · MODELO A INCOMPLETO / EN_REVISIÓN: faltan conciliaciones, múltiplos o controles independientes.';
   el('dossier').hidden=false;el('empty').hidden=true;
   el('catalogSection').hidden=true; // Al abrir una empresa, el artículo es lo primero después del buscador.
   readAuditNotes(t);
