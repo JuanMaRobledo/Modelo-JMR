@@ -269,10 +269,22 @@ function renderSheetSubtabs(view){
     host.appendChild(button);
   });
 }
+function normalizeDcfMatrices(s){
+  if(!s||typeof s!=='object')return [];
+  const named=(m,name)=>({nombre:m.nombre||name,ejeFilas:m.ejeFilas,ejeColumnas:m.ejeColumnas,valores:m.valores,centroConciliado:m.centroConciliado===true||(m.centroConciliado==null&&s.centroConciliado===true)});
+  const result=Array.isArray(s.matrices)?s.matrices.map((m,i)=>named(m,'Matriz DCF '+(i+1))):[];
+  const raw=s.matriz;
+  if(Array.isArray(raw))result.push(named({ejeFilas:s.wacc,ejeColumnas:s.g,valores:raw},'WACC × crecimiento terminal'));
+  else if(raw&&typeof raw==='object'&&Array.isArray(raw.valores))
+    result.push(named({ejeFilas:raw.wacc||raw.ejeFilas,ejeColumnas:raw.g||raw.ejeColumnas,valores:raw.valores},'WACC × crecimiento terminal'));
+  if(Array.isArray(s.valorPorAccion)&&Array.isArray(s.KeEscenarios)&&Array.isArray(s.gEscenarios))
+    result.push(named({ejeFilas:s.KeEscenarios,ejeColumnas:s.gEscenarios,valores:s.valorPorAccion},'Ke × crecimiento terminal · FCFE'));
+  return result;
+}
 function sensitivityHtml(rec){
   const esc=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   if(!rec)return '<p class="status-note">Cargando sensibilidades de la valoración oficial…</p>';
-  const mats=rec.sensibilidadDCF?.matrices||[];
+  const mats=normalizeDcfMatrices(rec.sensibilidadDCF);
   const base=rec.valorEsperado?.dcfBase??rec.valorPrincipal;
   const fmt=n=>typeof n==='number'&&isFinite(n)?n.toLocaleString('es-CO',{maximumFractionDigits:2,minimumFractionDigits:2}):'N/D';
   let parts=['<h3>DCF · sensibilidades del escenario Base</h3><p>Valores por acción calculados en el modelo, no simulados en la página. La celda central debe coincidir con el DCF Base oficial.</p>'];
