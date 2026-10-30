@@ -1,6 +1,6 @@
 # Reglas vigentes del Modelo JMR
 
-**Versión 22 · 30-oct-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
+**Versión 23 · 30-oct-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
 (`docs/prompts/*.md`), `METODOLOGIA.md`, una habilidad o un comentario de código dice otra cosa, prevalece este
 documento. Una regla nueva no se agrega como «regla del día X» en un prompt: se cambia aquí, se sube la versión y se
 anota en el registro de cambios del final.
@@ -184,6 +184,8 @@ El cambio afecta la secuencia y los estados, no el método financiero, fórmulas
 
 ## 9. Análisis fundamental completo: Estilo JMR narrativo (v23, 30-oct-2026)
 
+**Tres prompts operativos únicos:** `docs/prompts/valoracion-modelo-jmr-v5.md` (1/3), `docs/prompts/research-fundamental-jmr-v5.md` (2/3) y `docs/prompts/auditoria-economica-jmr-v1.md` (3/3). Los prompts de `archivo/`, `recuperado-*` y `colombia-research-v1.md` son antecedentes, no reglas ejecutables. Cualquier contradicción se resuelve por este §9 y §§5/8: no conservar prohibiciones históricas de sensibilidad por múltiplos.
+
 **Regla editorial vigente:** se reemplaza el índice obligatorio de 18 capítulos de META y la exigencia de cinco filosofías/Porter por el **Estilo JMR de 14 capítulos**, inspirado en la claridad narrativa de AZ Stocks pero con metodología y juicios propios. El contrato completo y los nombres exactos están en [`docs/ESTILO_ANALISIS_FUNDAMENTAL_JMR.md`](../docs/ESTILO_ANALISIS_FUNDAMENTAL_JMR.md).
 
 **Nivel 1, siempre largo y explicativo:** 1. Tesis de inversión y conclusión; 2. La empresa y su modelo económico; 3. Industria, competencia y ventaja competitiva; 4. Motores del crecimiento futuro; 5. Ciclos de la empresa, del mercado y de la macroeconomía; 6. Historia financiera y calidad de resultados; 7. Reinversión, eficiencia del capital y ROIC; 8. Dirección, gobierno y asignación de capital; 9. Nuestro proceso de valoración; 10. Supuestos económicos y su justificación; 11. Valor intrínseco, escenarios y precio; 12. Riesgos, tesis contraria y factores de ruptura; 13. Catalizadores y plan de seguimiento; 14. Fuentes, limitaciones y estado del estudio. El lector debe entender el negocio, su economía, nuestros juicios y cómo llegamos al valor sin abrir una hoja. Cada sección contiene hechos, mecanismos y pruebas específicas del emisor, no títulos vacíos. Las subsecciones varían por sector.
@@ -246,6 +248,8 @@ Hojas de trabajo conservadas tras el archivo del 24-oct-2026 (identidad document
 - La existencia de estos documentos no certifica integración del selector a la app ni validación predictiva de A. Las pruebas automáticas y el seguimiento se documentarán antes de proclamar su calibración superior.
 
 ## Registro de cambios
+
+| 23 | 30-oct-2026 | Unificación documental: tres prompts activos 1/3 valoración, 2/3 análisis (14 capítulos con ciclos autónomos, Nivel 2 con 12 apartados), 3/3 auditoría (18 secciones). Sensibilidades DCF Base y de múltiplos Base aplicables obligatorias en la hoja; P/S y P/BV opcionales. Los prompts históricos no son autoridad ni se ejecutan. No modifica fórmulas, valoraciones ni datos. |
 
 | Versión | Fecha | Cambio |
 |---|---|---|
