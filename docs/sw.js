@@ -1,4 +1,4 @@
-const CACHE = "modelo-jmr-v186-mos35-20261029";
+const CACHE = "modelo-jmr-v187-editorial-jmr19-20261030";
 const APP_SHELL = [
   "catalog-reset.js",
   "index.html",
@@ -47,6 +47,7 @@ const APP_SHELL = [
   "mercado.js",
   "oauth-callback.html",
   "prompts/research-fundamental-jmr-v5.md",
+  "ESTILO_ANALISIS_FUNDAMENTAL_JMR.md",
   "prompts/valoracion-modelo-jmr-v5.md",
   "prompts/auditoria-economica-jmr-v1.md",
   "auth.js",
