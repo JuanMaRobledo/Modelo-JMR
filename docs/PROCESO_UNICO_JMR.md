@@ -12,6 +12,15 @@ Para cada revisión nueva consignar expresamente `Método A` (calibración por d
 
 Esa instrucción funciona **solo si el entorno tiene acceso a los repositorios, datos, hojas y herramientas necesarias**. El nombre «JMR» por sí solo no permite a una IA externa conocer el proceso. Si falta conexión, autorización o capacidad de ejecutar un control, se reporta como tal; nunca se afirma que se ejecutó.
 
+## Inventario operativo de prompts (30-oct-2026)
+
+**Solo tres prompts maestros activos, todos bajo `modelo/REGLAS_VIGENTES.md`:**
+- **1/3 Valoración:** `docs/prompts/valoracion-modelo-jmr-v5.md`. Estima y alimenta la hoja original: DCF/FCFE/SOTP según sector, cuatro historias, múltiplos prioritarios y matrices de sensibilidad DCF y de múltiplos Base; no escribe investigación ni auditoría.
+- **2/3 Análisis fundamental:** `docs/prompts/research-fundamental-jmr-v5.md`. Nivel 1 de **14 capítulos**, el 5 dedicado a ciclo empresarial (Damodaran), ciclo macro y monetario y ciclo de mercado/crédito (Marks); Nivel 2 con **12 apartados reproducibles**; usa solamente resultados de la misma revisión financiera, no los recalcula.
+- **3/3 Auditoría económica:** `docs/prompts/auditoria-economica-jmr-v1.md`. Examen independiente posterior, con **18 secciones propias**, sin sobrescribir hoja o artículo.
+
+**Legado y limpieza:** `docs/prompts/archivo/`, `docs/prompts/recuperado-*` y `docs/prompts/colombia-research-v1.md` quedan para consulta histórica; no invocarlos como prompts vigentes. No eliminar enlaces de compatibilidad, fuentes, revisiones ni fórmulas sin inventario de usos y prueba de regresión. La app muestra los múltiplos publicados desde `Financials Multiples`, `Descuento de múltiplos` y `Sensibilidad por múltiplo` de la **misma hoja de cada empresa**; sin controles conciliados mostrar N/D (no cero ni objetivo fabricado). P/S y P/BV son opcionales. Para validar publicación distinguir hoja existente, cálculos presentes, reconciliación a JSON y visualización: son cuatro etapas distintas.
+
 ## Fuentes en orden de autoridad
 
 1. **Contrato común y método elegido:** [`modelo/REGLAS_VIGENTES.md`](../modelo/REGLAS_VIGENTES.md) rige cálculos, estructura y publicación; [`modelo/METODOS_VALORACION.md`](../modelo/METODOS_VALORACION.md) define la selección y vincula Método A o Método B para estimar supuestos. Un prompt no prevalece sobre esos documentos.
