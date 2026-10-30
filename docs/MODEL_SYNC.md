@@ -2,7 +2,7 @@
 
 La aplicación tiene **tres funciones distintas**:
 
-1. **Análisis fundamental** (`research.html`): Nivel 1 = 13 capítulos narrativos del Estilo JMR; Nivel 2 = valoración oficial con estados financieros, ratios, insumos, cálculos y matrices de sensibilidad.
+1. **Análisis fundamental** (`research.html`): Nivel 1 = 14 capítulos narrativos, con ciclos como capítulo 5 del Estilo JMR; Nivel 2 = valoración oficial con estados financieros, ratios, insumos, cálculos y matrices de sensibilidad.
 2. **Calculadora DCF** (`calculadora.html`): importa parámetros de una empresa guardada para hacer **simulaciones locales**. Ningún cambio de la calculadora se escribe en la hoja ni modifica el expediente oficial.
 3. **Editor de hoja** (`editor-hoja.html?ticker=NKE`): importa todas las pestañas de la hoja vinculada por ticker, permite desplazarse por filas/columnas, prepara cambios en celdas numéricas literales del **Input sheet** y los estados `Income Statement`, `Balance Sheet`, `Cash Flow Statement`. Los resultados derivados, fórmulas, etiquetas, celdas nuevas y pestañas de sensibilidad no se alteran. La persona confirma los cambios y el servidor valida versión + valor anterior. Después de guardar, Google Sheets recalcula; el artículo NO se republica de forma automática.
 
