@@ -166,10 +166,10 @@ Muestra un ejemplo con las cifras sustituidas.
 ## 5. Múltiplos (precio relativo, secundarios)
 
 Los múltiplos son una segunda opinión: **nunca se derivan del DCF ni se mueven para parecerse a él.** Métodos:
-EV/EBITDA, EV/FCFF, P/E, P/FCFE, P/OCF, P/S (P/V) y P/BV. Calcular los siete; el analista/IA elige y justifica los pesos según el tipo de empresa y su modelo de negocio, conforme a §5A de las reglas vigentes. Ningún método tiene un peso universal por defecto. Un método con métrica FY+3
+EV/EBITDA, EV/FCFF, P/E, P/FCFE y P/OCF constituyen el **núcleo prioritario, evaluado según aplicabilidad económica**; P/S (P/V) y P/BV son **complementarios opcionales** y nunca requisito de publicación cuando no se usan. El analista/IA elige y justifica los pesos según el tipo de empresa y su modelo de negocio, conforme a §5A de las reglas vigentes. Ningún método tiene un peso universal por defecto. Un método con métrica FY+3
 negativa o casi nula no aplica (N/D). En financieras no aplican los métodos de EV.
 
-**Contrato de cálculo obligatorio:** aplicar `modelo/REGLAS_VIGENTES.md`, §5A. Usar siempre las fórmulas existentes de `Financials Multiples`, de cada método y del descuento; conservar la mecánica de los cinco originales y la extensión P/S (`PV`) y P/BV (`PBV`) en Maestra/IA/Manual. Elegir y justificar únicamente los supuestos de entrada, múltiplos de salida (`J8/J19/J30`) y pesos; nunca escribir precios calculados sobre fórmulas. P/S usa ventas por acción; P/BV usa patrimonio común proyectado por acción, conciliando sus movimientos. Mostrar los siete resultados a FY+1/FY+2/FY+3 y sus valores presentes aunque el peso sea cero, o N/A/N/D con motivo, dato faltante e impacto documentados. Un peso cero no permite omitir el cálculo.
+**Contrato de cálculo obligatorio:** aplicar `modelo/REGLAS_VIGENTES.md`, §5A. Usar siempre las fórmulas existentes de `Financials Multiples`, de cada método y del descuento; conservar la mecánica de los cinco originales y las pestañas optativas P/S (`PV`) y P/BV (`PBV`) en Maestra/IA/Manual. Elegir y justificar únicamente los supuestos de entrada, múltiplos de salida (`J8/J19/J30`) y pesos; nunca escribir precios calculados sobre fórmulas. P/S usa ventas por acción; P/BV usa patrimonio común proyectado por acción, conciliando sus movimientos. Mostrar los resultados FY+1/FY+2/FY+3 y valores presentes de los cinco prioritarios **aplicables** o documentar N/A/N/D con motivo e impacto. P/S y P/BV solo se calculan si son útiles o reciben peso; su ausencia con peso cero no impide publicación ni exige completar la proyección patrimonial. Si tienen peso positivo deben verificarse.
 
 Para cada método y cada historia (Conservador, Base, Optimista), el múltiplo de salida en FY+3 se fija así:
 1. **Historia propia por ciclo:** mediana de los cierres en que la empresa creció a ±2 pp de lo que el escenario
@@ -198,8 +198,7 @@ tipo de empresa, y **nunca se rotula como valor intrínseco**.
 
 ## 6. Sensibilidad (solo sobre la Base; lo mínimo obligatorio)
 
-Obligatorio: las tres sensibilidades del DCF Base y el DCF inverso (contrato de abajo). Las matrices de múltiplos son
-opcionales y nunca bloquean la entrega.
+Obligatorio: las tres sensibilidades del DCF Base y el DCF inverso (contrato de abajo). Las matrices de los cinco múltiplos prioritarios válidos siguen el contrato verificable de §8, y P/S/P/BV permanecen opcionales; no inventar datos ni bloquear por estos dos métodos complementarios.
 
 
 - **DCF Base:**
@@ -234,7 +233,7 @@ Responde Sí/No a cada punto y marca Sí solo si lo verificaste:
 4. Márgenes: ninguno supera 2,5× el del sector sin ventaja durable escrita ni margen ya demostrado por la empresa; el Optimista no supera al de la Base en
    más de 10 pp sin evidencia.
 5. Probabilidades = previa + ajustes documentados, y suman 100%.
-6. Múltiplos: siete métodos evaluados/calculados con las fórmulas de la plantilla, incluidos los de peso cero; excepciones N/A/N/D justificadas; P/S y P/BV conectados a Financials Multiples y descuento. Ninguno sobre su ancla C, ninguno calibrado al DCF, atípicos listados.
+6. Múltiplos: cinco métodos prioritarios evaluados según aplicabilidad y calculados con fórmulas oficiales si son válidos; P/S y P/BV opcionales y no bloqueantes salvo uso ponderado; excepciones N/A/N/D justificadas; si se emplean, P/S/PBV conectados a Financials Multiples y descuento. Ninguno sobre su ancla C, ninguno calibrado al DCF, atípicos listados.
 7. MOS calculado sobre la Base principal.
 8. Ninguna cifra sin etiqueta [Dato]/[Cálculo]/[Juicio]; ningún N/D tapado con un número.
 9. Aislamiento: ningún ticker, cifra o texto de otra empresa, salvo comparables declarados. Escribe AISLAMIENTO = OK
