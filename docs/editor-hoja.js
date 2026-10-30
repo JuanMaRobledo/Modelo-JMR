@@ -383,6 +383,7 @@
       var d=event.data||{};
       if(d.type!=='jmr-select-source-sheet'||d.ticker!==ticker||typeof d.sheet!=='string')return;
       if(!snapshot?.sheets?.[d.sheet])return;
+      if(['financieros','indicadores','modelo'].includes(d.section))document.documentElement.dataset.embeddedSection=d.section;
       if(drafts.size){setStatus('Guarda o descarta tus cambios antes de cambiar de pestaña.','warn');return;}
       if(selected!==d.sheet)selectSheet(d.sheet);
     });
