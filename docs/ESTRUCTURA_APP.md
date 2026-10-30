@@ -19,6 +19,15 @@ El diseño usa un panel de contenido único dentro del expediente. **Los visores
 
 `index.html` es redirección antigua al catálogo. Los enlaces incrustados que regresan al expediente apuntan a `_top`, para impedir expedientes anidados.
 
+## Control de integridad del Modelo A (30-oct-2026)
+
+- La app puede leer la clasificación por revisión exacta de `Modelo-JMR-datos/catalogo.json`, campo `controlModeloA.empresas`: `rutaValoracion`, `metodo`, `estado` y `multiplos`.
+- **Las revisiones anteriores al Modelo A** no aparecen en el análisis central mientras se rehacen, pero sus archivos siguen preservados en GitHub/Histórico. La exclusión nunca borra archivos ni sobrescribe valoraciones.
+- **Las revisiones A-1.2 actualmente publicadas** permanecen accesibles con estado **INCOMPLETA / EN_REVISIÓN** hasta cerrar los componentes y la auditoría. Una subpestaña que muestra N/D **no es un método terminado**.
+- Para declarar `COMPLETA`, exigir análisis narrativo Nivel 1, Nivel 2 con cálculos y fuentes reproducibles, datos históricos, DCF de cuatro escenarios, ROIC / reinversión / márgenes / crecimiento / WACC o Ke, cinco múltiplos económicos principales aplicables (o N/A documentado por tipo de empresa), sensibilidades DCF y de múltiplos, conciliación de valor presente, revisión y auditoría independientes. P/S y P/BV complementarios salvo aplicación relevante como P/BV bancario.
+- El contrato es **revisión-específico**: si cambia el `rutaValoracion` del catálogo, el lector evita heredar una clasificación obsoleta y requiere reclasificación. Si el catálogo aún no tiene el campo durante un despliegue coordinado, mantiene compatibilidad de lectura sin presentar ningún expediente como certificado.
+- Los formatos de matrices `sensibilidadDCF.matrices`, `sensibilidadDCF.matriz` (array o `{wacc,g,valores}`) y FCFE (`{KeEscenarios,gEscenarios,valorPorAccion}`) se interpretan **solo para mostrar datos existentes**, previa verificación de matriz 5×5 y coincidencia del centro con el DCF o FCFE Base publicado. Las otras estructuras no se fabrican.
+
 ## Dos niveles del análisis fundamental
 
 El lector `analisis-lectura.html` / ficha `expediente.html` aplica el [Estilo JMR narrativo](ESTILO_ANALISIS_FUNDAMENTAL_JMR.md): Nivel 1 largo con 13 capítulos de empresa → fundamentales → proceso → supuestos → valor; Nivel 2 desplegable con cálculos. Los legados conservan su estructura hasta actualización. Las tablas breves útiles del artículo no se eliminan. Porter y cinco filosofías dejan de ser obligatorios.
