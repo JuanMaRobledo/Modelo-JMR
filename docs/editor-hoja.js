@@ -373,7 +373,19 @@
   }
   function bind(){
     byId('lookup').addEventListener('submit',function(e){e.preventDefault();load();});
-    byId('sheetPicker').addEventListener('change',function(){selectSheet(this.value);});
+    byId('sheetPicker').addEventListener('change',function(){
+      selectSheet(this.value);
+      if(global.parent&&global.parent!==global)
+        global.parent.postMessage({type:'jmr-sheet-selected',ticker,sheet:selected},global.location.origin);
+    });
+    global.addEventListener('message',function(event){
+      if(event.origin!==global.location.origin||event.source!==global.parent)return;
+      var d=event.data||{};
+      if(d.type!=='jmr-select-source-sheet'||d.ticker!==ticker||typeof d.sheet!=='string')return;
+      if(!snapshot?.sheets?.[d.sheet])return;
+      if(drafts.size){setStatus('Guarda o descarta tus cambios antes de cambiar de pestaña.','warn');return;}
+      if(selected!==d.sheet)selectSheet(d.sheet);
+    });
     byId('sheetCategoryTabs').addEventListener('click',function(e){
       var btn=e.target.closest('button[data-sheet-group]');
       if(!btn||!snapshot)return;
