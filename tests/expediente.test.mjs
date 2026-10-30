@@ -169,7 +169,9 @@ test('catálogo muestra tarjetas clicables para las rutas oficiales y evita IDs 
   for(const x of ['catalogSection','catalogSearch','catalogCards','catalogEmpty'])assert.match(html,new RegExp('id="'+x+'"'));
   assert.match(js,/function renderCatalogCards\(\)/);
   assert.match(js,/catalog\.valoraciones/);
-  assert.match(js,/card\.addEventListener\('click',\(\)=>\{openCompany\(t\)/);
+  assert.match(js,/open\.addEventListener\('click',\(\)=>\{openCompany\(t\)/);
+  assert.match(js,/card\.addEventListener\('click',event=>/);
+  assert.match(js,/if\(p\.analysisPath\)window\.open\(p\.analisis\.href/);
   assert.doesNotMatch(js,/CONTENTS\+'valoraciones\?ref=main'/,'la lista no depende de otra API');
   assert.doesNotMatch(js,/mostRecent\?\.path/);
   assert.match(js,/catalogMarket\(t\)/);
