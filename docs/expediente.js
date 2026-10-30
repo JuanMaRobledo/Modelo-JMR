@@ -200,7 +200,7 @@ function openCompany(input){
     ? 'Ficha vigente · Análisis y valoración asociados al catálogo. Auditoría: '+(p.auditPath?'disponible para consulta':'pendiente')+'.'
     : 'Valoración en catálogo; análisis fundamental pendiente de publicación. No se muestra un documento anterior como vigente.';
   el('dossier').hidden=false;el('empty').hidden=true;
-  el('sheetLink').hidden=false;el('sheetLink').href=p.supuestos.href;
+  el('catalogSection').hidden=true; // Al abrir una empresa, el artículo es lo primero después del buscador.
   readAuditNotes(t);
   loadMosSummary(t,p,mosRequest).catch(()=>{});
   showView(DOSSIER_VIEWS.includes(state.view)?state.view:'analisis');
