@@ -309,3 +309,45 @@ test('valoración relativa aparece en todas las fichas y separa FY+3 del valor p
   assert.ok(text.includes('N/D'));
   assert.ok(!text.includes('US$0,00'));
 });
+
+
+test('DUOL: VP de múltiplos visible y conciliado sin tratarlo como FY+3 ni inventar NVO/INTU',()=>{
+  const sandbox={window:{}};
+  new Script(get('docs/jmr-multiples-panel.js')).runInNewContext(sandbox);
+  const api=sandbox.window.JmrMultiplesPanel;
+  const duol={ticker:'DUOL',revisionId:'DUOL-20261029-A1',valorPrincipal:136.6764524,
+    valorPresentePonderado:{conservador:75,base:105.9,optimista:145.63},
+    metodos:[
+      {nombre:'DCF FCFF',peso:.6,conservador:92.51,base:136.6764524,optimista:196.95,valorPresente:true},
+      {nombre:'EV/EBITDA',peso:.10,conservador:76.47,base:97.08,optimista:121.39,valorPresente:true},
+      {nombre:'EV/FCFF',peso:.15,conservador:63.01,base:76.54,optimista:81.39,valorPresente:true},
+      {nombre:'P/E',peso:.05,conservador:16.28,base:23.14,optimista:33.44,valorPresente:true,estado:'PROVISIONAL_SIN_APROBACION_ECONOMICA'},
+      {nombre:'P/FCFE',peso:.05,conservador:15.45,base:14.69,optimista:12.22,valorPresente:true},
+      {nombre:'P/OCF',peso:.05,conservador:16.11,base:16.31,optimista:16.64,valorPresente:true},
+      {nombre:'P/V',peso:0,base:null,valorPresente:true},
+      {nombre:'P/BV',peso:0,base:null,valorPresente:true}
+    ]};
+  const agg=api.aggregates(duol);
+  assert.equal(agg.fuenteRelativa,'vp_conciliado');
+  assert.equal(Math.round(agg.multiplesBase*100)/100,59.74);
+  assert.equal(agg.ponderadoBase,105.9);
+  const row=api.rows(duol).find(r=>r.nombre==='EV/EBITDA');
+  assert.equal(row.base,97.08);
+  assert.equal(row.vp,97.08,'el precio de la fuente ya estaba descontado');
+  assert.match(row.periodo,/valor presente/i);
+  const html=api.render(duol);
+  for(const expected of ['59,74','105,90','97,08','Provisional','a valor presente','P/BV'])
+    assert.ok(html.includes(expected),'DUOL debe mostrar '+expected);
+  assert.doesNotMatch(html,/generalmente FY\+3/);
+  const notReconciled={...duol,valorPresentePonderado:{...duol.valorPresentePonderado,base:99}};
+  assert.equal(api.aggregates(notReconciled).multiplesBase,null,
+    'si no reconcilia, no publicar precio relativo derivado');
+  for(const ticker of ['NVO','INTU']){
+    const pending={ticker,valorPrincipal:70,valorPresentePonderado:{base:null},
+      metodos:[{nombre:'DCF Damodaran',peso:1,base:70},
+        {nombre:'EV/EBITDA',estado:'PENDIENTE_MULTIPLOS_NATIVOS',peso:null,valorHoy:null}]};
+    assert.equal(api.aggregates(pending).multiplesBase,null);
+    assert.match(api.render(pending),/Pendiente/);
+    assert.doesNotMatch(api.render(pending),/US\$0,00/);
+  }
+});
