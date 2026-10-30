@@ -470,6 +470,22 @@ el('catalogSearch').addEventListener('input',renderCatalogCards);
 el('lookup').addEventListener('submit',e=>{e.preventDefault();openCompany(el('ticker').value);});
 el('reload').addEventListener('click',loadInventory);
 document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>showView(b.dataset.view)));
+window.addEventListener('message',event=>{
+  const frame=el('viewFrame'),data=event.data||{};
+  if(event.origin!==location.origin||event.source!==frame.contentWindow)return;
+  if(data.type!=='jmr-sheet-selected'||data.ticker!==state.ticker||typeof data.sheet!=='string')return;
+  if(!SHEETS_BY_VIEW[state.view])return;
+  // Un cambio del selector de las 46 hojas se refleja en la ruta del expediente.
+  state.sheet=data.sheet;
+  if(SHEETS_BY_VIEW[state.view].includes(data.sheet))state.sheetByView[state.view]=data.sheet;
+  document.querySelectorAll('#sheetSubtabs button[data-sheet]').forEach(button=>{
+    const selected=button.dataset.sheet===data.sheet;
+    button.classList.toggle('active',selected);button.setAttribute('aria-pressed',String(selected));
+  });
+  updateDossierLocation(state.view,data.sheet);
+  const open=el('openOriginal');
+  open.href='editor-hoja.html?ticker='+encodeURIComponent(state.ticker)+'&sheet='+encodeURIComponent(data.sheet);
+});
 el('viewFrame').addEventListener('load',function(){
   // Mismo origen: ocultar solamente la navegación duplicada, sin tocar los
   // botones, selectores, formularios o cálculos de la página original.
