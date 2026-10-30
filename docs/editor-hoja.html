@@ -9,8 +9,17 @@
 <link rel="icon" href="favicon.ico">
 <link rel="stylesheet" href="jmr-theme.css">
 <link rel="stylesheet" href="jmr-fullwidth.css">
-<link rel="stylesheet" href="editor-hoja.css?v=20261030-grupos46">
+<link rel="stylesheet" href="editor-hoja.css?v=20261030-dossier-integrado">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+(function(){
+  var p=new URLSearchParams(location.search);
+  if(p.get('embedded')==='1'){
+    document.documentElement.classList.add('jmr-embedded-workbook');
+    document.documentElement.dataset.embeddedSection=p.get('seccion')||'modelo';
+  }
+})();
+</script>
 </head>
 <body class="sheet-editor-page">
 <script src="auth.js"></script>
@@ -118,6 +127,6 @@
 </main>
 <script src="jmr-number-format.js?v=20261020-dos-decimales"></script>
 <script src="model-sync.js?v=20261026-catalogo"></script>
-<script src="editor-hoja.js?v=20261030-grupos46"></script>
+<script src="editor-hoja.js?v=20261030-dossier-integrado"></script>
 </body>
 </html>
