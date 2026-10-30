@@ -1,5 +1,5 @@
 # Estilo JMR — análisis fundamental en dos niveles
-**Versión editorial 1.0 — 30 de octubre de 2026.**
+**Versión editorial 1.1 — 30 de octubre de 2026.**
 Inspiración de legibilidad: el research de AZ Stocks (negocio → fundamentales → hipótesis → valoración). No reproducir sus textos ni convertir sus hipótesis en fuente propia. Autoridad: `modelo/REGLAS_VIGENTES.md` §9; los métodos A y B y los cálculos siguen intactos.
 
 ## Propósito
@@ -14,7 +14,7 @@ Portada: empresa, ticker, clase/ADR/moneda, revisión y fecha; tarjeta `Valor in
 1. **Tesis de inversión y conclusión.** Qué empresa es, por qué puede valer más/menos, dos variables decisivas, reserva central, juicio de calidad y precio frente a valor. No es una recomendación automática.
 2. **La empresa y su modelo económico.** Historia relevante, productos, clientes y segmentos, monetización (volumen/precio/mezcla), recurrencia, unit economics, exposición geográfica y dependencia de socios. Aterrizar lo que realmente factura y cobra.
 3. **Industria, competencia y ventaja competitiva.** Mercado servible, rivales, sustitutos, dinámica competitiva, moat y duración, prueba de pricing power y amenazas concretas. **Las cinco fuerzas de Porter no son obligatorias ni forman parte del índice**; usar solo cuando aporte evidencia real.
-4. **Motores del crecimiento futuro.** Drivers verificables, penetración, nuevos productos, guía, capacidad, catalizadores de ingresos, demanda y límites de crecimiento. Separar datos observados, guía corporativa y tesis del analista.
+4. **Motores del crecimiento futuro y ciclos económicos.** Drivers verificables, penetración, nuevos productos, guía, capacidad, catalizadores de ingresos, demanda y límites de crecimiento. Incluir subsecciones identificables «Ciclo de vida empresarial — Damodaran», «Ciclo macroeconómico, monetario y de crédito — Howard Marks» y «Mapa de transmisión a supuestos y probabilidades». Separar hechos observados, guía corporativa y tesis del analista.
 5. **Historia financiera y calidad de resultados.** Hasta 10 años y LTM cuando haya: crecimiento y márgenes, beneficios GAAP/ajustados, flujos, capital de trabajo, caja, deuda y vencimientos, SBC, dilución y anomalías. Explicar las causas, no solo presentar ratios.
 6. **Reinversión, eficiencia del capital y ROIC.** CAPEX físico, I+D capitalizable, contenido/intangibles, M&A, leasing y capital de trabajo, Sales-to-Capital histórico y marginal, desfases, NOPAT, ROIC/ROE incremental y terminal. La pregunta es cuánto cuesta sostener el crecimiento.
 7. **Dirección, gobierno y asignación de capital.** Incentivos, disciplina de inversión, fusiones, dividendos, recompras, manejo de caja, gobernanza y derechos de accionistas.
@@ -25,11 +25,34 @@ Portada: empresa, ticker, clase/ADR/moneda, revisión y fecha; tarjeta `Valor in
 12. **Catalizadores y plan de seguimiento.** Eventos materiales con fecha, resultados a seguir, indicadores líderes, umbrales de revisión, noticias relevantes y periodicidad de actualización. No inventar hitos.
 13. **Fuentes, limitaciones y estado del estudio.** Fuentes primarias fechadas, secundarias identificadas, períodos de cifras, información ausente/material, estatus editorial, revisión visual y auditoría económica distinta. No llamar auditado a EN_REVISION.
 
+## Lectura de los ciclos (obligatoria, específica y fechada)
+
+**Damodaran — ciclo de vida corporativo:** clasificar y justificar la etapa (inicio, crecimiento joven, alto crecimiento, crecimiento maduro, madurez estable o declive). No basta con la antigüedad: documentar ventas, margen, flujos, inversión, ROIC, uso de caja, competencia y señales de transición. Vincular la etapa con la calidad del crecimiento, la reinversión marginal y el ROIC terminal. Libro base: *The Corporate Life Cycle: Business, Investment, and Management Implications* (2024), recursos del autor https://pages.stern.nyu.edu/adamodar/New_Home_Page/CLC.htm.
+
+**Marks — mercado, macro, crédito y psicología:** registrar datos a fecha de corte: crecimiento y desaceleración/aceleración, inflación, trayectoria de tipos de interés (no confundir nivel con dirección), disponibilidad de crédito, inversión/consumo/empleo, emergentes/divisas y valoración/sentimiento. Diagnosticar la posición aproximada y posibles extremos, no afirmar una fase universal sin evidencia. Marco: *Mastering the Market Cycle: Getting the Odds on Your Side* (2018). Describir mecanismos sobre demanda, precios, financiación y valoraciones de **esa compañía**; escenarios alternativos e indicadores que refutarían el diagnóstico. Revisión posterior al corte no se incorpora retroactivamente sin etiquetarla.
+
+**Probabilidades:** tomar las previas por etapa del §3 de REGLAS_VIGENTES. Los ajustes siguen siendo de 5 pp, con indicador, umbral, cruce y fecha, tope 15 pp por historia y suma 100 %. La matriz cualitativa «fase → driver → historia → señal» es válida aun cuando no haya prueba para variar probabilidades: indicar «sin ajuste, previa conservada». El ciclo es un contexto para el juicio y el seguimiento; no justifica subir/bajar el DCF mecánicamente.
+
 **Principios de redacción.** Texto específico por emisor, causal y refutable; tablas cortas si ayudan a leer, con interpretación. Subcapítulos adaptables. No forzar cinco filosofías, Porter, una cuota fija de viñetas ni redundancias. Conservar párrafos existentes probados, actualizar los obsoletos con fuente, y no rellenar capítulos con texto intercambiable. Si no hay evidencia suficiente, mostrar pendiente explícito y **no declarar análisis completo**.
 
-## NIVEL 2 — Soporte cuantitativo
+## NIVEL 2 — Soporte cuantitativo completo y reproducible
 
-Índice propio y desplegable; incluir (según el sector y las fuentes disponibles): estados históricos (IS/BS/CFS), LTM, ratios y series, puente GAAP→económico, I+D/leases/SBC/opciones, ingresos por segmento, hojas Input y Cost of Capital, trayectoria explícita a 10 años, reinversión por año, ROIC y crecimiento terminal, flujos y EV→equity, acciones, Base/Conservador/Optimista/Disrupción, DCF inverso, matrices de sensibilidad **solo Base**, los siete métodos de múltiplos y sus matrices cuando existan, comparación con AZ Stocks de procedencia independiente, reconciliaciones, controles y links a hojas. Nunca inventar matrices no construidas ni tratar una calculadora local como oficial.
+Índice propio y desplegable, **con tablas y fórmulas de la revisión**, no solo una tarjeta de parámetros. La existencia de un enlace a Google Sheets no reemplaza el anexo. Orden fijo, con adaptación sectorial:
+
+1. **Identificación, fuentes y unidades:** ticker, clase, método/versión/revisión, moneda, corte contable y bursátil; fuentes primarias y celdas origen.
+2. **Estados históricos y LTM:** Income Statement, Balance Sheet, Cash Flow Statement, datos 3/5/10 años, LTM, ingresos por segmento y por acción, reconcilación período/unidades.
+3. **Ratios y economía del negocio:** crecimiento, márgenes, NOPAT, FCF, conversión de caja, deuda/caja, capital de trabajo, rotación, ROIC/ROE y Sales-to-Capital histórico y marginal.
+4. **Puente contable a económico:** I+D capitalizado, arrendamientos incrementales, adquisiciones, opciones/SBC, preferentes, dilución, deuda, cash y doble conteo.
+5. **Supuestos efectivos por historia:** tabla Base, Conservadora, Optimista, Disrupción con fuentes, fechas, trayectoria y referencias de celda. Si Input sheet tiene valores de referencia y la historia utiliza otra pestaña, aclarar la precedencia.
+6. **Cost of capital descompuesto:** Rf, ERP/CRP, beta, Ke, Kd, impuesto, mezcla de capital y WACC inicial/terminal; hoja y fórmulas.
+7. **Proyección explícita anual completa:** años 1–10 (o duración real del DCF) por historia; ventas, crecimiento, EBIT, margen, impuestos, NOPAT, reinversión, ROIC, capital, FCFF/FCFE, WACC, factores y VP.
+8. **Valor terminal y puente hasta la acción:** FCFF terminal, g y g/ROIC, Ke/WACC terminal, TV, VP de flujos/TV, EV, deuda, caja, opciones, participaciones, acciones y Base por acción.
+9. **Escenarios y ciclos:** previas y probabilidades finales, ajustes evidenciados, expectativas, cambios en drivers por ciclo, valores y promedio ordinario sin Disrupción. Si no hay ajuste medido, mostrar la previa intacta.
+10. **Siete múltiplos y conciliación:** EV/EBITDA, EV/FCFF, P/E, P/FCFE, P/OCF, P/S y P/BV; sus métricas, anclas, peso, FY+1/2/3, dividendos, descuento y valor presente, con N/A o N/D justificado; distinguir precios futuros de valores presentes.
+11. **Sensibilidades y DCF inverso:** tres matrices DCF Base 5×5 mínimas (WACC×g, ROIC terminal×g, crecimiento explícito×margen), ampliaciones solo si están verificadas y centro concilia. Sensibilidad por múltiplos Base solo si existe. Ejes reales, precios por acción y fuente. Crecimiento implícito del precio de mercado cuando esté calculado.
+12. **Trazabilidad, reconciliaciones y límites:** fórmula algebraica más celda/fórmula nativa comprobada donde proceda, identidades, controles ejecutados/no ejecutados, advertencias de materialidad, fuente y enlaces.
+
+Prohibido inventar valores, completar ausencias con cero, utilizar matrices de otra revisión o llamar auditado a EN_REVISION. Los informes de financieras usan FCFE/Ke y solvencia; holdings, SOTP. La auditoría económica es un archivo/proceso posterior.
 
 N1 explica los supuestos y conclusiones; N2 deja comprobar sus cifras. N1 no se reemplaza con enlaces `Ver cálculo`; los enlaces deben ir al soporte pertinente. La ficha pública/privada, la hoja y el JSON comparten revisión.
 
