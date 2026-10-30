@@ -14,7 +14,7 @@ const SHEETS_BY_VIEW={
   modelo:['Input sheet','Valuation output','Resumen de Valoración','Escenarios e historias',
     'Cost of capital worksheet','Descuento de múltiplos','Sensibilidad DCF']
 };
-const state={catalog:{valoraciones:[],analisis:[],auditorias:[]},files:[],ticker:'',view:initialView,ready:false,loc:null,reviewSha:null,reviewLoading:false,mosRequest:0,valuationRecord:null,frameMode:'',sheet:'',sheetByView:{},sensitivityMode:'sensibilidades'};
+const state={catalog:{valoraciones:[],analisis:[],auditorias:[]},files:[],ticker:'',view:initialView,ready:false,loc:null,reviewSha:null,reviewLoading:false,mosRequest:0,valuationRecord:null,frameMode:'',sheet:'',sheetByView:{},sensitivityMode:'sensibilidades',valuationMode:params.get('metodo')==='multiplos'?'multiplos':'dcf'};
 const TICKER=/^[A-Z0-9._-]{1,24}$/;
 function valid(x){x=String(x||'').trim().toUpperCase();if(x==='GOOG')x='GOOGL';return TICKER.test(x)?x:'';}
 function tickerFromName(x){return String(x||'').match(/^([A-Za-z0-9._]+)-/)?.[1]?.toUpperCase()||'';}
@@ -156,6 +156,10 @@ async function loadMosSummary(t,p,requestId){
     if(state.ticker!==t||state.mosRequest!==requestId)return;
     if(rec.ticker&&String(rec.ticker).toUpperCase()!==t)throw new Error('Ticker diferente del catálogo');
     state.valuationRecord=rec;
+    if(typeof JmrMultiplesPanel!=='undefined'){
+      el('valuationSummary').innerHTML=JmrMultiplesPanel.summary(rec);
+      if(state.view==='valoracion'&&state.valuationMode==='multiplos')el('inlinePanel').innerHTML=JmrMultiplesPanel.render(rec);
+    }
     if(state.view==='sensibilidades')el('inlinePanel').innerHTML=sensitivityHtml(rec);
     const reference=Number(rec.precioAnalisis??rec.precio);
     const validRef=Number.isFinite(reference)&&reference>0?reference:null;
@@ -180,6 +184,7 @@ async function loadMosSummary(t,p,requestId){
 function openCompany(input){
   const t=valid(input);
   if(!t){status('Ticker inválido. Usa letras, números, punto, guion o subrayado.','error');return;}
+  if(state.ticker&&state.ticker!==t)state.valuationMode='dcf';
   state.ticker=t;state.loc=null;state.reviewSha=null;const mosRequest=++state.mosRequest;el('ticker').value=t;
   el('mosSummary').hidden=true;
   state.valuationRecord=null;state.sheet='';state.frameMode='';state.sheetByView={};
@@ -213,6 +218,8 @@ function updateDossierLocation(view,sheet){
   url.searchParams.set('seccion',view);
   if(sheet && SHEETS_BY_VIEW[view])url.searchParams.set('sheet',sheet);
   else url.searchParams.delete('sheet');
+  if(view==='valoracion'&&state.valuationMode==='multiplos')url.searchParams.set('metodo','multiplos');
+  else url.searchParams.delete('metodo');
   history.replaceState({},'',url.pathname+url.search+url.hash);
 }
 function safeSheetTitle(value){return String(value||'').replace(/[<>]/g,'');}
@@ -301,6 +308,19 @@ function showView(view){
     button.tabIndex=selected?0:-1;
   });
   renderSheetSubtabs(view);
+  const modeNav=el('valuationModes'),summary=el('valuationSummary');
+  modeNav.hidden=view!=='valoracion';
+  summary.hidden=view!=='valoracion';
+  if(view==='valoracion'){
+    modeNav.querySelectorAll('button[data-valuation]').forEach(btn=>{
+      const active=btn.dataset.valuation===state.valuationMode;
+      btn.classList.toggle('active',active);btn.setAttribute('aria-pressed',String(active));
+    });
+    summary.innerHTML=typeof JmrMultiplesPanel==='undefined'?
+      '<p>Vista relativa pendiente de cargar.</p>':
+      state.valuationRecord?JmrMultiplesPanel.summary(state.valuationRecord):
+      '<p>Cargando comparación DCF / múltiplos de la revisión oficial…</p>';
+  }
   const frame=el('viewFrame'),inline=el('inlinePanel'),open=el('openOriginal'),help=el('viewHelp');
   const review=el('reviewPanel');
   review.hidden=view!=='revision'||!state.loc;
@@ -309,8 +329,9 @@ function showView(view){
   const isWorkbook=!!SHEETS_BY_VIEW[view];
   const isSensitivity=view==='sensibilidades';
   const isRevision=view==='revision';
-  frame.hidden=isSensitivity||isRevision;
-  inline.hidden=!isSensitivity&&!isRevision;
+  const isMultiples=view==='valoracion'&&state.valuationMode==='multiplos';
+  frame.hidden=isSensitivity||isRevision||isMultiples;
+  inline.hidden=!isSensitivity&&!isRevision&&!isMultiples;
   open.hidden=isSensitivity||isRevision;
   if(isWorkbook){
     const sheet=currentSheet(view);
@@ -318,6 +339,14 @@ function showView(view){
     updateDossierLocation(view,sheet);
   }else if(isSensitivity){
     inline.innerHTML=sensitivityHtml(state.valuationRecord);
+    updateDossierLocation(view);
+  }else if(isMultiples){
+    inline.innerHTML=typeof JmrMultiplesPanel==='undefined'?
+      '<p class="status-note">No se pudo cargar la tabla de múltiplos.</p>':
+      JmrMultiplesPanel.render(state.valuationRecord);
+    help.textContent='Valoración relativa por método: precios conservador, Base y optimista; valor presente individual cuando existe. La fuente de verdad es la hoja original.';
+    open.href='editor-hoja.html?ticker='+encodeURIComponent(state.ticker)+'&sheet='+encodeURIComponent('Descuento de múltiplos');
+    open.textContent='Consultar fórmula y hoja original ↗';
     updateDossierLocation(view);
   }else if(isRevision){
     if(!state.loc)inline.innerHTML='<p class="status-note">Cargando la revisión y las observaciones oficiales…</p>';
@@ -486,6 +515,12 @@ el('marketFilters').addEventListener('click',event=>{
 el('lookup').addEventListener('submit',e=>{e.preventDefault();openCompany(el('ticker').value);});
 el('reload').addEventListener('click',loadInventory);
 document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>showView(b.dataset.view)));
+el('valuationModes').addEventListener('click',event=>{
+  const btn=event.target.closest('button[data-valuation]');
+  if(!btn||!['dcf','multiplos'].includes(btn.dataset.valuation))return;
+  state.valuationMode=btn.dataset.valuation;
+  showView('valoracion');
+});
 window.addEventListener('message',event=>{
   const frame=el('viewFrame'),data=event.data||{};
   if(event.origin!==location.origin||event.source!==frame.contentWindow)return;
