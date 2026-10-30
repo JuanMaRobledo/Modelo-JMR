@@ -59,8 +59,8 @@
   function safeHtml(html) {
     if (typeof DOMPurify === 'undefined') return escapeHtml(html);
     return DOMPurify.sanitize(html, {
-      ALLOWED_TAGS: ['h1','h2','h3','h4','p','br','strong','b','em','i','ul','ol','li','blockquote','table','thead','tbody','tr','th','td','a','img','hr','code','pre','details','summary'],
-      ALLOWED_ATTR: ['href','src','alt','title','colspan','rowspan','target','rel','id','class']
+      ALLOWED_TAGS: ['h1','h2','h3','h4','p','br','strong','b','em','i','ul','ol','li','blockquote','section','div','span','table','thead','tbody','tr','th','td','a','img','hr','code','pre','details','summary'],
+      ALLOWED_ATTR: ['href','src','alt','title','colspan','rowspan','target','rel','id','class','open']
     });
   }
   // El índice se construye al mostrar el documento: cubre los informes ya
@@ -483,6 +483,14 @@
       '<details class="jmr-research-details jmr-financial-appendix" open><summary>Estados financieros, ratios, escenarios y matrices de sensibilidad</summary>'+
       '<div data-jmr-extended-sheets></div></details>'+
       '</div></details>';
+    var cycleShortcut=article.body.indexOf('id="jmr-ciclo-empresa"')>=0;
+    var multiplesShortcut=technical&&technical.body.indexOf('id="jmr-multiplos-sensibilidades"')>=0;
+    var shortcuts=(cycleShortcut||multiplesShortcut)?'<nav class="jmr-research-shortcuts" aria-label="Accesos directos del análisis">'+
+      '<strong>Ir directamente a:</strong> '+
+      (cycleShortcut?'<a href="#jmr-ciclo-empresa">Ciclo de vida, macro y probabilidades</a>':'')+
+      (cycleShortcut&&multiplesShortcut?'<span aria-hidden="true"> · </span>':'')+
+      (multiplesShortcut?'<a href="#jmr-multiplos-sensibilidades">14 matrices de sensibilidad por múltiplos</a>':'')+
+      '</nav>':'';
     var actions='<div class="jmr-research-navigation" role="navigation" aria-label="Navegación entre análisis y simulador">'+
       '<p>La tesis de inversión está en el Nivel 1. La valoración real y sus tablas están en el Nivel 2. La calculadora permite probar escenarios sin modificar el expediente.</p>'+
       calculatorLink(ticker)+'</div>';
@@ -490,7 +498,7 @@
       '<section class="jmr-editorial-article" id="jmrArticleLevel" aria-label="Nivel 1 · Análisis fundamental">'+
       intrinsicBaseCard(state.linkedValuation)+
       '<div class="jmr-editorial-label">NIVEL 1 · ANÁLISIS FUNDAMENTAL</div>'+
-      actions+auditLinks+article.toc+'<div id="editableContent">'+article.body+'</div>'+renderNews()+
+      actions+shortcuts+auditLinks+article.toc+'<div id="editableContent">'+article.body+'</div>'+renderNews()+
       '</section>'+level2+'</div>';
     markNumericCells(body);
     JmrDisplayNumber.formatTable(body);
