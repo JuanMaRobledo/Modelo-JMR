@@ -1,4 +1,4 @@
-const CACHE = "modelo-jmr-v188-ciclo-multiplos-20261030";
+const CACHE = "modelo-jmr-v189-method-a-cycles-20261030";
 const APP_SHELL = [
   "catalog-reset.js",
   "index.html",

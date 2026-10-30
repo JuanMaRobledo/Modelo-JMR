@@ -485,11 +485,14 @@
       '</div></details>';
     var cycleShortcut=article.body.indexOf('id="jmr-ciclo-empresa"')>=0;
     var multiplesShortcut=technical&&technical.body.indexOf('id="jmr-multiplos-sensibilidades"')>=0;
+    // Cifra real, no suponer que todos los expedientes tienen 14 matrices válidas.
+    var matrixCount=technical?(technical.body.match(/class="jmr-matrix jmr-multiple-sensitivity"/g)||[]).length:0;
+    var matricesLabel=matrixCount?matrixCount+' matrices de sensibilidad por múltiplos':'Estado de sensibilidad por múltiplos (pendiente)';
     var shortcuts=(cycleShortcut||multiplesShortcut)?'<nav class="jmr-research-shortcuts" aria-label="Accesos directos del análisis">'+
       '<strong>Ir directamente a:</strong> '+
       (cycleShortcut?'<a href="#jmr-ciclo-empresa">Ciclo de vida, macro y probabilidades</a>':'')+
       (cycleShortcut&&multiplesShortcut?'<span aria-hidden="true"> · </span>':'')+
-      (multiplesShortcut?'<a href="#jmr-multiplos-sensibilidades">14 matrices de sensibilidad por múltiplos</a>':'')+
+      (multiplesShortcut?'<a href="#jmr-multiplos-sensibilidades">'+matricesLabel+'</a>':'')+
       '</nav>':'';
     var actions='<div class="jmr-research-navigation" role="navigation" aria-label="Navegación entre análisis y simulador">'+
       '<p>La tesis de inversión está en el Nivel 1. La valoración real y sus tablas están en el Nivel 2. La calculadora permite probar escenarios sin modificar el expediente.</p>'+
