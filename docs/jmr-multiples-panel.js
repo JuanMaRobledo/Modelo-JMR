@@ -26,9 +26,11 @@
         old.vp=num(entry.valorPresenteBase)??num(entry.valorPresente?.base)??old.vp;
       }else{
         old.peso=num(entry.peso)??old.peso;
-        old.conservador=projected(entry.conservador)??old.conservador;
-        old.base=projected(entry.base)??old.base;
-        old.optimista=projected(entry.optimista)??old.optimista;
+        // El detalle de la hoja aporta VP; nunca reemplaza FY+3 registrado
+        // en la lista principal de métodos por un valor ya descontado.
+        old.conservador=old.conservador??projected(entry.conservador);
+        old.base=old.base??projected(entry.base);
+        old.optimista=old.optimista??projected(entry.optimista);
         old.vp=num(entry.base?.consolidado)??num(entry.valorPresenteBase)??old.vp;
       }
       old.estado=entry.estado||old.estado;
