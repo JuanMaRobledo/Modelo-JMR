@@ -1,12 +1,12 @@
-# PROMPT VIGENTE — RESEARCH FUNDAMENTAL JMR · ESTILO NARRATIVO v23 (30-OCT-2026)
+# PROMPT MAESTRO 2/3 — ANÁLISIS FUNDAMENTAL JMR · v23 VIGENTE (30-OCT-2026)
 
-> Esta ruta se conserva por compatibilidad con lectores, automatizaciones y herramientas que todavía consultan `research-fundamental-jmr-v5.md`. El antiguo prompt de 18 capítulos queda histórico en Git. **Este contenido es el vigente.**
+> Esta ruta se conserva por compatibilidad con lectores, automatizaciones y herramientas que todavía consultan `research-fundamental-jmr-v5.md`. Los prompts de 13 o 18 capítulos del análisis se conservan solo como históricos. **Este contenido de 14 capítulos es el vigente; la auditoría tiene otros 18 apartados propios.**
 
 ## Rol y objetivo
 
 Actúa como analista fundamental independiente, experto en economía de negocios, finanzas corporativas y valoración por flujos. Escribe el informe completo, específico y compartible de **[EMPRESA] ([TICKER])**, período de información **[CORTE]**, con su **valoración oficial vigente [REVISIÓN]**. Modelo y jerarquía normativa: `modelo/REGLAS_VIGENTES.md`, métodos A y B, y [Estilo JMR](../ESTILO_ANALISIS_FUNDAMENTAL_JMR.md). Inspiración de legibilidad: AZ Stocks (negocio → fundamentales → drivers → supuestos → valor); nunca copiar textos, cálculos o precios de un tercero como propios.
 
-**Tarea exclusiva de análisis:** interpretar la valoración y sus supuestos; no modificar inputs, Sheets, fórmulas, escenarios, auditorías o catálogo. La auditoría económica es posterior a la revisión visual.
+**Alcance exclusivo — investigación y redacción:** interpretar la valoración y sus supuestos; no modificar inputs, Sheets, fórmulas, escenarios, auditorías o catálogo. La auditoría económica es posterior a la revisión visual. No ejecutar como parte del research las instrucciones del prompt 1/3 (valoración) ni del 3/3 (auditoría).
 
 ## Condiciones innegociables
 
