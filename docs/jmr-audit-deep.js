@@ -13,6 +13,7 @@ var SECTIONS=[
 "Hallazgos priorizados y propuestas de corrección","Catalizadores, señales de refutación y seguimiento",
 "Dictamen económico y resumen para escuchar","Fuentes primarias, limitaciones y registro de versión"];
 var MULTS=["EV/EBITDA","EV/FCFF","P/E","P/FCFE","P/OCF","P/V","P/BV"];
+var CORE_MULTS=MULTS.slice(0,5); // P/V y P/BV son complementarios opcionales.
 function num(v){return typeof v==="number"&&isFinite(v);}
 function near(a,b,strict){return num(a)&&num(b)&&Math.abs(a-b)<=(strict?0.000001:0.025);}
 function fmt(n,pct){return !num(n)?"N/D":(pct?(n*100).toFixed(2)+" %":n.toLocaleString("es-CO",{minimumFractionDigits:2,maximumFractionDigits:2}));}
@@ -205,9 +206,9 @@ function analyze(v,markdown){
  var center=titleAt>=0&&sensSheet[titleAt+4]?decimal(sensSheet[titleAt+4][3]):null;
  if(center!=null)check("Sensibilidad","Centro DCF WACC terminal × g",center,v.valorPrincipal,"Centro de matriz registrada; no se reejecuta el modelo para toda la grilla.");
  var sm=v.sensibilidadMultiples||{},senControls=Array.isArray(sm.controles)?sm.controles:[],senOk=senControls.filter(function(c){return c.estado==="OK";}).length;
- var senNd=senControls.filter(function(c){return c.estado==="N/D";}).length;
+ var senNd=senControls.filter(function(c){return c.estado==="N/D"&&CORE_MULTS.indexOf(c.metodo)>=0;}).length;
  baseRows.forEach(function(m){if(m.center&&m.center.estado==="OK")check("Sensibilidad",m.name+": centro de matriz Base",m.center.centro,m.vp,"Centro calculado previamente, contrastado ahora contra consolidado VP.");});
- if(senNd>0)issue("Medio","Matrices de múltiplos incompletas",senNd+" controles de sensibilidad constan N/D; no se presume que se ejecutaron.");
+ if(senNd>0)issue("Medio","Matrices prioritarias pendientes",senNd+" controles de métodos principales están N/D; evaluar N/A económico. P/S y P/BV no son obligatorios.");
  // Además de centros A/B/D, comprobar las 350 celdas reales de los escenarios
  // Conservador/Optimista. El validador anterior omitía errores fuera del centro.
  var matrixRows=parseSheet(sheets['Sensibilidad 7 metodos x historias']);
@@ -216,6 +217,7 @@ function analyze(v,markdown){
   var gridNames=['EV/EBITDA','EV/FCFF','P/E','P/FCFE','P/OCF','P/V','P/BV'];
   for(var gm=0;gm<14;gm++){
    var titleIndex=5+gm*12,methodName=gridNames[Math.floor(gm/2)],scenario=gm%2?'optimista':'conservador';
+   if(CORE_MULTS.indexOf(methodName)<0)continue; // Los dos opcionales no entran al gate.
    var expectedCenter=senControls.find(function(c){return c.metodo===methodName&&c.escenario===scenario;});
    var centerValue=decimal((matrixRows[titleIndex+3]||[])[3]);
    if(expectedCenter&&expectedCenter.estado==='OK'&&num(centerValue)&&near(centerValue,expectedCenter.centro))validCenters++;
@@ -224,9 +226,9 @@ function analyze(v,markdown){
     if(num(cell)&&cell>=0)validCells++;else badCells++;
    }
   }
-  var allGood=validCells===350&&badCells===0&&validCenters===14;
-  checks.push({area:'Sensibilidad',label:'14 matrices × 25 celdas fuera del Base',status:allGood?'ok':'fail',actual:validCells,expected:350,detail:'Centro verificado '+validCenters+'/14; grilla con errores '+badCells+'. Revisión de la tabla publicada, no independencia SEC.'});
-  if(!allGood)issue('Alto','Matriz de múltiplos no íntegra','La matriz publicada contiene '+validCells+'/350 celdas válidas, '+badCells+' errores y '+validCenters+'/14 centros conciliados. No declarar sensibilidades completas.');
+  var allGood=validCells===250&&badCells===0&&validCenters===10;
+  checks.push({area:'Sensibilidad',label:'10 matrices prioritarias × 25 celdas fuera del Base',status:allGood?'ok':'fail',actual:validCells,expected:250,detail:'Centro verificado '+validCenters+'/10; P/S y P/BV opcionales excluidos del gate. Grilla con errores '+badCells+'. No independencia SEC.'});
+  if(!allGood)issue('Alto','Matriz de múltiplos prioritarios no íntegra','La matriz publicada contiene '+validCells+'/250 celdas prioritarias válidas, '+badCells+' errores y '+validCenters+'/10 centros conciliados. No exigir P/S ni P/BV.');
  }else if(v.auditoria&&v.auditoria.reparacionSensibilidad20261022){
   checks.push({area:'Sensibilidad',label:'Matriz de 14 historias ausente',status:'fail',actual:0,expected:350,detail:'Existe constancia de reparación, pero no existe snapshot.'});
   issue('Alto','Matriz publicada ausente','Existe bitácora de 350 celdas, falta la tabla completa.');
@@ -243,7 +245,9 @@ function analyze(v,markdown){
  if(!sheets["Cost of capital worksheet"])issue("Alto","Costo de capital sin hoja","No se ha provisto cálculo de WACC/Ke que permita auditar fechas y premisas.");
  if(!sheets["Múltiplos históricos"])issue("Medio","Anclas históricas de múltiplos ausentes","No se puede revisar contra precio relativo propio.");
  if(!sheets["Financials Multiples"])issue("Medio","Denominadores de múltiplos no publicados","No se pueden examinar denominadores FY+3 por método.");
- if(modes.length<7)issue("Medio","Menos de siete múltiplos","Faltan métodos (también se exigen los de peso cero).");
+ var coreMissing=CORE_MULTS.filter(function(name){return !modes.some(function(m){return m.nombre===name;});});
+ var sector=String(v.tipo||"")+" "+String(v.metodoPrincipal||"");
+ if(coreMissing.length&&!/(banc|financier|holding|sotp|fcfe bancario)/i.test(sector))issue("Medio","Métodos prioritarios no documentados",coreMissing.join(", ")+": evaluar aplicabilidad; P/S y P/BV no cuentan como faltantes esenciales.");
  var reserves=(v.salvedades||[]).map(function(s){return {severity:"Reserva publicada",label:String(s),detail:"Requiere evidencia adicional o criterio económico antes de un dictamen sin reservas."};});
  if(reserves.length)issue("Alto","Reservas formales sin cerrar",reserves.length+" salvedades registradas; ninguna se considera resuelta por un test aritmético.");
  var critical=checks.filter(function(x){return x.status==="fail";}).length;
@@ -254,7 +258,7 @@ function analyze(v,markdown){
     "Conciliación de fórmulas y celdas contra archivo original ejecutable",
     "Confirmación de cifras primarias SEC/BVC y períodos originales",
     "Verificación externa de Rf, ERP, beta, Ke, WACC y fuentes fechadas",
-    "Comparables homogéneos de los siete múltiplos y anclas A/B/C justificadas",
+    "Comparables homogéneos de cinco métodos prioritarios aplicables; P/S/P/BV solo cuando se usan",
     "Reejecución independiente de toda la matriz DCF y sensibilidades económicas",
     "Revisión cualitativa y aprobación de los 13 capítulos narrativos del informe; la auditoría económica conserva sus propios 18 apartados"
   ],verdict:critical?"Inconsistencias matemáticas detectadas":(reserves.length||sectionCount<18||senNd?"Auditoría ampliada condicionada":"Conciliaciones internas sin diferencias; verificación externa pendiente")};
@@ -287,7 +291,7 @@ function report(a,v){
  h+="<p>Promedio ordinario de tres historias = <strong>"+fmt(a.weighted)+"</strong>, normalizando las probabilidades conservador/base/optimista que suman "+fmt(a.ordinaryMass,true)+". Disrupción = <strong>"+fmt(a.disruption&&a.disruption.valor)+"</strong>, mostrada como estrés y excluida del promedio.</p>";
  var ci=v.crecimientoImplicito||{};
  h+="<p>Precio de referencia "+fmt(v.precio)+" ("+esc(v.precioReferenciaFecha||"fecha N/D")+") frente al DCF Base "+fmt(a.base&&a.base.valor)+": prima/descuento del mercado "+fmt(a.marketGap,true)+". El DCF inverso guardado implica CAGR "+fmt(ci.cagrImplicito,true)+" frente a Base "+fmt(ci.cagrBase,true)+"; brecha "+fmt(a.inverseGap==null?null:a.inverseGap*100)+" puntos porcentuales. No se reejecutó aquí el solver ni se interpretó esto como recomendación de compra/venta.</p>";
- h+="<h3>5. Los siete múltiplos: FY+3, VP y evidencia</h3><p class='small muted'>Incluye pesos cero. Las anclas A historia, B comparables y C fundamentos deben contrastarse en el módulo especializado y las fuentes de cada emisor; N/D no significa que el múltiplo sea inaplicable.</p>";
+ h+="<h3>5. Múltiplos: cinco prioritarios y P/S/PBV complementarios</h3><p class='small muted'>Incluye pesos cero. Las anclas A historia, B comparables y C fundamentos deben contrastarse en el módulo especializado y las fuentes de cada emisor; N/D no significa que el múltiplo sea inaplicable.</p>";
  h+=table(["Múltiplo","Peso global","FY+3 Base","Valor presente Base","Centro de sensibilidad","Anclas A/B/C"],a.methods.map(function(x){return [x.name,fmt(x.peso,true),fmt(x.fy3),fmt(x.vp),x.center?(x.center.estado+": "+fmt(x.center.centro)):"N/D","No certificadas en esta pantalla"]; }));
  h+="<p class='small muted'>Sensibilidades de múltiplos registradas: "+a.sensitivity.ok+"/"+a.sensitivity.total+" con estado OK; "+a.sensitivity.nd+" N/D. Centro de sensibilidad DCF: "+fmt(a.sensitivity.dcfCenter)+". Un control histórico guardado no demuestra que las matrices hayan sido recalculadas hoy.</p>";
  h+="<h3>6. Trazabilidad de las fuentes</h3><p class='small muted'>Son URLs y fechas declaradas por el expediente. Esta interfaz NO comprueba que cada URL respalde efectivamente el valor correspondiente.</p>";

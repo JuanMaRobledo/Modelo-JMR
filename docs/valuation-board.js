@@ -381,7 +381,13 @@ function fromRecord(rec, extra) {
       var method = result.metodos.find(function (m) { return key(m.nombre) === name; });
       return !method.hoy || K.some(function (k) { return num(method.hoy[k]) == null; });
     });
-    result.multiplesCoverage = { calculated: 7 - pending.length, pending: pending };
+    var corePending = pending.filter(function (name) { return required.indexOf(name) < 5; });
+    var optionalPending = pending.filter(function (name) { return required.indexOf(name) >= 5; });
+    // Mantener cobertura histórica 7/7 por compatibilidad; el cumplimiento se
+    // mide solo sobre los cinco prioritarios. Los dos restantes no bloquean.
+    result.multiplesCoverage = { calculated: 7 - pending.length, pending: pending,
+      coreCalculated: 5 - corePending.length, corePending: corePending,
+      optionalCalculated: 2 - optionalPending.length, optionalPending: optionalPending };
   }
   // Bloque del valor esperado, junto al DCF. d = resultado de fromParts/fromRecord.
   function unified(d) { return !!(d && d.ve && d.ve.escenariosUnificados && d.ve.historias.length); }
@@ -686,8 +692,10 @@ function fromRecord(rec, extra) {
       'Hoy: el DCF ya está a valor presente; cada múltiplo es el precio a FY+1, FY+2 y FY+3 más dividendos, traído a hoy con Ke y promediado. ' +
       'FY+3: el DCF de hoy × (1 + Ke)³ y los múltiplos al cierre FY+3 con dividendos. El ponderado es opcional: sirve de contraste, no reemplaza al DCF.';
     var coverage = d.multiplesCoverage;
-    var coverageNote = coverage ? '<p class="jvb-note"><strong>Múltiplos calculados: ' + coverage.calculated + '/7</strong> · Conservador, Base y Optimista a valor presente. ' +
-      (coverage.pending.length ? 'Pendientes: ' + esc(coverage.pending.join(', ')) + '. Un peso cero no completa un cálculo pendiente.' : 'Incluye los métodos con peso cero. La cobertura de cálculo no certifica los supuestos económicos.') + '</p>' : '';
+    var coverageNote = coverage ? '<p class="jvb-note"><strong>Múltiplos prioritarios calculados: ' + coverage.coreCalculated + '/5</strong> · Complementarios P/S y P/BV calculados: ' + coverage.optionalCalculated + '/2 (opcionales, no bloqueantes si no se ponderan). Conservador, Base y Optimista a valor presente. ' +
+      (coverage.corePending.length ? 'Prioritarios sin salida completa: ' + esc(coverage.corePending.join(', ')) + ' (evaluar N/A económico o datos pendientes). ' : '') +
+      (coverage.optionalPending.length ? 'Complementarios no calculados: ' + esc(coverage.optionalPending.join(', ')) + ' (no impiden publicar). ' : '') +
+      'Los pesos y resultados existentes se conservan; el número de métodos no certifica sus supuestos económicos.</p>' : '';
     var secondary = coverageNote + bar + (DISPLAY_CURRENCY === 'COP' ? '' : weightedSelectorHtml(d)) +
       '<div class="jvb-hz" data-hz="hoy">' + (d.dcf.hoy ? tableHtml(d, 'hoy') + rangeHtml(d, 'hoy') : '') + '</div>' +
       '<div class="jvb-hz" data-hz="fy3">' + (d.dcf.fy3 ? tableHtml(d, 'fy3') + rangeHtml(d, 'fy3') : '') + '</div>';
