@@ -5,8 +5,16 @@ const ROOT='JuanMaRobledo/Modelo-JMR-datos';
 const RAW='https://raw.githubusercontent.com/'+ROOT+'/main/';
 const CONTENTS='https://api.github.com/repos/'+ROOT+'/contents/';
 const el=id=>document.getElementById(id);
-const initialView=new URLSearchParams(location.search).get('seccion')==='analisis'?'analisis':'valoracion';
-const state={catalog:{valoraciones:[],analisis:[],auditorias:[]},files:[],ticker:'',view:initialView,ready:false,loc:null,reviewSha:null,reviewLoading:false,mosRequest:0};
+const DOSSIER_VIEWS=['analisis','valoracion','financieros','indicadores','modelo','sensibilidades','revision'];
+const params=new URLSearchParams(location.search);
+const initialView=DOSSIER_VIEWS.includes(params.get('seccion'))?params.get('seccion'):'analisis';
+const SHEETS_BY_VIEW={
+  financieros:['Income Statement','Balance Sheet','Cash Flow Statement','Trailing 12 month Worskheet','Por acción','Dividendos'],
+  indicadores:['Trailing Valuation','Forward Valuation','Márgenes','Eficiencia de capital','Salud Financiera','Crecimiento y Márgenes'],
+  modelo:['Input sheet','Valuation output','Resumen de Valoración','Escenarios e historias',
+    'Cost of capital worksheet','Descuento de múltiplos','Sensibilidad DCF']
+};
+const state={catalog:{valoraciones:[],analisis:[],auditorias:[]},files:[],ticker:'',view:initialView,ready:false,loc:null,reviewSha:null,reviewLoading:false,mosRequest:0,valuationRecord:null,frameMode:'',sheet:'',sheetByView:{},sensitivityMode:'sensibilidades'};
 const TICKER=/^[A-Z0-9._-]{1,24}$/;
 function valid(x){x=String(x||'').trim().toUpperCase();if(x==='GOOG')x='GOOGL';return TICKER.test(x)?x:'';}
 function tickerFromName(x){return String(x||'').match(/^([A-Za-z0-9._]+)-/)?.[1]?.toUpperCase()||'';}
@@ -74,6 +82,12 @@ function renderCatalogCards(){
   const paths=Array.isArray(state.catalog.valoraciones)?state.catalog.valoraciones:[];
   const tickers=[...new Set(paths.map(p=>tickerFromName(String(p).split('/').pop())).filter(valid))].sort();
   const matching=tickers.filter(t=>catalogMarket(t)&&(!q||t.includes(q)));
+  const chosenMarket=new URLSearchParams(location.search).get('mercado')||'all';
+  document.querySelectorAll('#marketFilters [data-market]').forEach(b=>{
+    const chosen=b.dataset.market===chosenMarket;
+    b.classList.toggle('active',chosen);
+    b.setAttribute('aria-pressed',String(chosen));
+  });
   const grid=el('catalogCards');
   grid.replaceChildren();
   const fragment=document.createDocumentFragment();
@@ -92,24 +106,12 @@ function renderCatalogCards(){
     supports.textContent=(p.analysisPath?'Análisis disponible':'Análisis pendiente')+' · '+(p.auditPath?'Auditoría disponible':'Auditoría pendiente');
     card.appendChild(supports);
     const actions=document.createElement('div');actions.className='card-links';
-    if(p.analysisPath){
-      const reader=document.createElement('a');
-      reader.className='card-action';reader.href=p.analisis.href;
-      reader.target='_blank';reader.rel='noopener noreferrer';
-      reader.textContent='Leer análisis ↗';
-      actions.appendChild(reader);
-    }
     const open=document.createElement('button');open.type='button';open.className='card-open';
-    open.textContent='Ver expediente';
+    open.textContent='Abrir ficha completa';
     open.addEventListener('click',()=>{openCompany(t);el('dossier').scrollIntoView({behavior:'smooth',block:'start'});});
     actions.appendChild(open);
     card.appendChild(actions);
-    // Tocar la superficie de la ficha abre el análisis como documento independiente.
-    card.addEventListener('click',event=>{
-      if(event.target.closest('a,button'))return;
-      if(p.analysisPath)window.open(p.analisis.href,'_blank','noopener,noreferrer');
-      else open.click();
-    });
+    card.addEventListener('click',event=>{if(!event.target.closest('button,a'))open.click();});
     fragment.appendChild(card);
   });
   grid.appendChild(fragment);
@@ -126,12 +128,16 @@ function pages(t){
   const analysisPath=fromCatalog(state.catalog.analisis,t);
   const auditPath=fromCatalog(state.catalog.auditorias,t);
   const v=path?'visor.html?path='+encodeURIComponent(path):'visor.html?ticker='+encodeURIComponent(t);
-  const a='analisis-lectura.html?ticker='+encodeURIComponent(t)+(analysisPath?'&analisis='+encodeURIComponent(analysisPath):'');
+  const a=analysisPath?'analisis-lectura.html?ticker='+encodeURIComponent(t)+'&analisis='+encodeURIComponent(analysisPath):'';
   return {
     valPath:path,official:!!officialPath&&inDirectory,analysisPath,auditPath,
     valoracion:{href:v,help:officialPath&&inDirectory?'Valoración indicada en el catálogo oficial.':'La valoración disponible aún no figura en el catálogo oficial; no se presenta como validada.'},
     analisis:{href:a,help:analysisPath?'Análisis asociado en el catálogo oficial; verificar que corresponda a la misma revisión.':'Biblioteca filtrada por ticker. No se atribuye automáticamente un informe antiguo a esta revisión.'},
-    supuestos:{href:'editor-hoja.html?ticker='+encodeURIComponent(t),help:'Libro original completo: Input Sheet, Valuation Output, Múltiplos y Financial Multiples. Los cambios permitidos requieren autorización y no republican el expediente.'},
+    supuestos:{href:'editor-hoja.html?ticker='+encodeURIComponent(t),help:'Libro completo original; cambios de entrada requieren guardar y no republican el estudio.'},
+    financieros:{href:'editor-hoja.html?ticker='+encodeURIComponent(t),help:'Estados financieros originales: resultados, balance, flujos de caja y series por acción.'},
+    indicadores:{href:'editor-hoja.html?ticker='+encodeURIComponent(t),help:'Rentabilidad, ratios de mercado, eficiencia y salud financiera/deuda.'},
+    modelo:{href:'editor-hoja.html?ticker='+encodeURIComponent(t),help:'Supuestos, DCF, costo de capital y todas las pestañas originales de la hoja de Google.'},
+    revision:{href:'',help:'Observaciones y estado de revisión visual de esta empresa, sin iniciar automáticamente auditorías.'},
     auditoria:{href:'auditorias.html?ticker='+encodeURIComponent(t),help:auditPath?'Auditoría narrativa incluida en el catálogo oficial; cotejar dictamen y revisión con la valoración. Auditoría integral disponible desde la página de auditorías.':'No hay auditoría narrativa oficial para esta empresa. La página indica el estado real, sin sustituirla por otra empresa.'},
     auditoriaIntegral:{href:'auditoria-integral.html?ticker='+encodeURIComponent(t),help:'Auditoría integral DCF, supuestos, materialidad y dictamen técnico, filtrada por empresa. No sustituye la auditoría narrativa del expediente.'},
     sensibilidades:{href:v,help:'Sensibilidades DCF: consultar las matrices de la valoración oficial y la hoja fuente. Recalcular en el Visor es una simulación, no edita el expediente.'},
@@ -149,6 +155,8 @@ async function loadMosSummary(t,p,requestId){
     rec=await fetchJSON(RAW+p.valPath);
     if(state.ticker!==t||state.mosRequest!==requestId)return;
     if(rec.ticker&&String(rec.ticker).toUpperCase()!==t)throw new Error('Ticker diferente del catálogo');
+    state.valuationRecord=rec;
+    if(state.view==='sensibilidades')el('inlinePanel').innerHTML=sensitivityHtml(rec);
     const reference=Number(rec.precioAnalisis??rec.precio);
     const validRef=Number.isFinite(reference)&&reference>0?reference:null;
     const summary=JmrMosSummary.render(host,rec,{price:validRef,latest:false});
@@ -174,6 +182,7 @@ function openCompany(input){
   if(!t){status('Ticker inválido. Usa letras, números, punto, guion o subrayado.','error');return;}
   state.ticker=t;state.loc=null;state.reviewSha=null;const mosRequest=++state.mosRequest;el('ticker').value=t;
   el('mosSummary').hidden=true;
+  state.valuationRecord=null;state.sheet='';state.frameMode='';state.sheetByView={};
   renderCatalogCards();
   el('reviewPanel').hidden=true;
   el('reviewSaveStatus').textContent='';
@@ -187,48 +196,145 @@ function openCompany(input){
     status(t+' no figura con una valoración vigente en el catálogo.','warning');return;
   }
   loadAuditRequest(t,p);
-  const official=p.official&&!!p.analysisPath&&!!p.auditPath;
-  el('revisionNotice').textContent=official
-    ? 'Valoración, análisis y auditoría constan en el catálogo. Esto no certifica por sí solo que compartan revisión ni que la auditoría esté aprobada.'
-    : 'Expediente en consulta: faltan piezas del catálogo oficial o todavía no están conciliadas. No se equipara archivo existente a estudio publicado.';
+  el('revisionNotice').textContent=p.analysisPath
+    ? 'Ficha vigente · Análisis y valoración asociados al catálogo. Auditoría: '+(p.auditPath?'disponible para consulta':'pendiente')+'.'
+    : 'Valoración en catálogo; análisis fundamental pendiente de publicación. No se muestra un documento anterior como vigente.';
   el('dossier').hidden=false;el('empty').hidden=true;
-  el('sheetLink').hidden=false;el('sheetLink').href=p.supuestos.href;
+  el('catalogSection').hidden=true; // Al abrir una empresa, el artículo es lo primero después del buscador.
   readAuditNotes(t);
   loadMosSummary(t,p,mosRequest).catch(()=>{});
-  const first=p.valPath?'valoracion': 'analisis';
-  showView(state.view&&p[state.view]?state.view:first);
+  showView(DOSSIER_VIEWS.includes(state.view)?state.view:'analisis');
   if(!p.official)status(t+' · Sin entrada oficial completa de valoración en catálogo; consulta disponible con reservas.','warning');
   else status(t+' · Valoración en catálogo; análisis y auditoría deben cotejarse con esa misma revisión.');
 }
-function showView(view){
-  if(!state.ticker)return;
-  state.view=view;
-  document.querySelectorAll('[data-view]').forEach(b=>{const selected=b.dataset.view===view;b.classList.toggle('active',selected);b.setAttribute('aria-selected',String(selected));});
-  const sensitivity=view==='sensibilidades',auditing=view==='auditoria';
-  el('sensitivityModes').hidden=!sensitivity;
-  el('auditModes').hidden=!auditing;
-  el('reviewPanel').hidden=!(view==='analisis'&&state.loc&&state.loc.revision);
-  showDetail(sensitivity?(state.sensitivityMode||'sensibilidades'):auditing?(state.auditMode||'auditoria'):view);
+
+function updateDossierLocation(view,sheet){
+  const url=new URL(location.href);
+  url.searchParams.set('seccion',view);
+  if(sheet && SHEETS_BY_VIEW[view])url.searchParams.set('sheet',sheet);
+  else url.searchParams.delete('sheet');
+  history.replaceState({},'',url.pathname+url.search+url.hash);
 }
-function showDetail(kind){
-  if(!state.ticker)return;
-  const d=pages(state.ticker)[kind];if(!d)return;
-  if(kind==='sensibilidades'||kind==='sensibilidadMultiples')state.sensitivityMode=kind;
-  if(kind==='auditoria'||kind==='auditoriaIntegral')state.auditMode=kind;
-  document.querySelectorAll('[data-audit]').forEach(b=>{
-    const selected=b.dataset.audit===kind;
-    b.classList.toggle('active',selected);b.setAttribute('aria-pressed',String(selected));
+function safeSheetTitle(value){return String(value||'').replace(/[<>]/g,'');}
+function currentSheet(view){
+  const options=SHEETS_BY_VIEW[view]||[];
+  const requested=state.sheetByView[view]||(!state.sheet&&view===state.view?params.get('sheet'):'');
+  return options.includes(requested)?requested:options[0];
+}
+function renderSheetSubtabs(view){
+  const host=el('sheetSubtabs'),info=el('sheetGroupInfo');
+  const names=SHEETS_BY_VIEW[view];
+  host.replaceChildren();
+  host.hidden=!names;
+  info.hidden=!names;
+  if(!names)return;
+  const current=currentSheet(view);
+  const titles={financieros:'Estados financieros: informes originales anuales/LTM y series por acción.',
+    indicadores:'Ratios y calidad financiera: valoración de mercado, márgenes, eficiencia y deuda.',
+    modelo:'Hojas principales; el selector dentro del modelo permite consultar las 46 pestañas y anexos, incluidas las ocultas.'};
+  info.textContent=titles[view];
+  names.forEach(name=>{
+    const button=document.createElement('button');
+    button.type='button';button.dataset.sheet=name;button.textContent=name;
+    button.classList.toggle('active',name===current);
+    button.setAttribute('aria-pressed',String(name===current));
+    button.addEventListener('click',()=>{state.sheetByView[view]=name;showView(view);});
+    host.appendChild(button);
   });
-  document.querySelectorAll('[data-sensitivity]').forEach(b=>{
-    const selected=b.dataset.sensitivity===kind;
-    b.classList.toggle('active',selected);b.setAttribute('aria-pressed',String(selected));
+}
+function sensitivityHtml(rec){
+  const esc=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  if(!rec)return '<p class="status-note">Cargando sensibilidades de la valoración oficial…</p>';
+  const mats=rec.sensibilidadDCF?.matrices||[];
+  const base=rec.valorEsperado?.dcfBase??rec.valorPrincipal;
+  const fmt=n=>typeof n==='number'&&isFinite(n)?n.toLocaleString('es-CO',{maximumFractionDigits:2,minimumFractionDigits:2}):'N/D';
+  let parts=['<h3>DCF · sensibilidades del escenario Base</h3><p>Valores por acción calculados en el modelo, no simulados en la página. La celda central debe coincidir con el DCF Base oficial.</p>'];
+  if(!mats.length)parts.push('<p class="status-note">No hay matrices DCF certificadas en esta revisión.</p>');
+  mats.forEach((m,i)=>{
+    const rows=m.valores||[],rr=m.ejeFilas||[],cc=m.ejeColumnas||[];
+    const valid=m.centroConciliado===true && rows.length===5 && rr.length===5 && cc.length===5 &&
+      rows.every(r=>Array.isArray(r)&&r.length===5&&r.every(v=>typeof v==='number'&&isFinite(v))) &&
+      typeof base==='number' && Math.abs(rows[2][2]-base)<.05;
+    parts.push('<article><h3>'+esc(m.nombre||('Matriz '+(i+1)))+'</h3>');
+    if(!valid){parts.push('<p class="status-note">Matriz no mostrada: centro o celdas sin conciliación con la revisión activa.</p></article>');return;}
+    parts.push('<div class="sensitivity-table-scroll"><table><thead><tr><th>Supuesto ↓ / →</th>'+cc.map(v=>'<th>'+esc(fmt(v*100))+'%</th>').join('')+'</tr></thead><tbody>');
+    rows.forEach((row,ri)=>{
+      parts.push('<tr><th>'+esc(fmt(rr[ri]*100))+'%</th>'+
+        row.map((v,ci)=>'<td'+(ri===2&&ci===2?' class="base-matrix"':'')+'>'+esc(fmt(v))+'</td>').join('')+'</tr>');
+    });
+    parts.push('</tbody></table></div><p>Centro Base: US$'+esc(fmt(base))+'. Ejes en % de los supuestos indicados por el título.</p></article>');
   });
-  el('viewHelp').textContent=d.help;el('openOriginal').href=d.href;
-  el('openOriginal').target=kind==='analisis'?'_blank':'_self';
-  el('openOriginal').rel=kind==='analisis'?'noopener noreferrer':'';
-  el('openOriginal').textContent=kind==='analisis'?'Leer análisis en nueva pestaña ↗':'Abrir vista completa ↗';
+  const mult=rec.sensibilidadMultiples;
+  parts.push('<h3>Sensibilidades de múltiplos</h3>');
+  if(mult?.controlesOK===0){
+    parts.push('<p class="status-note">No certificadas en esta revisión: '+esc(mult.noDisponibles||0)+
+      ' métodos pendientes. No se generan sensibilidades con anclas sin validar.</p>');
+  }else if(mult?.controles?.length){
+    parts.push('<p>Disponibilidad de los métodos en el archivo oficial:</p><ul>'+
+      mult.controles.map(x=>'<li>'+esc(x.metodo)+': '+esc(x.estado||'N/D')+'</li>').join('')+'</ul>');
+  }else parts.push('<p class="status-note">Esta revisión no contiene sensibilidades por múltiplos verificables.</p>');
+  return parts.join('');
+}
+function selectWorkbookSheet(view,name){
   const frame=el('viewFrame');
-  if(frame.getAttribute('src')!==d.href)frame.setAttribute('src',d.href);
+  if(!SHEETS_BY_VIEW[view].includes(name))return;
+  state.sheet=name;state.sheetByView[view]=name;
+  const href='editor-hoja.html?ticker='+encodeURIComponent(state.ticker)+'&sheet='+encodeURIComponent(name)+'&embedded=1&seccion='+view;
+  const open=el('openOriginal');
+  open.href='editor-hoja.html?ticker='+encodeURIComponent(state.ticker)+'&sheet='+encodeURIComponent(name);
+  open.textContent='Abrir hoja completa en otra pestaña ↗';open.hidden=false;
+  const existing=frame.getAttribute('src')||'';
+  // Reutilizar el lector ya cargado: no volver a descargar las 46 hojas al cambiar de tabla.
+  if(state.frameMode==='workbook'&&existing.includes('editor-hoja.html?ticker='+encodeURIComponent(state.ticker))){
+    frame.contentWindow?.postMessage({type:'jmr-select-source-sheet',ticker:state.ticker,sheet:name,section:view},location.origin);
+  }else{
+    state.frameMode='workbook';frame.setAttribute('src',href);
+  }
+}
+function showView(view){
+  if(!state.ticker||!DOSSIER_VIEWS.includes(view))return;
+  state.view=view;
+  const p=pages(state.ticker);
+  document.querySelectorAll('[data-view]').forEach(button=>{
+    const selected=button.dataset.view===view;
+    button.classList.toggle('active',selected);button.setAttribute('aria-selected',String(selected));
+    button.tabIndex=selected?0:-1;
+  });
+  renderSheetSubtabs(view);
+  const frame=el('viewFrame'),inline=el('inlinePanel'),open=el('openOriginal'),help=el('viewHelp');
+  const review=el('reviewPanel');
+  review.hidden=view!=='revision'||!state.loc;
+  if(view==='revision')el('reviewForm').hidden=!state.loc?.revision||state.reviewLoading;
+  help.textContent=(p[view]||{}).help||'Información de la revisión activa de la empresa.';
+  const isWorkbook=!!SHEETS_BY_VIEW[view];
+  const isSensitivity=view==='sensibilidades';
+  const isRevision=view==='revision';
+  frame.hidden=isSensitivity||isRevision;
+  inline.hidden=!isSensitivity&&!isRevision;
+  open.hidden=isSensitivity||isRevision;
+  if(isWorkbook){
+    const sheet=currentSheet(view);
+    selectWorkbookSheet(view,sheet);
+    updateDossierLocation(view,sheet);
+  }else if(isSensitivity){
+    inline.innerHTML=sensitivityHtml(state.valuationRecord);
+    updateDossierLocation(view);
+  }else if(isRevision){
+    if(!state.loc)inline.innerHTML='<p class="status-note">Cargando la revisión y las observaciones oficiales…</p>';
+    else inline.innerHTML='<p class="status-note">Las observaciones se guardan por ticker y revisión. Si no hay auditoría publicada, su estado permanece pendiente; no se crea un resultado ficticio.</p>';
+    updateDossierLocation(view);
+  }else if(view==='analisis'&&!p.analysisPath){
+    frame.hidden=true;inline.hidden=false;open.hidden=true;
+    inline.innerHTML='<p class="status-note">Análisis fundamental no publicado para esta revisión. La valoración y las hojas pueden consultarse en sus pestañas.</p>';
+    updateDossierLocation(view);
+  }else{
+    const route=p[view];
+    if(!route?.href){frame.hidden=true;inline.hidden=false;open.hidden=true;inline.textContent='Vista no disponible para esta revisión.';return;}
+    state.frameMode=view;
+    if(frame.getAttribute('src')!==route.href)frame.setAttribute('src',route.href);
+    open.href=route.href;open.textContent=view==='analisis'?'Abrir análisis como documento independiente ↗':'Abrir valoración completa ↗';
+    updateDossierLocation(view);
+  }
 }
 function noteMessage(message,bad){
   const target=el('reviewSaveStatus');
@@ -303,7 +409,8 @@ async function loadAuditRequest(t,p){
     if(record.ticker!==t||!/^[A-Za-z0-9._-]{1,90}$/.test(revision))throw new Error('El registro no identifica una revisión válida; guardado bloqueado.');
     const loc={ticker:t,revision:revision,fechaCorte:String(record.fecha||''),valoracionPath:p.valPath};
     state.loc=loc;state.reviewSha=null;
-    el('reviewPanel').hidden=state.view!=='analisis';
+    if(state.view==='revision')showView('revision');
+    el('reviewPanel').hidden=state.view!=='revision';
     el('reviewCompanyMeta').textContent=t+' · Revisión '+loc.revision+' · Corte '+(loc.fechaCorte||'N/D');
     const stored=await fetchAuditStored(loc);
     if(state.ticker!==t||state.loc!==loc)return;
@@ -315,6 +422,7 @@ async function loadAuditRequest(t,p){
     reviewFields(localPreferred?draft:stored.body);
     el('reviewForm').hidden=false;
     noteMessage(localPreferred?'Borrador local sin publicar; guárdalo en GitHub.':stored.body?'Revisión cargada desde GitHub.':'No hay observaciones guardadas para esta revisión.');
+    if(state.view==='revision')el('inlinePanel').innerHTML='<p class="status-note">'+(p.auditPath?'Auditoría narrativa disponible en el catálogo; consúltala desde el histórico de auditorías.':'Auditoría económica aún no realizada. Esta ficha no presenta una auditoría inexistente.')+'</p>';
     el('connectReviewGitHub').textContent=GhOAuth.getGhToken()?'GitHub conectado':'Conectar GitHub';
     el('connectReviewGitHub').disabled=!!GhOAuth.getGhToken();
   }catch(e){
@@ -365,27 +473,46 @@ el('reloadAuditRequest').addEventListener('click',()=>{
 });
 
 el('catalogSearch').addEventListener('input',renderCatalogCards);
+el('marketFilters').addEventListener('click',event=>{
+  const b=event.target.closest('button[data-market]');
+  if(!b)return;
+  const u=new URL(location.href),market=b.dataset.market;
+  if(market==='all')u.searchParams.delete('mercado');
+  else if(market==='colombia'||market==='internacional')u.searchParams.set('mercado',market);
+  history.replaceState({},'',u.pathname+u.search+u.hash);
+  renderCatalogCards();
+});
+
 el('lookup').addEventListener('submit',e=>{e.preventDefault();openCompany(el('ticker').value);});
 el('reload').addEventListener('click',loadInventory);
-document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>{
-  showView(b.dataset.view);
-  if(b.dataset.view==='analisis'){
-    const p=pages(state.ticker);
-    if(p.analysisPath)window.open(p.analisis.href,'_blank','noopener,noreferrer');
-  }
-}));
-document.querySelectorAll('[data-sensitivity]').forEach(b=>b.addEventListener('click',()=>showDetail(b.dataset.sensitivity)));
-document.querySelectorAll('[data-audit]').forEach(b=>b.addEventListener('click',()=>showDetail(b.dataset.audit)));
+document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>showView(b.dataset.view)));
+window.addEventListener('message',event=>{
+  const frame=el('viewFrame'),data=event.data||{};
+  if(event.origin!==location.origin||event.source!==frame.contentWindow)return;
+  if(data.type!=='jmr-sheet-selected'||data.ticker!==state.ticker||typeof data.sheet!=='string')return;
+  if(!SHEETS_BY_VIEW[state.view])return;
+  // Un cambio del selector de las 46 hojas se refleja en la ruta del expediente.
+  state.sheet=data.sheet;
+  if(SHEETS_BY_VIEW[state.view].includes(data.sheet))state.sheetByView[state.view]=data.sheet;
+  document.querySelectorAll('#sheetSubtabs button[data-sheet]').forEach(button=>{
+    const selected=button.dataset.sheet===data.sheet;
+    button.classList.toggle('active',selected);button.setAttribute('aria-pressed',String(selected));
+  });
+  updateDossierLocation(state.view,data.sheet);
+  const open=el('openOriginal');
+  open.href='editor-hoja.html?ticker='+encodeURIComponent(state.ticker)+'&sheet='+encodeURIComponent(data.sheet);
+});
 el('viewFrame').addEventListener('load',function(){
   // Mismo origen: ocultar solamente la navegación duplicada, sin tocar los
   // botones, selectores, formularios o cálculos de la página original.
   try{
     const doc=this.contentDocument;
+    if(state.frameMode==='workbook'&&state.sheet)
+      this.contentWindow?.postMessage({type:'jmr-select-source-sheet',ticker:state.ticker,sheet:state.sheet,section:state.view},location.origin);
     if(!doc||doc.getElementById('jmr-dossier-embed'))return;
     const style=doc.createElement('style');style.id='jmr-dossier-embed';
     style.textContent='nav.appnav,#jmr-market-nav{display:none!important}';
-    // En la ficha el análisis se lee como artículo, sin mostrar las herramientas
-    // de edición heredadas ni duplicar el selector de empresas.
+    // Ocultar solamente la navegación redundante de vistas técnicas reutilizadas.
     if(doc.location.pathname.endsWith('/research.html')){
       style.textContent+='body.research-page .hero,body.research-page .disclaimer,body.research-page .tabs,body.research-page #ghConnectBanner,body.research-page .setup-panel,body.research-page .analysis-actions,body.research-page #editorToolbar{display:none!important}';
       style.textContent+='body.research-page .wrap{max-width:none;width:100%;padding:0 12px 32px}body.research-page .editor-grid{display:block!important}body.research-page .preview-shell{max-width:none;width:100%;margin:0}body.research-page .panel[data-panel=editor]{padding:0;border:0;display:block}';

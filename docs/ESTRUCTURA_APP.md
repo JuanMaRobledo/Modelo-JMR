@@ -2,21 +2,25 @@
 
 **Única fuente del menú:** `docs/mercado.js`, estilo en `docs/jmr-theme.css`. No incorporar menús nuevos independientes.
 
-## Entradas
-- **Análisis fundamental (entrada principal):** `expediente.html?seccion=analisis` (ficha unificada). `research.html` queda como editor/biblioteca, no como portada del estudio oficial.
-- **Empresa:** `expediente.html?ticker=<T>`, la ficha única que enlaza valoración, análisis, hojas, auditorías y sensibilidades.
-- **Valoraciones:** `visor.html` / `visor.html?mercado=colombia` (destinos distintos, nunca la página abierta bajo otra etiqueta).
-- **Hojas del modelo:** `editor-hoja.html?ticker=<T>`, lector de la hoja Google oficial.
-- **Auditorías:** `auditorias.html?ticker=<T>`, `auditoria-integral.html?ticker=<T>`, `auditoria-multiplos.html?ticker=<T>`.
-- **Observaciones para auditoría:** campo desplegable en `expediente.html?ticker=<T>`; borrador local y guardado explícito vía GitHub en `Modelo-JMR-datos/auditorias/solicitudes/<archivo-de-la-valoración>.json`. Revisión y ticker vinculados; las notas sincronizadas quedan visibles en un repositorio público.
-- **Histórico:** `historicos.html`; **Bitácora de terceros:** `bitacora-terceros.html` (externa al modelo oficial).
-- **Herramientas:** `calculadora.html` (simulación no persistente), `damodaran.html`, `screener.html`, `portafolio.html`, `mi-bitacora.html`.
+## Entradas: una empresa, una ficha
 
-`index.html` es únicamente una ruta antigua que redirige a `research.html`, **no** una categoría «Referencias». Un enlace que sale de un documento incrustado hacia `expediente.html` se abre en la pestaña principal, evitando recursión de iframes.
+- **Única portada de empresas y análisis:** `expediente.html?seccion=analisis`. El catálogo permite filtrar Todas, Internacionales y Colombia.
+- **Una empresa:** `expediente.html?ticker=<T>&seccion=analisis`; siempre empieza en Análisis si no hay sección explícita. El enlace puede seleccionar `seccion=financieros&sheet=Income%20Statement`, por ejemplo.
+- **Siete pestañas, un mismo expediente:** Análisis fundamental, Valoración, Estados financieros, Indicadores, Modelo y supuestos, Sensibilidades, Revisión y auditoría.
+- **Subpestañas financieras:** resultados, balance, flujo de efectivo, LTM, dividendos, cifras por acción; ratios, *Trailing Valuation*, *Forward Valuation*, eficiencia, márgenes, solvencia/deuda. La fuente original es siempre Google Sheets.
+- **Modelo:** el lector oficial `editor-hoja.html?ticker=<T>&embedded=1&seccion=modelo` mantiene el selector de **todas** las hojas nativas del libro, incluidas ocultas. Los favoritos son accesos rápidos, no un subconjunto de los datos.
+- **Acceso a una hoja original por separado:** `editor-hoja.html?ticker=<T>&sheet=<N>`; se abre solo por acción explícita de usuario. El lector incrustado acepta `postMessage` exclusivamente del mismo origen y del `parent` correcto, para navegar sin reimportar el libro.
+- **Sensibilidades:** panel independiente con las matrices DCF que concilian con la valoración activa; nunca se presentan anclas o múltiplos no certificados como resultados calculados.
+- **Revisión:** observaciones persistidas por ticker/revisión, opciones EN_REVISION, LISTO y REHACER; auditorías ausentes se indican como pendientes, no enlaces vacíos.
+- **Navegación general:** Empresas y análisis, Cartera, Herramientas (desplegable), Histórico y Bitácora de terceros. Las páginas técnicas conservan rutas de compatibilidad, pero no constituyen portadas rivales.
+
+El diseño usa un panel de contenido único dentro del expediente. **Los visores técnicos heredados de valoración/lectura** continúan integrados como documentos de la misma ventana hasta que puedan migrarse sin romper cálculos, exportación PDF o permisos. No se abren automáticamente ventanas nuevas.
+
+`index.html` es redirección antigua al catálogo. Los enlaces incrustados que regresan al expediente apuntan a `_top`, para impedir expedientes anidados.
 
 ## Dos niveles del análisis fundamental
 
-El lector `research.html` / ficha `expediente.html` aplica el [Estilo JMR narrativo](ESTILO_ANALISIS_FUNDAMENTAL_JMR.md): Nivel 1 largo con 13 capítulos de empresa → fundamentales → proceso → supuestos → valor; Nivel 2 desplegable con cálculos. Los legados conservan su estructura hasta actualización. Las tablas breves útiles del artículo no se eliminan. Porter y cinco filosofías dejan de ser obligatorios.
+El lector `analisis-lectura.html` / ficha `expediente.html` aplica el [Estilo JMR narrativo](ESTILO_ANALISIS_FUNDAMENTAL_JMR.md): Nivel 1 largo con 13 capítulos de empresa → fundamentales → proceso → supuestos → valor; Nivel 2 desplegable con cálculos. Los legados conservan su estructura hasta actualización. Las tablas breves útiles del artículo no se eliminan. Porter y cinco filosofías dejan de ser obligatorios.
 
 ## Fuente única financiera
 1. Resolver ticker en `Modelo-JMR-datos/catalogo.json` ANTES de elegir el archivo de valoración. Las rutas admiten `NKE-20261025-R6.json` y nombres análogos. Si no hay entrada de catálogo, el archivo se muestra como histórico/no conciliado, nunca como versión oficial.
