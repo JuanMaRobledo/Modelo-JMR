@@ -34,7 +34,7 @@ test('Research vigente: 13 capítulos y Nivel 2; auditoría independiente: 18 se
   assert.deepEqual(narrativeChapterNumbers(docs[1].s),Array.from({length:13},(_,i)=>i+1));
   assert.match(docs[1].s,/## NIVEL 2 — Cálculos, estados y soportes/);
   assert.match(docs[1].s,/12 apartados verificables/);
-  assert.match(docs[1].s,/no crear números, fuentes, matrices ni estimaciones/);
+  assert.match(docs[1].s,/no crear números, fuentes, matrices ni estimaciones/i);
   assert.deepEqual(headingNumbers(docs[2].s),Array.from({length:18},(_,i)=>i+1));
   assert.match(docs[2].s,/no modific|no modifica/i);
 });
