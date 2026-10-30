@@ -376,7 +376,7 @@ function showView(view){
     inline.innerHTML=typeof JmrMultiplesPanel==='undefined'?
       '<p class="status-note">No se pudo cargar la tabla de múltiplos.</p>':
       JmrMultiplesPanel.render(state.valuationRecord);
-    help.textContent='Valoración relativa por método: precios conservador, Base y optimista; valor presente individual cuando existe. La fuente de verdad es la hoja original.';
+    help.textContent='Valoración relativa por método: precios conservador, Base y optimista; valor presente individual cuando existe. Los valores visibles son la revisión publicada de la hoja oficial: Financials Multiples, Descuento de múltiplos y Sensibilidad por múltiplo. Si un método no está conciliado, se muestra N/D.';
     open.href='editor-hoja.html?ticker='+encodeURIComponent(state.ticker)+'&sheet='+encodeURIComponent('Descuento de múltiplos');
     open.textContent='Consultar fórmula y hoja original ↗';
     updateDossierLocation(view);
