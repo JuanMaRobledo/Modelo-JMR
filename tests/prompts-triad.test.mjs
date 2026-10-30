@@ -76,3 +76,18 @@ test('contratos vigentes: copia de valoración, MOS solo Base y auditoría v1.3'
 
   assert.doesNotMatch(docs[2].s,/auditoria-economica-jmr-v1\.[012]/i);
 });
+
+test('las referencias activas y la interfaz usan el mismo contrato editorial',()=>{
+  const style=fs.readFileSync(new URL('../docs/ESTILO_ANALISIS_FUNDAMENTAL_JMR.md',import.meta.url),'utf8');
+  const rules=fs.readFileSync(new URL('../modelo/REGLAS_VIGENTES.md',import.meta.url),'utf8');
+  const interfaceJs=fs.readFileSync(new URL('../docs/research.js',import.meta.url),'utf8');
+  const process=fs.readFileSync(new URL('../docs/PROCESO_UNICO_JMR.md',import.meta.url),'utf8');
+  const styleSection=style.split('**Índice oficial de 14 capítulos')[1]?.split('## Contrato del capítulo 5')[0] || '';
+  const sections=[...styleSection.matchAll(/^(\d{1,2})\. \*\*/gm)].map(m=>Number(m[1]));
+  assert.deepEqual(sections,Array.from({length:14},(_,i)=>i+1));
+  assert.match(styleSection,/5\. \*\*Ciclos de la empresa, del mercado y de la macroeconomía/);
+  assert.match(rules,/\*\*Versión 23 · 30-oct-2026/);
+  assert.match(process,/tres prompts maestros activos/i);
+  assert.match(interfaceJs,/Índice JMR de 14 capítulos/);
+  assert.doesNotMatch(interfaceJs,/Estilo JMR de 13 capítulos|Índice JMR de 13 capítulos/);
+});
