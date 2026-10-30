@@ -101,3 +101,23 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{ou
 @media(max-width:600px){.model-sheets{padding:14px 12px}.model-sheet-tabs{gap:7px}.model-sheet-tabs button{padding:10px;font-size:12px}.cell-inspector{grid-template-columns:1fr}.cell-inspector>div:last-child{grid-column:auto}.workbook-table .first-source-col{min-width:190px;max-width:260px}.toolbar #toggleFullSheet{margin-left:0}.workbook-table{min-width:100%}}
 
 .multiples-source-status{background:var(--surface-2);color:var(--ink-soft);font-size:12px;font-weight:600;line-height:1.6;padding:12px 15px;border:1px solid var(--border-soft);border-radius:12px;margin:10px 0}.multiples-source-status[data-coverage="incomplete"]{border-left:3px solid var(--accent);}.multiples-source-status[data-coverage="complete"]{border-left:3px solid var(--positive);}
+
+
+/* Navegación de las 46 pestañas originales: categoría + selector contextual.
+   El libro permanece intacto y conserva todas las hojas, incluidas las ocultas. */
+.sheet-category-tabs{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:17px 0 8px}
+.sheet-category-tabs button{display:inline-flex;align-items:center;gap:8px;background:var(--surface,#fff);color:var(--ink,#1b3026);border:1px solid var(--border,#d7ded8);padding:9px 12px;border-radius:9px;font-size:12px;font-weight:750}
+.sheet-category-tabs button.active,.sheet-category-tabs button[aria-pressed="true"]{border-color:var(--accent,#a67b2b);background:var(--accent-soft,#f6eacd);color:var(--accent-ink,#5d4517)}
+.sheet-group-count{font:700 11px ui-monospace,monospace;padding:2px 6px;border-radius:6px;background:var(--surface-2,#f0f3ef)}
+.sheet-group-description{color:var(--ink-soft,#51615a);font-weight:650;font-size:12px;margin:10px 0}
+.sheet-quick-tabs{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch;margin:10px 0 13px}
+.sheet-quick-tabs button{background:var(--surface-2,#edf2ed);color:var(--ink,#182820);border:1px solid var(--border,#cedbd0);border-radius:8px;padding:9px 12px;min-height:39px;max-width:280px;text-align:left;font-size:12px;font-weight:650;overflow-wrap:anywhere}
+.sheet-quick-tabs button.active,.sheet-quick-tabs button[aria-pressed="true"]{background:var(--accent-soft,#f4e8d1);color:var(--accent-ink,#654715);box-shadow:inset 0 0 0 1px var(--accent,#ad8437);border-color:var(--accent,#ad8437)}
+.sheet-nav-note{color:var(--ink-soft,#5c685f);font-size:12px;line-height:1.55;margin:8px 0 0}
+.open-sheet-window{color:var(--accent,#ad8437);text-decoration:none;font-size:12px;font-weight:800;padding:9px 11px;border:1px solid var(--border,#d7ded8);border-radius:8px;background:var(--surface,#fff)}
+.open-sheet-window:hover{border-color:var(--accent,#ad8437)}
+/* Tablas financieras: columna de conceptos fija, cifras alineadas, bandas y filas clave. */
+.workbook-table td.numeric-cell{text-align:right;font-variant-numeric:tabular-nums;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace}
+.workbook-table tr.value-row td.numeric-cell{font-weight:800}
+.workbook-table .first-source-col .cell-display{text-align:left;font-family:"Public Sans",system-ui,sans-serif;font-variant-numeric:normal}
+@media(max-width:650px){.sheet-category-tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin;padding-bottom:7px}.sheet-category-tabs button{flex:none}.sheet-quick-tabs{flex-wrap:nowrap;overflow-x:auto;padding-bottom:9px}.sheet-quick-tabs button{flex:none;max-width:230px}.open-sheet-window{width:100%;text-align:center}.toolbar{align-items:stretch}}
