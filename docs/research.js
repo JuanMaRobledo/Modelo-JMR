@@ -477,10 +477,10 @@
       '<div class="jmr-technical-content">'+technicalIntroduction+
       (linked?'<section class="jmr-valuation-summary" aria-label="Tarjeta de valoración"><h2>Resultado de valoración</h2>'+linked+'</section>':'')+
       extra+
-      '<details class="jmr-research-details jmr-calculation-appendix"><summary>Operaciones, fórmulas y conciliaciones del expediente</summary>'+
+      '<details class="jmr-research-details jmr-calculation-appendix" open><summary>Operaciones, fórmulas y conciliaciones del expediente</summary>'+
       (technical?technical.toc+technical.body:'<p>El expediente todavía no contiene un anexo de cálculos separado.</p>')+
       linkedMultiplesLevel2(state.linkedValuation)+'</details>'+
-      '<details class="jmr-research-details jmr-financial-appendix"><summary>Estados financieros, ratios, escenarios y matrices de sensibilidad</summary>'+
+      '<details class="jmr-research-details jmr-financial-appendix" open><summary>Estados financieros, ratios, escenarios y matrices de sensibilidad</summary>'+
       '<div data-jmr-extended-sheets></div></details>'+
       '</div></details>';
     var actions='<div class="jmr-research-navigation" role="navigation" aria-label="Navegación entre análisis y simulador">'+
@@ -500,7 +500,7 @@
       reportMounted=true;
       if(typeof JmrReportSheets!=='undefined'&&state.linkedValuation)JmrReportSheets.mount(appendix,state.linkedValuation);
     }
-    if(appendix)appendix.addEventListener('toggle',mountQuantitative);
+    if(appendix){appendix.addEventListener('toggle',mountQuantitative);if(detail)detail.addEventListener('toggle',mountQuantitative);}
     renderEditorToolbar();
     body.onclick=function(event){window.JmrReportAnchors.navigate(event,body);};
   }
