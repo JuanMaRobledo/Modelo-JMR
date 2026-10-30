@@ -282,6 +282,9 @@
     refreshShortcuts();
     inspect(null);
     table();
+    // Toda selección real (selector, grupos o accesos rápidos) actualiza la ficha padre.
+    if(global.parent&&global.parent!==global)
+      global.parent.postMessage({type:'jmr-sheet-selected',ticker,sheet:selected},global.location.origin);
   }
   function openSnapshot(result){
     snapshot=result;dimensions={};drafts.clear();
@@ -375,8 +378,6 @@
     byId('lookup').addEventListener('submit',function(e){e.preventDefault();load();});
     byId('sheetPicker').addEventListener('change',function(){
       selectSheet(this.value);
-      if(global.parent&&global.parent!==global)
-        global.parent.postMessage({type:'jmr-sheet-selected',ticker,sheet:selected},global.location.origin);
     });
     global.addEventListener('message',function(event){
       if(event.origin!==global.location.origin||event.source!==global.parent)return;
