@@ -82,6 +82,12 @@ function renderCatalogCards(){
   const paths=Array.isArray(state.catalog.valoraciones)?state.catalog.valoraciones:[];
   const tickers=[...new Set(paths.map(p=>tickerFromName(String(p).split('/').pop())).filter(valid))].sort();
   const matching=tickers.filter(t=>catalogMarket(t)&&(!q||t.includes(q)));
+  const chosenMarket=new URLSearchParams(location.search).get('mercado')||'all';
+  document.querySelectorAll('#marketFilters [data-market]').forEach(b=>{
+    const chosen=b.dataset.market===chosenMarket;
+    b.classList.toggle('active',chosen);
+    b.setAttribute('aria-pressed',String(chosen));
+  });
   const grid=el('catalogCards');
   grid.replaceChildren();
   const fragment=document.createDocumentFragment();
@@ -467,6 +473,16 @@ el('reloadAuditRequest').addEventListener('click',()=>{
 });
 
 el('catalogSearch').addEventListener('input',renderCatalogCards);
+el('marketFilters').addEventListener('click',event=>{
+  const b=event.target.closest('button[data-market]');
+  if(!b)return;
+  const u=new URL(location.href),market=b.dataset.market;
+  if(market==='all')u.searchParams.delete('mercado');
+  else if(market==='colombia'||market==='internacional')u.searchParams.set('mercado',market);
+  history.replaceState({},'',u.pathname+u.search+u.hash);
+  renderCatalogCards();
+});
+
 el('lookup').addEventListener('submit',e=>{e.preventDefault();openCompany(el('ticker').value);});
 el('reload').addEventListener('click',loadInventory);
 document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>showView(b.dataset.view)));
