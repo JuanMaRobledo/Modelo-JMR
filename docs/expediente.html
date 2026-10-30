@@ -118,6 +118,19 @@ footer a{color:inherit}
 .review-panel{border-top:1px solid var(--border)}
 @media(max-width:700px){.dossier-tabs{top:0}.dossier-tabs button{font-size:12px;padding:9px 10px}.sheet-subtabs{max-height:160px}.dossier-inline{padding:12px}#viewFrame{height:86vh}}
 .market-filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 13px}.market-filters button{font-size:12px;padding:9px 12px;border-radius:9px}.market-filters button[aria-pressed="true"]{background:var(--accent-soft,#f1e6d1);color:var(--accent-ink,#654715);border-color:var(--accent,#a78243)}@media(max-width:650px){.market-filters{flex-wrap:nowrap;overflow-x:auto}}
+
+.valuation-modes{background:var(--surface,#fff);gap:8px}
+.valuation-modes button{font-size:13px;padding:9px 14px}
+.valuation-summary{padding:10px 17px;border-bottom:1px solid var(--border,#ddd)}
+.jmr-multiple-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:12px 0}
+.jmr-multiple-summary>div{border:1px solid var(--border,#ddd);border-radius:11px;padding:14px;min-width:0;background:var(--surface-2,#f6f7f5)}
+.jmr-multiple-summary span{display:block;font-size:12px;color:var(--ink-soft,#627067);line-height:1.5;margin-bottom:5px}
+.jmr-multiple-summary strong{font-size:clamp(17px,2vw,25px);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.jmr-multiple-table th,.jmr-multiple-table td{white-space:normal;min-width:115px}
+.jmr-multiple-table td:last-child{min-width:150px}
+.jmr-multiple-table td small{font-size:11px;color:var(--ink-soft,#627067);display:block}
+.jmr-multiple-note{font-size:12px;line-height:1.65;color:var(--ink-soft,#627067);max-width:1100px}
+@media(max-width:700px){.jmr-multiple-summary{grid-template-columns:1fr}.valuation-summary{padding:8px 12px}.jmr-multiple-summary strong{font-size:19px}}
 </style></head><body>
 <script src="auth.js"></script><script src="mercado.js"></script><script src="gh_oauth.js"></script>
 <nav class="appnav" aria-label="Navegación principal"><a href="expediente.html?seccion=analisis">Análisis fundamental</a><a href="expediente.html">Expedientes JMR</a><a href="bitacora-terceros.html">Bitácora de terceros</a></nav>
@@ -149,6 +162,11 @@ footer a{color:inherit}
 <button type="button" data-view="sensibilidades" role="tab" aria-selected="false">Sensibilidades</button>
 <button type="button" data-view="revision" role="tab" aria-selected="false">Revisión y auditoría</button>
 </div>
+<nav id="valuationModes" class="sensitivity-modes valuation-modes" aria-label="Tipos de valoración" hidden>
+<button type="button" data-valuation="dcf" class="active" aria-pressed="true">DCF · valor intrínseco</button>
+<button type="button" data-valuation="multiplos" aria-pressed="false">Valoración por múltiplos</button>
+</nav>
+<section id="valuationSummary" class="valuation-summary" aria-label="Comparación de valoración DCF y múltiplos" hidden></section>
 <nav id="sheetSubtabs" class="sensitivity-modes sheet-subtabs" aria-label="Pestañas financieras de la empresa" hidden></nav>
 <div id="sheetGroupInfo" class="sheet-group-info" hidden></div>
 <div class="panelbar"><p id="viewHelp"></p><a id="openOriginal" target="_blank" rel="noopener noreferrer" hidden>Abrir fuente en nueva pestaña ↗</a></div>
@@ -177,4 +195,5 @@ footer a{color:inherit}
 <div id="empty">Elige una empresa para consultar sus secciones sin cambiar de expediente.</div>
 <footer>Fuentes: <code>Modelo-JMR-datos</code> y Google Sheets. Un archivo en el repositorio no implica auditoría aprobada ni publicación oficial.
 <a href="https://github.com/JuanMaRobledo/Modelo-JMR/blob/main/docs/PROCESO_UNICO_JMR.md" target="_blank" rel="noopener noreferrer">Procedimiento único para ChatGPT, Claude y Gemini ↗</a></footer>
-</main><script src="jmr-mos-summary.js"></script><script src="expediente.js?v=20261030-ficha-unica-r1"></script></body></html>
+</main><script src="jmr-mos-summary.js"></script><script src="jmr-multiples-panel.js?v=20261030-relativa-r1"></script>
+<script src="expediente.js?v=20261030-valoracion-multiplos-r1"></script></body></html>
