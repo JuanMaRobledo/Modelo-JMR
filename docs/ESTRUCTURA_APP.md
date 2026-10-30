@@ -16,7 +16,7 @@
 
 ## Dos niveles del análisis fundamental
 
-El lector `research.html` / ficha `expediente.html` aplica el contrato editorial en [CONTRATO_EDITORIAL_DOS_NIVELES.md](CONTRATO_EDITORIAL_DOS_NIVELES.md): Nivel 1 extenso con índice de 18 títulos canónicos (patrón META) y subsecciones; Nivel 2 desplegable con índice de cálculos. Los informes recientes con 18 apartados numéricos distintos del índice original requieren restauración editorial; no se renombran automáticamente ni se eliminan argumentos. La presencia de tablas en Nivel 1 no se trata como defecto: se conservan las tablas útiles que justifican la tesis.
+El lector `research.html` / ficha `expediente.html` aplica el [Estilo JMR narrativo](ESTILO_ANALISIS_FUNDAMENTAL_JMR.md): Nivel 1 largo con 13 capítulos de empresa → fundamentales → proceso → supuestos → valor; Nivel 2 desplegable con cálculos. Los legados conservan su estructura hasta actualización. Las tablas breves útiles del artículo no se eliminan. Porter y cinco filosofías dejan de ser obligatorios.
 
 ## Fuente única financiera
 1. Resolver ticker en `Modelo-JMR-datos/catalogo.json` ANTES de elegir el archivo de valoración. Las rutas admiten `NKE-20261025-R6.json` y nombres análogos. Si no hay entrada de catálogo, el archivo se muestra como histórico/no conciliado, nunca como versión oficial.
