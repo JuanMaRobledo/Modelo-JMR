@@ -351,3 +351,22 @@ test('DUOL: VP de múltiplos visible y conciliado sin tratarlo como FY+3 ni inve
     assert.doesNotMatch(api.render(pending),/US\$0,00/);
   }
 });
+
+test('control del Modelo A excluye versiones anteriores, señala incompletas y nunca mezcla una revisión nueva',()=>{
+  const js=get('docs/expediente.js');
+  const extractor=js.match(/function fromCatalog\([\s\S]*?\n(?=function status)/)?.[0]||'';
+  assert.match(extractor,/function controlModeloA/);
+  const active=['valoraciones/META-20261025-R5.json','valoraciones/ADBE-20261028-A3.json'];
+  const state={catalog:{valoraciones:active,controlModeloA:{empresas:{
+    META:{rutaValoracion:active[0],metodo:'ANTERIOR',estado:'EXCLUIDA_HASTA_REHACER_A'},
+    ADBE:{rutaValoracion:active[1],metodo:'A-1.2',estado:'INCOMPLETA_EN_REVISION',multiplos:'PRINCIPALES_REGISTRADOS_PENDIENTE_AUDITORIA'}
+  }}}};
+  const gate=new Function('state',extractor+';return controlModeloA;')(state);
+  assert.equal(gate('META').visible,false);
+  assert.equal(gate('ADBE').visible,true);
+  assert.equal(gate('ADBE').estado,'INCOMPLETA_EN_REVISION');
+  state.catalog.valoraciones[1]='valoraciones/ADBE-20261031-A4.json';
+  assert.equal(gate('ADBE').visible,false,'Una revisión nueva no hereda la clasificación de otra.');
+  assert.match(js,/filter\(t=>controlModeloA\(t\)\.visible\)/);
+  assert.match(js,/MODELO A INCOMPLETO/);
+});
