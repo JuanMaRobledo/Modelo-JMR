@@ -24,14 +24,19 @@ test('libraries form disjoint complete market partitions', () => {
  assert.equal(records.filter(a.jmrDelMercado).length,2); assert.equal(records.filter(b.jmrDelMercado).length,3);
  for(const r of records) assert.notEqual(a.jmrDelMercado(r),b.jmrDelMercado(r));
 });
-test('market switch keeps document type and never carries a previous company filter',()=>{
- const {nav,nodes}=app('https://jmr.test/research.html?mercado=colombia&ticker=PFGRUPSURA');
- assert.match(nav.innerHTML,/href="expediente.html\?seccion=valoracion&mercado=internacional"[^>]*>Valoraciones internacionales/);
- assert.match(nav.innerHTML,/href="expediente.html\?seccion=valoracion&mercado=colombia"[^>]*>Valoraciones Colombia/);
- assert.doesNotMatch(nav.innerHTML,/href="research.html\?mercado=colombia"[^>]*>Valoraciones Colombia/);
- assert.doesNotMatch(nav.innerHTML,/ticker=/);
- assert.match(nodes['jmr-market-nav'].innerHTML,/expediente.html\?seccion=valoracion&mercado=colombia/);
+test('menú central concentra empresas, cartera, herramientas e histórico, sin duplicar páginas',()=>{
+ const a=app('https://jmr.test/research.html?mercado=colombia&ticker=PFGRUPSURA');
+ const nav=a.nav.innerHTML;
+ assert.match(nav,/Empresas y análisis/);
+ assert.match(nav,/Cartera/);
+ assert.match(nav,/Herramientas/);
+ assert.match(nav,/Histórico/);
+ assert.match(nav,/Bitácora de terceros/);
+ assert.match(nav,/jmr-tools-menu/);
+ assert.doesNotMatch(nav,/Expedientes JMR|Valoraciones internacionales|Valoraciones Colombia/);
+ assert.doesNotMatch(nav,/ticker=/);
 });
+
 test('opening legacy direct record selects its market and preserves deep link',()=>{
  const a=app('https://jmr.test/visor.html?path=valoraciones%2FSURA.json#saved');
  a.window.jmrAjustarMercado({ticker:'PFGRUPSURA'});
@@ -41,23 +46,23 @@ test('opening legacy direct record selects its market and preserves deep link',(
  a.window.jmrAjustarMercado({ticker:'AAPL'});
  assert.equal(a.window.JMR_MERCADO,'internacional'); assert.doesNotMatch(a.history.url,/mercado=/);
 });
-test('Colombia workspace is subordinate to Colombia, with the same viewers',()=>{
+test('Colombia conserva clasificación y evita crear una segunda barra global',()=>{
  const a=app('https://jmr.test/colombia.html');
  assert.equal(a.window.JMR_MERCADO,'colombia');
- assert.match(a.nodes['jmr-market-nav'].innerHTML,/Datos y expedientes/);
- assert.match(a.nodes['jmr-market-nav'].innerHTML,/research.html\?mercado=colombia/);
+ assert.match(a.nav.innerHTML,/Empresas y análisis/);
+ assert.doesNotMatch(a.nav.innerHTML,/Valoraciones Colombia/);
 });
-test('portfolio, journal and calculator preserve the market across navigation',()=>{
+
+test('herramientas conservan enlaces independientes sin añadir otro menú de empresa',()=>{
  for(const page of ['portafolio.html','mi-bitacora.html','calculadora.html']) {
    const a=app('https://jmr.test/'+page+'?mercado=colombia');
    assert.match(a.heading.textContent,/Colombia/);
-   assert.match(a.nav.innerHTML,new RegExp('href="'+page.replace('.','\\.')+'\\?mercado=colombia"[^>]*aria-current="page"'));
-   assert.ok(a.nodes['jmr-market-nav'].innerHTML.includes('expediente.html?seccion=valoracion&mercado=colombia'));
-   for(const destination of ['research.html','portafolio.html','mi-bitacora.html']) {
-     assert.ok(a.nodes['jmr-market-nav'].innerHTML.includes(destination+'?mercado=colombia'));
-   }
+   assert.match(a.nav.innerHTML,new RegExp('href="'+page.replace('.','\\.')+'\\?mercado=colombia"'));
+   assert.match(a.nav.innerHTML,/jmr-tools-links/);
+   assert.doesNotMatch(a.nav.innerHTML,/Expedientes JMR/);
  }
 });
+
 test('joined portfolio and derived journal records retain Colombian metadata',()=>{
  const w=app('https://jmr.test/portafolio.html?mercado=colombia').window;
  for(const r of [{ticker:'NEW',visor:{currency:'COP'}},{ticker:'NEW',valoracionActual:{market:'BVC'}},{ticker:'NEW',research:{market:'CO'}}]) assert.equal(w.jmrDelMercado(r),true);
@@ -65,12 +70,12 @@ test('joined portfolio and derived journal records retain Colombian metadata',()
  assert.equal(w.jmrMercadoHref('research.html?ticker=EC',{ticker:'EC',currency:'USD'}),'research.html?ticker=EC');
 });
 
-test('internacionales abre fichas, no el visor heredado; Colombia usa la misma interfaz',()=>{
- const a=app('https://jmr.test/expediente.html?seccion=valoracion&mercado=internacional');
- const b=app('https://jmr.test/expediente.html?seccion=valoracion&mercado=colombia');
- assert.match(a.nav.innerHTML,/Valoraciones internacionales/);
- assert.match(a.nav.innerHTML,/expediente\.html\?seccion=valoracion&mercado=internacional/);
- assert.match(b.nav.innerHTML,/expediente\.html\?seccion=valoracion&mercado=colombia/);
+test('catálogo único filtra los dos mercados, no abre otra portada de valoraciones',()=>{
+ const a=app('https://jmr.test/expediente.html?seccion=analisis&mercado=internacional');
+ const b=app('https://jmr.test/expediente.html?seccion=analisis&mercado=colombia');
+ assert.match(a.nav.innerHTML,/Empresas y análisis/);
+ assert.match(b.nav.innerHTML,/Empresas y análisis/);
  assert.match(a.heading.textContent,/Internacionales/);
  assert.match(b.heading.textContent,/Colombia/);
+ assert.doesNotMatch(a.nav.innerHTML,/Valoraciones internacionales/);
 });
