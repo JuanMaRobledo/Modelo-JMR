@@ -94,35 +94,60 @@ iframe{display:block;width:100%;height:max(620px,78vh);border:0;background:var(-
 footer{margin-top:20px;color:var(--ink-soft,#59645b);font-size:12px}
 footer a{color:inherit}
 @media(max-width:680px){form input{min-width:0;width:min(75vw,320px)}main{padding:12px}.overview{padding:12px}.tabs{padding:8px}iframe{height:82vh}}
+
+/* Ficha única: barra persistente, subpestañas reales, ninguna ventana automática. */
+.dossier-tabs{position:sticky;top:0;z-index:8;gap:5px;padding:10px 12px;scrollbar-width:thin;box-shadow:0 4px 14px rgba(20,38,29,.05)}
+.dossier-tabs button{font-size:12.5px;padding:10px 12px;border-radius:9px;font-weight:750}
+.dossier-tabs button.active{background:var(--accent-soft,#efe7d1);color:var(--accent-ink,#684b18);border-color:var(--accent,#a78243)}
+.sheet-subtabs{gap:7px;max-height:145px;overflow:auto}
+.sheet-subtabs button{border-radius:9px;min-height:37px;text-align:left}
+.sheet-subtabs button.active{background:var(--accent-soft,#eee4ce);border-color:var(--accent,#aa8035);color:var(--accent-ink,#554012)}
+.sheet-group-info{padding:10px 17px;font-size:12px;color:var(--ink-soft,#57665b);background:var(--surface-2,#f3f5f1)}
+.dossier-inline{padding:20px;max-width:100%;background:var(--surface,#fff)}
+.dossier-inline h3{font:600 21px Georgia,serif}
+.dossier-inline .sensitivity-table-scroll{overflow:auto;width:100%;max-height:650px;border:1px solid var(--border);border-radius:10px}
+.dossier-inline table{border-collapse:collapse;min-width:680px;width:100%;font-variant-numeric:tabular-nums;font-size:12px}
+.dossier-inline th,.dossier-inline td{padding:11px;border:1px solid var(--border,#dce2dc);text-align:right}
+.dossier-inline th:first-child,.dossier-inline td:first-child{text-align:left;position:sticky;left:0;background:var(--surface,#fff);min-width:155px;z-index:1}
+.dossier-inline thead th{background:var(--surface-2,#f1f3ef)}
+.dossier-inline td.base-matrix{background:var(--accent-soft,#eee4ce);font-weight:800}
+.dossier-inline article{padding:13px 0 18px}
+.dossier-inline .status-note{padding:16px;border:1px solid var(--border);border-radius:11px;background:var(--surface-2,#f4f5f2)}
+#viewFrame[hidden],#inlinePanel[hidden]{display:none!important}
+#viewFrame{height:max(700px,84vh)}
+.review-panel{border-top:1px solid var(--border)}
+@media(max-width:700px){.dossier-tabs{top:0}.dossier-tabs button{font-size:12px;padding:9px 10px}.sheet-subtabs{max-height:160px}.dossier-inline{padding:12px}#viewFrame{height:86vh}}
 </style></head><body>
 <script src="auth.js"></script><script src="mercado.js"></script><script src="gh_oauth.js"></script>
 <nav class="appnav" aria-label="Navegación principal"><a href="expediente.html?seccion=analisis">Análisis fundamental</a><a href="expediente.html">Expedientes JMR</a><a href="bitacora-terceros.html">Bitácora de terceros</a></nav>
 <main>
-<header><span>MODELO JMR · EXPEDIENTE UNIFICADO</span><h1>Una empresa, un expediente</h1>
-<p>Valoración, artículo fundamental, edición de supuestos, auditoría y sensibilidades. Cada sección consulta las páginas oficiales existentes; editar la hoja <strong>no</strong> publica automáticamente una revisión.</p></header>
-<form id="lookup"><label for="ticker">Empresa / ticker<input id="ticker" list="tickers" placeholder="MSFT, PYPL, ADBE…" autocomplete="off" spellcheck="false" required></label><datalist id="tickers"></datalist><button type="submit">Abrir expediente</button><button type="button" id="reload">Actualizar catálogo</button></form>
+<header><span>MODELO JMR · EXPEDIENTE UNIFICADO</span><h1>Empresas y análisis</h1>
+<p>Valoración, artículo fundamental, edición de supuestos, auditoría y sensibilidades. Todo el estudio de una empresa en una sola ficha, con pestañas y subpestañas. Editar datos de Google Sheets <strong>no</strong> publica automáticamente una valoración.</p></header>
+<form id="lookup"><label for="ticker">Empresa / ticker<input id="ticker" list="tickers" placeholder="MSFT, PYPL, ADBE…" autocomplete="off" spellcheck="false" required></label><datalist id="tickers"></datalist><button type="submit">Ver empresa</button><button type="button" id="reload">Actualizar catálogo</button></form>
 <p id="status" role="status" aria-live="polite">Buscando estudios vigentes…</p>
 <section id="catalogSection" class="catalog-section" aria-label="Fichas de empresas vigentes">
-<div class="catalog-heading"><div><h2>Mis fichas de análisis</h2><p>Abre cada artículo en una pestaña nueva o consulta su expediente para valoraciones, auditoría y observaciones.</p></div><label for="catalogSearch">Buscar empresa<input id="catalogSearch" type="search" placeholder="Escribe ticker o empresa…" autocomplete="off"></label></div>
+<div class="catalog-heading"><div><h2>Empresas y análisis</h2><p>Selecciona una empresa para consultar todo su análisis, valoración, estados financieros y revisión en una sola ficha.</p></div><label for="catalogSearch">Buscar empresa<input id="catalogSearch" type="search" placeholder="Escribe ticker o empresa…" autocomplete="off"></label></div>
 <div id="catalogCards" class="catalog-cards" role="list" aria-live="polite"></div>
 <p id="catalogEmpty" class="catalog-empty" hidden>No hay fichas vigentes para mostrar. Revisa el filtro o actualiza el catálogo; los históricos se consultan aparte.</p>
 <p class="catalog-footnote">Aquí aparecen las revisiones activas del catálogo oficial, no todos los archivos históricos. <a href="historicos.html">Consultar históricos</a>.</p>
 </section>
 <section id="dossier" class="panel" hidden>
-<div class="overview"><div class="overview-identity"><span id="companyLogo" aria-label="Logo de empresa"></span><div><h2 id="companyTitle"></h2><p id="revisionNotice"></p></div></div><a id="sheetLink" href="editor-hoja.html" hidden>Abrir todas las hojas del modelo ↗</a></div>
+<div class="overview"><div class="overview-identity"><span id="companyLogo" aria-label="Logo de empresa"></span><div><h2 id="companyTitle"></h2><p id="revisionNotice"></p></div></div><a id="sheetLink" href="editor-hoja.html" hidden>Ver todas las hojas originales ↗</a></div>
 <section id="mosSummary" class="jmr-mos-summary" aria-label="Precio con margen de seguridad y comparación al mercado" hidden></section>
-<div class="tabs" role="tablist" aria-label="Secciones del expediente">
-<button type="button" data-view="valoracion" role="tab" aria-selected="true" class="active">Valoración</button>
-<button type="button" data-view="analisis" role="tab" aria-selected="false">Análisis fundamental</button>
-<button type="button" data-view="supuestos" role="tab" aria-selected="false">Hojas del modelo</button>
-<button type="button" data-view="auditoria" role="tab" aria-selected="false">Auditoría</button>
+<div class="tabs dossier-tabs" role="tablist" aria-label="Información de la empresa">
+<button type="button" data-view="analisis" role="tab" aria-selected="true" class="active">Análisis fundamental</button>
+<button type="button" data-view="valoracion" role="tab" aria-selected="false">Valoración</button>
+<button type="button" data-view="financieros" role="tab" aria-selected="false">Estados financieros</button>
+<button type="button" data-view="indicadores" role="tab" aria-selected="false">Indicadores</button>
+<button type="button" data-view="modelo" role="tab" aria-selected="false">Modelo y supuestos</button>
 <button type="button" data-view="sensibilidades" role="tab" aria-selected="false">Sensibilidades</button>
+<button type="button" data-view="revision" role="tab" aria-selected="false">Revisión y auditoría</button>
 </div>
-
-<div id="auditModes" class="sensitivity-modes" role="group" aria-label="Tipo de auditoría" hidden><button type="button" class="active" data-audit="auditoria" aria-pressed="true">Auditoría narrativa</button><button type="button" data-audit="auditoriaIntegral" aria-pressed="false">Auditoría integral</button></div>
-<div id="sensitivityModes" class="sensitivity-modes" role="group" aria-label="Tipo de sensibilidad" hidden><button type="button" class="active" data-sensitivity="sensibilidades" aria-pressed="true">DCF · Prioritaria</button><button type="button" data-sensitivity="sensibilidadMultiples" aria-pressed="false">Múltiplos · Base</button></div>
-<div class="panelbar"><p id="viewHelp"></p><a id="openOriginal" target="_self" href="visor.html">Abrir vista completa ↗</a></div>
-<iframe id="viewFrame" title="Contenido del expediente seleccionado" loading="eager"></iframe>
+<nav id="sheetSubtabs" class="sensitivity-modes sheet-subtabs" aria-label="Pestañas financieras de la empresa" hidden></nav>
+<div id="sheetGroupInfo" class="sheet-group-info" hidden></div>
+<div class="panelbar"><p id="viewHelp"></p><a id="openOriginal" target="_blank" rel="noopener noreferrer" hidden>Abrir fuente en nueva pestaña ↗</a></div>
+<section id="inlinePanel" class="dossier-inline" hidden aria-live="polite"></section>
+<iframe id="viewFrame" title="Contenido de la empresa seleccionada" loading="lazy"></iframe>
 <section id="reviewPanel" class="review-panel" aria-label="Revisión visual y puntos de auditoría" hidden>
 <h3>Tu revisión del análisis</h3>
 <p class="review-help">Escribe qué quieres revisar antes de solicitar la auditoría. Estas observaciones pertenecen únicamente a la revisión activa de esta empresa. <strong>Guardar no ejecuta una auditoría ni modifica el DCF.</strong></p>
@@ -146,4 +171,4 @@ footer a{color:inherit}
 <div id="empty">Elige una empresa para consultar sus secciones sin cambiar de expediente.</div>
 <footer>Fuentes: <code>Modelo-JMR-datos</code> y Google Sheets. Un archivo en el repositorio no implica auditoría aprobada ni publicación oficial.
 <a href="https://github.com/JuanMaRobledo/Modelo-JMR/blob/main/docs/PROCESO_UNICO_JMR.md" target="_blank" rel="noopener noreferrer">Procedimiento único para ChatGPT, Claude y Gemini ↗</a></footer>
-</main><script src="jmr-mos-summary.js"></script><script src="expediente.js?v=20261029-mos35-v1"></script></body></html>
+</main><script src="jmr-mos-summary.js"></script><script src="expediente.js?v=20261030-ficha-unica-r1"></script></body></html>
