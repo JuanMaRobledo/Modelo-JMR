@@ -14,12 +14,13 @@
     UBER: 'assets/logos/uber.svg',
     NKE: 'assets/logos/nike.svg'
   };
-  // Estilo JMR vigente: recorrido narrativo de 13 capítulos (v19).
+  // Estilo JMR vigente: recorrido narrativo de 14 capítulos (v23).
   var REQUIRED = [
     'Tesis de inversión y conclusión',
     'La empresa y su modelo económico',
     'Industria, competencia y ventaja competitiva',
     'Motores del crecimiento futuro',
+    'Ciclos de la empresa, del mercado y de la macroeconomía',
     'Historia financiera y calidad de resultados',
     'Reinversión, eficiencia del capital y ROIC',
     'Dirección, gobierno y asignación de capital',
