@@ -1,6 +1,6 @@
 # Reglas vigentes del Modelo JMR
 
-**Versión 20 · 30-oct-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
+**Versión 21 · 30-oct-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
 (`docs/prompts/*.md`), `METODOLOGIA.md`, una habilidad o un comentario de código dice otra cosa, prevalece este
 documento. Una regla nueva no se agrega como «regla del día X» en un prompt: se cambia aquí, se sube la versión y se
 anota en el registro de cambios del final.
@@ -155,7 +155,7 @@ observaciones, las frecuencias por etapa recalibran las previas del §3 (nueva v
 
   - **Sensibilidad de múltiplos solo en historia Base.** No crear ni mostrar matrices Conservadora, Optimista o Disrupción, pero conservar todas las valoraciones, supuestos y precios por escenario, incluidos los siete métodos aunque tengan peso cero. Dar prioridad visual al DCF sobre cualquier múltiplo.
 
-  Las matrices de múltiplos, dos anclas y familias económicas son opcionales y no bloquean. El cálculo de los siete métodos se rige por §5A y no es opcional.
+  **Anexo obligatorio de sensibilidades en Nivel 2:** presentar, además de las matrices DCF Base, una matriz 5×5 por cada uno de los siete métodos de múltiplos cuya métrica FY+3 y múltiplo de salida permitan un cálculo válido. Eje vertical = múltiplo elegido real en veces; eje horizontal = fundamental FY+3 en unidades; celda = valor presente por acción descontado por la fórmula oficial, centro conciliado al VP3 del método (no al DCF Base ni al promedio FY+1/2/3). Incluir segunda ancla observada al corte cuando la hoja la contenga, claramente distinguida de la elegida, y sin alterar pesos. Solo historia Base. Si falta cálculo fiable o corresponde N/A, explicar el dato/fórmula y dejar pendiente editorial visible; **no inventar matriz** y no confundir ausencia editorial con cambio del resultado financiero. Las familias de sensibilidad económicamente justificada son adicionales y no se presentan como sustituto del valor por acción. El cálculo de los siete métodos sigue siendo obligatorio conforme al §5A.
 - **Estados:**
   - **VERIFICADO** = controles estructurales/financieros aprobados y solo salvedades no bloqueantes con prueba de materialidad (§4B);
   - **VERIFICADO CON RESERVA MATERIAL** = límites cuantificados con impacto material; requiere resolverlos antes de tratar el valor como definitivo sin reserva;
@@ -246,7 +246,7 @@ Hojas de trabajo conservadas tras el archivo del 24-oct-2026 (identidad document
 
 | Versión | Fecha | Cambio |
 |---|---|---|
-| 20 | 30-oct-2026 | §9: ciclo corporativo de Damodaran, ciclo macro/crédito/sentimiento de Marks y especificación verificable de Nivel 2 completo. Solo edición; sin cambios de valoración ni probabilidades. |\n| 19 | 30-oct-2026 | §9: Estilo JMR narrativo propio de 13 capítulos y Nivel 2 cuantitativo; Porter/cinco filosofías dejan de ser obligatorios. No se recalcula ninguna valoración. |\n| 18 | 29-oct-2026 | §9: se conserva el índice largo y ordenado de META/AZ Stocks en Nivel 1; ampliaciones financieras como subsecciones; Nivel 2 independiente y cuantitativo. Control de nombres y orden, no solo 18 encabezados; sin recalcular valores. |
+| 21 | 30-oct-2026 | §8: Nivel 2 incluye sensibilidades 5×5 por múltiplo Base y, cuando existe, segundo ancla LTM; centros conciliados al VP3 propio. No modifica fórmulas, resultados ni estados de auditoría. |\n| 20 | 30-oct-2026 | §9: ciclo corporativo de Damodaran, ciclo macro/crédito/sentimiento de Marks y especificación verificable de Nivel 2 completo. Solo edición; sin cambios de valoración ni probabilidades. |\n| 19 | 30-oct-2026 | §9: Estilo JMR narrativo propio de 13 capítulos y Nivel 2 cuantitativo; Porter/cinco filosofías dejan de ser obligatorios. No se recalcula ninguna valoración. |\n| 18 | 29-oct-2026 | §9: se conserva el índice largo y ordenado de META/AZ Stocks en Nivel 1; ampliaciones financieras como subsecciones; Nivel 2 independiente y cuantitativo. Control de nombres y orden, no solo 18 encabezados; sin recalcular valores. |
 | 17 | 28-oct-2026 | §4C: control de calidad de reinversión, lag, S/C marginal y ROIC, puente de empresas híbridas y revisión versionada de legados; sin alterar motores DCF, versiones pasadas ni auditoría. |
 | 16 | 28-oct-2026 | Coexisten dos métodos de calibración: A (drivers/tasas base/ROIC) y B (instantánea íntegra de las reglas v15); cálculo, plantilla y auditoría permanecen compartidos. No hay recálculo de empresas ni cambio de motor. |
 | 15 | 28-oct-2026 | Plantillas oficiales reducidas de 61 a 46 pestañas; las auditorías se mantienen en Google Sheets independientes después de revisión visual. Se preservaron respaldos. Validación automática de perfil pendiente. |
