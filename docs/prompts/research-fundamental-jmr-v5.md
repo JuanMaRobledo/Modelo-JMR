@@ -1,4 +1,4 @@
-# PROMPT VIGENTE — RESEARCH FUNDAMENTAL JMR · ESTILO NARRATIVO v19 (30-OCT-2026)
+# PROMPT VIGENTE — RESEARCH FUNDAMENTAL JMR · ESTILO NARRATIVO v20 (30-OCT-2026)
 
 > Esta ruta se conserva por compatibilidad con lectores, automatizaciones y herramientas que todavía consultan `research-fundamental-jmr-v5.md`. El antiguo prompt de 18 capítulos queda histórico en Git. **Este contenido es el vigente.**
 
@@ -24,7 +24,7 @@ Actúa como analista fundamental independiente, experto en economía de negocios
 1. **Tesis de inversión y conclusión.** Identidad, calidad del negocio y por qué puede ser una inversión valiosa o peligrosa; valor principal, MOS, fortalezas, vulnerabilidad decisiva y síntesis contrastable.
 2. **La empresa y su modelo económico.** Qué vende, cómo y a quién cobra, mezcla de negocios/segmentos, geografía, cliente, recurrencia y unit economics, distribución y socios.
 3. **Industria, competencia y ventaja competitiva.** Mercado servible, cuota, rivales y sustitutos, pricing power, moat, su duración, economías de red y causas reales de pérdida de rentabilidad.
-4. **Motores del crecimiento futuro.** Volumen, precio, mezcla, penetración, capacidad instalada, nuevo producto, expansión y catalizadores de ingresos, junto con límites estructurales.
+4. **Motores del crecimiento futuro y ciclos.** Volumen, precio, mezcla, penetración, nuevo producto y límites; subsecciones explícitas del ciclo corporativo Damodaran, ciclo macro/monetario/crédito/sentimiento de Marks y transmisión a drivers y probabilidades. Evidencia fechada y refutaciones.
 5. **Historia financiera y calidad de resultados.** Diez años o máximo accesible y LTM; causas de crecimiento, márgenes, calidad GAAP/ajustado, balance, liquidez, deuda, cash conversion, FCF, SBC, dilución y anomalías.
 6. **Reinversión, eficiencia del capital y ROIC.** Capital requerido para crecer, CAPEX vs. mantenimiento, I+D, working capital, arrendamientos, adquisiciones, ventas/capital, lag, ROIC histórico/marginal/terminal; consistencia con márgenes y crecimiento.
 7. **Dirección, gobierno y asignación de capital.** Incentivos, stewardship, adquisiciones, recompras, dividendos, política de deuda, estructura y derechos de acciones.
@@ -39,7 +39,9 @@ Los títulos exactos deben permitir navegación, pero el contenido interno se ad
 
 ## NIVEL 2 — Cálculos, estados y soportes
 
-Anexo con índice propio, colapsable en la app: fuentes y concordancia con la última hoja; Income Statement, Balance Sheet, Cash Flow y LTM; ratios históricos; drivers e Inputs; Cost of Capital; conversores de I+D y arrendamientos; stock options y acciones; proyección anual a 10 años; FCFF/FCFE, valor terminal, puente EV→equity y cuatro DCF; múltiplos elegibles de la hoja; valor relativo y escenarios; DCF inverso; matrices de sensibilidad exclusivamente Base; conciliaciones, errores, unidades y fuentes. Mencionar explícitamente cada componente no disponible. No inventar N/D como cero.
+Crear **los 12 apartados verificables y completos** del índice «Nivel 2» de `docs/ESTILO_ANALISIS_FUNDAMENTAL_JMR.md` de la misma revisión, con sus tablas y cifras, no un resumen de inputs: fuentes/unidades; IS/BS/CFS históricos y LTM; ratios; ajustes R&D/leases/SBC/dilución; inputs efectivamente utilizados por historia y su procedencia; costo de capital descompuesto; DCF anual 10 años (o horizonte real) para cada historia; terminal y EV→equity; ciclos y probabilidades justificadas; siete múltiplos FY+1/2/3 a VP; matrices DCF Base 5×5 y DCF inverso; fórmulas nativas y conciliaciones. Si una matriz o fórmula no pudo leerse, escribir «N/D — fuente/hoja pendiente» y no fabricar una. La operación no modifica Google Sheets ni resultados.
+
+Para los ciclos: clasificar etapa Damodaran con métricas propias; documentar fase macro/monetaria/crédito/psicología Marks al corte; mapear su impacto sobre el negocio y las cuatro historias. Respetar las previas/ajustes de probabilidad del §3 sin mover pesos salvo cruce de umbral y evidencia fechada. No incorporar información pública posterior al corte retrospectivamente.
 
 ## Forma y entrega
 
