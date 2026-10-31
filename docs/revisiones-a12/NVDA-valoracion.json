@@ -1,0 +1,502 @@
+{
+  "ticker": "NVDA",
+  "nombreActivo": "NVIDIA Corporation",
+  "revisionId": "NVDA-20261031-A12-R1",
+  "revision_id": "NVDA-20261031-A12-R1",
+  "fecha": "2026-10-31",
+  "fechaRevision": "2026-10-31",
+  "fechaCorteContable": "2026-07-26",
+  "fecha_corte": "2026-07-26",
+  "moneda": "USD",
+  "currency": "USD",
+  "monedaEstados": "USD",
+  "unidadesEstados": "USD millones",
+  "market": "NASDAQ",
+  "precio": 204.64,
+  "precioAnalisis": 204.64,
+  "precioReferenciaFecha": "2026-10-30",
+  "precioReferenciaFuente": "Cierre bursátil del 30 de octubre de 2026; referencia estática, no tiempo real",
+  "metodo_valoracion": "A",
+  "version_metodo": "A-1.2",
+  "metodoPrincipal": "DCF FCFF",
+  "metodoCalculoPrimario": "FCFF nominal USD DCF diez años, método A-1.2 con reinversión Sales-to-Capital",
+  "hojaGoogle": "https://docs.google.com/spreadsheets/d/1gN_WFYyGzdLjgYr_0AEHGDdBIeCiNVnDFy0wkH0vB0Y/edit",
+  "sheet_id": "1gN_WFYyGzdLjgYr_0AEHGDdBIeCiNVnDFy0wkH0vB0Y",
+  "estado": "EN_REVISION",
+  "publicationStatus": "EN_REVISION",
+  "publicationStage": "PREPUBLICACION_CONTROLADA",
+  "publicationAuthorized": true,
+  "publicationAuthorization": "Usuario 31-oct-2026: 'Hazlo con el modelo A. No tienen que quedar perfectos.' Autorización para cerrar supuestos razonables y preparar EN_REVISION, no para saltar gates técnicos.",
+  "publicadaEnApp": false,
+  "valorVigenteEnCatalogo": false,
+  "auditPendingUserVisualReview": true,
+  "auditoriaEconomica": "NO_REALIZADA_PENDIENTE_REVISION_VISUAL",
+  "certificacionEconomica": "NO_CERTIFICADA",
+  "validationStatus": "ESCENARIOS_DCF_PRUEBAS_PROPIAS_APROBADAS_PENDIENTE_CONTROLES_CATALOGO_PR211",
+  "reportSchema": "jmr-valuation-two-levels-v5",
+  "valorPrincipal": 201.44597794111647,
+  "valorIndependiente": 201.44597794111647,
+  "mos": 0.35,
+  "precioMOS": 130.9398856617257,
+  "precioMOSMax": 130.9398856617257,
+  "baseMOS": "dcfBase",
+  "precioMOSHoy": 130.9398856617257,
+  "valorEsperado": {
+    "valor": 213.80880289083618,
+    "valorCentral": 201.44597794111647,
+    "tipoPromedio": "3_historias_renormalizado",
+    "disrupcionSeparada": true,
+    "escenariosUnificados": true,
+    "historias": [
+      {
+        "id": "A",
+        "nombre": "Base",
+        "probabilidad": 0.45,
+        "valor": 201.44597794111647,
+        "precioMOS": 130.9398856617257,
+        "roicTerminal": 0.28656800549999994,
+        "gTerminal": 0.035,
+        "ventasACapital1a5": 2.2,
+        "ventasACapital6a10": 0.7,
+        "margenTerminal": 0.53
+      },
+      {
+        "id": "B",
+        "nombre": "Conservadora",
+        "probabilidad": 0.225,
+        "valor": 107.73568558932644,
+        "precioMOS": 70.02819563306218,
+        "roicTerminal": 0.2049324874,
+        "gTerminal": 0.03,
+        "ventasACapital1a5": 1.4,
+        "ventasACapital6a10": 0.62,
+        "margenTerminal": 0.43
+      },
+      {
+        "id": "C",
+        "nombre": "Disrupción",
+        "probabilidad": 0.1,
+        "valor": 49.60250088026367,
+        "precioMOS": 32.24162557217139,
+        "roicTerminal": 0.1477114275,
+        "gTerminal": 0.015,
+        "ventasACapital1a5": 0.85,
+        "ventasACapital6a10": 0.65,
+        "margenTerminal": 0.3
+      },
+      {
+        "id": "D",
+        "nombre": "Optimista",
+        "probabilidad": 0.225,
+        "valor": 344.60757009178525,
+        "precioMOS": 223.99492055966041,
+        "roicTerminal": 0.3450771792,
+        "gTerminal": 0.04,
+        "ventasACapital1a5": 2.8,
+        "ventasACapital6a10": 0.78,
+        "margenTerminal": 0.57
+      }
+    ]
+  },
+  "escenarios": {
+    "conservador": 107.73568558932644,
+    "base": 201.44597794111647,
+    "optimista": 344.60757009178525,
+    "disrupcion": 49.60250088026367
+  },
+  "metodos": [
+    {
+      "nombre": "DCF FCFF",
+      "peso": 1,
+      "horizonte": "Valor presente",
+      "conservador": 107.73568558932644,
+      "base": 201.44597794111647,
+      "optimista": 344.60757009178525,
+      "disrupcion": 49.60250088026367
+    },
+    {
+      "nombre": "EV/EBITDA",
+      "peso": 0,
+      "estado": "PENDIENTE_ANCLA_NATIVA",
+      "valorHoy": null
+    },
+    {
+      "nombre": "EV/FCFF",
+      "peso": 0,
+      "estado": "PENDIENTE_ANCLA_NATIVA",
+      "valorHoy": null
+    },
+    {
+      "nombre": "P/E",
+      "peso": 0,
+      "estado": "PENDIENTE_ANCLA_NATIVA",
+      "valorHoy": null
+    },
+    {
+      "nombre": "P/FCFE",
+      "peso": 0,
+      "estado": "PENDIENTE_ANCLA_NATIVA",
+      "valorHoy": null
+    },
+    {
+      "nombre": "P/OCF",
+      "peso": 0,
+      "estado": "PENDIENTE_ANCLA_NATIVA",
+      "valorHoy": null
+    }
+  ],
+  "descuentoMultiples": {
+    "version": 2,
+    "estado": "COMPARACION_SECUNDARIA_EN_REVISION",
+    "horizonteAnios": 3,
+    "pesoDcf": 1,
+    "pesoMultiplos": 0,
+    "metodos": [
+      {
+        "nombre": "EV/EBITDA",
+        "peso": 0,
+        "base": {
+          "vp": [
+            null,
+            null,
+            null
+          ]
+        }
+      },
+      {
+        "nombre": "EV/FCFF",
+        "peso": 0,
+        "base": {
+          "vp": [
+            null,
+            null,
+            null
+          ]
+        }
+      },
+      {
+        "nombre": "P/E",
+        "peso": 0,
+        "base": {
+          "vp": [
+            null,
+            null,
+            null
+          ]
+        }
+      },
+      {
+        "nombre": "P/FCFE",
+        "peso": 0,
+        "base": {
+          "vp": [
+            null,
+            null,
+            null
+          ]
+        }
+      },
+      {
+        "nombre": "P/OCF",
+        "peso": 0,
+        "base": {
+          "vp": [
+            null,
+            null,
+            null
+          ]
+        }
+      }
+    ],
+    "nota": "La falta de anclas independientes no invalida la aritmética del DCF principal, pero bloquea la exportación oficial de las matrices relativas."
+  },
+  "sensibilidadDCF": {
+    "tipo": "FCFF",
+    "estado": "INDEPENDIENTE_CANDIDATA_NO_CERTIFICADA_HOJA",
+    "matrices": {
+      "waccVsTerminalGrowth": {
+        "rows": [
+          0.09275679876039412,
+          0.09775679876039411,
+          0.10275679876039412,
+          0.10775679876039412,
+          0.11275679876039411
+        ],
+        "columns": [
+          0.025,
+          0.03,
+          0.035,
+          0.04,
+          0.045
+        ],
+        "values": [
+          [
+            221.15460792276792,
+            231.7869251902623,
+            244.63539007031684,
+            260.47307731149914,
+            280.47994310899105
+          ],
+          [
+            202.66475171486397,
+            211.03693545870317,
+            220.9897121735649,
+            233.0170171628938,
+            247.8425230805737
+          ],
+          [
+            186.93152296086004,
+            193.61240397456083,
+            201.44597794111647,
+            210.7584787151086,
+            222.012070923861
+          ],
+          [
+            173.38701954877334,
+            178.77855142495508,
+            185.02660074148824,
+            192.3526806294982,
+            201.0618940809124
+          ],
+          [
+            161.6090224517602,
+            166.00196305498633,
+            171.04156081857934,
+            176.88178173310274,
+            183.72968351000412
+          ]
+        ],
+        "center": 201.44597794111647
+      },
+      "waccVsTerminalROIC": {
+        "rows": [
+          0.09275679876039412,
+          0.09775679876039411,
+          0.10275679876039412,
+          0.10775679876039412,
+          0.11275679876039411
+        ],
+        "columns": [
+          0.22656800549999995,
+          0.2565680054999999,
+          0.28656800549999994,
+          0.31656800549999997,
+          0.34656800549999994
+        ],
+        "values": [
+          [
+            238.7067425870431,
+            242.01767896292404,
+            244.63539007031684,
+            246.7569592312249,
+            248.5112291964936
+          ],
+          [
+            215.8606084819745,
+            218.72502840845232,
+            220.9897121735649,
+            222.8251642300209,
+            224.34285145637241
+          ],
+          [
+            196.9678095339161,
+            199.46870551711484,
+            201.44597794111647,
+            203.04849251410684,
+            204.37356983711015
+          ],
+          [
+            181.0866690319287,
+            183.28697917896818,
+            185.02660074148824,
+            186.43650707082688,
+            187.60232168247137
+          ],
+          [
+            167.55248738032947,
+            169.50100939945995,
+            171.04156081857934,
+            172.29012731331832,
+            173.32253424198237
+          ]
+        ],
+        "center": 201.44597794111647
+      }
+    }
+  },
+  "sensibilidadMultiples": {
+    "contrato": "base-native-five-priority-v1",
+    "revisionId": "NVDA-20261031-A12-R1",
+    "sourceSheetId": "1gN_WFYyGzdLjgYr_0AEHGDdBIeCiNVnDFy0wkH0vB0Y",
+    "estadoPublicacion": "CANDIDATO_NO_INTEGRADO",
+    "controlesTecnicosAprobados": false,
+    "certificado": false,
+    "matrices": [],
+    "motivo": "Grillas nativas pendientes; sensibilidad DCF independiente no sustituye múltiplos."
+  },
+  "reporteFuentes": {
+    "modelado": "candidatos/valoraciones/NVDA-20261031-A12-R1/CALIBRACION_DCF_PROVISIONAL.json",
+    "nivel1": "candidatos/valoraciones/NVDA-20261031-A12-R1/NIVEL1_ANALISIS_PROVISIONAL.md",
+    "nivel2": "candidatos/valoraciones/NVDA-20261031-A12-R1/NIVEL2_CALIBRACION_PROVISIONAL.md",
+    "PR": 213
+  },
+  "supuestosModeloA": {
+    "horizonteAnios": 10,
+    "unidades": "USD millones",
+    "metodoReinversion": "Sales-to-Capital incremento ventas con desfase año siguiente",
+    "irrigacionModelada": "cuatro escenarios y sensibilidad 5x5"
+  },
+  "fuentes_supuestos": [
+    "https://docs.google.com/spreadsheets/d/1gN_WFYyGzdLjgYr_0AEHGDdBIeCiNVnDFy0wkH0vB0Y/edit"
+  ],
+  "salvedades": [
+    "Este cálculo independiente no se promociona como valor intrínseco en la app; la revisión oficial del Método A conserva los controles.",
+    "Valor de participaciones no operativas US$39257m tomado del registro anterior como proxy contable, no certificado económicamente; B20 de Input sheet permanece vacío.",
+    "Opciones no asumidas por la hoja anterior como instrumentos de ejercicio; SBC/RSU de la compañía no están certificados como dilución terminal, deben tratarse separadamente.",
+    "La beta 1,45 y Kd 6,0% son supuestos analíticos; el WACC está calculado técnicamente pero pendiente de revisión económica.",
+    "La cifra LTM ingresos del libro 302970 difiere en 1 millón de la suma de estados trimestrales redondeados 302969.",
+    "Resultados Q3 FY2027 terminaron 25-oct pero se anuncian 17-nov: no están incluidos ni anticipados como publicados.",
+    "El alto ROIC terminal optimista está expresamente sujeto a riesgo de obsolescencia, ASIC y normalización de márgenes.",
+    "La lectura de múltiplos y sus siete matrices nativas aún no ha sido validada.",
+    "Controles globales de matrices y catálogo de PR #211 sin aprobar. Esta ficha NO está publicada en la app.",
+    "Se permite revisión visual de supuestos provisionalmente; auditoría económica posterior."
+  ],
+  "nivel2ProyeccionBase": [
+    {
+      "year": 1,
+      "revenues": 424158,
+      "growth": 0.4,
+      "margin": 0.6928606792751758,
+      "tax": 0.17,
+      "nopat": 243922.39200000002,
+      "reinvestment": 53983.745454545446,
+      "fcff": 189938.64654545457,
+      "discountRate": 0.10275679876039412,
+      "presentValue": 172239.83271648298,
+      "discountFactor": 0.9068182586805152
+    },
+    {
+      "year": 2,
+      "revenues": 542922.24,
+      "growth": 0.28,
+      "margin": 0.6277164075651055,
+      "tax": 0.17,
+      "nopat": 282864.9944064,
+      "reinvestment": 54292.22400000001,
+      "fcff": 228572.7704064,
+      "discountRate": 0.10275679876039412,
+      "presentValue": 187959.81296574997,
+      "discountFactor": 0.8223193542763619
+    },
+    {
+      "year": 3,
+      "revenues": 662365.1328,
+      "growth": 0.22,
+      "margin": 0.5951442717100703,
+      "tax": 0.17,
+      "nopat": 327188.336090112,
+      "reinvestment": 51182.76026181818,
+      "fcff": 276005.5758282938,
+      "discountRate": 0.10275679876039412,
+      "presentValue": 205815.758421919,
+      "discountFactor": 0.7456942049241763
+    },
+    {
+      "year": 4,
+      "revenues": 774967.205376,
+      "growth": 0.17,
+      "margin": 0.5625721358550352,
+      "tax": 0.17,
+      "nopat": 361859.21343516675,
+      "reinvestment": 45793.51668130908,
+      "fcff": 316065.69675385766,
+      "discountRate": 0.10275679876039412,
+      "presentValue": 213726.5067960681,
+      "discountFactor": 0.6762091204174928
+    },
+    {
+      "year": 5,
+      "revenues": 875712.94207488,
+      "growth": 0.13,
+      "margin": 0.53,
+      "tax": 0.17,
+      "nopat": 385226.12321873975,
+      "reinvestment": 41795.39041721018,
+      "fcff": 343430.7328015296,
+      "discountRate": 0.10275679876039412,
+      "presentValue": 210591.30536588622,
+      "discountFactor": 0.6131987770808737
+    },
+    {
+      "year": 6,
+      "revenues": 967662.8009927424,
+      "growth": 0.105,
+      "margin": 0.53,
+      "tax": 0.18674000000000002,
+      "nopat": 417089.5682537396,
+      "reinvestment": 117501.91154911883,
+      "fcff": 299587.6567046208,
+      "discountRate": 0.10080543900831529,
+      "presentValue": 166883.97259854962,
+      "discountFactor": 0.5570455553283669
+    },
+    {
+      "year": 7,
+      "revenues": 1049914.1390771256,
+      "growth": 0.085,
+      "margin": 0.53,
+      "tax": 0.20348,
+      "nopat": 443227.1333305874,
+      "reinvestment": 97492.02720001873,
+      "fcff": 345735.10613056866,
+      "discountRate": 0.09885407925623647,
+      "presentValue": 175264.58501329846,
+      "discountFactor": 0.5069331459418208
+    },
+    {
+      "year": 8,
+      "revenues": 1118158.5581171387,
+      "growth": 0.065,
+      "margin": 0.53,
+      "tax": 0.22021999999999997,
+      "nopat": 462116.37063774874,
+      "reinvestment": 87855.31528063219,
+      "fcff": 374261.05535711657,
+      "discountRate": 0.09690271950415764,
+      "presentValue": 172964.59460092525,
+      "discountFactor": 0.46214959351269924
+    },
+    {
+      "year": 9,
+      "revenues": 1179657.2788135812,
+      "growth": 0.055,
+      "margin": 0.53,
+      "tax": 0.23696,
+      "nopat": 477066.61571373494,
+      "reinvestment": 75835.11078087281,
+      "fcff": 401231.5049328621,
+      "discountRate": 0.09495135975207883,
+      "presentValue": 169349.05396272216,
+      "discountFactor": 0.4220731719236735
+    },
+    {
+      "year": 10,
+      "revenues": 1232741.8563601922,
+      "growth": 0.045,
+      "margin": 0.53,
+      "tax": 0.2537,
+      "nopat": 487597.4811228541,
+      "reinvestment": 61637.09281800947,
+      "fcff": 425960.3883048446,
+      "discountRate": 0.093,
+      "presentValue": 164488.97731533888,
+      "discountFactor": 0.3861602670847882
+    }
+  ],
+  "controlEditorial": {
+    "nivel1Capitulos": 18,
+    "nivel2Apartados": 12,
+    "estado": "DOCUMENTOS_INDEPENDIENTES_COMPLETADOS"
+  },
+  "revisionOrigen": "valoraciones/NVDA-20261025-R4.json"
+}
