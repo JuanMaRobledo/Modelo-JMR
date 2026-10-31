@@ -138,6 +138,15 @@ footer a{color:inherit}
 .review-readonly{padding:15px;border:1px solid var(--border,#ddd);border-radius:10px;background:var(--surface-2,#f6f7f4)}
 .review-readonly p{white-space:pre-wrap;overflow-wrap:anywhere}
 @media(max-width:700px){.display-modes{padding:10px}.display-modes button{flex:1 0 90px}}
+/* Navegación descubrible: ningún panel queda fuera de la pantalla por scroll horizontal. */
+.dossier-tabs{position:static;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));overflow:visible;gap:8px;box-shadow:none}
+.dossier-tabs button{white-space:normal;line-height:1.35;text-align:center;min-width:0;min-height:46px}
+.sheet-subtabs{display:flex;flex-wrap:wrap;overflow:visible;max-height:none;gap:7px}
+.sheet-subtabs button{white-space:normal;flex:0 1 auto}
+.panelbar{align-items:flex-start}
+.panelbar a{overflow-wrap:anywhere}
+@media(max-width:1120px){.dossier-tabs{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:700px){.dossier-tabs{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;padding:9px}.dossier-tabs button{font-size:12px;padding:9px 7px}.sheet-subtabs button{font-size:12px;padding:8px 10px}}
 </style></head><body>
 <script src="auth.js"></script><script src="mercado.js"></script><script src="gh_oauth.js"></script>
 <nav class="appnav" aria-label="Navegación principal JMR"><a href="expediente.html?seccion=analisis">Empresas y análisis</a></nav>
