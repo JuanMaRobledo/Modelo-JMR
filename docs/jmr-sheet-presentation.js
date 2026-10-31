@@ -26,7 +26,7 @@
     function columnHeader(col){
       for(var row=1;row<=8;row++){
         var c=cells[col+row], value=String(c?.w??c?.v??'').trim();
-        if(/^(?:(?:FY|AÑO)\\s*)?(?:19|20)\\d{2}[AE]?$|^(?:LTM|TTM)$/i.test(value))return value;
+        if(/^(?:(?:FY|AÑO)\s*)?(?:19|20)\d{2}[AE]?$|^(?:LTM|TTM)$/i.test(value))return value;
       }
       return col;
     }
