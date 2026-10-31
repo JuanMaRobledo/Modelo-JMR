@@ -50,3 +50,14 @@ test('proteger borradores financieros al cambiar empresa, sección, subpestaña 
   assert.match(app, /if\(preventLosingWorkbookEdits\(\)\)return;\s*state\.displayMode=/);
   assert.match(app, /if\(preventLosingWorkbookEdits\(\)\)return;\s*state\.valuationMode=/);
 });
+
+test('Preview autorizado conserva el destino al regresar del Centro Financiero sin afectar producción', () => {
+  const proxy = read('proxy.js');
+  const origin='https://modelo-jmr-git-fix-sync-sheet-ta-0c6a24-juanmarobledos-projects.vercel.app';
+  assert.match(proxy, /destination\.searchParams\.set\("app", "modelo"\)/);
+  assert.match(proxy, /destination\.searchParams\.set\("path", url\.pathname \+ url\.search\)/);
+  assert.ok(proxy.includes('url.origin === previewOrigin'));
+  assert.ok(proxy.includes('destination.searchParams.set("target", previewOrigin)'));
+  assert.ok(proxy.includes(origin));
+  assert.match(proxy, /if \(validSession\(request\.headers\.get\("cookie"\)\)\)/);
+});
