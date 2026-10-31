@@ -38,3 +38,15 @@ test('fuente Drive disponible y auditoría separada de edición', () => {
   assert.ok(app.includes("view==='sensibilidades'?'Sensibilidad DCF'"));
   assert.ok(app.includes("state.valuationRecord?.hojaGoogle"));
 });
+
+test('proteger borradores financieros al cambiar empresa, sección, subpestaña y modo', () => {
+  const app = read('docs/expediente.js');
+  const editor = read('docs/editor-hoja.js');
+  assert.match(editor, /hasPendingEdits:\(\)=>drafts\.size>0/);
+  assert.match(app, /function preventLosingWorkbookEdits\(\)/);
+  assert.match(app, /changedCompany&&preventLosingWorkbookEdits\(\)/);
+  assert.match(app, /view!==state\.view&&preventLosingWorkbookEdits\(\)/);
+  assert.match(app, /if\(preventLosingWorkbookEdits\(\)\)return;state\.sheetByView\[view\]=name/);
+  assert.match(app, /if\(preventLosingWorkbookEdits\(\)\)return;\s*state\.displayMode=/);
+  assert.match(app, /if\(preventLosingWorkbookEdits\(\)\)return;\s*state\.valuationMode=/);
+});
