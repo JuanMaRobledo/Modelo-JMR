@@ -91,3 +91,16 @@ test('las referencias activas y la interfaz usan el mismo contrato editorial',()
   assert.match(interfaceJs,/Índice JMR de 14 capítulos/);
   assert.doesNotMatch(interfaceJs,/Estilo JMR de 13 capítulos|Índice JMR de 13 capítulos/);
 });
+
+test('Colombia comparte los tres prompts maestros y no revive Porter ni el índice de 18',()=>{
+  const app=fs.readFileSync(new URL('../docs/research.js',import.meta.url),'utf8');
+  const local=fs.readFileSync(new URL('../docs/prompts/colombia-nucleo-v1.md',import.meta.url),'utf8');
+  const selection=app.split('var CO_PROMPTS = {')[1]?.split('function currentPrompt()')[0] || '';
+  assert.match(selection,/research: \{ file: 'prompts\/research-fundamental-jmr-v5\.md'/);
+  assert.match(selection,/valuation: \{ file: 'prompts\/valoracion-modelo-jmr-v5\.md'/);
+  assert.doesNotMatch(selection,/colombia-research-v1\.md|colombia-valuation-v1\.md/);
+  assert.match(local,/Nivel 1:\*\* 14 capítulos/);
+  assert.match(local,/Nivel 2:\*\* 12 apartados/);
+  assert.match(local,/Auditoría 3\/3/);
+  assert.doesNotMatch(local,/Research v5: 18 secciones|cinco fuerzas de Porter.*obligatorio/i);
+});
