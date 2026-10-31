@@ -16,7 +16,7 @@
     options=options||{};
     var maxRows=Number.isInteger(options.maxRows)?Math.min(2500,Math.max(1,options.maxRows)):180;
     var keys=Object.keys(cells||{}),present={};
-    keys.forEach(function(key){var match=/^([A-Z]+)[1-9]\d*$/.exec(key);if(match)present[match[1]]=true;});
+    keys.forEach(function(key){var match=/^([A-Z]+)[1-9]\d*$/.exec(key);var cell=cells[key];if(match&&cell&&(cell.v!==null&&cell.v!==undefined&&cell.v!==''||cell.w))present[match[1]]=true;});
     function colIndex(letters){return letters.split('').reduce(function(n,ch){return n*26+ch.charCodeAt(0)-64;},0);}
     var columns=Object.keys(present).filter(function(col){return colIndex(col)>=2;})
       .sort(function(a,b){return colIndex(a)-colIndex(b);});
