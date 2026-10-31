@@ -195,10 +195,21 @@ async function loadMosSummary(t,p,requestId){
   }catch(_){if(state.ticker===t&&state.mosRequest===requestId)host.hidden=true;}
 }
 
+function hasUnsavedWorkbookEdits(){
+  try{
+    return state.frameMode==='workbook'&&!!el('viewFrame').contentWindow?.JmrSheetEditor?.hasPendingEdits?.();
+  }catch(_){return false;}
+}
+function preventLosingWorkbookEdits(){
+  if(!hasUnsavedWorkbookEdits())return false;
+  status('Hay cambios financieros sin guardar. Guarda o descártalos antes de cambiar de empresa, pestaña o modo.','warning');
+  return true;
+}
 function openCompany(input){
   const t=valid(input);
   if(!t){status('Ticker inválido. Usa letras, números, punto, guion o subrayado.','error');return;}
   const changedCompany=!!state.ticker&&state.ticker!==t;
+  if(changedCompany&&preventLosingWorkbookEdits())return;
   if(changedCompany)state.valuationMode='dcf';
   state.ticker=t;state.loc=null;state.reviewSha=null;const mosRequest=++state.mosRequest;el('ticker').value=t;
   el('mosSummary').hidden=true;
@@ -273,7 +284,7 @@ function renderSheetSubtabs(view){
     button.type='button';button.dataset.sheet=name;button.textContent=name;
     button.classList.toggle('active',name===current);
     button.setAttribute('aria-pressed',String(name===current));
-    button.addEventListener('click',()=>{state.sheetByView[view]=name;showView(view);});
+    button.addEventListener('click',()=>{if(preventLosingWorkbookEdits())return;state.sheetByView[view]=name;showView(view);});
     host.appendChild(button);
   });
 }
@@ -409,6 +420,7 @@ function selectWorkbookSheet(view,name){
 }
 function showView(view){
   if(!state.ticker||!DOSSIER_VIEWS.includes(view))return;
+  if(view!==state.view&&preventLosingWorkbookEdits())return;
   state.view=view;
   const displayNav=el('displayModes');
   displayNav.querySelectorAll('button[data-display-mode]').forEach(button=>{
@@ -651,11 +663,7 @@ el('reload').addEventListener('click',loadInventory);
 el('displayModes').addEventListener('click',event=>{
   const button=event.target.closest('button[data-display-mode]');
   if(!button||!['visor','edicion'].includes(button.dataset.displayMode)||button.dataset.displayMode===state.displayMode)return;
-  try{
-    if(state.frameMode==='workbook'&&el('viewFrame').contentWindow?.JmrSheetEditor?.hasPendingEdits?.()){
-      status('Guarda o descarta los cambios preparados antes de cambiar de modo.','warning');return;
-    }
-  }catch(_){/* El editor aplica también la protección beforeunload. */}
+  if(preventLosingWorkbookEdits())return;
   state.displayMode=button.dataset.displayMode;
   showView(state.view);
 });
@@ -663,6 +671,7 @@ document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',(
 el('valuationModes').addEventListener('click',event=>{
   const btn=event.target.closest('button[data-valuation]');
   if(!btn||!['dcf','multiplos'].includes(btn.dataset.valuation))return;
+  if(preventLosingWorkbookEdits())return;
   state.valuationMode=btn.dataset.valuation;
   showView('valoracion');
 });
