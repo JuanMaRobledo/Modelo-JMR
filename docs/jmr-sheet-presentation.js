@@ -10,20 +10,19 @@
   function formatted(cell) {
     if(!cell || (cell.v==null&&cell.w==null))return '—';
     if(global.JmrDisplayNumber?.formatCell)return String(global.JmrDisplayNumber.formatCell(cell));
-    return String(cell.w||cell.v||'—');
+    return String(cell.w??cell.v??'—');
   }
   function presentation(sheet,cells,options){
     options=options||{};
     var maxRows=Number.isInteger(options.maxRows)?Math.min(150,Math.max(1,options.maxRows)):110;
+    var keys=Object.keys(cells||{}),present={};
+    keys.forEach(function(key){var match=/^([A-Z]+)[1-9]\d*$/.exec(key);if(match)present[match[1]]=true;});
     var columns=[];
-    for(var i=2;i<=12;i++){
-      var col=column(i);
-      if(Object.keys(cells||{}).some(function(key){return key.startsWith(col)&&/^[A-Z]+[1-9]\d*$/.test(key);}))columns.push(col);
-    }
+    for(var i=2;i<=12;i++){var col=column(i);if(present[col])columns.push(col);}
     columns=columns.slice(0,7);
-    var rows=Object.keys(cells||{}).map(function(key){var m=/^[A-Z]+([1-9]\d*)$/.exec(key);return m?Number(m[1]):0;})
+    var rows=keys.map(function(key){var m=/^[A-Z]+([1-9]\d*)$/.exec(key);return m?Number(m[1]):0;})
       .filter(Boolean);
-    var totalRows=Math.max(0,...rows);
+    var totalRows=rows.reduce(function(max,row){return Math.max(max,row);},0);
     var allGroups=[],current={heading:'Datos de la hoja',rows:[]},included=0,omitted=0;
     function append(){if(current.rows.length)allGroups.push(current);}
     for(var row=1;row<=totalRows;row++){
