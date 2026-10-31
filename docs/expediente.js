@@ -388,7 +388,8 @@ function sourceUrl(){
 }
 function updateNativeLink(){
   const link=el('openNativeSheet'),url=sourceUrl();
-  link.hidden=state.displayMode!=='edicion'||!url||!['financieros','indicadores','modelo','valoracion','sensibilidades'].includes(state.view);
+  link.hidden=!url||!['financieros','indicadores','modelo','valoracion','sensibilidades'].includes(state.view);
+  link.textContent=state.displayMode==='edicion'?'Abrir hoja oficial en Google Sheets para editar ↗':'Consultar hoja oficial completa en Google Sheets ↗';
   if(url)link.href=url;else link.removeAttribute('href');
 }
 function syncReviewMode(){
