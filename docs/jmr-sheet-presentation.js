@@ -14,12 +14,22 @@
   }
   function presentation(sheet,cells,options){
     options=options||{};
-    var maxRows=Number.isInteger(options.maxRows)?Math.min(150,Math.max(1,options.maxRows)):110;
+    var maxRows=Number.isInteger(options.maxRows)?Math.min(2500,Math.max(1,options.maxRows)):180;
     var keys=Object.keys(cells||{}),present={};
     keys.forEach(function(key){var match=/^([A-Z]+)[1-9]\d*$/.exec(key);if(match)present[match[1]]=true;});
-    var columns=[];
-    for(var i=2;i<=12;i++){var col=column(i);if(present[col])columns.push(col);}
-    columns=columns.slice(0,7);
+    function colIndex(letters){return letters.split('').reduce(function(n,ch){return n*26+ch.charCodeAt(0)-64;},0);}
+    var columns=Object.keys(present).filter(function(col){return colIndex(col)>=2;})
+      .sort(function(a,b){return colIndex(a)-colIndex(b);});
+    var maxColumns=Number.isInteger(options.maxColumns)?Math.min(80,Math.max(1,options.maxColumns)):14;
+    var omittedColumns=Math.max(0,columns.length-maxColumns);
+    columns=columns.slice(0,maxColumns);
+    function columnHeader(col){
+      for(var row=1;row<=8;row++){
+        var c=cells[col+row], value=String(c?.w??c?.v??'').trim();
+        if(/^(?:(?:FY|AÑO)\\s*)?(?:19|20)\\d{2}[AE]?$|^(?:LTM|TTM)$/i.test(value))return value;
+      }
+      return col;
+    }
     var rows=keys.map(function(key){var m=/^[A-Z]+([1-9]\d*)$/.exec(key);return m?Number(m[1]):0;})
       .filter(Boolean);
     var totalRows=rows.reduce(function(max,row){return Math.max(max,row);},0);
@@ -42,7 +52,7 @@
     }
     append();
     if(!allGroups.length)return '<p class="jmr-reader-empty">No hay filas con valores legibles en esta pestaña. La cuadrícula original continúa disponible.</p>';
-    var th=columns.map(function(col){return '<th scope="col">'+escapeHtml(col)+'</th>';}).join('');
+    var th=columns.map(function(col){return '<th scope="col">'+escapeHtml(columnHeader(col))+'</th>';}).join('');
     var blocks=allGroups.map(function(group,index){
       var tr=group.rows.map(function(r){
         return '<tr><th scope="row"><span>'+escapeHtml(r.label)+'</span><small>Fila '+r.row+'</small></th>'+
@@ -56,8 +66,8 @@
       '<h2>'+escapeHtml(sheet)+'</h2><p>Datos originales del libro, sin fórmulas recalculadas ni modificaciones. '+
       'Columnas '+escapeHtml(columns.join(' · ')||'sin columnas')+'.</p></div><div class="jmr-reader-kpi">'+
       '<strong>'+included+'</strong><span>filas de lectura</span></div></header>'+
-      (omitted?'<p class="jmr-reader-notice">Vista rápida limitada a '+included+
-        ' filas; '+omitted+' filas adicionales están accesibles en «Cuadrícula completa».</p>':'')+
+      ((omitted||omittedColumns)?'<p class="jmr-reader-notice">Vista de lectura parcial: '+omitted+
+        ' filas adicionales y '+omittedColumns+' columnas adicionales. Usa «Mostrar más filas y columnas» o «Cuadrícula completa» para acceder al resto sin modificar datos.</p>':'')+
       '<div class="jmr-reader-groups">'+blocks+'</div>';
   }
   global.JmrSheetPresentation={render:presentation,column:column};
