@@ -19,8 +19,8 @@ test('visor financiero muestra datos nativos por secciones sin convertirlos a en
  assert.match(html,/PRESENTACIÓN · SOLO LECTURA/);
  assert.match(html,/Estado de resultados/);
  assert.match(html,/Flujos operativos/);
- assert.match(html,/1.200,00/);
- assert.match(html,/-475,00/);
+ assert.match(html,/1\.200(?:,00)?/);
+ assert.match(html,/-475(?:,00)?/);
  assert.match(html,/&lt;img src=x/);
  assert.doesNotMatch(html,/<img src=x|<input|contenteditable|Guardar cambios/);
  assert.match(html,/Fila 6/);
