@@ -198,11 +198,14 @@ async function loadMosSummary(t,p,requestId){
 function openCompany(input){
   const t=valid(input);
   if(!t){status('Ticker inválido. Usa letras, números, punto, guion o subrayado.','error');return;}
-  if(state.ticker&&state.ticker!==t)state.valuationMode='dcf';
+  const changedCompany=!!state.ticker&&state.ticker!==t;
+  if(changedCompany)state.valuationMode='dcf';
   state.ticker=t;state.loc=null;state.reviewSha=null;const mosRequest=++state.mosRequest;el('ticker').value=t;
   el('mosSummary').hidden=true;
   state.valuationRecord=null;state.sheet='';state.frameMode='';state.workbookDisplayMode='';state.sheetByView={};
-  state.displayMode='visor';
+  // Respetar ?modo=edicion al abrir un vínculo directo. Al cambiar de
+  // empresa, volver a Visor para evitar entrar editando otra hoja.
+  if(changedCompany)state.displayMode='visor';
   renderCatalogCards();
   el('reviewPanel').hidden=true;
   el('reviewSaveStatus').textContent='';
