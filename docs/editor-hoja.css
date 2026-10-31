@@ -137,3 +137,8 @@ html.jmr-embedded-workbook[data-embedded-section="financieros"] .model-sheets,
 html.jmr-embedded-workbook[data-embedded-section="indicadores"] .model-sheets{display:none!important}
 html.jmr-embedded-workbook .save-panel{margin-top:15px}
 @media(max-width:680px){html.jmr-embedded-workbook .editor-main{padding:0 5px 15px}html.jmr-embedded-workbook .toolbar{padding:10px}}
+
+/* El modo Visor no muestra superficies de escritura. */
+html.jmr-view-only .save-panel,html.jmr-view-only .editor-hint{display:none!important}
+html.jmr-view-only .workbook-table td{font-variant-numeric:tabular-nums}
+html.jmr-view-only .sheet-grid{background:var(--surface,#fff)}
