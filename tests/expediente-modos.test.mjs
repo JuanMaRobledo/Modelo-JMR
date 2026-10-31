@@ -26,7 +26,7 @@ test('el análisis oficial es editable y no abre una revisión antigua por ticke
   const research = read('docs/research.js');
   assert.ok(app.includes("research.html?ticker="));
   assert.ok(app.includes("encodeURIComponent(p.analysisPath)"));
-  assert.ok(research.includes('rec.remotePath===deepLinkAnalysisPath'));
+  assert.ok(research.includes('r.remotePath===deepLinkAnalysisPath'));
   assert.ok(app.includes("state.displayMode==='visor'"));
 });
 
