@@ -36,6 +36,21 @@ test('presentación extensa indica límite pero el editor ofrece la cuadrícula 
  assert.match(view,/id="sourceGridPanel"/);
  assert.match(styles,/jmr-view-only:not\(.jmr-show-grid\) #sourceGridPanel/);
 });
+test('el visor revela columnas posteriores y todas las filas bajo demanda, sin alterar cifras',()=>{
+ const v=context(),rows={};
+ for(let i=1;i<=250;i++){rows['A'+i]=cell('Fila '+i);rows['B'+i]=cell(i);rows['M'+i]=cell(i+50);rows['AA'+i]=cell(i+100);}
+ const initial=v.JmrSheetPresentation.render('Income Statement',rows);
+ assert.match(initial,/columnas adicionales/);
+ assert.match(initial,/filas adicionales/);
+ const full=v.JmrSheetPresentation.render('Income Statement',rows,{maxRows:2500,maxColumns:80});
+ assert.ok(full.includes('Fila 250'));
+ assert.ok(full.includes('350'));
+ assert.doesNotMatch(full,/columnas adicionales/);
+ assert.match(view,/id="toggleReaderCoverage"/);
+ assert.match(editor,/readerFull\?2500:180/);
+ assert.match(styles,/#status\[data-kind="error"\]/);
+ assert.match(styles,/jmr-embedded-workbook \.model-sheets\{display:none/);
+});
 test('edición en Drive abre pestaña solo con sheetId verificado, sin construir gid falso',()=>{
  const v=context(),url='https://docs.google.com/spreadsheets/d/abcDef_123/edit?usp=sharing';
  const link=v.JmrSheetEditor.nativeSheetUrl;
