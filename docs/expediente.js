@@ -281,6 +281,53 @@ function normalizeDcfMatrices(s){
     result.push(named({ejeFilas:s.KeEscenarios,ejeColumnas:s.gEscenarios,valores:s.valorPorAccion},'Ke × crecimiento terminal · FCFE'));
   return result;
 }
+// El expediente muestra únicamente las siete matrices Base de la misma
+// revisión/hoja y con el centro FY+3 reproducible. No crea precios ni
+// interpreta N/A como cero; INTEGRADO_EN_REVISION NO es auditoría económica.
+function nativeMultiplesHtml(rec){
+  const s=rec?.sensibilidadMultiples;
+  if(!s||s.contrato!=='base-native-five-priority-v1')return '';
+  const esc=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const fmt=x=>typeof x==='number'&&Number.isFinite(x)?
+    x.toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2}):'N/D';
+  const sourceOk=s.revisionId===rec.revisionId && s.sourceSheetId===rec.sheet_id &&
+    /^[a-f0-9]{64}$/.test(s.resultadosSha256||'');
+  if(!sourceOk)return '<p class="status-note">Sensibilidades de múltiplos ocultas: revisión, hoja o fotografía no coincide con el expediente.</p>';
+  if(s.estadoPublicacion!=='INTEGRADO_EN_REVISION'||s.controlesTecnicosAprobados!==true)
+    return '<p class="status-note">Matrices candidatas sin validación técnica: no mostradas como resultados oficiales.</p>';
+  const expected=['EV/EBITDA','EV/FCFF','P/E','P/FCFE','P/OCF','P/V','P/BV'];
+  if(!Array.isArray(s.matrices)||s.matrices.length!==7||
+     !s.matrices.every((m,i)=>m?.metodo===expected[i]&&m.escenario==='base'))
+    return '<p class="status-note">Siete sensibilidades Base incompletas o desordenadas: no se muestran matrices.</p>';
+  let result='<p class="status-note">Matrices Base integradas técnicamente en EN_REVISION. Son sensibilidades del valor presente por acción de FY+3, no una auditoría económica ni un cambio del DCF.</p>';
+  for(const m of s.matrices){
+    result+='<section class="jmr-native-matrix"><h4>'+esc(m.metodo)+'</h4>';
+    if(m.estado==='N/A'){
+      const detail=rec.descuentoMultiples?.metodos?.find(x=>x.nombre===m.metodo);
+      if(detail?.peso===0&&m.estadoFuente==='N/D'&&m.motivo)
+        result+='<p> N/A · fuente N/D · peso 0 %. '+esc(m.motivo)+'</p>';
+      else result+='<p class="status-note">N/A sin causa y ponderación conciliadas: matriz no mostrada.</p>';
+    }else if(m.estado==='OK'){
+      const nums=a=>Array.isArray(a)&&a.length===5&&a.every(n=>typeof n==='number'&&Number.isFinite(n));
+      const valid=nums(m.fundamentalFY3)&&nums(m.multiploElegido)&&
+        Array.isArray(m.matriz)&&m.matriz.length===5&&m.matriz.every(nums)&&
+        typeof m.centro==='number'&&Number.isFinite(m.centro)&&
+        typeof m.vp3Original==='number'&&Number.isFinite(m.vp3Original)&&
+        Math.abs(m.matriz[2][2]-m.centro)<=Math.max(.01,Math.abs(m.centro)*1e-8)&&
+        Math.abs(m.centro-m.vp3Original)<=Math.max(.01,Math.abs(m.centro)*1e-8);
+      if(!valid)result+='<p class="status-note">Matriz ocultada: centro FY+3, ejes o celdas no concilian.</p>';
+      else{
+        result+='<div class="sensitivity-table-scroll"><table class="jmr-native-matrix-table"><thead><tr><th>Fundamental FY+3 ↓ / múltiplo elegido →</th>'+
+          m.multiploElegido.map(x=>'<th>'+esc(fmt(x))+'×</th>').join('')+'</tr></thead><tbody>';
+        m.matriz.forEach((r,i)=>{result+='<tr><th>'+esc(fmt(m.fundamentalFY3[i]))+'</th>'+
+          r.map((n,j)=>'<td'+(i===2&&j===2?' class="base-matrix"':'')+'>'+esc(fmt(n))+'</td>').join('')+'</tr>';});
+        result+='</tbody></table></div><p>Centro Base · VP FY+3: '+esc(fmt(m.centro))+' por acción.</p>';
+      }
+    }else result+='<p class="status-note">N/D · sin matriz certificada técnicamente; no equivale a cero.</p>';
+    result+='</section>';
+  }
+  return result;
+}
 function sensitivityHtml(rec){
   const esc=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   if(!rec)return '<p class="status-note">Cargando sensibilidades de la valoración oficial…</p>';
@@ -305,7 +352,9 @@ function sensitivityHtml(rec){
   });
   const mult=rec.sensibilidadMultiples;
   parts.push('<h3>Sensibilidades de múltiplos</h3>');
-  if(mult?.controlesOK===0){
+  const native=nativeMultiplesHtml(rec);
+  if(native){parts.push(native);}
+  else if(mult?.controlesOK===0){
     parts.push('<p class="status-note">No certificadas en esta revisión: '+esc(mult.noDisponibles||0)+
       ' métodos pendientes. No se generan sensibilidades con anclas sin validar.</p>');
   }else if(mult?.controles?.length){
