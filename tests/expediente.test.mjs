@@ -387,3 +387,9 @@ test('adapta matrices DCF/FCFE heterogéneas sin crear números ni aprobar centr
   assert.equal(invalid[0].centroConciliado,false);
   assert.equal(adapt({matriz:'Texto sin celdas'}).length,0,'No se reconstruyen matrices a partir de etiquetas.');
 });
+
+test('abrir ficha no usa el lector de auditoría eliminado',()=>{
+  const js=get('docs/expediente.js');
+  assert.doesNotMatch(js,/\breadAuditNotes\s*\(/,'la función eliminada no puede interrumpir la carga del catálogo');
+  assert.match(js,/loadAuditRequest\(t,p\)/,'la lectura de auditoría vigente permanece');
+});
