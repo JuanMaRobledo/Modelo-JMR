@@ -4,7 +4,7 @@
   var LOCAL_KEY = 'jmr-research-library-v1';
   // Clave nueva: los cambios locales del antiguo prompt de 21 secciones
   // no deben ocultar la versión maestra v4 al actualizar la aplicación.
-  var PROMPT_KEY = 'jmr-research-prompt-v19-narrativo-20261030';
+  var PROMPT_KEY = 'jmr-research-prompt-v23-14-capitulos-20261030';
   var GH_REPO_API = 'https://api.github.com/repos/JuanMaRobledo/Modelo-JMR-datos/';
   var GH_API = GH_REPO_API + 'contents/';
   // Algunos logos del CDN de FMP desaparecen aunque la empresa siga
@@ -14,12 +14,13 @@
     UBER: 'assets/logos/uber.svg',
     NKE: 'assets/logos/nike.svg'
   };
-  // Estilo JMR vigente: recorrido narrativo de 13 capítulos (v19).
+  // Estilo JMR vigente: recorrido narrativo de 14 capítulos (v23).
   var REQUIRED = [
     'Tesis de inversión y conclusión',
     'La empresa y su modelo económico',
     'Industria, competencia y ventaja competitiva',
     'Motores del crecimiento futuro',
+    'Ciclos de la empresa, del mercado y de la macroeconomía',
     'Historia financiera y calidad de resultados',
     'Reinversión, eficiencia del capital y ROIC',
     'Dirección, gobierno y asignación de capital',
@@ -283,7 +284,7 @@
       holder.appendChild(chip);
     });
     var indexChip=document.createElement('span');
-    indexChip.textContent=(coverage.ordered?'✓ ':'⚠ ')+'Índice JMR de 13 capítulos';
+    indexChip.textContent=(coverage.ordered?'✓ ':'⚠ ')+'Índice JMR de 14 capítulos';
     indexChip.className=coverage.ordered?'ok':'';
     holder.appendChild(indexChip);
     var technical=document.createElement('span');
@@ -294,7 +295,7 @@
     var editorialReady=structure && !pending && !bodyPending && !hasLegacy;
     setStatus('analysisStatus',
       !structure
-        ? 'Informe en formato anterior: conservar narrativa original y actualizar al Estilo JMR (13 capítulos), sin generar secciones falsas.'
+        ? 'Informe en formato anterior: conservar narrativa original y actualizar al Estilo JMR (14 capítulos), sin generar secciones falsas.'
         : editorialReady
         ? 'Índice JMR completo. La cobertura técnica, calidad de las fuentes y profundidad económica aún requieren revisión sustantiva.'
         : 'Índice JMR reorganizado: '+pending+' capítulos requieren investigación específica antes de declarar el análisis completo.',
@@ -1578,15 +1579,15 @@
   });
 
   function download(name,text,type){var blob=new Blob([text],{type:type||'text/plain'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url);},1000);}
-  // Dos prompts maestros: el de Research fundamental (v4) y el de valoración
-  // del Modelo JMR (v3, que reemplazó a la v2: múltiplos elegidos con anclas
-  // documentadas e independientes del DCF). Cada uno guarda sus cambios aparte.
+  // Esta página expone dos de los tres prompts maestros: investigación 2/3 y
+  // valoración 1/3. El prompt 3/3 de auditoría se ejecuta separadamente.
+  // Cada uno conserva su propia edición local; las reglas oficiales prevalecen.
   var PROMPTS = {
-    research: { file: 'prompts/research-fundamental-jmr-v5.md', key: PROMPT_KEY, download: 'JMR - PROMPT Research NARRATIVO v19.md',
-      title: 'Estilo JMR v19 · 13 capítulos · dos niveles', btn: 'promptKindResearch',
+    research: { file: 'prompts/research-fundamental-jmr-v5.md', key: PROMPT_KEY, download: 'JMR - PROMPT Research NARRATIVO v23.md',
+      title: 'Estilo JMR v23 · 14 capítulos · dos niveles', btn: 'promptKindResearch',
       help: 'Úsalo en ChatGPT o Claude junto con la tabla del Modelo JMR. La narrativa explica el negocio, los fundamentales y nuestros supuestos; el anexo cuantitativo queda en Nivel 2.',
-      note: 'Adjunta la tabla JMR y los informes disponibles. Revisión 30-oct-2026: Estilo JMR de 13 capítulos, sin Porter obligatorio; Método A/B en la valoración, DCF Base principal, resultados oficiales y Nivel 2 cuantitativo.' },
-    valuation: { file: 'prompts/valoracion-modelo-jmr-v5.md', key: 'jmr-valuation-prompt-v5-20261021', download: 'JMR - PROMPT Valoracion VIGENTE v5.md',
+      note: 'Adjunta la tabla JMR y los informes disponibles. Revisión 30-oct-2026: Estilo JMR de 14 capítulos, sin Porter obligatorio; Método A/B en la valoración, DCF Base principal, resultados oficiales y Nivel 2 cuantitativo.' },
+    valuation: { file: 'prompts/valoracion-modelo-jmr-v5.md', key: 'jmr-valuation-prompt-a12-20261030', download: 'JMR - PROMPT Valoracion VIGENTE v5.md',
       title: 'Prompt de valoración v5 · cualquier modelo de lenguaje', btn: 'promptKindValuation',
       help: 'Arma el Modelo JMR de punta a punta (SEC EDGAR, costo de capital, supuestos anclados, bugs conocidos, guardado en Drive) y elige los múltiplos con tres anclas documentadas: historia depurada, peers ajustados y múltiplo justificado.',
       note: 'DCF Base al presente primero. Siempre muestra métodos individuales, ponderado de múltiplos solos y ponderado DCF + múltiplos, tanto al presente como a 3 años sin descontar; pesos y dividendos explícitos. Fórmula única en todas las hojas (maestra + contrato): solo cambian datos enlazados y supuestos. Cuatro historias: Base, Conservadora, Disrupción y Optimista. Precio al final.' }
@@ -1594,8 +1595,10 @@
   var promptKind = 'research', defaultPrompts = {};
   try { if (localStorage.getItem('jmr-prompt-kind') === 'valuation') promptKind = 'valuation'; } catch (e) {}
   var CO_PROMPTS = {
-    research: { file: 'prompts/colombia-research-v1.md', key: 'jmr-colombia-research-prompt-v1', download: 'JMR-Colombia-Research.md', title: 'Prompt de análisis fundamental · Colombia', btn: 'promptKindResearch', help: 'Análisis de acciones colombianas con fuentes del emisor y contexto local.', note: 'Núcleo Colombia, unidades y moneda del expediente; misma estructura de análisis.' },
-    valuation: { file: 'prompts/colombia-valuation-v1.md', key: 'jmr-colombia-valuation-prompt-v1', download: 'JMR-Colombia-Valoracion.md', title: 'Prompt de valoración · Colombia', btn: 'promptKindValuation', help: 'Valoración por sector: empresas operativas, entidades financieras y holdings.', note: 'Conserva COP, fecha de análisis, fuentes y conciliaciones del expediente Colombia.' }
+    // Los archivos Colombia v1 son antecedentes históricos, no prompts activos.
+    // El contexto local se antepone al mismo prompt maestro 1/3 o 2/3 vigente.
+    research: { file: 'prompts/research-fundamental-jmr-v5.md', key: 'jmr-colombia-research-v23-20261030', download: 'JMR-Colombia-Analisis-v23.md', title: 'Análisis JMR · Colombia · 14 capítulos', btn: 'promptKindResearch', help: 'Informe extenso de 14 capítulos, ciclos y Nivel 2, con fuentes colombianas.', note: 'Núcleo local solo contextual. REGLAS_VIGENTES.md y el prompt maestro 2/3 prevalecen; Porter no es obligatorio.' },
+    valuation: { file: 'prompts/valoracion-modelo-jmr-v5.md', key: 'jmr-colombia-valuation-v23-20261030', download: 'JMR-Colombia-Valoracion-v23.md', title: 'Valoración JMR · Colombia · Método A/B', btn: 'promptKindValuation', help: 'DCF/FCFE/SOTP según sector con cinco múltiplos prioritarios aplicables.', note: 'Núcleo local para BVC, COP y fuentes; reglas maestras 1/3 y calibración A/B sin ponderaciones históricas impuestas.' }
   };
   function currentPrompt(){ return (JMR_MERCADO === 'colombia' ? CO_PROMPTS : PROMPTS)[promptKind]; }
   document.addEventListener('jmr-market-change', function(){defaultPrompts={};renderLibrary();populateCompareSelects();loadPrompt(false);});
@@ -1730,3 +1733,4 @@
   });
   if ('serviceWorker' in navigator) window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});
 })();
+

@@ -11,6 +11,8 @@ on:
       - 'docs/visor.html'
       - 'docs/sw.js'
       - 'tests/expediente.test.mjs'
+      - 'tests/expediente-native-base.test.mjs'
+      - 'tests/expediente-modos.test.mjs'
       - '.github/workflows/expediente.yml'
   push:
     branches: [main]
@@ -24,6 +26,8 @@ on:
       - 'docs/visor.html'
       - 'docs/sw.js'
       - 'tests/expediente.test.mjs'
+      - 'tests/expediente-native-base.test.mjs'
+      - 'tests/expediente-modos.test.mjs'
       - '.github/workflows/expediente.yml'
 jobs:
   frontend:
@@ -33,4 +37,4 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node --test tests/expediente.test.mjs
+      - run: node --test tests/expediente.test.mjs tests/expediente-native-base.test.mjs tests/expediente-modos.test.mjs

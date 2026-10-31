@@ -169,3 +169,12 @@ test('46 hojas de UBER agrupadas, sin pérdidas ni duplicados; pestañas accesib
   assert.match(source,/data-original-sheet/);
   assert.match(source,/numeric-cell/);
 });
+
+test('al elegir cualquier hoja por selector, favoritos o pestañas rápidas se sincroniza el expediente',()=>{
+  const selection=source.match(/function selectSheet\(name\)\{[\s\S]*?\n  \}/)?.[0]||'';
+  assert.match(selection,/global\.parent\.postMessage\(\{type:'jmr-sheet-selected',ticker,sheet:selected\},global\.location\.origin\)/);
+  assert.equal((source.match(/postMessage\(\{type:'jmr-sheet-selected'/g)||[]).length,1,'una sola notificación centralizada');
+  assert.match(source,/byId\('sheetPicker'\)\.addEventListener\('change',[\s\S]*?selectSheet\(this\.value\)/);
+  assert.match(source,/selectSheet\(btn\.dataset\.originalSheet\)/);
+  assert.match(source,/if\(name\)selectSheet\(name\)/);
+});

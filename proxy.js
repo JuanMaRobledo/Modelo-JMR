@@ -14,5 +14,10 @@ export default function proxy(request) {
   const destination = new URL("https://cartera-two-eta.vercel.app/api/sso/start");
   destination.searchParams.set("app", "modelo");
   destination.searchParams.set("path", url.pathname + url.search);
+  // Solo la rama de revisión autorizada solicita volver a su Preview.
+  // El Centro Financiero valida el origen contra una lista exacta;
+  // producción y los demás hosts mantienen el flujo de acceso anterior.
+  const previewOrigin = "https://modelo-jmr-git-fix-sync-sheet-ta-0c6a24-juanmarobledos-projects.vercel.app";
+  if (url.origin === previewOrigin) destination.searchParams.set("target", previewOrigin);
   return Response.redirect(destination, 303);
 }

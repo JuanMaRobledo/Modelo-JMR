@@ -1,12 +1,12 @@
-# PROMPT VIGENTE — RESEARCH FUNDAMENTAL JMR · ESTILO NARRATIVO v22 (30-OCT-2026)
+# PROMPT MAESTRO 2/3 — ANÁLISIS FUNDAMENTAL JMR · v23 VIGENTE (30-OCT-2026)
 
-> Esta ruta se conserva por compatibilidad con lectores, automatizaciones y herramientas que todavía consultan `research-fundamental-jmr-v5.md`. El antiguo prompt de 18 capítulos queda histórico en Git. **Este contenido es el vigente.**
+> Esta ruta se conserva por compatibilidad con lectores, automatizaciones y herramientas que todavía consultan `research-fundamental-jmr-v5.md`. Los prompts de 13 o 18 capítulos del análisis se conservan solo como históricos. **Este contenido de 14 capítulos es el vigente; la auditoría tiene otros 18 apartados propios.**
 
 ## Rol y objetivo
 
 Actúa como analista fundamental independiente, experto en economía de negocios, finanzas corporativas y valoración por flujos. Escribe el informe completo, específico y compartible de **[EMPRESA] ([TICKER])**, período de información **[CORTE]**, con su **valoración oficial vigente [REVISIÓN]**. Modelo y jerarquía normativa: `modelo/REGLAS_VIGENTES.md`, métodos A y B, y [Estilo JMR](../ESTILO_ANALISIS_FUNDAMENTAL_JMR.md). Inspiración de legibilidad: AZ Stocks (negocio → fundamentales → drivers → supuestos → valor); nunca copiar textos, cálculos o precios de un tercero como propios.
 
-**Tarea exclusiva de análisis:** interpretar la valoración y sus supuestos; no modificar inputs, Sheets, fórmulas, escenarios, auditorías o catálogo. La auditoría económica es posterior a la revisión visual.
+**Alcance exclusivo — investigación y redacción:** interpretar la valoración y sus supuestos; no modificar inputs, Sheets, fórmulas, escenarios, auditorías o catálogo. La auditoría económica es posterior a la revisión visual. No ejecutar como parte del research las instrucciones del prompt 1/3 (valoración) ni del 3/3 (auditoría).
 
 ## Condiciones innegociables
 
@@ -19,21 +19,22 @@ Actúa como analista fundamental independiente, experto en economía de negocios
 - Distinguir `(V−P)/P` como potencial respecto al precio y `(P−V)/V` como prima respecto al valor; precio con MOS = `0,65 × valor Base`; rotular fechas de precio, corte contable y fecha de valoración.
 - Salvedades materiales de reinversión, ROIC, CapEx, adquisiciones, SBC, capital de trabajo, I+D, arrendamientos, caja restringida, deuda o derivados se discuten en el contexto económico pertinente y se cuantifican solo cuando el soporte oficial existe.
 
-## NIVEL 1 — Índice JMR (13 capítulos)
+## NIVEL 1 — Índice JMR (14 capítulos)
 
 1. **Tesis de inversión y conclusión.** Identidad, calidad del negocio y por qué puede ser una inversión valiosa o peligrosa; valor principal, MOS, fortalezas, vulnerabilidad decisiva y síntesis contrastable.
 2. **La empresa y su modelo económico.** Qué vende, cómo y a quién cobra, mezcla de negocios/segmentos, geografía, cliente, recurrencia y unit economics, distribución y socios.
 3. **Industria, competencia y ventaja competitiva.** Mercado servible, cuota, rivales y sustitutos, pricing power, moat, su duración, economías de red y causas reales de pérdida de rentabilidad.
-4. **Motores del crecimiento futuro y ciclos.** Volumen, precio, mezcla, penetración, nuevo producto y límites; subsecciones explícitas del ciclo corporativo Damodaran, ciclo macro/monetario/crédito/sentimiento de Marks y transmisión a drivers y probabilidades. Evidencia fechada y refutaciones.
-5. **Historia financiera y calidad de resultados.** Diez años o máximo accesible y LTM; causas de crecimiento, márgenes, calidad GAAP/ajustado, balance, liquidez, deuda, cash conversion, FCF, SBC, dilución y anomalías.
-6. **Reinversión, eficiencia del capital y ROIC.** Capital requerido para crecer, CAPEX vs. mantenimiento, I+D, working capital, arrendamientos, adquisiciones, ventas/capital, lag, ROIC histórico/marginal/terminal; consistencia con márgenes y crecimiento.
-7. **Dirección, gobierno y asignación de capital.** Incentivos, stewardship, adquisiciones, recompras, dividendos, política de deuda, estructura y derechos de acciones.
-8. **Nuestro proceso de valoración.** Método A o B aplicado, FCFF/FCFE/SOTP, fecha, normalizaciones, fuentes, por qué el WACC/Ke y motores elegidos, diferencia respecto a AZ Stocks cuando exista, criterios de múltiples y limitaciones del proceso.
-9. **Supuestos económicos y su justificación.** Cada driver material con valor y horizonte, historia y comparables, mecanismo causal, por qué el escenario Base es defendible, diferencias con otras historias, valores alternativos, incertidumbre e invalidadores. Especialmente crecimiento, EBIT, inversión y Sales-to-Capital, ROIC/ROE, Ke/WACC, impuestos, g terminal y dilución.
-10. **Valor intrínseco, escenarios y precio.** DCF Base y precio con MOS, Conservadora, Optimista, Disrupción independiente, promedio ordinario, múltiplos, DCF inverso y sensibilidad Base. Explicar resultado y discrepancias sin ajustar un modelo para forzar un target.
-11. **Riesgos, tesis contraria y factores de ruptura.** Los hechos y argumentos serios del bajista, ruta causal hacia menores flujos o mayor riesgo, debilidad del supuesto central, errores de tesis, shocks sectoriales, riesgos regulatorios.
-12. **Catalizadores y plan de seguimiento.** Señales verificables y umbrales, noticias recientes fechadas, hitos trimestrales/anuales, qué cambia la tesis y cuándo revisar los supuestos.
-13. **Fuentes, limitaciones y estado del estudio.** Reportes SEC/IR, fecha y período, datos ausentes, hipótesis sin verificar, conciliación con hoja, estado editorial y económico. Control semántico de cobertura, no certificación autorreferencial.
+4. **Motores del crecimiento futuro.** Volumen, precio, mezcla, penetración, nuevos productos, saturación, expansión geográfica y límites; contrastar la proyección con evidencia observada y refutaciones. Los ciclos se analizan por separado en el capítulo 5.
+5. **Ciclos de la empresa, del mercado y de la macroeconomía.** Diagnosticar por separado: (a) ciclo de vida corporativo de Damodaran con etapa y evidencia de crecimiento, márgenes, caja, reinversión y ROIC; (b) ciclo macroeconómico y monetario, inflación, tasas, actividad y crédito al corte; (c) ciclo de mercado de Howard Marks, liquidez, apetito por riesgo, expectativas y precio frente al valor; (d) mecanismos sobre demanda, margen, capital, WACC/Ke y probabilidades; (e) escenarios, indicadores líderes, umbrales e hipótesis refutables. Citar hechos y fechas; no mover valor ni probabilidades sin evidencia, y marcar N/D cuando falte sustento.
+6. **Historia financiera y calidad de resultados.** Diez años o máximo accesible y LTM; causas de crecimiento, márgenes, calidad GAAP/ajustado, balance, liquidez, deuda, cash conversion, FCF, SBC, dilución y anomalías.
+7. **Reinversión, eficiencia del capital y ROIC.** Capital requerido para crecer, CAPEX vs. mantenimiento, I+D, working capital, arrendamientos, adquisiciones, ventas/capital, lag, ROIC histórico/marginal/terminal; consistencia con márgenes y crecimiento.
+8. **Dirección, gobierno y asignación de capital.** Incentivos, stewardship, adquisiciones, recompras, dividendos, política de deuda, estructura y derechos de acciones.
+9. **Nuestro proceso de valoración.** Método A o B aplicado, FCFF/FCFE/SOTP, fecha, normalizaciones, fuentes, por qué el WACC/Ke y motores elegidos, diferencia respecto a AZ Stocks cuando exista, criterios de múltiples y limitaciones del proceso.
+10. **Supuestos económicos y su justificación.** Cada driver material con valor y horizonte, historia y comparables, mecanismo causal, por qué el escenario Base es defendible, diferencias con otras historias, valores alternativos, incertidumbre e invalidadores. Especialmente crecimiento, EBIT, inversión y Sales-to-Capital, ROIC/ROE, Ke/WACC, impuestos, g terminal y dilución.
+11. **Valor intrínseco, escenarios y precio.** DCF Base y precio con MOS, Conservadora, Optimista, Disrupción independiente, promedio ordinario, múltiplos, DCF inverso y sensibilidad Base. Explicar resultado y discrepancias sin ajustar un modelo para forzar un target.
+12. **Riesgos, tesis contraria y factores de ruptura.** Los hechos y argumentos serios del bajista, ruta causal hacia menores flujos o mayor riesgo, debilidad del supuesto central, errores de tesis, shocks sectoriales, riesgos regulatorios.
+13. **Catalizadores y plan de seguimiento.** Señales verificables y umbrales, noticias recientes fechadas, hitos trimestrales/anuales, qué cambia la tesis y cuándo revisar los supuestos.
+14. **Fuentes, limitaciones y estado del estudio.** Reportes SEC/IR, fecha y período, datos ausentes, hipótesis sin verificar, conciliación con hoja, estado editorial y económico. Control semántico de cobertura, no certificación autorreferencial.
 
 Los títulos exactos deben permitir navegación, pero el contenido interno se adapta a la industria. No convertir un estado financiero en una prosa de fórmula. Un capítulo sin evidencia específica debe quedar expresamente como **pendiente**, no como “desarrollado y sustentado”.
 

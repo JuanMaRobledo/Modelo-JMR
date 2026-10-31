@@ -1,4 +1,9 @@
-# Compatibilidad: desde el 30-oct-2026 el análisis narrativo de Colombia sigue el Estilo JMR de 13 capítulos del contrato de dos niveles. Este prompt es histórico y se subordina a `modelo/REGLAS_VIGENTES.md` §9 y `docs/ESTILO_ANALISIS_FUNDAMENTAL_JMR.md`.
+# ARCHIVO DE COMPATIBILIDAD — Prompt Colombia v1 (NO VIGENTE)
+
+> **No ejecutar este documento como prompt maestro.** Se preserva íntegro como antecedente histórico, con fórmulas y decisiones de su época. Para nuevas valoraciones y análisis de Colombia usar exclusivamente `modelo/REGLAS_VIGENTES.md`, los métodos A/B según revisión y los tres prompts activos: `valoracion-modelo-jmr-v5.md`, `research-fundamental-jmr-v5.md` (Nivel 1 de **14 capítulos**, ciclo independiente; Nivel 2 de 12 apartados) y `auditoria-economica-jmr-v1.md` (18 secciones propias). Ante una contradicción, manda `modelo/REGLAS_VIGENTES.md`. No se cambian hojas, cálculos ni revisiones históricas.
+
+<!-- CONTENIDO HISTÓRICO ORIGINAL — SOLO REFERENCIA, NO INSTRUCCIONES VIGENTES -->
+
 
 REGLA GLOBAL JMR · 17-OCT-2026 · HISTORIAS Y SIETE MÚLTIPLOS
 1. La historia determina los supuestos de cada escenario. DCF y múltiplos comparten el crecimiento, margen EBIT e impuestos de Valuation output para esa misma historia; los métodos de valoración permanecen separados. Justificar también el múltiplo de salida por crecimiento, margen/ROE, riesgo, régimen histórico y comparables; los percentiles históricos son una referencia inicial, no una regla automática ni un objetivo que deba coincidir con Toro.

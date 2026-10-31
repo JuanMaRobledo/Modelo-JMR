@@ -126,14 +126,62 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{ou
 html.jmr-embedded-workbook .appnav,
 html.jmr-embedded-workbook .editor-header,
 html.jmr-embedded-workbook #lookup,
-html.jmr-embedded-workbook #status,
 html.jmr-embedded-workbook .workbook-head,
 html.jmr-embedded-workbook .disclaimer{display:none!important}
 html.jmr-embedded-workbook body.sheet-editor-page{background:var(--surface,#fff)}
 html.jmr-embedded-workbook .editor-main{padding:0 12px 24px}
 html.jmr-embedded-workbook .toolbar{margin:8px 0}
 html.jmr-embedded-workbook #sheetTable{max-height:72vh}
-html.jmr-embedded-workbook[data-embedded-section="financieros"] .model-sheets,
-html.jmr-embedded-workbook[data-embedded-section="indicadores"] .model-sheets{display:none!important}
+html.jmr-embedded-workbook .model-sheets{display:none!important}
 html.jmr-embedded-workbook .save-panel{margin-top:15px}
 @media(max-width:680px){html.jmr-embedded-workbook .editor-main{padding:0 5px 15px}html.jmr-embedded-workbook .toolbar{padding:10px}}
+
+/* El modo Visor no muestra superficies de escritura. */
+html.jmr-view-only .save-panel,html.jmr-view-only .editor-hint{display:none!important}
+html.jmr-view-only .workbook-table td{font-variant-numeric:tabular-nums}
+html.jmr-view-only .sheet-grid{background:var(--surface,#fff)}
+
+
+/* Vista financiera editorial: solo representación de valores originales. */
+.jmr-workbook-switch{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:10px 0 16px;font-size:12px;color:var(--ink-soft,#5d6a62)}
+.jmr-workbook-switch button{color:var(--ink,#163025);background:var(--surface,#fff);border:1px solid var(--border,#d6ded5)}
+.jmr-presentation-view{padding:0 0 10px}
+.jmr-reader-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:clamp(18px,3vw,30px);background:linear-gradient(120deg,var(--surface,#fff),var(--surface-2,#f0f3ef));border:1px solid var(--border-soft,#dbe3d9);border-radius:17px;margin-bottom:16px}
+.jmr-reader-head h2{font:600 clamp(23px,3vw,32px)/1.25 Georgia,serif;margin:5px 0 8px}
+.jmr-reader-head p{color:var(--ink-soft,#596a5f);font-size:12.5px;margin:0;max-width:690px}
+.jmr-reader-kpi{display:flex;flex-direction:column;align-items:center;border-left:1px solid var(--border,#ddd);padding-left:20px}
+.jmr-reader-kpi strong{font:650 25px ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.jmr-reader-kpi span{font-size:11px;color:var(--ink-soft,#637065)}
+.jmr-reader-groups{display:grid;gap:16px}
+.jmr-reader-group{border:1px solid var(--border-soft,#e0e6df);border-radius:14px;overflow:hidden;background:var(--surface,#fff)}
+.jmr-reader-group h3{font:600 clamp(16px,2vw,21px)/1.35 Georgia,serif;padding:15px 19px;margin:0;background:var(--surface-2,#f2f5f1);border-bottom:1px solid var(--border-soft,#e0e6df)}
+.jmr-reader-table-scroll{overflow-x:auto;max-width:100%;-webkit-overflow-scrolling:touch}
+.jmr-reader-group table{border-collapse:collapse;width:100%;min-width:650px;font-size:12.5px;font-variant-numeric:tabular-nums}
+.jmr-reader-group th,.jmr-reader-group td{border-bottom:1px solid var(--border-soft,#e2e8e1);padding:11px 14px;text-align:right;vertical-align:middle;white-space:nowrap}
+.jmr-reader-group thead th{font:700 11px system-ui,sans-serif;background:var(--surface-2,#f2f4f2);color:var(--ink-soft,#637165)}
+.jmr-reader-group th:first-child{text-align:left;min-width:220px;position:sticky;left:0;background:var(--surface,#fff);z-index:1;max-width:390px;white-space:normal}
+.jmr-reader-group tbody tr:nth-child(even)>*{background:var(--surface-2,#f7f8f7)}
+.jmr-reader-group tbody tr:last-child>*{border-bottom:0}
+.jmr-reader-group th span{display:block;font-weight:650;line-height:1.45}
+.jmr-reader-group th small{display:block;font-size:10px;font-weight:400;color:var(--ink-soft,#758078)}
+.jmr-reader-notice,.jmr-reader-empty{margin:12px 0;padding:12px 15px;border:1px solid var(--border-soft,#ddd);border-radius:10px;background:var(--surface-2,#f4f6f3);font-size:12px;color:var(--ink-soft,#657169)}
+.jmr-view-only:not(.jmr-show-grid) #sourceGridPanel{display:none!important}
+.jmr-view-only.jmr-show-grid #presentationView{display:none!important}
+.jmr-view-only .save-panel{display:none!important}
+@media(max-width:640px){.jmr-reader-head{padding:17px}.jmr-reader-kpi{border:0;padding:0;align-items:flex-start}.jmr-reader-group table{min-width:560px}.jmr-reader-group th,.jmr-reader-group td{padding:9px 11px}.jmr-reader-group th:first-child{min-width:190px}}
+@media print{.jmr-workbook-switch{display:none!important}.jmr-reader-group{break-inside:avoid}}
+
+/* La ficha incrustada usa un único selector de las hojas originales; errores y advertencias nunca se ocultan. */
+html.jmr-embedded-workbook #status{display:block;margin:8px 10px 12px;padding:9px 12px;border-radius:8px;background:var(--surface-2,#f4f6f3);font-size:13px}
+html.jmr-embedded-workbook #status[data-kind="error"]{border:1px solid #bd3b3b;background:#fff4f2;color:#8e2222}
+html.jmr-embedded-workbook #status[data-kind="warn"]{border:1px solid #b98d3b;background:#fff8ed;color:#785021}
+html.jmr-embedded-workbook .toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;position:sticky;top:0;z-index:5;background:var(--surface,#fff);border-bottom:1px solid var(--border,#ddd)}
+html.jmr-embedded-workbook .toolbar-title:has(#sheetPicker){flex:1 1 245px;min-width:0}
+html.jmr-embedded-workbook #sheetPicker{min-width:160px;max-width:100%;width:100%}
+html.jmr-embedded-workbook .jmr-reader-table-scroll{max-width:100%;overflow-x:auto}
+html.jmr-embedded-workbook .jmr-reader-group thead th{position:sticky;top:0;z-index:2}
+@media(max-width:700px){html.jmr-embedded-workbook .toolbar{position:static}html.jmr-embedded-workbook .toolbar-title:has(#sheetPicker){flex-basis:100%}}
+
+/* Los controles originales de cuadrícula solo se ven cuando se usa esa cuadrícula. */
+html.jmr-view-only:not(.jmr-show-grid) #toggleFullSheet{display:none!important}
+html.jmr-embedded-workbook #openSheetTab{display:none!important}

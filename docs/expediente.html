@@ -131,6 +131,22 @@ footer a{color:inherit}
 .jmr-multiple-table td small{font-size:11px;color:var(--ink-soft,#627067);display:block}
 .jmr-multiple-note{font-size:12px;line-height:1.65;color:var(--ink-soft,#627067);max-width:1100px}
 @media(max-width:700px){.jmr-multiple-summary{grid-template-columns:1fr}.valuation-summary{padding:8px 12px}.jmr-multiple-summary strong{font-size:19px}}
+.display-modes{display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:12px 18px;background:var(--surface-2,#f5f6f3);border-bottom:1px solid var(--border,#ddd)}
+.display-modes strong{font-size:13px;margin-right:5px}.display-modes button{padding:8px 16px;font-weight:700;font-size:13px}
+.display-modes button[aria-pressed="true"]{background:var(--ink,#173128);color:var(--surface,#fff)}
+.display-mode-note{font-size:12px;color:var(--ink-soft,#536159);flex:1 1 220px}
+.review-readonly{padding:15px;border:1px solid var(--border,#ddd);border-radius:10px;background:var(--surface-2,#f6f7f4)}
+.review-readonly p{white-space:pre-wrap;overflow-wrap:anywhere}
+@media(max-width:700px){.display-modes{padding:10px}.display-modes button{flex:1 0 90px}}
+/* Navegación descubrible: ningún panel queda fuera de la pantalla por scroll horizontal. */
+.dossier-tabs{position:static;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));overflow:visible;gap:8px;box-shadow:none}
+.dossier-tabs button{white-space:normal;line-height:1.35;text-align:center;min-width:0;min-height:46px}
+.sheet-subtabs{display:flex;flex-wrap:wrap;overflow:visible;max-height:none;gap:7px}
+.sheet-subtabs button{white-space:normal;flex:0 1 auto}
+.panelbar{align-items:flex-start}
+.panelbar a{overflow-wrap:anywhere}
+@media(max-width:1120px){.dossier-tabs{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:700px){.dossier-tabs{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;padding:9px}.dossier-tabs button{font-size:12px;padding:9px 7px}.sheet-subtabs button{font-size:12px;padding:8px 10px}}
 </style></head><body>
 <script src="auth.js"></script><script src="mercado.js"></script><script src="gh_oauth.js"></script>
 <nav class="appnav" aria-label="Navegación principal JMR"><a href="expediente.html?seccion=analisis">Empresas y análisis</a></nav>
@@ -162,6 +178,7 @@ footer a{color:inherit}
 <button type="button" data-view="sensibilidades" role="tab" aria-selected="false">Sensibilidades</button>
 <button type="button" data-view="revision" role="tab" aria-selected="false">Revisión y auditoría</button>
 </div>
+<nav id="displayModes" class="display-modes" aria-label="Modo de trabajo de la ficha"><strong>Modo de trabajo</strong><button type="button" data-display-mode="visor" class="active" aria-pressed="true">Visor</button><button type="button" data-display-mode="edicion" aria-pressed="false">Edición</button><span id="displayModeNote" class="display-mode-note">Consulta sin modificar datos ni publicar valoraciones.</span></nav>
 <nav id="valuationModes" class="sensitivity-modes valuation-modes" aria-label="Tipos de valoración" hidden>
 <button type="button" data-valuation="dcf" class="active" aria-pressed="true">DCF · valor intrínseco</button>
 <button type="button" data-valuation="multiplos" aria-pressed="false">Valoración por múltiplos</button>
@@ -169,13 +186,14 @@ footer a{color:inherit}
 <section id="valuationSummary" class="valuation-summary" aria-label="Comparación de valoración DCF y múltiplos" hidden></section>
 <nav id="sheetSubtabs" class="sensitivity-modes sheet-subtabs" aria-label="Pestañas financieras de la empresa" hidden></nav>
 <div id="sheetGroupInfo" class="sheet-group-info" hidden></div>
-<div class="panelbar"><p id="viewHelp"></p><a id="openOriginal" target="_blank" rel="noopener noreferrer" hidden>Abrir fuente en nueva pestaña ↗</a></div>
+<div class="panelbar"><p id="viewHelp"></p><a id="openNativeSheet" target="_blank" rel="noopener noreferrer" hidden>Abrir hoja oficial en Google Sheets ↗</a><a id="openOriginal" target="_blank" rel="noopener noreferrer" hidden>Abrir fuente en nueva pestaña ↗</a></div>
 <section id="inlinePanel" class="dossier-inline" hidden aria-live="polite"></section>
 <iframe id="viewFrame" title="Contenido de la empresa seleccionada" loading="lazy"></iframe>
 <section id="reviewPanel" class="review-panel" aria-label="Revisión visual y puntos de auditoría" hidden>
 <h3>Tu revisión del análisis</h3>
 <p class="review-help">Escribe qué quieres revisar antes de solicitar la auditoría. Estas observaciones pertenecen únicamente a la revisión activa de esta empresa. <strong>Guardar no ejecuta una auditoría ni modifica el DCF.</strong></p>
 <p class="review-help" id="reviewCompanyMeta">Cargando revisión oficial…</p>
+<section id="reviewReadOnly" class="review-readonly" hidden aria-label="Observaciones en modo visor"><strong id="reviewStatusRead">Estado pendiente</strong><p id="reviewNotesRead">No hay observaciones registradas.</p></section>
 <form id="reviewForm">
 <div class="review-fields">
 <label for="auditReviewStatus">Estado de tu revisión
@@ -196,4 +214,4 @@ footer a{color:inherit}
 <footer>Fuentes: <code>Modelo-JMR-datos</code> y Google Sheets. Un archivo en el repositorio no implica auditoría aprobada ni publicación oficial.
 <a href="https://github.com/JuanMaRobledo/Modelo-JMR/blob/main/docs/PROCESO_UNICO_JMR.md" target="_blank" rel="noopener noreferrer">Procedimiento único para ChatGPT, Claude y Gemini ↗</a></footer>
 </main><script src="jmr-mos-summary.js"></script><script src="jmr-multiples-panel.js?v=20261030-relativa-r2"></script>
-<script src="expediente.js?v=20261030-valoracion-multiplos-r1"></script></body></html>
+<script src="expediente.js?v=20261031-visor-edicion-r1"></script></body></html>

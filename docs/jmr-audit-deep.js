@@ -260,7 +260,7 @@ function analyze(v,markdown){
     "Verificación externa de Rf, ERP, beta, Ke, WACC y fuentes fechadas",
     "Comparables homogéneos de cinco métodos prioritarios aplicables; P/S/P/BV solo cuando se usan",
     "Reejecución independiente de toda la matriz DCF y sensibilidades económicas",
-    "Revisión cualitativa y aprobación de los 13 capítulos narrativos del informe; la auditoría económica conserva sus propios 18 apartados"
+    "Revisión cualitativa y aprobación de los 14 capítulos narrativos del informe; la auditoría económica conserva sus propios 18 apartados"
   ],verdict:critical?"Inconsistencias matemáticas detectadas":(reserves.length||sectionCount<18||senNd?"Auditoría ampliada condicionada":"Conciliaciones internas sin diferencias; verificación externa pendiente")};
 }
 function report(a,v){

@@ -1,6 +1,8 @@
 /* Editor de libro JMR: consulta de todas las pestañas, escritura segura de datos fuente. */
 (function(global){
   'use strict';
+  const forceViewer=!!global.location&&new URLSearchParams(global.location.search).get('modo')==='visor';
+  if(forceViewer&&typeof document!=='undefined')document.documentElement.classList.add('jmr-view-only');
   function byId(id){return document.getElementById(id);}
   function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
   function colNumber(letters){var n=0;for(var c of letters)n=n*26+c.charCodeAt(0)-64;return n;}
@@ -145,7 +147,7 @@
        'La equivalencia de fórmulas con la plantilla se verifica por separado.';
     host.dataset.coverage=calculated+accepted===7?'complete':'incomplete';
   }
-  var snapshot=null,ticker='',selected='',selectedGroup='',firstRow=1,firstCol=1,pageRows=30,pageCols=9,fullSheet=true;
+  var snapshot=null,ticker='',selected='',selectedGroup='',firstRow=1,firstCol=1,pageRows=30,pageCols=9,fullSheet=true,readerFull=false;
   var drafts=new Map(),busy=false,loader=0,dimensions={};
   var MAX_FULL_CELLS=30000;
   function refreshShortcuts(){
@@ -166,11 +168,43 @@
     byId('inspectorFormula').textContent=c?.formula||'— (dato o texto, sin fórmula)';
   }
   function setStatus(msg,type){var n=byId('status');n.textContent=msg;n.dataset.kind=type||'neutral';}
+  // Enlace de edición al libro original: la pestaña solo se identifica por
+  // sheetId real recibido de Sheets. Sin sheetId, abrir el libro sin inventar gid.
+  function nativeSheetUrl(raw, sheet, gids){
+    var id=/^https:\/\/docs\.google\.com\/spreadsheets\/d\/([\w-]+)(?:\/|$)/.exec(String(raw||''))?.[1];
+    if(!id)return '';
+    var gid=gids&&gids[sheet];
+    return 'https://docs.google.com/spreadsheets/d/'+id+'/edit'+
+      (Number.isSafeInteger(gid)&&gid>=0?'#gid='+gid:'');
+  }
+  function updateNativeSheetLink(){
+    var link=byId('nativeSheet'),url=nativeSheetUrl(snapshot?.record?.hojaGoogle,selected,snapshot?.sheetGids);
+    if(!link)return;
+    link.hidden=!url;
+    if(url){
+      link.href=url;
+      link.textContent=forceViewer?'Consultar pestaña original en Drive ↗':'Editar pestaña original en Google Sheets ↗';
+    }else link.removeAttribute('href');
+  }
+  function updatePresentation(){
+    var presentation=byId('presentationView'),switcher=byId('toggleSourceGrid'),coverage=byId('toggleReaderCoverage');
+    if(!presentation||!switcher)return;
+    var isViewer=forceViewer&&!!snapshot?.sheets?.[selected];
+    presentation.hidden=!isViewer;
+    switcher.hidden=!isViewer;
+    if(coverage){coverage.hidden=!isViewer;coverage.setAttribute('aria-pressed',String(readerFull));coverage.textContent=readerFull?'Volver a vista resumida':'Mostrar más filas y columnas';}
+    if(!isViewer){presentation.replaceChildren();return;}
+    presentation.innerHTML=global.JmrSheetPresentation?.render(selected,snapshot.sheets[selected],{maxRows:readerFull?2500:180,maxColumns:readerFull?80:14})||
+      '<p>Consulta todas las celdas y fórmulas en la cuadrícula original.</p>';
+    document.documentElement.classList.remove('jmr-show-grid');
+    switcher.setAttribute('aria-expanded','false');
+    switcher.textContent='Ver cuadrícula original y fórmulas';
+  }
   function setMode(){
     var n=byId('editState');
     if(!snapshot){n.textContent='Sin modelo';n.dataset.mode='neutral';return;}
-    n.textContent=snapshot.writable?'Conexión de edición disponible':'Solo lectura';
-    n.dataset.mode=snapshot.writable?'writable':'readonly';
+    n.textContent=forceViewer?'Visor · solo lectura':snapshot.writable?'Conexión de edición disponible':'Solo lectura · acceso a Drive';
+    n.dataset.mode=!forceViewer&&snapshot.writable?'writable':'readonly';
   }
   function bounds(sheet){
     if(dimensions[sheet])return dimensions[sheet];
@@ -212,7 +246,7 @@
       for(var ci=startCol;ci<=endCol;ci++){
         var address=colName(ci)+row,c=source[address],id=selected+'!'+address,d=drafts.get(id);
         if(!c){display+='<td class="empty-cell'+(ci===startCol?' first-source-col':'')+'" data-cell="'+address+'" aria-label="'+address+' vacía"></td>';continue;}
-        var edit=isEditable(selected,address,c,!!snapshot.writable),n=normalizedNumber(c);
+        var edit=!forceViewer&&isEditable(selected,address,c,!!snapshot.writable),n=normalizedNumber(c);
         if(edit){
           var fmt=formatNumber(c,d?d.value:n);
           display+='<td class="editable-cell'+(d?' dirty':'')+(ci===startCol?' first-source-col':'')+'" data-cell="'+esc(address)+'" title="'+esc(address)+' · dato editable">'+
@@ -239,7 +273,7 @@
   function pending(){
     var n=byId('pendingChanges'),save=byId('saveChanges'),discard=byId('discardChanges');
     n.textContent=drafts.size?drafts.size+' cambio(s) pendiente(s)':'No hay cambios pendientes';
-    save.disabled=!drafts.size||busy||!snapshot?.writable;
+    save.disabled=forceViewer||!drafts.size||busy||!snapshot?.writable;
     discard.disabled=!drafts.size||busy;
     var html=[];
     drafts.forEach(function(d){
@@ -267,13 +301,13 @@
     }).join('');
     var single=byId('openSheetTab');
     if(single){
-      single.href='editor-hoja.html?ticker='+encodeURIComponent(ticker)+'&sheet='+encodeURIComponent(selected);
+      single.href='editor-hoja.html?ticker='+encodeURIComponent(ticker)+'&sheet='+encodeURIComponent(selected)+'&modo='+(forceViewer?'visor':'edicion');
       single.textContent='Abrir «'+selected+'» en nueva pestaña ↗';
     }
   }
   function selectSheet(name){
     if(!snapshot?.sheets?.[name])return;
-    selected=name;firstRow=1;firstCol=1;fullSheet=true;
+    selected=name;firstRow=1;firstCol=1;fullSheet=true;readerFull=false;
     var group=sheetGroups(Object.keys(snapshot.sheets)).find(function(g){return g.names.includes(name);});
     if(group)selectedGroup=group.id;
     renderWorkbookNavigation();
@@ -282,6 +316,11 @@
     refreshShortcuts();
     inspect(null);
     table();
+    updatePresentation();
+    updateNativeSheetLink();
+    // Toda selección real (selector, grupos o accesos rápidos) actualiza la ficha padre.
+    if(global.parent&&global.parent!==global)
+      global.parent.postMessage({type:'jmr-sheet-selected',ticker,sheet:selected},global.location.origin);
   }
   function openSnapshot(result){
     snapshot=result;dimensions={};drafts.clear();
@@ -299,13 +338,13 @@
     byId('companyName').textContent=(result.record?.company||result.record?.empresa||ticker)+
       ' · '+ticker+' · '+list.length+' pestañas';
     byId('sourceDate').textContent='Lectura: '+new Date(result.fetchedAt||Date.now()).toLocaleString('es-CO');
-    var url=result.record?.hojaGoogle||'';
-    byId('nativeSheet').hidden=!/^https:\/\/docs\.google\.com\/spreadsheets\/d\/[\w-]+/.test(url);
-    if(!byId('nativeSheet').hidden)byId('nativeSheet').href=url;
+    // La pestaña de Drive se resuelve después de seleccionar la hoja.
+    updateNativeSheetLink();
     byId('researchLink').href='research.html?ticker='+encodeURIComponent(ticker);
     byId('calcLink').href='calculadora.html?ticker='+encodeURIComponent(ticker);
     setMode();selectSheet(chosen);pending();updateMultiplesStatus();
     if(result.catalogAvailable && !result.official)setStatus('Hoja recuperada fuera del catálogo oficial: solo lectura hasta conciliar esta versión. No se modificarán fórmulas ni resultados.','warn');
+    else if(forceViewer)setStatus('Visor del libro oficial: consulta valores y fórmulas sin modificar la hoja.','neutral');
     else if(result.writable)setStatus('Libro oficial importado. Edita solo celdas permitidas y confirma “Guardar cambios en Google Sheets”.','ok');
     else setStatus('Libro importado en solo lectura. Para editar en esta pestaña se necesita la conexión de escritura del servidor. Puedes abrir la hoja original.','warn');
   }
@@ -340,7 +379,7 @@
     if(drafts.size)setStatus('Cambios preparados, todavía NO guardados en Google Sheets.','warn');
   }
   async function save(){
-    if(!snapshot?.writable||busy||!drafts.size)return;
+    if(forceViewer||!snapshot?.writable||busy||!drafts.size)return;
     if(drafts.size>50){setStatus('Máximo 50 cambios por guardado. Descarta o reduce el lote.','error');return;}
     var changes=Array.from(drafts.values()),confirmed=global.confirm('¿Guardar '+changes.length+' cambio(s) directamente en la hoja oficial de '+ticker+'? Se conservarán las fórmulas.');
     if(!confirmed)return;
@@ -375,8 +414,6 @@
     byId('lookup').addEventListener('submit',function(e){e.preventDefault();load();});
     byId('sheetPicker').addEventListener('change',function(){
       selectSheet(this.value);
-      if(global.parent&&global.parent!==global)
-        global.parent.postMessage({type:'jmr-sheet-selected',ticker,sheet:selected},global.location.origin);
     });
     global.addEventListener('message',function(event){
       if(event.origin!==global.location.origin||event.source!==global.parent)return;
@@ -403,6 +440,17 @@
       var name=findMainSheet(btn.dataset.sheetKind,Object.keys(snapshot.sheets),ticker);
       if(name)selectSheet(name);
     });
+    byId('toggleSourceGrid').addEventListener('click',function(){
+      if(!forceViewer||!snapshot)return;
+      var on=document.documentElement.classList.toggle('jmr-show-grid');
+      this.setAttribute('aria-expanded',String(on));
+      this.textContent=on?'Volver a la vista de lectura':'Ver cuadrícula original y fórmulas';
+    });
+    byId('toggleReaderCoverage').addEventListener('click',function(){
+      if(!forceViewer||!snapshot?.sheets?.[selected])return;
+      readerFull=!readerFull;
+      updatePresentation();
+    });
     byId('toggleFullSheet').addEventListener('click',function(){
       if(!snapshot||!selected)return;
       fullSheet=!fullSheet;firstRow=1;firstCol=1;table();
@@ -428,6 +476,6 @@
     var fromUrl=new URLSearchParams(global.location.search).get('ticker');
     if(fromUrl){byId('ticker').value=fromUrl;load();}
   }
-  global.JmrSheetEditor={isEditable,coordinates,colName,formatNumber,normalizeName,findMainSheet,mainKind,sectionType,multiplesFormulaAudit,sheetGroups};
+  global.JmrSheetEditor={isEditable,coordinates,colName,formatNumber,normalizeName,findMainSheet,mainKind,sectionType,multiplesFormulaAudit,sheetGroups,nativeSheetUrl,hasPendingEdits:()=>drafts.size>0};
   if(typeof document!=='undefined'&&byId('lookup'))bind();
 })(typeof window!=='undefined'?window:globalThis);

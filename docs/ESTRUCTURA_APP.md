@@ -2,6 +2,16 @@
 
 **Única fuente del menú:** `docs/mercado.js`, estilo en `docs/jmr-theme.css`. No incorporar menús nuevos independientes.
 
+## Dos modos de la ficha única (31-oct-2026)
+
+La ficha conserva siete pestañas, sin rutas principales duplicadas. En **Visor** (predeterminado), muestra análisis, DCF, múltiplos, estados financieros, indicadores, supuestos, sensibilidades y observaciones en modo de lectura. Las hojas se abren con `modo=visor`: no se renderizan campos editables, no se habilita Guardar y se bloquea el envío de PATCH desde el visor. El usuario puede cambiar de sección sin publicar nada.
+
+En **Edición**, los estados financieros, indicadores y supuestos usan el editor de `editor-hoja.html` y conservan el enlace a la hoja original `hojaGoogle` de la valoración activa; si ese enlace no está verificado, no se inventa. Solo las entradas autorizadas se pueden escribir desde la app, con confirmación y revisión de respuesta; las fórmulas se editan directamente en Google Sheets con los permisos de Drive. Valoración y sensibilidades abren su hoja fuente para edición, sin editar el JSON del DCF automáticamente.
+
+El **análisis fundamental** abre `research.html` con la ruta exacta `analisis/` del catálogo, conservando la barra de edición y el guardado. Si no hay análisis vigente, no se atribuye a la empresa una revisión histórica. La **revisión y auditoría** presenta las observaciones como solo lectura en Visor y habilita su formulario en Edición. Ningún guardado desde estos componentes publica automáticamente una nueva valoración ni acredita la auditoría económica.
+
+El cambio entre modos verifica si el editor de hojas tiene borradores pendientes antes de descartar el contenido incrustado. El permiso de escritura real se sigue validando en el servidor y en Google Sheets, nunca por un simple selector visual.
+
 ## Entradas: una empresa, una ficha
 
 - **Única portada de empresas y análisis:** `expediente.html?seccion=analisis`. El catálogo permite filtrar Todas, Internacionales y Colombia.
@@ -10,7 +20,8 @@
 - **Subpestañas financieras:** resultados, balance, flujo de efectivo, LTM, dividendos, cifras por acción; ratios, *Trailing Valuation*, *Forward Valuation*, eficiencia, márgenes, solvencia/deuda. La fuente original es siempre Google Sheets.
 - **Modelo:** el lector oficial `editor-hoja.html?ticker=<T>&embedded=1&seccion=modelo` mantiene el selector de **todas** las hojas nativas del libro, incluidas ocultas. Los favoritos son accesos rápidos, no un subconjunto de los datos.
 - **Acceso a una hoja original por separado:** `editor-hoja.html?ticker=<T>&sheet=<N>`; se abre solo por acción explícita de usuario. El lector incrustado acepta `postMessage` exclusivamente del mismo origen y del `parent` correcto, para navegar sin reimportar el libro.
-- **Valoración por múltiplos:** subpestaña siempre visible en Valoración, junto con el DCF. La tarjeta compara valor intrínseco Base, precio relativo por múltiplos descontado a hoy y combinación DCF + múltiplos cuando existe. Tabla de EV/EBITDA, EV/FCFF, P/E, P/FCFE y P/OCF, además de P/S y P/BV cuando constan, incluso con peso cero. Conservar separados valores FY+3 y VP Base; ausencias se muestran como N/D. Datos tomados del JSON oficial, sin recomputar ni certificar fórmulas.\n- **Sensibilidades:** panel independiente con las matrices DCF que concilian con la valoración activa; nunca se presentan anclas o múltiplos no certificados como resultados calculados.
+- **Valoración por múltiplos:** subpestaña siempre visible en Valoración, junto con el DCF. La tarjeta compara valor intrínseco Base, precio relativo por múltiplos descontado a hoy y combinación DCF + múltiplos cuando existe. Tabla de EV/EBITDA, EV/FCFF, P/E, P/FCFE y P/OCF, además de P/S y P/BV cuando constan, incluso con peso cero. Conservar separados valores FY+3 y VP Base; ausencias se muestran como N/D. **Contrato de origen obligatorio para TODAS las empresas activas:** la valoración por múltiplos se calcula primero en el Google Sheet oficial del mismo `ticker` y `revisionId`, con `Financials Multiples` (métricas y múltiplos), `Descuento de múltiplos` (precios FY+1/2/3, VP por escenario y pesos) y `Sensibilidad por múltiplo` (matrices con sus centros). Al publicar, el JSON de la MISMA revisión transporta los resultados verificados a la ficha; la app los presenta sin recomputar ni crear objetivos alternativos. Verificar que cifras, pesos y VP de la ficha concilien con esas tres hojas antes de declarar `CALCULADO`. Una pestaña existente o una tabla vacía NO equivale a método validado: en ese caso mostrar `N/D` con motivo, nunca cero ni números históricos como vigentes. Cada ficha mantiene enlace funcional a la hoja original. P/S y P/BV son complementarios, no bloqueantes cuando no aplican.
+- **Sensibilidades:** panel independiente con las matrices DCF que concilian con la valoración activa; nunca se presentan anclas o múltiplos no certificados como resultados calculados.
 - **Compatibilidad de formatos VP:** algunas revisiones (por ejemplo DUOL) guardan los tres escenarios de cada múltiplo ya descontados. La vista los etiqueta como VP y solo presenta el agregado relativo cuando la suma ponderada concilia con el combinado oficial en los tres escenarios; si no, indica N/D sin reconstruir valoraciones. NVO e INTU permanecen pendientes hasta disponer de múltiplos nativos conciliados.
 - **Revisión:** observaciones persistidas por ticker/revisión, opciones EN_REVISION, LISTO y REHACER; auditorías ausentes se indican como pendientes, no enlaces vacíos.
 - **Navegación general:** Empresas y análisis, Cartera, Herramientas (desplegable), Histórico y Bitácora de terceros. Las páginas técnicas conservan rutas de compatibilidad, pero no constituyen portadas rivales.
@@ -19,9 +30,18 @@ El diseño usa un panel de contenido único dentro del expediente. **Los visores
 
 `index.html` es redirección antigua al catálogo. Los enlaces incrustados que regresan al expediente apuntan a `_top`, para impedir expedientes anidados.
 
+## Control de integridad del Modelo A (30-oct-2026)
+
+- La app puede leer la clasificación por revisión exacta de `Modelo-JMR-datos/catalogo.json`, campo `controlModeloA.empresas`: `rutaValoracion`, `metodo`, `estado` y `multiplos`.
+- **Las revisiones anteriores al Modelo A** no aparecen en el análisis central mientras se rehacen, pero sus archivos siguen preservados en GitHub/Histórico. La exclusión nunca borra archivos ni sobrescribe valoraciones.
+- **Las revisiones A-1.2 actualmente publicadas** permanecen accesibles con estado **INCOMPLETA / EN_REVISIÓN** hasta cerrar los componentes y la auditoría. Una subpestaña que muestra N/D **no es un método terminado**.
+- Para declarar `COMPLETA`, exigir análisis narrativo Nivel 1, Nivel 2 con cálculos y fuentes reproducibles, datos históricos, DCF de cuatro escenarios, ROIC / reinversión / márgenes / crecimiento / WACC o Ke, cinco múltiplos económicos principales aplicables (o N/A documentado por tipo de empresa), sensibilidades DCF y de múltiplos, conciliación de valor presente, revisión y auditoría independientes. P/S y P/BV complementarios salvo aplicación relevante como P/BV bancario.
+- El contrato es **revisión-específico**: si cambia el `rutaValoracion` del catálogo, el lector evita heredar una clasificación obsoleta y requiere reclasificación. Si el catálogo aún no tiene el campo durante un despliegue coordinado, mantiene compatibilidad de lectura sin presentar ningún expediente como certificado.
+- Los formatos de matrices `sensibilidadDCF.matrices`, `sensibilidadDCF.matriz` (array o `{wacc,g,valores}`) y FCFE (`{KeEscenarios,gEscenarios,valorPorAccion}`) se interpretan **solo para mostrar datos existentes**, previa verificación de matriz 5×5 y coincidencia del centro con el DCF o FCFE Base publicado. Las otras estructuras no se fabrican.
+
 ## Dos niveles del análisis fundamental
 
-El lector `analisis-lectura.html` / ficha `expediente.html` aplica el [Estilo JMR narrativo](ESTILO_ANALISIS_FUNDAMENTAL_JMR.md): Nivel 1 largo con 13 capítulos de empresa → fundamentales → proceso → supuestos → valor; Nivel 2 desplegable con cálculos. Los legados conservan su estructura hasta actualización. Las tablas breves útiles del artículo no se eliminan. Porter y cinco filosofías dejan de ser obligatorios.
+El lector `analisis-lectura.html` / ficha `expediente.html` aplica el [Estilo JMR narrativo](ESTILO_ANALISIS_FUNDAMENTAL_JMR.md): Nivel 1 largo con 14 capítulos (incluye capítulo 5 de ciclos empresariales, macroeconómicos y de mercado) de empresa → fundamentales → proceso → supuestos → valor; Nivel 2 desplegable con cálculos. Los legados conservan su estructura hasta actualización. Las tablas breves útiles del artículo no se eliminan. Porter y cinco filosofías dejan de ser obligatorios.
 
 ## Fuente única financiera
 1. Resolver ticker en `Modelo-JMR-datos/catalogo.json` ANTES de elegir el archivo de valoración. Las rutas admiten `NKE-20261025-R6.json` y nombres análogos. Si no hay entrada de catálogo, el archivo se muestra como histórico/no conciliado, nunca como versión oficial.

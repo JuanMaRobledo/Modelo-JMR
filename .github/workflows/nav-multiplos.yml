@@ -11,6 +11,8 @@ on:
       - 'docs/model-sync.js'
       - 'docs/editor-hoja.*'
       - 'docs/expediente.js'
+      - 'docs/jmr-sheet-presentation.js'
+      - 'tests/hojas-doble-modo.test.mjs'
       - 'api/model.js'
       - 'lib/model-sheet.js'
       - 'tests/mercado.test.js'
@@ -32,4 +34,5 @@ jobs:
       - run: node --check docs/model-sync.js
       - run: node --check docs/expediente.js
       - run: node --check docs/editor-hoja.js
-      - run: node --test tests/mercado.test.js tests/expediente.test.mjs tests/editor-hoja.test.mjs tests/model-sync.test.mjs
+      - run: node --check docs/jmr-sheet-presentation.js
+      - run: node --test tests/mercado.test.js tests/expediente.test.mjs tests/editor-hoja.test.mjs tests/hojas-doble-modo.test.mjs tests/model-sync.test.mjs

@@ -88,6 +88,9 @@
       <a id="openSheetTab" class="open-sheet-window" href="editor-hoja.html" target="_blank" rel="noopener noreferrer">Abrir esta hoja en nueva pestaña ↗</a>
       <button type="button" id="toggleFullSheet" class="secondary" aria-pressed="true">Ver por bloques</button>
     </div>
+    <section id="presentationView" class="jmr-presentation-view" aria-label="Vista elegante de lectura financiera" hidden></section>
+    <div class="jmr-workbook-switch"><button type="button" class="secondary" id="toggleReaderCoverage" aria-pressed="false" hidden>Mostrar más filas y columnas</button><button type="button" class="secondary" id="toggleSourceGrid" aria-expanded="false" hidden>Ver cuadrícula original y fórmulas</button><span id="presentationNotice">Los valores no se recalculan. Puedes consultar cualquier celda en la cuadrícula.</span></div>
+    <div id="sourceGridPanel">
     <div class="range-toolbar" id="rangeToolbar">
       <div class="page-controls">
         <button type="button" id="prevRows" aria-label="Filas anteriores">↑ Filas</button>
@@ -110,6 +113,7 @@
       <div><span class="inspector-label">Fórmula en Google Sheets</span><code id="inspectorFormula">—</code></div>
     </aside>
     <p class="editor-hint">Celdas con borde destacado: editables. <strong>ƒx</strong>: fórmula protegida. Los datos históricos numéricos de los estados y los supuestos autorizados pueden corregirse; otras celdas son de consulta. Las tasas porcentuales se muestran en % y se guardan con su escala original.</p>
+    </div>
     <aside class="save-panel" aria-label="Cambios preparados">
       <div>
         <h3>Cambios de la hoja</h3>
@@ -127,6 +131,7 @@
 </main>
 <script src="jmr-number-format.js?v=20261020-dos-decimales"></script>
 <script src="model-sync.js?v=20261026-catalogo"></script>
-<script src="editor-hoja.js?v=20261030-dossier-integrado"></script>
+<script src="jmr-sheet-presentation.js?v=20261031-visor-v1"></script>
+<script src="editor-hoja.js?v=20261031-doble-modo-v2"></script>
 </body>
 </html>
