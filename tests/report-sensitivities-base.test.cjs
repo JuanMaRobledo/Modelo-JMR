@@ -78,3 +78,35 @@ test('prioridad WACC terminal por g, luego ROIC/g y después otras matrices; 8 p
   assert.match(html,/76,89%/);
   assert.equal((html.match(/<span class="jmr-base-tag">Base<\/span>/g)||[]).length,8);
 });
+
+test('las matrices nativas Base se leen del JSON, sin fabricar N/D ni usar otra revisión',()=>{
+  const names=['EV/EBITDA','EV/FCFF','P/E','P/FCFE','P/OCF','P/V','P/BV'];
+  const mats=names.map((name,i)=>({
+    metodo:name,escenario:'base',estado:i===1||i===3?'N/D':'OK',
+    multiploElegido:[1,2,3,4,5],fundamentalFY3:[1,2,3,4,5],
+    matriz:i===1||i===3?null:Array.from({length:5},()=>[10,10,10,10,10]),
+    centro:i===1||i===3?null:10,vp3Original:10,
+    motivo:i===1||i===3?'Flujo negativo pendiente de justificar':null
+  }));
+  const rec={ticker:'SHAK',revisionId:'SHAK-R2',sheet_id:'SHEET',
+    descuentoMultiples:{metodos:names.map(nombre=>({nombre,base:{vp:[8,9,10]}}))},
+    sensibilidadMultiples:{
+      contrato:'base-native-five-priority-v1',revisionId:'SHAK-R2',
+      sourceSheetId:'SHEET',resultadosSha256:'a'.repeat(64),
+      estadoPublicacion:'CANDIDATO_NO_PUBLICADO',matrices:mats
+    }
+  };
+  const good=report().renderMultiplesSensitivity(rec);
+  assert.match(good,/Borrador técnico NO publicado/);
+  assert.equal((good.match(/<table class="jmr-table jmr-matrix">/g)||[]).length,5);
+  assert.match(good,/EV\/FCFF[\s\S]*?N\/D/);
+  assert.doesNotMatch(good,/Conservador · siete métodos|Optimista · siete métodos/);
+  const mismatched=JSON.parse(JSON.stringify(rec));
+  mismatched.sensibilidadMultiples.revisionId='MELI-OLD';
+  assert.match(report().renderMultiplesSensitivity(mismatched),/revisión, hoja o fotografía no coincide/);
+  const wrongCenter=JSON.parse(JSON.stringify(rec));
+  wrongCenter.sensibilidadMultiples.matrices[0].matriz[2][2]=111;
+  const html=report().renderMultiplesSensitivity(wrongCenter);
+  assert.match(html,/Matriz ocultada: centro FY\+3/);
+  assert.equal((html.match(/<table class="jmr-table jmr-matrix">/g)||[]).length,4);
+});
