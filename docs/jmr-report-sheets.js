@@ -227,6 +227,10 @@
   function nativeMultiplesSensitivity(record){
     var s=record&&record.sensibilidadMultiples;
     if(!s||s.contrato!=='base-native-five-priority-v1'||!Array.isArray(s.matrices))return '';
+    // Un JSON candidato no forma parte del expediente visible aunque tenga
+    // cifras nativas; debe superar integración y controles del repositorio datos.
+    if(s.estadoPublicacion!=='INTEGRADO_EN_REVISION'||s.controlesTecnicosAprobados!==true)
+      return '<p class="jmr-sheet-note jmr-sheet-warning">Matrices candidatas sin certificación técnica de integración. No se publican como resultados de la empresa.</p>';
     var matches=s.revisionId&&s.revisionId===record.revisionId&&
       s.sourceSheetId&&s.sourceSheetId===record.sheet_id&&
       /^[0-9a-f]{64}$/.test(String(s.resultadosSha256||''));
@@ -259,9 +263,7 @@
       var rows=values.map(function(row,j){return {cells:[y[j]].concat(row)};});
       return matrixTable(name+' · múltiplo × fundamental FY+3 · Base',header,rows,original,i+1);
     }).join('');
-    var note=s.estadoPublicacion==='CANDIDATO_NO_PUBLICADO'?
-      'Borrador técnico NO publicado. Las matrices requieren conciliación y revisión antes de ser oficiales.':
-      'Matrices nativas de la hoja; revisión y centro FY+3 comprobados. No constituye auditoría económica.';
+    var note='Matrices nativas integradas en EN_REVISION y revisadas técnicamente; pendientes de auditoría económica independiente.';
     return '<p class="jmr-sheet-note">'+esc(note)+'</p><details class="jmr-sheet-panel" open>'+
       '<summary>Base · siete métodos (cinco prioritarios, dos complementarios)</summary>'+
       '<div class="jmr-matrix-grid">'+details+'</div></details>';
