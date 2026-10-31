@@ -1595,8 +1595,10 @@
   var promptKind = 'research', defaultPrompts = {};
   try { if (localStorage.getItem('jmr-prompt-kind') === 'valuation') promptKind = 'valuation'; } catch (e) {}
   var CO_PROMPTS = {
-    research: { file: 'prompts/colombia-research-v1.md', key: 'jmr-colombia-research-prompt-v1', download: 'JMR-Colombia-Research.md', title: 'Prompt de análisis fundamental · Colombia', btn: 'promptKindResearch', help: 'Análisis de acciones colombianas con fuentes del emisor y contexto local.', note: 'Núcleo Colombia, unidades y moneda del expediente; misma estructura de análisis.' },
-    valuation: { file: 'prompts/colombia-valuation-v1.md', key: 'jmr-colombia-valuation-prompt-v1', download: 'JMR-Colombia-Valoracion.md', title: 'Prompt de valoración · Colombia', btn: 'promptKindValuation', help: 'Valoración por sector: empresas operativas, entidades financieras y holdings.', note: 'Conserva COP, fecha de análisis, fuentes y conciliaciones del expediente Colombia.' }
+    // Los archivos Colombia v1 son antecedentes históricos, no prompts activos.
+    // El contexto local se antepone al mismo prompt maestro 1/3 o 2/3 vigente.
+    research: { file: 'prompts/research-fundamental-jmr-v5.md', key: 'jmr-colombia-research-v23-20261030', download: 'JMR-Colombia-Analisis-v23.md', title: 'Análisis JMR · Colombia · 14 capítulos', btn: 'promptKindResearch', help: 'Informe extenso de 14 capítulos, ciclos y Nivel 2, con fuentes colombianas.', note: 'Núcleo local solo contextual. REGLAS_VIGENTES.md y el prompt maestro 2/3 prevalecen; Porter no es obligatorio.' },
+    valuation: { file: 'prompts/valoracion-modelo-jmr-v5.md', key: 'jmr-colombia-valuation-v23-20261030', download: 'JMR-Colombia-Valoracion-v23.md', title: 'Valoración JMR · Colombia · Método A/B', btn: 'promptKindValuation', help: 'DCF/FCFE/SOTP según sector con cinco múltiplos prioritarios aplicables.', note: 'Núcleo local para BVC, COP y fuentes; reglas maestras 1/3 y calibración A/B sin ponderaciones históricas impuestas.' }
   };
   function currentPrompt(){ return (JMR_MERCADO === 'colombia' ? CO_PROMPTS : PROMPTS)[promptKind]; }
   document.addEventListener('jmr-market-change', function(){defaultPrompts={};renderLibrary();populateCompareSelects();loadPrompt(false);});
