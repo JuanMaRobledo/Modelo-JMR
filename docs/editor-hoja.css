@@ -181,3 +181,7 @@ html.jmr-embedded-workbook #sheetPicker{min-width:160px;max-width:100%;width:100
 html.jmr-embedded-workbook .jmr-reader-table-scroll{max-width:100%;overflow-x:auto}
 html.jmr-embedded-workbook .jmr-reader-group thead th{position:sticky;top:0;z-index:2}
 @media(max-width:700px){html.jmr-embedded-workbook .toolbar{position:static}html.jmr-embedded-workbook .toolbar-title:has(#sheetPicker){flex-basis:100%}}
+
+/* Los controles originales de cuadrícula solo se ven cuando se usa esa cuadrícula. */
+html.jmr-view-only:not(.jmr-show-grid) #toggleFullSheet{display:none!important}
+html.jmr-embedded-workbook #openSheetTab{display:none!important}
