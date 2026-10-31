@@ -2,6 +2,16 @@
 
 **Única fuente del menú:** `docs/mercado.js`, estilo en `docs/jmr-theme.css`. No incorporar menús nuevos independientes.
 
+## Dos modos de la ficha única (31-oct-2026)
+
+La ficha conserva siete pestañas, sin rutas principales duplicadas. En **Visor** (predeterminado), muestra análisis, DCF, múltiplos, estados financieros, indicadores, supuestos, sensibilidades y observaciones en modo de lectura. Las hojas se abren con `modo=visor`: no se renderizan campos editables, no se habilita Guardar y se bloquea el envío de PATCH desde el visor. El usuario puede cambiar de sección sin publicar nada.
+
+En **Edición**, los estados financieros, indicadores y supuestos usan el editor de `editor-hoja.html` y conservan el enlace a la hoja original `hojaGoogle` de la valoración activa; si ese enlace no está verificado, no se inventa. Solo las entradas autorizadas se pueden escribir desde la app, con confirmación y revisión de respuesta; las fórmulas se editan directamente en Google Sheets con los permisos de Drive. Valoración y sensibilidades abren su hoja fuente para edición, sin editar el JSON del DCF automáticamente.
+
+El **análisis fundamental** abre `research.html` con la ruta exacta `analisis/` del catálogo, conservando la barra de edición y el guardado. Si no hay análisis vigente, no se atribuye a la empresa una revisión histórica. La **revisión y auditoría** presenta las observaciones como solo lectura en Visor y habilita su formulario en Edición. Ningún guardado desde estos componentes publica automáticamente una nueva valoración ni acredita la auditoría económica.
+
+El cambio entre modos verifica si el editor de hojas tiene borradores pendientes antes de descartar el contenido incrustado. El permiso de escritura real se sigue validando en el servidor y en Google Sheets, nunca por un simple selector visual.
+
 ## Entradas: una empresa, una ficha
 
 - **Única portada de empresas y análisis:** `expediente.html?seccion=analisis`. El catálogo permite filtrar Todas, Internacionales y Colombia.
