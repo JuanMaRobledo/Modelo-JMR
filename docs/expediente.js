@@ -264,7 +264,7 @@ function safeSheetTitle(value){return String(value||'').replace(/[<>]/g,'');}
 function currentSheet(view){
   const options=SHEETS_BY_VIEW[view]||[];
   const requested=state.sheetByView[view]||(!state.sheet&&view===state.view?params.get('sheet'):'');
-  return options.includes(requested)?requested:options[0];
+  return requested&&typeof requested==='string'&&requested.length<=140?requested:options[0];
 }
 function renderSheetSubtabs(view){
   const host=el('sheetSubtabs'),info=el('sheetGroupInfo');
@@ -278,7 +278,8 @@ function renderSheetSubtabs(view){
     indicadores:'Ratios y calidad financiera: valoración de mercado, márgenes, eficiencia y deuda.',
     modelo:'Hojas principales; el selector dentro del modelo permite consultar las 46 pestañas y anexos, incluidas las ocultas.'};
   info.textContent=titles[view];
-  names.forEach(name=>{
+  const choices=names.includes(current)?names:[...names,current];
+  choices.forEach(name=>{
     const button=document.createElement('button');
     button.type='button';button.dataset.sheet=name;button.textContent=name;
     button.classList.toggle('active',name===current);
@@ -399,7 +400,7 @@ function syncReviewMode(){
 }
 function selectWorkbookSheet(view,name){
   const frame=el('viewFrame');
-  if(!SHEETS_BY_VIEW[view]?.includes(name)&&!['valoracion','sensibilidades'].includes(view))return;
+  if(!['valoracion','sensibilidades'].includes(view)&&(!SHEETS_BY_VIEW[view]||typeof name!=='string'||!name.trim()||name.length>140))return;
   state.sheet=name;state.sheetByView[view]=name;
   const mode=state.displayMode;
   const base='editor-hoja.html?ticker='+encodeURIComponent(state.ticker)+'&sheet='+encodeURIComponent(name)+'&modo='+mode;
@@ -681,7 +682,7 @@ window.addEventListener('message',event=>{
   if(!SHEETS_BY_VIEW[state.view])return;
   // Un cambio del selector de las 46 hojas se refleja en la ruta del expediente.
   state.sheet=data.sheet;
-  if(SHEETS_BY_VIEW[state.view].includes(data.sheet))state.sheetByView[state.view]=data.sheet;
+  state.sheetByView[state.view]=data.sheet;
   document.querySelectorAll('#sheetSubtabs button[data-sheet]').forEach(button=>{
     const selected=button.dataset.sheet===data.sheet;
     button.classList.toggle('active',selected);button.setAttribute('aria-pressed',String(selected));
