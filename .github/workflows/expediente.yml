@@ -13,6 +13,10 @@ on:
       - 'tests/expediente.test.mjs'
       - 'tests/expediente-native-base.test.mjs'
       - 'tests/expediente-modos.test.mjs'
+      - 'docs/analisis-a12-revision.html'
+      - 'docs/analisis-a12-revision.js'
+      - 'docs/revisiones-a12/**'
+      - 'tests/analisis-a12-revision.test.mjs'
       - '.github/workflows/expediente.yml'
   push:
     branches: [main]
@@ -28,6 +32,10 @@ on:
       - 'tests/expediente.test.mjs'
       - 'tests/expediente-native-base.test.mjs'
       - 'tests/expediente-modos.test.mjs'
+      - 'docs/analisis-a12-revision.html'
+      - 'docs/analisis-a12-revision.js'
+      - 'docs/revisiones-a12/**'
+      - 'tests/analisis-a12-revision.test.mjs'
       - '.github/workflows/expediente.yml'
 jobs:
   frontend:
@@ -37,4 +45,4 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node --test tests/expediente.test.mjs tests/expediente-native-base.test.mjs tests/expediente-modos.test.mjs
+      - run: node --test tests/expediente.test.mjs tests/expediente-native-base.test.mjs tests/expediente-modos.test.mjs tests/analisis-a12-revision.test.mjs
