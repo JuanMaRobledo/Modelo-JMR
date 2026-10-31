@@ -14,7 +14,7 @@ test('normalizes tickers and rejects paths/URLs',()=>{
   for(const key of ['../x','https://foo','', 'A'.repeat(25)])assert.throws(()=>tickerKey(key));
 });
 test('unpacks sparse Sheets grid with precision, formulas, zero and offsets',()=>{
-  const result=unpackSheets({sheets:[{properties:{title:'Input sheet'},data:[{startRow:25,startColumn:1,rowData:[{values:[{userEnteredValue:{numberValue:.123456789},effectiveValue:{numberValue:.123456789},formattedValue:'12.35%'},{userEnteredValue:{formulaValue:'=0'},effectiveValue:{numberValue:0},formattedValue:'0'}]}]}]}]});
+  const result=unpackSheets({sheets:[{properties:{title:'Input sheet',sheetId:0},data:[{startRow:25,startColumn:1,rowData:[{values:[{userEnteredValue:{numberValue:.123456789},effectiveValue:{numberValue:.123456789},formattedValue:'12.35%'},{userEnteredValue:{formulaValue:'=0'},effectiveValue:{numberValue:0},formattedValue:'0'}]}]}]}]});
   assert.equal(result['Input sheet'].B26.v,.123456789);assert.equal(result['Input sheet'].C26.v,0);assert.equal(result['Input sheet'].C26.formula,'=0');
 });
 test('revision tracks inputs but ignores volatile effective recalculations',()=>{
@@ -58,13 +58,13 @@ test('API resolves the correct company, writes RAW inputs, rejects a stale revis
     else if(url.includes('raw.githubusercontent'))body={ticker:'AAPL',hojaGoogle:'https://docs.google.com/spreadsheets/d/sheet-test/edit'};
     else if(url.includes('oauth2.googleapis'))body={access_token:'test-google-token',expires_in:3600};
     else if(url.includes('values:batchUpdate')){body=JSON.parse(options.body);assert.equal(body.valueInputOption,'RAW');assert.equal(body.data[0].range,"'Input sheet'!B26");value=body.data[0].values[0][0];writes++;body={updatedCells:1};}
-    else if(url.includes('sheets.googleapis')){assert.ok(decodeURIComponent(url).includes('fields=sheets(properties(title),data(startRow,startColumn,rowData(values(userEnteredValue,effectiveValue,formattedValue))))'));body={sheets:[{properties:{title:'Input sheet'},data:[{startRow:25,startColumn:1,rowData:[{values:[{userEnteredValue:{numberValue:value},effectiveValue:{numberValue:value},formattedValue:'12%'}]}]}]}]};}
+    else if(url.includes('sheets.googleapis')){assert.ok(decodeURIComponent(url).includes('fields=sheets(properties(title,sheetId),data(startRow,startColumn,rowData(values(userEnteredValue,effectiveValue,formattedValue))))'));body={sheets:[{properties:{title:'Input sheet'},data:[{startRow:25,startColumn:1,rowData:[{values:[{userEnteredValue:{numberValue:value},effectiveValue:{numberValue:value},formattedValue:'12%'}]}]}]}]};}
     else throw new Error('Unexpected URL '+url);
     return {ok:true,json:async()=>body};
   };
   try{
     const headers={cookie:'jmr_sso_session='+createSession(),origin:'https://app.example',host:'app.example','content-type':'application/json'};
-    let res=response();await handler({method:'GET',query:{ticker:'aapl'},headers},res);assert.equal(res.statusCode,200);const version=res.body.revision;assert.equal(res.body.record.ticker,'AAPL');assert.equal(JSON.stringify(res.body).includes('test-google-token'),false);
+    let res=response();await handler({method:'GET',query:{ticker:'aapl'},headers},res);assert.equal(res.statusCode,200);const version=res.body.revision;assert.equal(res.body.record.ticker,'AAPL');assert.equal(res.body.sheetGids['Input sheet'],0);assert.equal(JSON.stringify(res.body).includes('test-google-token'),false);
     res=response();await handler({method:'PATCH',query:{ticker:'AAPL'},headers,body:{revision:version,changes:[{sheet:'Input sheet',cell:'B26',previous:.12,value:.13}]}},res);assert.equal(res.statusCode,200);assert.equal(writes,1);assert.equal(res.body.sheets['Input sheet'].B26.v,.13);
     res=response();await handler({method:'PATCH',query:{ticker:'AAPL'},headers,body:{revision:version,changes:[{sheet:'Input sheet',cell:'B26',previous:.12,value:.99}]}},res);assert.equal(res.statusCode,409);assert.equal(writes,1);
   }finally{global.fetch=oldFetch;delete process.env.APP_PASSWORD;delete process.env.GOOGLE_SERVICE_ACCOUNT_JSON_CONTENT;}
