@@ -243,7 +243,6 @@ function openCompany(input){
   if(metodo.estado==='INCOMPLETA_EN_REVISION')el('revisionNotice').textContent+=' · MODELO A INCOMPLETO / EN_REVISIÓN: faltan conciliaciones, múltiplos o controles independientes.';
   el('dossier').hidden=false;el('empty').hidden=true;
   el('catalogSection').hidden=true; // Al abrir una empresa, el artículo es lo primero después del buscador.
-  readAuditNotes(t);
   loadMosSummary(t,p,mosRequest).catch(()=>{});
   showView(DOSSIER_VIEWS.includes(state.view)?state.view:'analisis');
   if(!p.official)status(t+' · Sin entrada oficial completa de valoración en catálogo; consulta disponible con reservas.','warning');
