@@ -1,0 +1,50 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {Script} from 'node:vm';
+const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
+const root='docs/revisiones-a12/';
+const cases=[['META',780.630296103935],['NVDA',201.44597794111647],['XP',14.475590094736917]];
+test('Visor de revisión no reemplaza catálogo, tiene whitelist y no permite editar candidato',()=>{
+ const js=read('docs/analisis-a12-revision.js');
+ const home=read('docs/expediente.js');
+ const html=read('docs/analisis-a12-revision.html');
+ const dossier=read('docs/expediente.html');
+ new Script(js);new Script(home);
+ assert.match(js,/REVIEW_TICKERS=new Set\(\['META','NVDA','XP'\]\)/);
+ assert.match(js,/PREPUBLICACION_CONTROLADA/);
+ assert.match(js,/safeArticle\(markup\)/);
+ assert.match(js,/tagName==='A'/);
+ assert.match(js,/val\.publicadaEnApp!==false/);
+ assert.match(home,/isA12Review\(t\)/);
+ assert.match(home,/state\.displayMode==='edicion'&&!isA12Review\(state\.ticker\)/);
+ assert.match(home,/A12_REVIEW_TICKERS/);
+ assert.match(dossier,/id="candidateSwitch"/);
+ assert.match(html,/EN_REVISIÓN · revisión visual/);
+ assert.match(html,/jmr-theme\.css/);
+ assert.match(home,/const RAW='https:\/\/raw\.githubusercontent\.com\/'.*'\/main\/'/);
+});
+for(const [ticker,value] of cases){
+ test(ticker+' copia autocontenida A-1.2 con escenarios y 18/12 sin certificar datos',()=>{
+ const v=JSON.parse(read(root+ticker+'-valoracion.json'));
+ const a=JSON.parse(read(root+ticker+'-analisis.json'));
+ assert.equal(v.ticker,ticker);assert.equal(a.ticker,ticker);
+ assert.equal(v.version_metodo,'A-1.2');assert.equal(a.version_metodo,'A-1.2');
+ assert.equal(v.revisionId,a.revisionId);
+ assert.equal(a.linkedValuation.revisionId,v.revisionId);
+ assert.equal(v.publicationStage,'PREPUBLICACION_CONTROLADA');
+ assert.equal(v.valorVigenteEnCatalogo,false);
+ assert.equal(v.publicadaEnApp,false);
+ assert.equal(v.certificacionEconomica,'NO_CERTIFICADA');
+ assert.equal(v.valorPrincipal,value);
+ assert.ok(Math.abs(v.precioMOS-v.valorPrincipal*.65)<1e-8);
+ assert.equal(a.jmrNarrative.nivel1Capitulos,18);
+ assert.equal(a.jmrNarrative.nivel2Apartados,12);
+ assert.equal((a.articleHtml.match(/<h2 id="jmr-n1-/g)||[]).length,18);
+ assert.equal((a.calculationHtml.match(/<h2 id="jmr-n2-/g)||[]).length,12);
+ assert.deepEqual(v.valorEsperado.historias.map(s=>s.id).sort(),['A','B','C','D']);
+ assert.equal(v.valorEsperado.disrupcionSeparada,true);
+ assert.equal(v.auditPendingUserVisualReview,true);
+ assert.match(v.hojaGoogle,/^https:\/\/docs\.google\.com\/spreadsheets\/d\//);
+ });
+}
