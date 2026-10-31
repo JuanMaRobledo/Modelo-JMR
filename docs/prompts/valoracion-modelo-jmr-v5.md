@@ -1,6 +1,6 @@
 # PROMPT MAESTRO 1/3 — VALORACIÓN JMR · v5 · 21-OCT-2026
 
-**Selección de método (28-oct-2026):** antes de cualquier juicio sobre supuestos, identificar `metodo_valoracion = A|B` y `version_metodo`. Leer [`modelo/METODOS_VALORACION.md`](../../modelo/METODOS_VALORACION.md) y después [`modelo/METODO_A_JMR.md`](../../modelo/METODO_A_JMR.md) o [`modelo/METODO_B_JMR.md`](../../modelo/METODO_B_JMR.md). Método A usa drivers, outside view y controles conjuntos; Método B conserva el proceso tradicional. Compartir exclusivamente motores y controles del documento `modelo/REGLAS_VIGENTES.md`. Los estudios anteriores sin etiqueta son B; **nunca convertirlos a A silenciosamente**. Una valoración nueva sin método explícito debe indicar que se aplicará B por compatibilidad o solicitar selección antes de estimar. La existencia de esta instrucción **no equivale a un selector automático en la app**.
+**Selección de método (28-oct-2026):** antes de cualquier juicio sobre supuestos, identificar `metodo_valoracion = A|B` y `version_metodo`. Leer [`modelo/METODOS_VALORACION.md`](../../modelo/METODOS_VALORACION.md) y después [`modelo/METODO_A_JMR.md`](../../modelo/METODO_A_JMR.md) o [`modelo/METODO_B_JMR.md`](../../modelo/METODO_B_JMR.md). Método A usa drivers, outside view y controles conjuntos; Método B conserva el proceso tradicional. Compartir exclusivamente motores y controles del documento `modelo/REGLAS_VIGENTES.md`. Los estudios anteriores sin etiqueta son B; **nunca convertirlos a A silenciosamente**. Para nuevas revisiones utilizar A / A-1.2, salvo elección expresa de B por el usuario. Registrar y comunicar el método antes de estimar; conservar la interpretación B únicamente para leer revisiones históricas sin etiqueta. La existencia de esta instrucción **no equivale a un selector automático en la app**.
 
 **Alcance exclusivo:** valorar UNA empresa (una clase de acción, una fecha de corte) con criterio Damodaran. Este
 prompt no crea el análisis fundamental ni la auditoría. Debe dar el mismo resultado con cualquier modelo de lenguaje:
@@ -312,3 +312,4 @@ Solo si tienes acceso al repositorio (cualquier modelo o persona puede correrlo;
 
 La versión anterior de este prompt (v4, dependiente de una hoja y unas herramientas concretas y con reglas de
 múltiplos superpuestas) está en `docs/prompts/archivo/`.
+

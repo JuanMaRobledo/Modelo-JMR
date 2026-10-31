@@ -36,7 +36,7 @@ Cada **nueva revisión** debe registrar al inicio en el expediente de valoració
 ```
 
 - Para revisiones nuevas: `A`/`A-1.2` o `B`/`B-15`; se conservan `A`/`A-1.0` y `A`/`A-1.1` para expedientes anteriores. No se admiten etiquetas mixtas `A+B` en una sola revisión.
-- **Nuevas valoraciones:** escoger A o B explícitamente. Si no se indica cuál, el proceso **no debe inventarlo**; se conserva B como compatibilidad de herramientas anteriores, pero se informa la elección B antes de valorar. No se activa A silenciosamente.
+- **Nuevas valoraciones:** utilizar A / A-1.2 como metodología vigente, salvo elección expresa de B por el usuario. Registrar e informar el método antes de estimar. No convertir revisiones previas a A ni afirmar que existe un selector automático en la app.
 - **Revisiones previas sin campo:** interpretar como `B` legado para lectura y comparación, **sin reescribir archivos, resultados, estados ni auditorías**.
 - Toda ficha de A requiere trazabilidad de drivers, tasas base y coherencia según A. No basta declarar `A` en el JSON.
 - La etiqueta del método debe acompañar valoración, análisis y auditoría de una misma revisión. El análisis no recalcula el valor.
@@ -57,3 +57,4 @@ Para toda revisión nueva A, completar y explicar el panel de reinversión del t
 ## Calibración A-1.2 (28-oct-2026)
 
 La calibración de supuestos de una revisión nueva A sigue `METODO_A_JMR.md` §A.5.2: comparar modelos a igual corte, ROIC terminal sostenible con ventaja competitiva documentada, ventas/capital **marginal** y no promedio, margen y reinversión coherentes, y puente de activos/fondeo para negocios mixtos. No establece números universales de ROIC, S/C ni WACC, no cambia el motor ni el Método B. El piloto MELI-A2 se mantiene EN_REVISION, sin auditoría independiente; no implica integración automática de la app.
+

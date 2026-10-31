@@ -4,7 +4,7 @@
   var LOCAL_KEY = 'jmr-research-library-v1';
   // Clave nueva: los cambios locales del antiguo prompt de 21 secciones
   // no deben ocultar la versión maestra v4 al actualizar la aplicación.
-  var PROMPT_KEY = 'jmr-research-prompt-v19-narrativo-20261030';
+  var PROMPT_KEY = 'jmr-research-prompt-v23-14-capitulos-20261030';
   var GH_REPO_API = 'https://api.github.com/repos/JuanMaRobledo/Modelo-JMR-datos/';
   var GH_API = GH_REPO_API + 'contents/';
   // Algunos logos del CDN de FMP desaparecen aunque la empresa siga
@@ -1587,7 +1587,7 @@
       title: 'Estilo JMR v23 · 14 capítulos · dos niveles', btn: 'promptKindResearch',
       help: 'Úsalo en ChatGPT o Claude junto con la tabla del Modelo JMR. La narrativa explica el negocio, los fundamentales y nuestros supuestos; el anexo cuantitativo queda en Nivel 2.',
       note: 'Adjunta la tabla JMR y los informes disponibles. Revisión 30-oct-2026: Estilo JMR de 14 capítulos, sin Porter obligatorio; Método A/B en la valoración, DCF Base principal, resultados oficiales y Nivel 2 cuantitativo.' },
-    valuation: { file: 'prompts/valoracion-modelo-jmr-v5.md', key: 'jmr-valuation-prompt-v5-20261021', download: 'JMR - PROMPT Valoracion VIGENTE v5.md',
+    valuation: { file: 'prompts/valoracion-modelo-jmr-v5.md', key: 'jmr-valuation-prompt-a12-20261030', download: 'JMR - PROMPT Valoracion VIGENTE v5.md',
       title: 'Prompt de valoración v5 · cualquier modelo de lenguaje', btn: 'promptKindValuation',
       help: 'Arma el Modelo JMR de punta a punta (SEC EDGAR, costo de capital, supuestos anclados, bugs conocidos, guardado en Drive) y elige los múltiplos con tres anclas documentadas: historia depurada, peers ajustados y múltiplo justificado.',
       note: 'DCF Base al presente primero. Siempre muestra métodos individuales, ponderado de múltiplos solos y ponderado DCF + múltiplos, tanto al presente como a 3 años sin descontar; pesos y dividendos explícitos. Fórmula única en todas las hojas (maestra + contrato): solo cambian datos enlazados y supuestos. Cuatro historias: Base, Conservadora, Disrupción y Optimista. Precio al final.' }
@@ -1733,3 +1733,4 @@
   });
   if ('serviceWorker' in navigator) window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});
 })();
+

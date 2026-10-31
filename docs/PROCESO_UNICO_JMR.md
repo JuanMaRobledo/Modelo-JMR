@@ -4,7 +4,7 @@
 
 ## Selección previa del método
 
-Para cada revisión nueva consignar expresamente `Método A` (calibración por drivers y base rates) o `Método B` (JMR tradicional). Documento selector: [`modelo/METODOS_VALORACION.md`](../modelo/METODOS_VALORACION.md). A y B comparten el motor y los controles. Las revisiones antiguas sin etiqueta se leen como B sin modificarlas. **El selector de la app y el ejecutor no están adaptados todavía:** esta elección es normativa/documental hasta su integración técnica y regresión.
+Para cada revisión nueva consignar expresamente `Método A` / `A-1.2` (calibración por drivers y base rates), salvo elección expresa de `Método B` (JMR tradicional) por el usuario. Documento selector: [`modelo/METODOS_VALORACION.md`](../modelo/METODOS_VALORACION.md). A y B comparten el motor y los controles. Las revisiones antiguas sin etiqueta se leen como B sin modificarlas. **El selector de la app y el ejecutor no están adaptados todavía:** esta elección es normativa/documental hasta su integración técnica y regresión.
 
 ## Una instrucción para cualquier herramienta
 
@@ -53,3 +53,4 @@ En la aplicación, `editor-hoja.html?ticker=<T>` modifica celdas permitidas si h
 Cada IA debe dejar el mismo resumen estructurado: **ticker, operación, corte, revisión, `sheet_id`, enlaces de las tres piezas, estado de los controles, faltantes materiales, qué se modificó y estado de publicación (NO PUBLICADO/EN_REVISIÓN/AUDITADO)**. No reiniciar un trabajo ya completado; retomar desde el primer paso realmente pendiente y distinguir hecho verificado de intención.
 
 **Esta guía no cambia el método, las ponderaciones, los resultados ni las fórmulas.** Cualquier cambio metodológico se hace únicamente en `REGLAS_VIGENTES.md`, con revisión y pruebas.
+

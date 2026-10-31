@@ -3,6 +3,18 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
 const root = new URL('../docs/prompts/', import.meta.url);
+test('nuevas revisiones usan A-1.2; B queda disponible y el legado no se convierte',()=>{
+  const paths=['../modelo/REGLAS_VIGENTES.md','../modelo/METODOS_VALORACION.md',
+    '../docs/PROCESO_UNICO_JMR.md','../docs/prompts/valoracion-modelo-jmr-v5.md'];
+  for(const p of paths){
+    const s=fs.readFileSync(new URL(p,import.meta.url),'utf8');
+    assert.match(s,/A-1\.2/);
+    assert.match(s,/salvo elección expresa de.*B/);
+  }
+  const rules=fs.readFileSync(new URL(paths[0],import.meta.url),'utf8');
+  assert.match(rules,/exclusivamente para leer revisiones históricas/);
+  assert.doesNotMatch(rules,/nunca A por defecto/);
+});
 const docs = [
   {file:'valoracion-modelo-jmr-v5.md',role:'1/3',title:'VALORACIÓN',kind:'maestro'},
   {file:'research-fundamental-jmr-v5.md',role:'2/3',title:'ANÁLISIS FUNDAMENTAL',kind:'maestro'},
@@ -89,6 +101,9 @@ test('las referencias activas y la interfaz usan el mismo contrato editorial',()
   assert.match(rules,/\*\*Versión 23 · 30-oct-2026/);
   assert.match(process,/tres prompts maestros activos/i);
   assert.match(interfaceJs,/Índice JMR de 14 capítulos/);
+  assert.match(interfaceJs,/jmr-research-prompt-v23-14-capitulos-20261030/);
+  assert.match(interfaceJs,/jmr-valuation-prompt-a12-20261030/);
+  assert.doesNotMatch(interfaceJs,/jmr-research-prompt-v19-narrativo-20261030/);
   assert.doesNotMatch(interfaceJs,/Estilo JMR de 13 capítulos|Índice JMR de 13 capítulos/);
 });
 
@@ -104,3 +119,4 @@ test('Colombia comparte los tres prompts maestros y no revive Porter ni el índi
   assert.match(local,/Auditoría 3\/3/);
   assert.doesNotMatch(local,/Research v5: 18 secciones|cinco fuerzas de Porter.*obligatorio/i);
 });
+
