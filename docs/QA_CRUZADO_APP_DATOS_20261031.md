@@ -16,9 +16,19 @@
 4. Confirmar índice único, enlaces, estados históricos no duplicados, navegación de retorno, precio de mercado fechado, DCF Base, MOS 35%, cuatro escenarios cuando existen, origen de ratios, fórmulas y fuente de cada tabla.
 5. Confirmar sensibilidad DCF y de múltiplos sin números inventados: en SHAK/MELI renderizar cinco matrices OK y dos N/A con motivo; en UBER/GOOGL/INTU/NU no presentar valores relativos como auditados. Para la matriz nativa, cotejar 25 cifras, ejes y centro FY+3 con el JSON y la hoja.
 6. Comprobar formularios de observaciones por ticker/revisión (no guardar en otra ficha), y que la auditoría económica no se inicia al pulsar LISTO.
-7. Adjuntar resultados visuales/funcionales (capturas redacted de escritorio/móvil, siete pestañas, revisión/hash, errores, correcciones) y las ejecuciones CI exactas. Solo tras resolver el gate financiero de #211 y las discrepancias hoja→JSON considerar fusión.
+7. Adjuntar resultados visuales/funcionales (capturas sin secretos de escritorio/móvil, siete pestañas, revisión/hash, errores, correcciones) y las ejecuciones CI exactas. Evaluar por separado la aceptación de la app y la aprobación financiera del catálogo: no equiparar una prueba visual con una auditoría económica.
 
-## Criterio de «limpieza terminada»
-Un PR con 8 workflows verdes no basta: se requiere catálogo y controles financieros aprobados, fuente de datos cruzada, acceso autenticado, QA de interfaz y despliegue de producción verificado. Hasta entonces conservar estado EN_REVISION y PR en borrador.
+## Dos cierres independientes: no ampliar el alcance de limpieza
 
-La vigilancia diaria de cierre es informativa y de solo lectura. No reemplaza esta validación real.
+**A. Saneamiento técnico y estandarización de la app.** Se cierra solamente cuando:
+- La app conserva una portada y una ficha única por ticker, con siete pestañas utilizables, subpestañas financieras, múltiplos visibles incluso si indican N/D, índice y enlaces sin duplicidad funcional.
+- El catálogo elige una única revisión activa por ticker; los históricos se conservan, pero no se mezclan con la ficha vigente. Las 20 empresas comparten el contrato editorial y de presentación, sin exigir que todas tengan valores relativos aprobados.
+- Las pruebas automatizadas del código de app y del contrato editorial/catalogación pasan en sus ámbitos, sin llamar «verde» al gate financiero separado.
+- El Preview tiene acceso autenticado comprobado, datos de origen identificados y QA visual real en escritorio y móvil; cualquier vista de la rama #211 se prueba con fuente de datos de esa MISMA revisión, sin alterar `main` ni los controles de acceso.
+- Se valida el despliegue previsto antes de decir «app saneada». Nunca inferirlo de READY o de 8 workflows verdes.
+
+**B. Calidad y aprobación económica por empresa.** Permanece independiente: reconstruir anclas UBER/GOOGL; integrar nativos INTU/NU con semántica correcta; conciliar las seis ponderaciones divergentes; revisar 20 Nivel 2 y fuentes; cerrar el gate financiero de #211, seguido de revisión visual y auditoría económica según el proceso JMR. Ninguna excepción financiera se convierte en cero, en «N/A» ficticio ni en resultado aprobado para acelerar el saneamiento técnico.
+
+**Regla de control del alcance:** los nuevos hallazgos de empresa se registran en el expediente correspondiente, no se agregan como tareas de rediseño de la app salvo que demuestren una falla reutilizable del lector. No fusionar el PR financiero #211 ni publicar valores no conciliados. El PR de app #151 requiere su propio QA autenticado antes de fusionar, aunque el gate financiero siga abierto.
+
+La vigilancia diaria de cierre es informativa y de solo lectura; no reemplaza pruebas ni correcciones.
