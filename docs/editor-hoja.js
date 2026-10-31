@@ -1,6 +1,8 @@
 /* Editor de libro JMR: consulta de todas las pestañas, escritura segura de datos fuente. */
 (function(global){
   'use strict';
+  const forceViewer=!!global.location&&new URLSearchParams(global.location.search).get('modo')==='visor';
+  if(forceViewer&&typeof document!=='undefined')document.documentElement.classList.add('jmr-view-only');
   function byId(id){return document.getElementById(id);}
   function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
   function colNumber(letters){var n=0;for(var c of letters)n=n*26+c.charCodeAt(0)-64;return n;}
@@ -169,8 +171,8 @@
   function setMode(){
     var n=byId('editState');
     if(!snapshot){n.textContent='Sin modelo';n.dataset.mode='neutral';return;}
-    n.textContent=snapshot.writable?'Conexión de edición disponible':'Solo lectura';
-    n.dataset.mode=snapshot.writable?'writable':'readonly';
+    n.textContent=forceViewer?'Visor · solo lectura':snapshot.writable?'Conexión de edición disponible':'Solo lectura · acceso a Drive';
+    n.dataset.mode=!forceViewer&&snapshot.writable?'writable':'readonly';
   }
   function bounds(sheet){
     if(dimensions[sheet])return dimensions[sheet];
@@ -212,7 +214,7 @@
       for(var ci=startCol;ci<=endCol;ci++){
         var address=colName(ci)+row,c=source[address],id=selected+'!'+address,d=drafts.get(id);
         if(!c){display+='<td class="empty-cell'+(ci===startCol?' first-source-col':'')+'" data-cell="'+address+'" aria-label="'+address+' vacía"></td>';continue;}
-        var edit=isEditable(selected,address,c,!!snapshot.writable),n=normalizedNumber(c);
+        var edit=!forceViewer&&isEditable(selected,address,c,!!snapshot.writable),n=normalizedNumber(c);
         if(edit){
           var fmt=formatNumber(c,d?d.value:n);
           display+='<td class="editable-cell'+(d?' dirty':'')+(ci===startCol?' first-source-col':'')+'" data-cell="'+esc(address)+'" title="'+esc(address)+' · dato editable">'+
@@ -239,7 +241,7 @@
   function pending(){
     var n=byId('pendingChanges'),save=byId('saveChanges'),discard=byId('discardChanges');
     n.textContent=drafts.size?drafts.size+' cambio(s) pendiente(s)':'No hay cambios pendientes';
-    save.disabled=!drafts.size||busy||!snapshot?.writable;
+    save.disabled=forceViewer||!drafts.size||busy||!snapshot?.writable;
     discard.disabled=!drafts.size||busy;
     var html=[];
     drafts.forEach(function(d){
@@ -267,7 +269,7 @@
     }).join('');
     var single=byId('openSheetTab');
     if(single){
-      single.href='editor-hoja.html?ticker='+encodeURIComponent(ticker)+'&sheet='+encodeURIComponent(selected);
+      single.href='editor-hoja.html?ticker='+encodeURIComponent(ticker)+'&sheet='+encodeURIComponent(selected)+'&modo='+(forceViewer?'visor':'edicion');
       single.textContent='Abrir «'+selected+'» en nueva pestaña ↗';
     }
   }
@@ -309,6 +311,7 @@
     byId('calcLink').href='calculadora.html?ticker='+encodeURIComponent(ticker);
     setMode();selectSheet(chosen);pending();updateMultiplesStatus();
     if(result.catalogAvailable && !result.official)setStatus('Hoja recuperada fuera del catálogo oficial: solo lectura hasta conciliar esta versión. No se modificarán fórmulas ni resultados.','warn');
+    else if(forceViewer)setStatus('Visor del libro oficial: consulta valores y fórmulas sin modificar la hoja.','neutral');
     else if(result.writable)setStatus('Libro oficial importado. Edita solo celdas permitidas y confirma “Guardar cambios en Google Sheets”.','ok');
     else setStatus('Libro importado en solo lectura. Para editar en esta pestaña se necesita la conexión de escritura del servidor. Puedes abrir la hoja original.','warn');
   }
@@ -343,7 +346,7 @@
     if(drafts.size)setStatus('Cambios preparados, todavía NO guardados en Google Sheets.','warn');
   }
   async function save(){
-    if(!snapshot?.writable||busy||!drafts.size)return;
+    if(forceViewer||!snapshot?.writable||busy||!drafts.size)return;
     if(drafts.size>50){setStatus('Máximo 50 cambios por guardado. Descarta o reduce el lote.','error');return;}
     var changes=Array.from(drafts.values()),confirmed=global.confirm('¿Guardar '+changes.length+' cambio(s) directamente en la hoja oficial de '+ticker+'? Se conservarán las fórmulas.');
     if(!confirmed)return;
@@ -429,6 +432,6 @@
     var fromUrl=new URLSearchParams(global.location.search).get('ticker');
     if(fromUrl){byId('ticker').value=fromUrl;load();}
   }
-  global.JmrSheetEditor={isEditable,coordinates,colName,formatNumber,normalizeName,findMainSheet,mainKind,sectionType,multiplesFormulaAudit,sheetGroups};
+  global.JmrSheetEditor={isEditable,coordinates,colName,formatNumber,normalizeName,findMainSheet,mainKind,sectionType,multiplesFormulaAudit,sheetGroups,hasPendingEdits:()=>drafts.size>0};
   if(typeof document!=='undefined'&&byId('lookup'))bind();
 })(typeof window!=='undefined'?window:globalThis);
