@@ -14,7 +14,8 @@ const SHEETS_BY_VIEW={
   modelo:['Input sheet','Valuation output','Resumen de Valoración','Escenarios e historias',
     'Cost of capital worksheet','Descuento de múltiplos','Sensibilidad DCF']
 };
-const state={catalog:{valoraciones:[],analisis:[],auditorias:[]},files:[],ticker:'',view:initialView,ready:false,loc:null,reviewSha:null,reviewLoading:false,mosRequest:0,valuationRecord:null,frameMode:'',sheet:'',sheetByView:{},sensitivityMode:'sensibilidades',valuationMode:params.get('metodo')==='multiplos'?'multiplos':'dcf'};
+const displayFromUrl=params.get('modo')==='edicion'?'edicion':'visor';
+const state={displayMode:displayFromUrl,workbookDisplayMode:'',catalog:{valoraciones:[],analisis:[],auditorias:[]},files:[],ticker:'',view:initialView,ready:false,loc:null,reviewSha:null,reviewLoading:false,mosRequest:0,valuationRecord:null,frameMode:'',sheet:'',sheetByView:{},sensitivityMode:'sensibilidades',valuationMode:params.get('metodo')==='multiplos'?'multiplos':'dcf'};
 const TICKER=/^[A-Z0-9._-]{1,24}$/;
 function valid(x){x=String(x||'').trim().toUpperCase();if(x==='GOOG')x='GOOGL';return TICKER.test(x)?x:'';}
 function tickerFromName(x){return String(x||'').match(/^([A-Za-z0-9._]+)-/)?.[1]?.toUpperCase()||'';}
@@ -168,6 +169,7 @@ async function loadMosSummary(t,p,requestId){
     if(state.ticker!==t||state.mosRequest!==requestId)return;
     if(rec.ticker&&String(rec.ticker).toUpperCase()!==t)throw new Error('Ticker diferente del catálogo');
     state.valuationRecord=rec;
+    updateNativeLink();
     if(typeof JmrMultiplesPanel!=='undefined'){
       el('valuationSummary').innerHTML=JmrMultiplesPanel.summary(rec);
       if(state.view==='valoracion'&&state.valuationMode==='multiplos')el('inlinePanel').innerHTML=JmrMultiplesPanel.render(rec);
@@ -199,7 +201,8 @@ function openCompany(input){
   if(state.ticker&&state.ticker!==t)state.valuationMode='dcf';
   state.ticker=t;state.loc=null;state.reviewSha=null;const mosRequest=++state.mosRequest;el('ticker').value=t;
   el('mosSummary').hidden=true;
-  state.valuationRecord=null;state.sheet='';state.frameMode='';state.sheetByView={};
+  state.valuationRecord=null;state.sheet='';state.frameMode='';state.workbookDisplayMode='';state.sheetByView={};
+  state.displayMode='visor';
   renderCatalogCards();
   el('reviewPanel').hidden=true;
   el('reviewSaveStatus').textContent='';
@@ -238,6 +241,8 @@ function updateDossierLocation(view,sheet){
   url.searchParams.set('seccion',view);
   if(sheet && SHEETS_BY_VIEW[view])url.searchParams.set('sheet',sheet);
   else url.searchParams.delete('sheet');
+  if(state.displayMode==='edicion')url.searchParams.set('modo','edicion');
+  else url.searchParams.delete('modo');
   if(view==='valoracion'&&state.valuationMode==='multiplos')url.searchParams.set('metodo','multiplos');
   else url.searchParams.delete('metodo');
   history.replaceState({},'',url.pathname+url.search+url.hash);
@@ -363,25 +368,56 @@ function sensitivityHtml(rec){
   }else parts.push('<p class="status-note">Esta revisión no contiene sensibilidades por múltiplos verificables.</p>');
   return parts.join('');
 }
+function sourceUrl(){
+  const url=String(state.valuationRecord?.hojaGoogle||'');
+  return /^https:\/\/docs\.google\.com\/spreadsheets\/d\/[A-Za-z0-9_-]+(?:\/|$)/.test(url)?url:'';
+}
+function updateNativeLink(){
+  const link=el('openNativeSheet'),url=sourceUrl();
+  link.hidden=state.displayMode!=='edicion'||!url||!['financieros','indicadores','modelo','valoracion','sensibilidades'].includes(state.view);
+  if(url)link.href=url;else link.removeAttribute('href');
+}
+function syncReviewMode(){
+  const edit=state.displayMode==='edicion';
+  el('reviewForm').hidden=!edit||!state.loc||state.reviewLoading;
+  el('reviewReadOnly').hidden=edit||!state.loc;
+  el('reviewStatusRead').textContent='Estado: '+(el('auditReviewStatus').selectedOptions[0]?.textContent||'Sin estado');
+  el('reviewNotesRead').textContent=el('auditReviewNotes').value.trim()||'No hay observaciones registradas para esta revisión.';
+}
 function selectWorkbookSheet(view,name){
   const frame=el('viewFrame');
-  if(!SHEETS_BY_VIEW[view].includes(name))return;
+  if(!SHEETS_BY_VIEW[view]?.includes(name)&&!['valoracion','sensibilidades'].includes(view))return;
   state.sheet=name;state.sheetByView[view]=name;
-  const href='editor-hoja.html?ticker='+encodeURIComponent(state.ticker)+'&sheet='+encodeURIComponent(name)+'&embedded=1&seccion='+view;
+  const mode=state.displayMode;
+  const base='editor-hoja.html?ticker='+encodeURIComponent(state.ticker)+'&sheet='+encodeURIComponent(name)+'&modo='+mode;
+  const href=base+'&embedded=1&seccion='+view;
   const open=el('openOriginal');
-  open.href='editor-hoja.html?ticker='+encodeURIComponent(state.ticker)+'&sheet='+encodeURIComponent(name);
-  open.textContent='Abrir hoja completa en otra pestaña ↗';open.hidden=false;
+  open.href=base;
+  open.textContent=mode==='visor'?'Abrir visor de la hoja en otra pestaña ↗':'Abrir editor de la hoja en otra pestaña ↗';
+  open.hidden=false;
+  updateNativeLink();
   const existing=frame.getAttribute('src')||'';
-  // Reutilizar el lector ya cargado: no volver a descargar las 46 hojas al cambiar de tabla.
-  if(state.frameMode==='workbook'&&existing.includes('editor-hoja.html?ticker='+encodeURIComponent(state.ticker))){
+  // Reutilizar una lectura solo si coincide empresa y modo.
+  if(state.frameMode==='workbook'&&state.workbookDisplayMode===mode&&existing.includes('editor-hoja.html?ticker='+encodeURIComponent(state.ticker))){
     frame.contentWindow?.postMessage({type:'jmr-select-source-sheet',ticker:state.ticker,sheet:name,section:view},location.origin);
   }else{
-    state.frameMode='workbook';frame.setAttribute('src',href);
+    state.frameMode='workbook';state.workbookDisplayMode=mode;frame.setAttribute('src',href);
   }
 }
 function showView(view){
   if(!state.ticker||!DOSSIER_VIEWS.includes(view))return;
   state.view=view;
+  const displayNav=el('displayModes');
+  displayNav.querySelectorAll('button[data-display-mode]').forEach(button=>{
+    const chosen=button.dataset.displayMode===state.displayMode;
+    button.classList.toggle('active',chosen);button.setAttribute('aria-pressed',String(chosen));
+  });
+  el('displayModeNote').textContent=state.displayMode==='visor'
+    ? 'Lectura sin modificar celdas ni publicar cambios.'
+    : view==='analisis'?'Edición del análisis vigente; guardar no republica la valoración.'
+    : view==='revision'?'Edita observaciones; el guardado no ejecuta una auditoría.'
+    : 'Edita entradas autorizadas. Usa Google Sheets para fórmulas y otras celdas.';
+  updateNativeLink();
   const p=pages(state.ticker);
   document.querySelectorAll('[data-view]').forEach(button=>{
     const selected=button.dataset.view===view;
@@ -405,7 +441,7 @@ function showView(view){
   const frame=el('viewFrame'),inline=el('inlinePanel'),open=el('openOriginal'),help=el('viewHelp');
   const review=el('reviewPanel');
   review.hidden=view!=='revision'||!state.loc;
-  if(view==='revision')el('reviewForm').hidden=!state.loc?.revision||state.reviewLoading;
+  if(view==='revision')syncReviewMode();
   help.textContent=(p[view]||{}).help||'Información de la revisión activa de la empresa.';
   const isWorkbook=!!SHEETS_BY_VIEW[view];
   const isSensitivity=view==='sensibilidades';
@@ -418,6 +454,12 @@ function showView(view){
     const sheet=currentSheet(view);
     selectWorkbookSheet(view,sheet);
     updateDossierLocation(view,sheet);
+  }else if(state.displayMode==='edicion'&&(view==='sensibilidades'||view==='valoracion')){
+    frame.hidden=false;inline.hidden=true;
+    const sheet=view==='sensibilidades'?'Sensibilidad DCF':state.valuationMode==='multiplos'?'Descuento de múltiplos':'Input sheet';
+    selectWorkbookSheet(view,sheet);
+    help.textContent='Edición vinculada a la hoja original. Para modificar fórmulas o celdas protegidas, abre Google Sheets con tu cuenta autorizada.';
+    updateDossierLocation(view);
   }else if(isSensitivity){
     inline.innerHTML=sensitivityHtml(state.valuationRecord);
     updateDossierLocation(view);
@@ -432,6 +474,14 @@ function showView(view){
   }else if(isRevision){
     if(!state.loc)inline.innerHTML='<p class="status-note">Cargando la revisión y las observaciones oficiales…</p>';
     else inline.innerHTML='<p class="status-note">Las observaciones se guardan por ticker y revisión. Si no hay auditoría publicada, su estado permanece pendiente; no se crea un resultado ficticio.</p>';
+    updateDossierLocation(view);
+  }else if(view==='analisis'&&state.displayMode==='edicion'){
+    const route='research.html?ticker='+encodeURIComponent(state.ticker)+(p.analysisPath?'&analisis='+encodeURIComponent(p.analysisPath):'');
+    frame.hidden=false;inline.hidden=true;open.hidden=false;
+    state.frameMode=view;
+    if(frame.getAttribute('src')!==route)frame.setAttribute('src',route);
+    open.href=route;open.textContent='Abrir editor del análisis completo ↗';
+    help.textContent=p.analysisPath?'Editor del documento exacto del catálogo; no se modifica ni publica el DCF automáticamente.':'No hay análisis vigente: el editor no reutilizará un informe histórico como oficial.';
     updateDossierLocation(view);
   }else if(view==='analisis'&&!p.analysisPath){
     frame.hidden=true;inline.hidden=false;open.hidden=true;
@@ -530,7 +580,7 @@ async function loadAuditRequest(t,p){
     const localDate=Date.parse(draft?.actualizadoEn||'')||0;
     const localPreferred=!!draft&&(!stored.body||localDate>remoteDate);
     reviewFields(localPreferred?draft:stored.body);
-    el('reviewForm').hidden=false;
+    syncReviewMode();
     noteMessage(localPreferred?'Borrador local sin publicar; guárdalo en GitHub.':stored.body?'Revisión cargada desde GitHub.':'No hay observaciones guardadas para esta revisión.');
     if(state.view==='revision')el('inlinePanel').innerHTML='<p class="status-note">'+(p.auditPath?'Auditoría narrativa disponible en el catálogo; consúltala desde el histórico de auditorías.':'Auditoría económica aún no realizada. Esta ficha no presenta una auditoría inexistente.')+'</p>';
     el('connectReviewGitHub').textContent=GhOAuth.getGhToken()?'GitHub conectado':'Conectar GitHub';
@@ -595,6 +645,17 @@ el('marketFilters').addEventListener('click',event=>{
 
 el('lookup').addEventListener('submit',e=>{e.preventDefault();openCompany(el('ticker').value);});
 el('reload').addEventListener('click',loadInventory);
+el('displayModes').addEventListener('click',event=>{
+  const button=event.target.closest('button[data-display-mode]');
+  if(!button||!['visor','edicion'].includes(button.dataset.displayMode)||button.dataset.displayMode===state.displayMode)return;
+  try{
+    if(state.frameMode==='workbook'&&el('viewFrame').contentWindow?.JmrSheetEditor?.hasPendingEdits?.()){
+      status('Guarda o descarta los cambios preparados antes de cambiar de modo.','warning');return;
+    }
+  }catch(_){/* El editor aplica también la protección beforeunload. */}
+  state.displayMode=button.dataset.displayMode;
+  showView(state.view);
+});
 document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>showView(b.dataset.view)));
 el('valuationModes').addEventListener('click',event=>{
   const btn=event.target.closest('button[data-valuation]');
@@ -616,7 +677,7 @@ window.addEventListener('message',event=>{
   });
   updateDossierLocation(state.view,data.sheet);
   const open=el('openOriginal');
-  open.href='editor-hoja.html?ticker='+encodeURIComponent(state.ticker)+'&sheet='+encodeURIComponent(data.sheet);
+  open.href='editor-hoja.html?ticker='+encodeURIComponent(state.ticker)+'&sheet='+encodeURIComponent(data.sheet)+'&modo='+state.displayMode;
 });
 el('viewFrame').addEventListener('load',function(){
   // Mismo origen: ocultar solamente la navegación duplicada, sin tocar los
