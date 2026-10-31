@@ -88,6 +88,9 @@
       <a id="openSheetTab" class="open-sheet-window" href="editor-hoja.html" target="_blank" rel="noopener noreferrer">Abrir esta hoja en nueva pestaña ↗</a>
       <button type="button" id="toggleFullSheet" class="secondary" aria-pressed="true">Ver por bloques</button>
     </div>
+    <section id="presentationView" class="jmr-presentation-view" aria-label="Vista elegante de lectura financiera" hidden></section>
+    <div class="jmr-workbook-switch"><button type="button" class="secondary" id="toggleSourceGrid" aria-expanded="false" hidden>Ver cuadrícula original y fórmulas</button><span id="presentationNotice">Los valores no se recalculan. Puedes consultar cualquier celda en la cuadrícula.</span></div>
+    <div id="sourceGridPanel">
     <div class="range-toolbar" id="rangeToolbar">
       <div class="page-controls">
         <button type="button" id="prevRows" aria-label="Filas anteriores">↑ Filas</button>
@@ -100,6 +103,7 @@
         <label for="startCol">Columna</label><input id="startCol" type="text" value="A" pattern="[A-Za-z]{1,3}">
         <button type="submit">Ir</button>
       </form>
+    </div>
     </div>
     <p id="multiplesFormulaStatus" role="status" class="multiples-source-status">El estado de los múltiplos nativos se mostrará al cargar el libro original.</p>
     <p id="rangeLabel" class="range-label"></p>
@@ -127,6 +131,7 @@
 </main>
 <script src="jmr-number-format.js?v=20261020-dos-decimales"></script>
 <script src="model-sync.js?v=20261026-catalogo"></script>
-<script src="editor-hoja.js?v=20261030-dossier-integrado"></script>
+<script src="jmr-sheet-presentation.js?v=20261031-visor-v1"></script>
+<script src="editor-hoja.js?v=20261031-doble-modo-v2"></script>
 </body>
 </html>
