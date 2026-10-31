@@ -126,15 +126,13 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{ou
 html.jmr-embedded-workbook .appnav,
 html.jmr-embedded-workbook .editor-header,
 html.jmr-embedded-workbook #lookup,
-html.jmr-embedded-workbook #status,
 html.jmr-embedded-workbook .workbook-head,
 html.jmr-embedded-workbook .disclaimer{display:none!important}
 html.jmr-embedded-workbook body.sheet-editor-page{background:var(--surface,#fff)}
 html.jmr-embedded-workbook .editor-main{padding:0 12px 24px}
 html.jmr-embedded-workbook .toolbar{margin:8px 0}
 html.jmr-embedded-workbook #sheetTable{max-height:72vh}
-html.jmr-embedded-workbook[data-embedded-section="financieros"] .model-sheets,
-html.jmr-embedded-workbook[data-embedded-section="indicadores"] .model-sheets{display:none!important}
+html.jmr-embedded-workbook .model-sheets{display:none!important}
 html.jmr-embedded-workbook .save-panel{margin-top:15px}
 @media(max-width:680px){html.jmr-embedded-workbook .editor-main{padding:0 5px 15px}html.jmr-embedded-workbook .toolbar{padding:10px}}
 
@@ -172,3 +170,14 @@ html.jmr-view-only .sheet-grid{background:var(--surface,#fff)}
 .jmr-view-only .save-panel{display:none!important}
 @media(max-width:640px){.jmr-reader-head{padding:17px}.jmr-reader-kpi{border:0;padding:0;align-items:flex-start}.jmr-reader-group table{min-width:560px}.jmr-reader-group th,.jmr-reader-group td{padding:9px 11px}.jmr-reader-group th:first-child{min-width:190px}}
 @media print{.jmr-workbook-switch{display:none!important}.jmr-reader-group{break-inside:avoid}}
+
+/* La ficha incrustada usa un único selector de las hojas originales; errores y advertencias nunca se ocultan. */
+html.jmr-embedded-workbook #status{display:block;margin:8px 10px 12px;padding:9px 12px;border-radius:8px;background:var(--surface-2,#f4f6f3);font-size:13px}
+html.jmr-embedded-workbook #status[data-kind="error"]{border:1px solid #bd3b3b;background:#fff4f2;color:#8e2222}
+html.jmr-embedded-workbook #status[data-kind="warn"]{border:1px solid #b98d3b;background:#fff8ed;color:#785021}
+html.jmr-embedded-workbook .toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;position:sticky;top:0;z-index:5;background:var(--surface,#fff);border-bottom:1px solid var(--border,#ddd)}
+html.jmr-embedded-workbook .toolbar-title:has(#sheetPicker){flex:1 1 245px;min-width:0}
+html.jmr-embedded-workbook #sheetPicker{min-width:160px;max-width:100%;width:100%}
+html.jmr-embedded-workbook .jmr-reader-table-scroll{max-width:100%;overflow-x:auto}
+html.jmr-embedded-workbook .jmr-reader-group thead th{position:sticky;top:0;z-index:2}
+@media(max-width:700px){html.jmr-embedded-workbook .toolbar{position:static}html.jmr-embedded-workbook .toolbar-title:has(#sheetPicker){flex-basis:100%}}
