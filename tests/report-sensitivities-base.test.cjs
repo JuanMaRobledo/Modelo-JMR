@@ -93,14 +93,19 @@ test('las matrices nativas Base se leen del JSON, sin fabricar N/D ni usar otra 
     sensibilidadMultiples:{
       contrato:'base-native-five-priority-v1',revisionId:'SHAK-R2',
       sourceSheetId:'SHEET',resultadosSha256:'a'.repeat(64),
-      estadoPublicacion:'CANDIDATO_NO_PUBLICADO',matrices:mats
+      estadoPublicacion:'INTEGRADO_EN_REVISION',controlesTecnicosAprobados:true,matrices:mats
     }
   };
   const good=report().renderMultiplesSensitivity(rec);
-  assert.match(good,/Borrador técnico NO publicado/);
+  assert.match(good,/integradas en EN_REVISION/);
   assert.equal((good.match(/<table class="jmr-table jmr-matrix">/g)||[]).length,5);
   assert.match(good,/EV\/FCFF[\s\S]*?N\/D/);
   assert.doesNotMatch(good,/Conservador · siete métodos|Optimista · siete métodos/);
+  const candidate=JSON.parse(JSON.stringify(rec));
+  candidate.sensibilidadMultiples.estadoPublicacion='CANDIDATO_NO_PUBLICADO';
+  const unpublished=report().renderMultiplesSensitivity(candidate);
+  assert.match(unpublished,/candidatas sin certificación/);
+  assert.doesNotMatch(unpublished,/<table class="jmr-table jmr-matrix">/);
   const mismatched=JSON.parse(JSON.stringify(rec));
   mismatched.sensibilidadMultiples.revisionId='MELI-OLD';
   assert.match(report().renderMultiplesSensitivity(mismatched),/revisión, hoja o fotografía no coincide/);
