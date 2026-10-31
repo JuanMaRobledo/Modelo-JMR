@@ -221,6 +221,51 @@
   /* Las matrices relativas usan el centro VP3 del propio múltiplo, no el DCF Base.
      Los 21 bloques mantienen 7 métodos × 3 escenarios y se presentan en
      tres desplegables para evitar tablas kilométricas. */
+  // Compatibilidad de transición: usar matrices nativas Base de la misma
+  // revisión cuando el publicador entregue JSON estructurado sin tabla HTML.
+  // Nunca reconstruye cifras, mezcla revisiones ni considera N/D un cero.
+  function nativeMultiplesSensitivity(record){
+    var s=record&&record.sensibilidadMultiples;
+    if(!s||s.contrato!=='base-native-five-priority-v1'||!Array.isArray(s.matrices))return '';
+    var matches=s.revisionId&&s.revisionId===record.revisionId&&
+      s.sourceSheetId&&s.sourceSheetId===record.sheet_id&&
+      /^[0-9a-f]{64}$/.test(String(s.resultadosSha256||''));
+    if(!matches)return '<p class="jmr-sheet-note jmr-sheet-warning">Las matrices no se muestran: la revisión, hoja o fotografía no coincide con la valoración activa.</p>';
+    var methods=['EV/EBITDA','EV/FCFF','P/E','P/FCFE','P/OCF','P/V','P/BV'];
+    var by={};
+    s.matrices.forEach(function(m){if(m&&methods.indexOf(m.metodo)!==-1&&m.escenario==='base')by[m.metodo]=m;});
+    if(methods.some(function(name){return !by[name];}))
+      return '<p class="jmr-sheet-note jmr-sheet-warning">Inventario incompleto de matrices Base; consulta la hoja oficial.</p>';
+    var details=methods.map(function(name,i){
+      var m=by[name];
+      var pending='<article class="jmr-matrix-card"><h4>'+esc(name)+'</h4>'+
+        '<p class="jmr-sheet-note jmr-sheet-warning">N/D — falta validar o no es interpretable la matriz de este múltiplo. '+esc(m.motivo||'')+'</p></article>';
+      if(m.estado!=='OK')return pending;
+      var values=m.matriz,x=m.fundamentalFY3,y=m.multiploElegido,original=m.vp3Original;
+      var good=Array.isArray(values)&&values.length===5&&
+        values.every(function(row){return Array.isArray(row)&&row.length===5&&
+          row.every(function(v){return typeof v==='number'&&isFinite(v);});})&&
+        Array.isArray(x)&&x.length===5&&x.every(function(v){return typeof v==='number'&&isFinite(v);})&&
+        Array.isArray(y)&&y.length===5&&y.every(function(v){return typeof v==='number'&&isFinite(v);})&&
+        typeof original==='number'&&isFinite(original)&&
+        Math.abs(values[2][2]-original)<=Math.max(1e-6,Math.abs(original)*1e-8)&&
+        Math.abs(m.centro-original)<=Math.max(1e-6,Math.abs(original)*1e-8);
+      var discounted=(record.descuentoMultiples&&record.descuentoMultiples.metodos||[]).find(function(z){return z.nombre===name;});
+      var vp3=discounted&&discounted.base&&discounted.base.vp&&discounted.base.vp[2];
+      if(typeof vp3==='number'&&isFinite(vp3))good=good&&Math.abs(vp3-original)<=Math.max(1e-6,Math.abs(original)*1e-8);
+      if(!good)return '<article class="jmr-matrix-card"><h4>'+esc(name)+'</h4>'+
+        '<p class="jmr-sheet-note jmr-sheet-warning">Matriz ocultada: centro FY+3 o ejes no concilian con la revisión oficial.</p></article>';
+      var header={cells:['Múltiplo / fundamental FY+3'].concat(x)};
+      var rows=values.map(function(row,j){return {cells:[y[j]].concat(row)};});
+      return matrixTable(name+' · múltiplo × fundamental FY+3 · Base',header,rows,original,i+1);
+    }).join('');
+    var note=s.estadoPublicacion==='CANDIDATO_NO_PUBLICADO'?
+      'Borrador técnico NO publicado. Las matrices requieren conciliación y revisión antes de ser oficiales.':
+      'Matrices nativas de la hoja; revisión y centro FY+3 comprobados. No constituye auditoría económica.';
+    return '<p class="jmr-sheet-note">'+esc(note)+'</p><details class="jmr-sheet-panel" open>'+
+      '<summary>Base · siete métodos (cinco prioritarios, dos complementarios)</summary>'+
+      '<div class="jmr-matrix-grid">'+details+'</div></details>';
+  }
   function multiplesSensitivity(record){
     var all=sheets(record),newSource=all[norm('Sensibilidad múltiplos META')];
     if(record&&String(record.ticker||'').toUpperCase()==='META'){
@@ -228,7 +273,10 @@
       return multiplesR4(record,newSource);
     }
     var source=get(all,'Sensibilidad por múltiplo');
-    if(!source)return '<p class="jmr-sheet-note">Las matrices por múltiplo aún no se han sincronizado en este análisis. Consulta la hoja fuente.</p>';
+    if(!source){
+      var nativeResult=nativeMultiplesSensitivity(record);
+      return nativeResult||'<p class="jmr-sheet-note">Las matrices por múltiplo aún no se han sincronizado en este análisis. Consulta la hoja fuente.</p>';
+    }
     var rows=readRows(source.html),lookup={};
     rows.forEach(function(r){if(r.row)lookup[r.row]=r;});
     var methods=['EV/EBITDA','EV/FCFF','P/E','P/FCFE','P/OCF','P/V','P/BV'];
