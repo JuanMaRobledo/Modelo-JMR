@@ -1,0 +1,668 @@
+{
+  "ticker": "XP",
+  "nombreActivo": "XP Inc.",
+  "revisionId": "XP-20261031-A12-R1",
+  "revision_id": "XP-20261031-A12-R1",
+  "fecha": "2026-10-31",
+  "fechaRevision": "2026-10-31",
+  "fechaCorteContable": "2026-06-30",
+  "fecha_corte": "2026-06-30",
+  "moneda": "USD",
+  "currency": "USD",
+  "monedaEstados": "BRL",
+  "unidadesEstados": "BRL millones",
+  "market": "international",
+  "precio": 14.29,
+  "precioAnalisis": 14.29,
+  "precioReferenciaFecha": "2026-10-30",
+  "precioReferenciaFuente": "Cierre bursátil del 30 de octubre de 2026; referencia estática, no tiempo real",
+  "metodo_valoracion": "A",
+  "version_metodo": "A-1.2",
+  "metodoPrincipal": "DCF FCFE financiero",
+  "metodoCalculoPrimario": "FCFE BRL descontado a Ke BRL; equity convertido con FX PTAX 30-oct",
+  "hojaGoogle": "https://docs.google.com/spreadsheets/d/1C8TU1AJMxy0JmU4KsBNdp1dYzBSoli7CLtnjQI3SsnQ/edit",
+  "sheet_id": "1C8TU1AJMxy0JmU4KsBNdp1dYzBSoli7CLtnjQI3SsnQ",
+  "estado": "EN_REVISION",
+  "publicationStatus": "EN_REVISION",
+  "publicationStage": "PREPUBLICACION_CONTROLADA",
+  "publicationAuthorized": true,
+  "publicationAuthorization": "Usuario 31-oct-2026: 'Hazlo con el modelo A. No tienen que quedar perfectos.' Autorización para cerrar supuestos razonables y preparar EN_REVISION, no para saltar gates técnicos.",
+  "publicadaEnApp": false,
+  "valorVigenteEnCatalogo": false,
+  "auditPendingUserVisualReview": true,
+  "auditoriaEconomica": "NO_REALIZADA_PENDIENTE_REVISION_VISUAL",
+  "certificacionEconomica": "NO_CERTIFICADA",
+  "validationStatus": "ESCENARIOS_DCF_PRUEBAS_PROPIAS_APROBADAS_PENDIENTE_CONTROLES_CATALOGO_PR211",
+  "reportSchema": "jmr-valuation-two-levels-v5",
+  "valorPrincipal": 14.475590094736917,
+  "valorIndependiente": 14.475590094736917,
+  "mos": 0.35,
+  "precioMOS": 9.409133561578997,
+  "precioMOSMax": 9.409133561578997,
+  "baseMOS": "dcfBase",
+  "precioMOSHoy": 9.409133561578997,
+  "valorEsperado": {
+    "valor": 14.094733063646322,
+    "valorCentral": 14.475590094736917,
+    "tipoPromedio": "3_historias_renormalizado",
+    "disrupcionSeparada": true,
+    "escenariosUnificados": true,
+    "historias": [
+      {
+        "id": "A",
+        "nombre": "Base",
+        "probabilidad": 0.45,
+        "valor": 14.475590094736917,
+        "precioMOS": 9.409133561578997,
+        "roicTerminal": 0.1777,
+        "gTerminal": 0.05,
+        "ventasACapital1a5": null,
+        "ventasACapital6a10": null,
+        "margenTerminal": null
+      },
+      {
+        "id": "B",
+        "nombre": "Conservadora",
+        "probabilidad": 0.225,
+        "valor": 10.820295471137689,
+        "precioMOS": 7.033192056239498,
+        "roicTerminal": 0.14518279569892467,
+        "gTerminal": 0.05,
+        "ventasACapital1a5": null,
+        "ventasACapital6a10": null,
+        "margenTerminal": null
+      },
+      {
+        "id": "C",
+        "nombre": "Disrupción",
+        "probabilidad": 0.1,
+        "valor": 7.306173112951838,
+        "precioMOS": 4.7490125234186955,
+        "roicTerminal": 0.10394792201294056,
+        "gTerminal": 0.02,
+        "ventasACapital1a5": null,
+        "ventasACapital6a10": null,
+        "margenTerminal": null
+      },
+      {
+        "id": "D",
+        "nombre": "Optimista",
+        "probabilidad": 0.225,
+        "valor": 16.607456593973765,
+        "precioMOS": 10.794846786082948,
+        "roicTerminal": 0.1777,
+        "gTerminal": 0.05,
+        "ventasACapital1a5": null,
+        "ventasACapital6a10": null,
+        "margenTerminal": null
+      }
+    ]
+  },
+  "escenarios": {
+    "conservador": 10.820295471137689,
+    "base": 14.475590094736917,
+    "optimista": 16.607456593973765,
+    "disrupcion": 7.306173112951838
+  },
+  "metodos": [
+    {
+      "nombre": "DCF FCFE financiero",
+      "peso": 1,
+      "horizonte": "Valor presente",
+      "conservador": 10.820295471137689,
+      "base": 14.475590094736917,
+      "optimista": 16.607456593973765,
+      "disrupcion": 7.306173112951838
+    },
+    {
+      "nombre": "P/E",
+      "peso": 0,
+      "valorHoy": {
+        "base": 14.703855915472536
+      },
+      "estado": "SECUNDARIO_CENTRO_CALCULADO_ANCLA_INDEPENDIENTE_PENDIENTE"
+    },
+    {
+      "nombre": "P/FCFE",
+      "peso": 0,
+      "valorHoy": {
+        "base": 14.022807968081347
+      },
+      "estado": "SECUNDARIO_CENTRO_CALCULADO_ANCLA_INDEPENDIENTE_PENDIENTE"
+    },
+    {
+      "nombre": "P/BV",
+      "peso": 0,
+      "valorHoy": {
+        "base": 13.178512846673504
+      },
+      "estado": "SECUNDARIO_CENTRO_CALCULADO_ANCLA_INDEPENDIENTE_PENDIENTE"
+    },
+    {
+      "nombre": "P/S",
+      "peso": 0,
+      "valorHoy": {
+        "base": 12.993299465449526
+      },
+      "estado": "SECUNDARIO_CENTRO_CALCULADO_ANCLA_INDEPENDIENTE_PENDIENTE"
+    }
+  ],
+  "descuentoMultiples": {
+    "version": 2,
+    "estado": "COMPARACION_SECUNDARIA_EN_REVISION",
+    "horizonteAnios": 3,
+    "pesoDcf": 1,
+    "pesoMultiplos": 0,
+    "metodos": [
+      {
+        "nombre": "P/E",
+        "peso": 0,
+        "base": {
+          "vp": [
+            null,
+            null,
+            14.703855915472536
+          ]
+        }
+      },
+      {
+        "nombre": "P/FCFE",
+        "peso": 0,
+        "base": {
+          "vp": [
+            null,
+            null,
+            14.022807968081347
+          ]
+        }
+      },
+      {
+        "nombre": "P/BV",
+        "peso": 0,
+        "base": {
+          "vp": [
+            null,
+            null,
+            13.178512846673504
+          ]
+        }
+      },
+      {
+        "nombre": "P/S",
+        "peso": 0,
+        "base": {
+          "vp": [
+            null,
+            null,
+            12.993299465449526
+          ]
+        }
+      }
+    ],
+    "nota": "La falta de anclas independientes no invalida la aritmética del DCF principal, pero bloquea la exportación oficial de las matrices relativas."
+  },
+  "sensibilidadDCF": {
+    "tipo": "FCFE",
+    "estado": "CALCULADA_CON_FUENTES_XP",
+    "matrices": [
+      {
+        "title": "Ke terminal x g",
+        "rows": [
+          0.045000000000000005,
+          0.0475,
+          0.05,
+          0.052500000000000005,
+          0.055
+        ],
+        "columns": [
+          0.13518279569892466,
+          0.14018279569892467,
+          0.14518279569892467,
+          0.15018279569892468,
+          0.15518279569892468
+        ],
+        "values": [
+          [
+            15.276646946175882,
+            14.792913772790056,
+            14.357090373631117,
+            13.962347708752036,
+            13.603096280035544
+          ],
+          [
+            15.36855975442202,
+            14.866179697795895,
+            14.414848278207462,
+            14.00711161575769,
+            13.636900202675854
+          ],
+          [
+            15.465816921626407,
+            14.943457292895477,
+            14.475590094736917,
+            14.054059765720178,
+            13.672261442598789
+          ],
+          [
+            15.568903118879158,
+            15.025089589930275,
+            14.53955717344896,
+            14.103359749236958,
+            13.70929363139349
+          ],
+          [
+            15.678363462874179,
+            15.111459890648241,
+            14.607017626721156,
+            14.155196763945318,
+            13.748121742870861
+          ]
+        ],
+        "center": 14.475590094736917
+      },
+      {
+        "title": "ROE terminal x g",
+        "rows": [
+          0.045000000000000005,
+          0.0475,
+          0.05,
+          0.052500000000000005,
+          0.055
+        ],
+        "columns": [
+          0.1577,
+          0.1677,
+          0.1777,
+          0.1877,
+          0.1977
+        ],
+        "values": [
+          [
+            13.237682305894015,
+            13.828500985039865,
+            14.357090373631117,
+            14.833087832693339,
+            15.264215015722966
+          ],
+          [
+            13.263549929164407,
+            13.871259139325788,
+            14.414848278207462,
+            14.904255973532527,
+            15.3474443105129
+          ],
+          [
+            13.290713210477781,
+            13.916207402445943,
+            14.475590094736917,
+            14.979117265930315,
+            15.435004263177326
+          ],
+          [
+            13.319276839868893,
+            13.963522869057888,
+            14.53955717344896,
+            15.057970469092208,
+            15.527245234235936
+          ],
+          [
+            13.349357115733238,
+            14.01340227088597,
+            14.607017626721156,
+            15.14114747025425,
+            15.62455643412723
+          ]
+        ],
+        "center": 14.475590094736917
+      },
+      {
+        "title": "Delta growth x EBT margin",
+        "rows": [
+          0.28,
+          0.295,
+          0.31,
+          0.325,
+          0.33999999999999997
+        ],
+        "columns": [
+          -0.02,
+          -0.01,
+          0,
+          0.01,
+          0.02
+        ],
+        "values": [
+          [
+            13.443387684256583,
+            13.719466954687745,
+            13.988012478973646,
+            14.250678771791215,
+            14.513053501762498
+          ],
+          [
+            13.744151643987795,
+            13.985422778574732,
+            14.23756143641648,
+            14.50104469540088,
+            14.776367750473709
+          ],
+          [
+            13.959235562012475,
+            14.21169914369294,
+            14.475590094736917,
+            14.751410619010557,
+            15.039681999184927
+          ],
+          [
+            14.174319480037148,
+            14.437975508811148,
+            14.713618753057352,
+            15.001776542620224,
+            15.302996247896141
+          ],
+          [
+            14.389403398061827,
+            14.664251873929357,
+            14.951647411377785,
+            15.252142466229895,
+            15.56631049660735
+          ]
+        ],
+        "center": 14.475590094736917
+      }
+    ],
+    "stressCRPFX": {
+      "type": "ceteris_paribus_ke_shock_br_fx_5x5",
+      "rows": {
+        "type": "prima adicional de riesgo sobre CRP, USD p.p.",
+        "values": [
+          0,
+          0.01,
+          0.02,
+          0.03,
+          0.04
+        ]
+      },
+      "columns": {
+        "type": "FX BRL por USD",
+        "values": [
+          5.05,
+          5.25,
+          5.4209,
+          5.6,
+          5.85
+        ]
+      },
+      "matrixUSDperShare": [
+        [
+          19.944897434741534,
+          19.18509181817995,
+          18.580260112793955,
+          17.986023579543705,
+          17.217390093238418
+        ],
+        [
+          17.479688935813577,
+          16.81379602397306,
+          16.283722098887374,
+          15.762933772474744,
+          15.089304124078389
+        ],
+        [
+          15.538757691991952,
+          14.946805018011306,
+          14.475590094736917,
+          14.0126297043856,
+          13.413799375138352
+        ],
+        [
+          13.971457165243764,
+          13.439211177996382,
+          13.015524854633181,
+          12.59926047937161,
+          12.06083054435573
+        ],
+        [
+          12.679770837580145,
+          12.196731948529472,
+          11.812216187308332,
+          11.434436201746381,
+          10.94578508201363
+        ]
+      ],
+      "center": 14.475590094736917,
+      "method": "Descuento anual reestimado conservando FCFE y ROE proyectados fijos, KeBRL shock = KeBRLbase + (shock - 2pp)*(1+infBRL)/(1+infUSD); FX conversión final; no es reestimación de demanda, capital ni ROE por shock",
+      "disclaimer": "Sensibilidad condicional, no probable ni aprobada. El riesgo país se mantiene separado de la beta; evitar doble descuento en escenarios.",
+      "source": "Cálculo independiente trazable a las series de FCFE y tasas del libro XP copia 31-oct-2026"
+    }
+  },
+  "sensibilidadMultiples": {
+    "contrato": "bank-relative-ke-v1",
+    "tipo": "MULTIPLOS_BANCARIOS",
+    "revisionId": "XP-20261031-A12-R1",
+    "sourceSheetId": "1C8TU1AJMxy0JmU4KsBNdp1dYzBSoli7CLtnjQI3SsnQ",
+    "estadoPublicacion": "CANDIDATO_NO_INTEGRADO",
+    "controlesTecnicosAprobados": false,
+    "certificado": false,
+    "matrices": [
+      {
+        "metodo": "P/E",
+        "escenario": "base",
+        "ancla": "BORRADOR_FCFE",
+        "estado": "PENDIENTE_ANCLA",
+        "matriz": [
+          [
+            10.35742887485871,
+            11.323301550550669,
+            12.289174226242631,
+            13.255046901934595,
+            14.220919577626551
+          ],
+          [
+            11.323301550550669,
+            12.409908310704127,
+            13.496515070857582,
+            14.58312183101104,
+            15.669728591164496
+          ],
+          [
+            12.289174226242631,
+            13.496515070857582,
+            14.703855915472536,
+            15.911196760087487,
+            17.118537604702436
+          ],
+          [
+            13.255046901934595,
+            14.58312183101104,
+            15.911196760087487,
+            17.239271689163935,
+            18.56734661824038
+          ],
+          [
+            14.220919577626555,
+            15.669728591164496,
+            17.118537604702436,
+            18.567346618240382,
+            20.016155631778318
+          ]
+        ],
+        "centro": 14.703855915472536,
+        "fuente": "XP A12 Matrices"
+      },
+      {
+        "metodo": "P/FCFE",
+        "escenario": "base",
+        "ancla": "BORRADOR_FCFE",
+        "estado": "PENDIENTE_ANCLA",
+        "matriz": [
+          [
+            9.92155818852835,
+            10.832947028429018,
+            11.744335868329685,
+            12.65572470823035,
+            13.567113548131015
+          ],
+          [
+            10.832947028429016,
+            11.858259473317265,
+            12.883571918205515,
+            13.908884363093767,
+            14.934196807982016
+          ],
+          [
+            11.744335868329685,
+            12.883571918205517,
+            14.022807968081347,
+            15.162044017957184,
+            16.301280067833016
+          ],
+          [
+            12.65572470823035,
+            13.908884363093767,
+            15.162044017957184,
+            16.4152036728206,
+            17.668363327684016
+          ],
+          [
+            13.567113548131013,
+            14.934196807982016,
+            16.301280067833012,
+            17.668363327684016,
+            19.035446587535013
+          ]
+        ],
+        "centro": 14.022807968081347,
+        "fuente": "XP A12 Matrices"
+      },
+      {
+        "metodo": "P/BV",
+        "escenario": "base",
+        "ancla": "BORRADOR_FCFE",
+        "estado": "PENDIENTE_ANCLA",
+        "matriz": [
+          [
+            9.38120931082733,
+            10.225054541015366,
+            11.068899771203407,
+            11.912745001391446,
+            12.756590231579485
+          ],
+          [
+            10.225054541015366,
+            11.17438042497691,
+            12.123706308938454,
+            13.073032192899998,
+            14.02235807686154
+          ],
+          [
+            11.068899771203407,
+            12.123706308938454,
+            13.178512846673504,
+            14.233319384408551,
+            15.288125922143598
+          ],
+          [
+            11.912745001391446,
+            13.073032192899998,
+            14.233319384408551,
+            15.393606575917108,
+            16.55389376742566
+          ],
+          [
+            12.756590231579482,
+            14.02235807686154,
+            15.288125922143598,
+            16.553893767425656,
+            17.819661612707716
+          ]
+        ],
+        "centro": 13.178512846673504,
+        "fuente": "XP A12 Matrices"
+      },
+      {
+        "metodo": "P/S",
+        "escenario": "base",
+        "ancla": "BORRADOR_FCFE",
+        "estado": "PENDIENTE_ANCLA",
+        "matriz": [
+          [
+            9.262672746843986,
+            10.091700906534104,
+            10.920729066224226,
+            11.749757225914347,
+            12.578785385604467
+          ],
+          [
+            10.091700906534108,
+            11.02435758618549,
+            11.957014265836877,
+            12.889670945488263,
+            13.822327625139648
+          ],
+          [
+            10.920729066224226,
+            11.957014265836877,
+            12.993299465449526,
+            14.02958466506218,
+            15.065869864674827
+          ],
+          [
+            11.749757225914347,
+            12.889670945488263,
+            14.029584665062178,
+            15.169498384636096,
+            16.309412104210008
+          ],
+          [
+            12.578785385604467,
+            13.822327625139648,
+            15.065869864674827,
+            16.30941210421001,
+            17.55295434374519
+          ]
+        ],
+        "centro": 12.993299465449526,
+        "fuente": "XP A12 Matrices"
+      }
+    ]
+  },
+  "reporteFuentes": {
+    "modelado": "candidatos/valoraciones/XP-20261031-A12-R1/CALIBRACION_FCFE_PROVISIONAL.json",
+    "nivel1": "candidatos/valoraciones/XP-20261031-A12-R1/NIVEL1_ANALISIS_PROVISIONAL.md",
+    "nivel2": "candidatos/valoraciones/XP-20261031-A12-R1/NIVEL2_CALIBRACION_PROVISIONAL.md",
+    "PR": 214
+  },
+  "supuestosModeloA": {
+    "horizonteAnios": 10,
+    "unidades": "BRL millones",
+    "metodoReinversion": "retención capital regulatorio y patrimonio requerido",
+    "irrigacionModelada": "cuatro escenarios y sensibilidad 5x5"
+  },
+  "fuentes_supuestos": [
+    "https://www.sec.gov/Archives/edgar/data/1787425/000095010326012481/dp251884_6k-ex9901.htm",
+    "https://fincast.info/pairs/usd-brl/archive",
+    "https://aswathdamodaran.substack.com/p/country-risk-determinants-measures",
+    "https://stockanalysis.com/stocks/xp/history/"
+  ],
+  "salvedades": [
+    "La bolsa de XP fue afectada por shock macroelectoral y fiscal en octubre; no inferir split por la caída de cotización.",
+    "RWA del perímetro Pilar3 (99.904m) es distinto del RWA gerencial grupo 126.600m; el motor mezcla capital contable consolidado con RWA segmento y usa proxy 50% retención atribuible CET1, aún no reconciliado.",
+    "B22 objetivo 7,68% es el ratio CET1 observado para la entidad regulada; NO un mínimo legal o buffer certificado. Falta recalibración regulatoria estructural.",
+    "Ke nominal BRL deriva de rf USD 4,94% + beta 0,98 × ERP 3,70% + CRP Brasil 3,10% de julio y shock discrecional 2pp; se convierte por inflación BRL y USD (3%/2,3%). La sensibilidad a shock ±2pp es indispensable.",
+    "FX PTAX 5,4209 BRL/USD de BCB 30-oct-2026; no usar como previsión permanente.",
+    "Retención para capital y resultados se proyecta en BRL y dividen por 524,27m acciones equivalentes (95% de vesting RSU/PSU), pendiente de diligencia sobre PSU y acciones A/B.",
+    "P/E y P/BV con pesos 70/30% son secundarios; P/FCFE y P/S con peso 0 por falta de anclas independientes; industria EV/FCFF y EV/EBITDA N/A.",
+    "Matrices 5×5 de múltiplos en XP A12 Matrices y DCF en XP Sensibilidad; sólo se certifican concordancias matemáticas de centros, no anclas económicas.",
+    "El histórico R2 se mantiene para referencia; no sustituir ficha de app, catálogo ni auditar económicamente hasta revisión visual.",
+    "Controles globales de matrices y catálogo de PR #211 sin aprobar. Esta ficha NO está publicada en la app.",
+    "Se permite revisión visual de supuestos provisionalmente; auditoría económica posterior."
+  ],
+  "nivel2ProyeccionBase": null,
+  "controlEditorial": {
+    "nivel1Capitulos": 18,
+    "nivel2Apartados": 12,
+    "estado": "DOCUMENTOS_INDEPENDIENTES_COMPLETADOS"
+  },
+  "revisionOrigen": "valoraciones/XP-20261026-R2.json"
+}

@@ -6,6 +6,8 @@ const RAW='https://raw.githubusercontent.com/'+ROOT+'/main/';
 const CONTENTS='https://api.github.com/repos/'+ROOT+'/contents/';
 const el=id=>document.getElementById(id);
 const DOSSIER_VIEWS=['analisis','valoracion','financieros','indicadores','modelo','sensibilidades','revision'];
+const A12_REVIEW_TICKERS=new Set(['META','NVDA','XP']);
+const isA12Review=t=>A12_REVIEW_TICKERS.has(t)&&params.get('candidato')==='A12';
 const params=new URLSearchParams(location.search);
 const initialView=DOSSIER_VIEWS.includes(params.get('seccion'))?params.get('seccion'):'analisis';
 const SHEETS_BY_VIEW={
@@ -141,11 +143,11 @@ function pages(t){
   const analysisPath=fromCatalog(state.catalog.analisis,t);
   const auditPath=fromCatalog(state.catalog.auditorias,t);
   const v=path?'visor.html?path='+encodeURIComponent(path):'visor.html?ticker='+encodeURIComponent(t);
-  const a=analysisPath?'analisis-lectura.html?ticker='+encodeURIComponent(t)+'&analisis='+encodeURIComponent(analysisPath):'';
+  const a=isA12Review(t)?'analisis-a12-revision.html?ticker='+encodeURIComponent(t):analysisPath?'analisis-lectura.html?ticker='+encodeURIComponent(t)+'&analisis='+encodeURIComponent(analysisPath):'';
   return {
     valPath:path,official:!!officialPath&&inDirectory,analysisPath,auditPath,
     valoracion:{href:v,help:officialPath&&inDirectory?'Valoración indicada en el catálogo oficial.':'La valoración disponible aún no figura en el catálogo oficial; no se presenta como validada.'},
-    analisis:{href:a,help:analysisPath?'Análisis asociado en el catálogo oficial; verificar que corresponda a la misma revisión.':'Biblioteca filtrada por ticker. No se atribuye automáticamente un informe antiguo a esta revisión.'},
+    analisis:{href:a,help:isA12Review(t)?'Análisis Método A-1.2 candidato EN_REVISIÓN, no publicado en el catálogo financiero oficial. Solo lectura; cuatro escenarios y niveles 1–2. Los demás paneles conservan la valoración vigente.':analysisPath?'Análisis asociado en el catálogo oficial; verificar que corresponda a la misma revisión.':'Biblioteca filtrada por ticker. No se atribuye automáticamente un informe antiguo a esta revisión.'},
     supuestos:{href:'editor-hoja.html?ticker='+encodeURIComponent(t),help:'Libro completo original; cambios de entrada requieren guardar y no republican el estudio.'},
     financieros:{href:'editor-hoja.html?ticker='+encodeURIComponent(t),help:'Estados financieros originales: resultados, balance, flujos de caja y series por acción.'},
     indicadores:{href:'editor-hoja.html?ticker='+encodeURIComponent(t),help:'Rentabilidad, ratios de mercado, eficiencia y salud financiera/deuda.'},
@@ -222,6 +224,8 @@ function openCompany(input){
   el('reviewSaveStatus').textContent='';
   const u=new URL(location.href);u.searchParams.set('ticker',t);history.replaceState({},'',u.pathname+u.search+u.hash);
   el('companyTitle').textContent='Expediente '+t;
+  const a12switch=el('candidateSwitch');
+  if(a12switch){a12switch.hidden=!A12_REVIEW_TICKERS.has(t);a12switch.href=isA12Review(t)?'expediente.html?ticker='+encodeURIComponent(t)+'&seccion=analisis':'expediente.html?ticker='+encodeURIComponent(t)+'&seccion=analisis&candidato=A12';a12switch.textContent=isA12Review(t)?'Volver al análisis vigente':'Ver análisis A-1.2 EN_REVISIÓN';}
   el('companyLogo').replaceChildren(companyLogo(t,'overview'));
   const p=pages(t);
   const metodo=controlModeloA(t);
@@ -241,9 +245,10 @@ function openCompany(input){
     ? 'Ficha vigente · Análisis y valoración asociados al catálogo. Auditoría: '+(p.auditPath?'disponible para consulta':'pendiente')+'.'
     : 'Valoración en catálogo; análisis fundamental pendiente de publicación. No se muestra un documento anterior como vigente.';
   if(metodo.estado==='INCOMPLETA_EN_REVISION')el('revisionNotice').textContent+=' · MODELO A INCOMPLETO / EN_REVISIÓN: faltan conciliaciones, múltiplos o controles independientes.';
+  if(isA12Review(t))el('revisionNotice').textContent='ANÁLISIS A-1.2 CANDIDATO EN_REVISIÓN, no incorporado al catálogo oficial. La pestaña de análisis muestra el nuevo informe; valoración, hojas y demás pestañas conservan la versión vigente. Auditoría económica pendiente.';
   el('dossier').hidden=false;el('empty').hidden=true;
   el('catalogSection').hidden=true; // Al abrir una empresa, el artículo es lo primero después del buscador.
-  loadMosSummary(t,p,mosRequest).catch(()=>{});
+  if(isA12Review(t)){el('mosSummary').hidden=true;el('mosSummary').replaceChildren();}else loadMosSummary(t,p,mosRequest).catch(()=>{});
   showView(DOSSIER_VIEWS.includes(state.view)?state.view:'analisis');
   if(!p.official)status(t+' · Sin entrada oficial completa de valoración en catálogo; consulta disponible con reservas.','warning');
   else status(t+' · Valoración en catálogo; análisis y auditoría deben cotejarse con esa misma revisión.');
@@ -491,7 +496,7 @@ function showView(view){
     if(!state.loc)inline.innerHTML='<p class="status-note">Cargando la revisión y las observaciones oficiales…</p>';
     else inline.innerHTML='<p class="status-note">Las observaciones se guardan por ticker y revisión. Si no hay auditoría publicada, su estado permanece pendiente; no se crea un resultado ficticio.</p>';
     updateDossierLocation(view);
-  }else if(view==='analisis'&&state.displayMode==='edicion'){
+  }else if(view==='analisis'&&state.displayMode==='edicion'&&!isA12Review(state.ticker)){
     const route='research.html?ticker='+encodeURIComponent(state.ticker)+(p.analysisPath?'&analisis='+encodeURIComponent(p.analysisPath):'');
     frame.hidden=false;inline.hidden=true;open.hidden=false;
     state.frameMode=view;

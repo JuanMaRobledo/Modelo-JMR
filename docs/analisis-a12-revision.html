@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark"><title>Revisión A-1.2 · Modelo JMR</title>
+<link rel="icon" href="favicon.ico"><link rel="stylesheet" href="jmr-theme.css">
+<style>
+*{box-sizing:border-box}body{margin:0;background:var(--bg,#f8fafc);color:var(--ink,#17261e);font:15px/1.67 system-ui,Arial,sans-serif}
+a{color:var(--accent,#996821)}header{padding:20px clamp(15px,3vw,44px);background:var(--surface,#fff);border-bottom:1px solid var(--border,#ddd)}
+main{max-width:1500px;margin:auto;padding:clamp(12px,2vw,30px)}
+h1{font:clamp(27px,4vw,40px)/1.14 Georgia,serif;margin:6px 0 10px}
+h2{font:26px Georgia,serif}.status{font-size:13px;color:var(--ink-soft,#657169)}
+.status.error{color:#b91c1c}.subtitle{font-size:13px;color:var(--ink-soft)}
+.warning{padding:12px 17px;background:var(--surface-2,#fff4dd);border-left:4px solid var(--accent,#9d7b38);border-radius:8px;font-size:13px}
+.hero{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:20px 0}
+.metric,.paper{background:var(--surface,#fff);border:1px solid var(--border,#ddd);border-radius:13px;padding:19px}
+.metric small{display:block;color:var(--ink-soft);font-size:12px}.metric strong{display:block;font-size:clamp(23px,3vw,31px);font-variant-numeric:tabular-nums}
+.pane-nav{display:flex;flex-wrap:wrap;gap:9px;margin:16px 0}
+button{font:inherit;cursor:pointer;padding:10px 18px;border-radius:9px;background:var(--surface,#fff);color:var(--ink);border:1px solid var(--border,#bbb)}
+button[aria-selected="true"]{background:var(--accent-soft,#f2e6cd);border-color:var(--accent,#b69550);font-weight:750}
+article{line-height:1.77;overflow-wrap:anywhere}article h1{font-size:30px}article h2{font:24px Georgia,serif;border-top:1px solid var(--border,#ddd);padding-top:21px;margin-top:30px}
+article h3{font-size:18px;margin:25px 0 10px}article p,article li{text-align:justify;hyphens:auto}article table{width:100%;border-collapse:collapse;font-size:13px;min-width:520px}
+article td,article th{padding:10px;border:1px solid var(--border,#ddd)}.paper{overflow-x:auto}
+.links{display:flex;gap:15px;flex-wrap:wrap;align-items:center;font-size:13px;margin:14px 0}
+[hidden]{display:none!important}footer{font-size:12px;color:var(--ink-soft);padding:20px 0}
+@media(max-width:600px){.metric{padding:13px}.paper{padding:16px}.hero{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style></head>
+<body>
+<header><div class="links"><a id="back" href="expediente.html?seccion=analisis">← Expediente único</a><strong>MODELO JMR · MÉTODO A-1.2</strong></div>
+<h1 id="title">Análisis A-1.2 en revisión</h1><p class="subtitle" id="subtitle">Cargando expediente…</p></header>
+<main>
+<p class="warning"><strong>EN_REVISIÓN · revisión visual.</strong> Esta es la nueva versión candidata del análisis. Sus números están calculados, pero siguen pendientes los controles financieros de publicación y la auditoría económica. El catálogo oficial conserva la revisión anterior.</p>
+<p role="status" id="status" class="status">Consultando ficha candidata…</p>
+<section id="summary" class="hero" aria-label="Cifras principales" hidden></section>
+<div id="sheetLinks" class="links"></div>
+<nav class="pane-nav" role="tablist" aria-label="Niveles del análisis">
+<button type="button" data-pane="nivel1" role="tab" aria-selected="true">Nivel 1 · Análisis fundamental</button>
+<button type="button" data-pane="nivel2" role="tab" aria-selected="false">Nivel 2 · Fórmulas y proyecciones</button>
+<button type="button" data-pane="escenarios" role="tab" aria-selected="false">Escenarios y reservas</button>
+</nav>
+<section class="paper" id="paper" aria-label="Contenido del análisis"><article id="article"></article></section>
+<footer>Fuente: archivos congelados para esta revisión visual en Modelo JMR. No equivale a certificación económica ni permite editar o publicar valores.</footer>
+</main><script src="analisis-a12-revision.js" defer></script></body></html>
