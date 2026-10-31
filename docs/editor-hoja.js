@@ -147,7 +147,7 @@
        'La equivalencia de fórmulas con la plantilla se verifica por separado.';
     host.dataset.coverage=calculated+accepted===7?'complete':'incomplete';
   }
-  var snapshot=null,ticker='',selected='',selectedGroup='',firstRow=1,firstCol=1,pageRows=30,pageCols=9,fullSheet=true;
+  var snapshot=null,ticker='',selected='',selectedGroup='',firstRow=1,firstCol=1,pageRows=30,pageCols=9,fullSheet=true,readerFull=false;
   var drafts=new Map(),busy=false,loader=0,dimensions={};
   var MAX_FULL_CELLS=30000;
   function refreshShortcuts(){
@@ -187,13 +187,14 @@
     }else link.removeAttribute('href');
   }
   function updatePresentation(){
-    var presentation=byId('presentationView'),switcher=byId('toggleSourceGrid');
+    var presentation=byId('presentationView'),switcher=byId('toggleSourceGrid'),coverage=byId('toggleReaderCoverage');
     if(!presentation||!switcher)return;
     var isViewer=forceViewer&&!!snapshot?.sheets?.[selected];
     presentation.hidden=!isViewer;
     switcher.hidden=!isViewer;
+    if(coverage){coverage.hidden=!isViewer;coverage.setAttribute('aria-pressed',String(readerFull));coverage.textContent=readerFull?'Volver a vista resumida':'Mostrar más filas y columnas';}
     if(!isViewer){presentation.replaceChildren();return;}
-    presentation.innerHTML=global.JmrSheetPresentation?.render(selected,snapshot.sheets[selected])||
+    presentation.innerHTML=global.JmrSheetPresentation?.render(selected,snapshot.sheets[selected],{maxRows:readerFull?2500:180,maxColumns:readerFull?80:14})||
       '<p>Consulta todas las celdas y fórmulas en la cuadrícula original.</p>';
     document.documentElement.classList.remove('jmr-show-grid');
     switcher.setAttribute('aria-expanded','false');
@@ -306,7 +307,7 @@
   }
   function selectSheet(name){
     if(!snapshot?.sheets?.[name])return;
-    selected=name;firstRow=1;firstCol=1;fullSheet=true;
+    selected=name;firstRow=1;firstCol=1;fullSheet=true;readerFull=false;
     var group=sheetGroups(Object.keys(snapshot.sheets)).find(function(g){return g.names.includes(name);});
     if(group)selectedGroup=group.id;
     renderWorkbookNavigation();
@@ -444,6 +445,11 @@
       var on=document.documentElement.classList.toggle('jmr-show-grid');
       this.setAttribute('aria-expanded',String(on));
       this.textContent=on?'Volver a la vista de lectura':'Ver cuadrícula original y fórmulas';
+    });
+    byId('toggleReaderCoverage').addEventListener('click',function(){
+      if(!forceViewer||!snapshot?.sheets?.[selected])return;
+      readerFull=!readerFull;
+      updatePresentation();
     });
     byId('toggleFullSheet').addEventListener('click',function(){
       if(!snapshot||!selected)return;
