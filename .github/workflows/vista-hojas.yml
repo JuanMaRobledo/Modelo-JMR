@@ -4,6 +4,8 @@ on:
     paths:
       - 'docs/editor-hoja.html'
       - 'docs/editor-hoja.js'
+      - 'docs/jmr-sheet-presentation.js'
+      - 'tests/hojas-doble-modo.test.mjs'
       - 'docs/editor-hoja.css'
       - 'docs/expediente.html'
       - 'docs/expediente.js'
@@ -15,6 +17,8 @@ on:
     paths:
       - 'docs/editor-hoja.html'
       - 'docs/editor-hoja.js'
+      - 'docs/jmr-sheet-presentation.js'
+      - 'tests/hojas-doble-modo.test.mjs'
       - 'docs/editor-hoja.css'
       - 'docs/expediente.html'
       - 'docs/expediente.js'
@@ -30,4 +34,5 @@ jobs:
         with:
           node-version: '22'
       - run: node --check docs/editor-hoja.js
-      - run: node --test tests/editor-hoja.test.mjs tests/expediente.test.mjs
+      - run: node --check docs/jmr-sheet-presentation.js
+      - run: node --test tests/editor-hoja.test.mjs tests/hojas-doble-modo.test.mjs tests/expediente.test.mjs
