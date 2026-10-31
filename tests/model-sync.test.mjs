@@ -58,7 +58,7 @@ test('API resolves the correct company, writes RAW inputs, rejects a stale revis
     else if(url.includes('raw.githubusercontent'))body={ticker:'AAPL',hojaGoogle:'https://docs.google.com/spreadsheets/d/sheet-test/edit'};
     else if(url.includes('oauth2.googleapis'))body={access_token:'test-google-token',expires_in:3600};
     else if(url.includes('values:batchUpdate')){body=JSON.parse(options.body);assert.equal(body.valueInputOption,'RAW');assert.equal(body.data[0].range,"'Input sheet'!B26");value=body.data[0].values[0][0];writes++;body={updatedCells:1};}
-    else if(url.includes('sheets.googleapis')){assert.ok(decodeURIComponent(url).includes('fields=sheets(properties(title,sheetId),data(startRow,startColumn,rowData(values(userEnteredValue,effectiveValue,formattedValue))))'));body={sheets:[{properties:{title:'Input sheet'},data:[{startRow:25,startColumn:1,rowData:[{values:[{userEnteredValue:{numberValue:value},effectiveValue:{numberValue:value},formattedValue:'12%'}]}]}]}]};}
+    else if(url.includes('sheets.googleapis')){assert.ok(decodeURIComponent(url).includes('fields=sheets(properties(title,sheetId),data(startRow,startColumn,rowData(values(userEnteredValue,effectiveValue,formattedValue))))'));body={sheets:[{properties:{title:'Input sheet',sheetId:0},data:[{startRow:25,startColumn:1,rowData:[{values:[{userEnteredValue:{numberValue:value},effectiveValue:{numberValue:value},formattedValue:'12%'}]}]}]}]};}
     else throw new Error('Unexpected URL '+url);
     return {ok:true,json:async()=>body};
   };
