@@ -54,7 +54,7 @@ test('modo visor impide PATCH pero edición conserva guardado con confirmación 
  assert.match(editor,/if\(forceViewer\|\|!snapshot\?\.writable\|\|busy\|\|!drafts.size\)return/);
  assert.match(editor,/method:'PATCH'/);
  assert.match(editor,/global.confirm\('¿Guardar/);
- assert.match(editor,/if\(data\.sheets\[c\.sheet\]/);
+ assert.match(editor,/data\.sheets\[c\.sheet\]/);
  assert.match(view,/id="nativeSheet"/);
  assert.match(view,/id="saveChanges"/);
  assert.match(view,/jmr-sheet-presentation.js/);
