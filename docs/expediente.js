@@ -9,6 +9,8 @@ const DOSSIER_VIEWS=['analisis','valoracion','financieros','indicadores','modelo
 const A12_REVIEW_TICKERS=new Set(['META','NVDA','XP']);
 const isA12Review=t=>A12_REVIEW_TICKERS.has(t)&&params.get('candidato')==='A12';
 const params=new URLSearchParams(location.search);
+// Alias de enlaces antiguos o escritos a mano: «múltiplos» es una subpestaña de Valoración.
+if(params.get('seccion')==='multiplos'){params.set('seccion','valoracion');params.set('metodo','multiplos');}
 const initialView=DOSSIER_VIEWS.includes(params.get('seccion'))?params.get('seccion'):'analisis';
 const SHEETS_BY_VIEW={
   financieros:['Income Statement','Balance Sheet','Cash Flow Statement','Trailing 12 month Worskheet','Por acción','Dividendos'],
@@ -553,12 +555,17 @@ function reviewFields(request){
   el('auditReviewStatus').value=statuses.includes(request?.estadoRevision)?request.estadoRevision:'EN_REVISION';
   el('auditReviewNotes').value=typeof request?.puntos==='string'?request.puntos:'';
 }
+function reviewReadHeaders(){
+  // Con GitHub conectado la lectura usa el token (5.000 consultas/hora) en vez del cupo anónimo de 60/hora
+  // que comparten todas las fichas abiertas desde la misma red.
+  try{return GhOAuth.ghHeaders();}catch(_){return {'Accept':'application/vnd.github+json'};}
+}
 async function fetchAuditStored(loc){
-  const r=await fetch(CONTENTS+reviewPath(loc)+'?ref=main',{cache:'no-store'});
+  const r=await fetch(CONTENTS+reviewPath(loc)+'?ref=main',{cache:'no-store',headers:reviewReadHeaders()});
   if(r.status===404){
     // Compatibilidad con las solicitudes previas escritas por nombre de archivo.
     const legacyPath='auditorias/solicitudes/'+loc.valoracionPath.split('/').pop();
-    const old=await fetch(CONTENTS+legacyPath+'?ref=main',{cache:'no-store'});
+    const old=await fetch(CONTENTS+legacyPath+'?ref=main',{cache:'no-store',headers:reviewReadHeaders()});
     if(old.status===404)return {body:null,sha:null};
     if(!old.ok)throw new Error('No se pudo comprobar la solicitud histórica: HTTP '+old.status);
     const file=await old.json();

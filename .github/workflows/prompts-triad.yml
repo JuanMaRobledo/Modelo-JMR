@@ -6,6 +6,9 @@ on:
       - 'docs/prompts/research-fundamental-jmr-v5.md'
       - 'docs/prompts/auditoria-economica-jmr-v1.md'
       - 'tests/prompts-triad.test.mjs'
+      - 'docs/prompts/colombia-valuation-v1.md'
+      - 'docs/prompts/colombia-research-v1.md'
+      - 'tests/work-prompt-parity.test.mjs'
       - '.github/workflows/prompts-triad.yml'
   push:
     branches: [main]
@@ -14,6 +17,9 @@ on:
       - 'docs/prompts/research-fundamental-jmr-v5.md'
       - 'docs/prompts/auditoria-economica-jmr-v1.md'
       - 'tests/prompts-triad.test.mjs'
+      - 'docs/prompts/colombia-valuation-v1.md'
+      - 'docs/prompts/colombia-research-v1.md'
+      - 'tests/work-prompt-parity.test.mjs'
       - '.github/workflows/prompts-triad.yml'
 jobs:
   verify:
@@ -23,4 +29,4 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node --test tests/prompts-triad.test.mjs
+      - run: node --test tests/prompts-triad.test.mjs tests/work-prompt-parity.test.mjs
