@@ -61,7 +61,7 @@ Cada IA debe dejar el mismo resumen estructurado: **ticker, operación, corte, r
 ### A. Identificar y preparar (una sola vez por revisión)
 1. Resolver ticker, clase de acción, revisión vigente en `Modelo-JMR-datos/catalogo.json`, hoja y última auditoría asociada. No tomar un candidato por versión activa; archivar **solo al promover** una nueva versión y conservar intacta la anterior.
 2. Seleccionar A / A-1.2 salvo decisión expresa B; distinguir `recuperar`, `actualizar` y `desde cero`. Registrar fecha de corte contable, fecha y fuente de cotización, moneda/FX, ajustes de dilución y rutas de evidencia.
-3. Trabajar en copia limpia cuando se solicite nueva valoración; no escribir valores calculados en celdas de salida, no sustituir una hoja oficial por una simulación externa y no mezclar supuestos de distintas revisiones.
+3. Trabajar en copia limpia cuando se solicite nueva valoración, creada en `AAA Finanzas / Análisis / <TICKER>/` (carpeta por ticker, id de Análisis `1IVpgm89jA4BmYVc3HKSCQ1iec4fpYE25`; nunca en plantillas, raíz de Análisis ni archivo); no escribir valores calculados en celdas de salida, no sustituir una hoja oficial por una simulación externa y no mezclar supuestos de distintas revisiones.
 4. Hacer un mapa de fuentes primarias, drivers y clases de referencia: crecimiento, margen, impuesto, I+D/arrendamientos, capital, Sales-to-Capital **incremental**, reinversión, ROIC/RONIC, WACC o Ke, terminal y puente a patrimonio. Documentar dato/cálculo/juicio y contradicciones materiales.
 
 ### B. Calcular, contrastar y revisar en la hoja

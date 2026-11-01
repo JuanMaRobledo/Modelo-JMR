@@ -226,6 +226,8 @@ Hojas de trabajo conservadas tras el archivo del 24-oct-2026 (identidad document
 
 **Reparto.** Lo que la IA aporta es (1) conseguir los **datos crudos** con su fuente primaria y (2) **estimar los supuestos** y explicar por qué. Todo cálculo lo hacen las fórmulas de la hoja. La IA no escribe resultados sobre celdas con fórmula, no «calibra» una salida y no reconstruye un cálculo fuera de la hoja.
 
+**Ubicación en Drive (obligatoria).** Toda hoja de valoración se crea —copia de la plantilla— directamente en `AAA Finanzas / Análisis / <TICKER>/` (id de Análisis `1IVpgm89jA4BmYVc3HKSCQ1iec4fpYE25`): una carpeta por empresa, nombrada con el **ticker** (no con el nombre de la empresa), que se crea si no existe. Nunca en la carpeta de plantillas, en la raíz de Análisis, en un archivo histórico ni en otra carpeta. La hoja vigente de cada ticker vive en esa carpeta; las anteriores se archivan según las reglas de revisiones sustituidas. Al mover un archivo se conserva su ID.
+
 **Formato único.** Cada nueva valoración parte de una copia de la plantilla maestra vigente (registro en `JMR-valuation/reference/plantillas.json`), compartida por IA y Manual. Desde 28-oct-2026 el formato oficial contiene 46 pestañas de valoración, datos y supuestos. Las copias históricas de 61 pestañas conservan su versión:
 - las mismas 46 pestañas del perfil vigente, en el mismo orden y con las mismas dimensiones; no se añaden, quitan, renombran ni reordenan en una valoración individual. Los soportes propios de una empresa (conciliaciones SEC, registros de revisión y auditorías) van a expedientes independientes y no agregan pestañas a la valoración;
 - todas las fórmulas de la plantilla intactas: una fórmula sustituida por un número, o editada, es un hallazgo bloqueante;
