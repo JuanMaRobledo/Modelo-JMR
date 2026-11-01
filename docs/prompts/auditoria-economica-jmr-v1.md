@@ -129,3 +129,7 @@ Si un control crítico/material es imposible de completar, mantén su sección c
 
 ---
 **Este prompt es la plantilla maestra fija de auditoría.** No contiene supuestos ni cifras particulares de ninguna empresa. La auditoría narrativa es independiente de los prompts de valoración y análisis fundamental.
+
+## Dependencias y límites de publicación (31-oct-2026)
+
+La [ruta única de ejecución y publicación](../PROCESO_UNICO_JMR.md#contrato-de-ejecucion-a-12-y-publicacion-por-etapas--31-oct-2026) distingue `CANDIDATO`, `EN_REVISION` y `AUDITADO`. La presente auditoría se efectúa **después** de valoración, análisis, pruebas y revisión visual; no es condición necesaria para una primera publicación `EN_REVISION`, y no debe borrar esa distinción. Comprobar que Nivel 1 tenga sus 14 capítulos y Nivel 2 sus 12 apartados, y que los múltiplos no reutilicen precio de mercado ni anclas circulares de otros métodos; para cada método evaluar histórico/pares, coherencia de denominador, VP y matriz fuente 5×5. No reetiquetar matrices sintéticas como nativas ni corregir silenciosamente hojas, inputs o estudios. Los **18 apartados de este prompt** pertenecen a la auditoría, no sustituyen la estructura del análisis fundamental.
