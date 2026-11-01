@@ -60,6 +60,7 @@ async function loadInventory(){
     const tickers=[...new Set((state.catalog.valoraciones||[]).map(path=>tickerFromName(String(path).split('/').pop())).filter(Boolean))].filter(t=>controlModeloA(t).visible).sort();
     el('tickers').replaceChildren(...tickers.map(t=>{const opt=document.createElement('option');opt.value=t;return opt;}));
     renderCatalogCards();
+    loadCardValues(tickers);
     status(tickers.length+' empresas activas en el catálogo oficial. Los archivos históricos no aparecen como fichas vigentes.');
     const requested=valid(new URLSearchParams(location.search).get('ticker'));
     if(requested)openCompany(requested);else if(state.ticker)openCompany(state.ticker);
@@ -122,6 +123,8 @@ function renderCatalogCards(){
     const supports=document.createElement('span');supports.className='card-caption';
     supports.textContent='Modelo A · '+(controlModeloA(t).estado==='INCOMPLETA_EN_REVISION'?'INCOMPLETA / EN_REVISIÓN · ':'Metodología por verificar · ')+(p.analysisPath?'Análisis disponible':'Análisis pendiente')+' · '+(p.auditPath?'Auditoría disponible':'Auditoría pendiente');
     card.appendChild(supports);
+    const values=cardValuesNode(t);card.appendChild(values);
+    if(values.dataset.signal)card.dataset.signal=values.dataset.signal;
     const actions=document.createElement('div');actions.className='card-links';
     const open=document.createElement('button');open.type='button';open.className='card-open';
     open.textContent='Abrir ficha completa';
@@ -134,6 +137,61 @@ function renderCatalogCards(){
   grid.appendChild(fragment);
   el('catalogEmpty').hidden=matching.length>0;
   el('catalogSection').hidden=false;
+}
+
+// Semáforo de las fichas: valor intrínseco (misma base del resumen MOS), precio de hoy
+// y zonas Value (70–65 %), Deep Value (60–55 %) y Valoración histórica (50–45 %) del valor intrínseco.
+// Gris = el precio no cumple el MOS oficial (precio > valor intrínseco × (1 − MOS)).
+const CARD_ZONES=[{key:'value',label:'Value',max:.70,min:.65},{key:'deep',label:'Deep Value',max:.60,min:.55},{key:'hist',label:'Histórica',max:.50,min:.45}];
+state.cardData={};
+async function loadCardValues(tickers){
+  const recs=await Promise.all(tickers.map(async t=>{
+    const p=pages(t);if(!p.valPath)return null;
+    try{const rec=await fetchJSON(RAW+p.valPath);return [t,rec];}catch(_){return null;}
+  }));
+  recs.filter(Boolean).forEach(([t,rec])=>{
+    const ref=Number(rec.precioAnalisis??rec.precio);
+    state.cardData[t]={rec,price:Number.isFinite(ref)&&ref>0?ref:null,live:false};
+  });
+  renderCatalogCards();
+  const usd=Object.keys(state.cardData).filter(t=>String(state.cardData[t].rec.currency||state.cardData[t].rec.moneda||'USD').toUpperCase()!=='COP');
+  if(!usd.length)return;
+  try{
+    const resp=await fetch('/api/quotes?symbols='+encodeURIComponent(usd.join(',')),{cache:'no-store',credentials:'same-origin'});
+    if(!resp.ok)return;
+    const body=await resp.json();
+    usd.forEach(t=>{const last=Number(body?.prices?.[t]);if(Number.isFinite(last)&&last>0){state.cardData[t].price=last;state.cardData[t].live=true;}});
+    renderCatalogCards();
+  }catch(_){/* Se conserva el precio de referencia del estudio. */}
+}
+function cardSignal(calc){
+  if(!calc||calc.price===null)return {cls:'none',label:'Sin precio'};
+  const r=calc.price/calc.base;
+  if(r>1-calc.mos)return {cls:'gray',label:'No cumple MOS'};
+  if(r<=.50)return {cls:'hist',label:'Zona histórica'};
+  if(r<=.60)return {cls:'deep',label:'Zona Deep Value'};
+  return {cls:'value',label:'Zona Value'};
+}
+function cardValuesNode(t){
+  const box=document.createElement('div');box.className='card-values';
+  const d=state.cardData[t];
+  if(!d||typeof JmrMosSummary==='undefined'){box.innerHTML='<span class="card-values-loading">Cargando valores…</span>';return box;}
+  const calc=JmrMosSummary.calculate(d.rec,d.price);
+  if(!calc){box.innerHTML='<span class="card-values-loading">Valor intrínseco N/D</span>';return box;}
+  const cop=/^COP$/i.test(String(d.rec.currency||d.rec.moneda||''));
+  const m=n=>n==null?'—':(cop?'COP ':'US$ ')+n.toLocaleString('es-CO',{maximumFractionDigits:cop?0:2,minimumFractionDigits:cop?0:2});
+  const sig=cardSignal(calc);
+  box.dataset.signal=sig.cls;
+  const ratio=calc.price===null?null:calc.price/calc.base;
+  const rows=CARD_ZONES.map(z=>{
+    const hit=ratio!==null&&ratio<=z.max&&ratio<=1-calc.mos;
+    const gap=calc.price===null?'':(ratio<=z.max?(ratio<=1-calc.mos?'dentro':'en zona, sin MOS'):'falta '+((1-calc.base*z.max/calc.price)*100).toLocaleString('es-CO',{maximumFractionDigits:1})+'%');
+    return '<li class="cv-zone cv-'+z.key+(hit?' hit':'')+'"><i></i><span>'+z.label+'</span><b>'+m(calc.base*z.min)+'–'+m(calc.base*z.max).replace(/^(COP |US\$ )/,'')+'</b><em>'+gap+'</em></li>';
+  }).join('');
+  box.innerHTML='<div class="cv-head"><span class="cv-light" title="'+sig.label+'"></span><strong>'+sig.label+'</strong></div>'+
+    '<dl><div><dt>Valor intrínseco</dt><dd>'+m(calc.base)+'</dd></div><div><dt>'+(d.live?'Precio hoy':'Precio ref.')+'</dt><dd>'+m(calc.price)+'</dd></div></dl>'+
+    '<ul>'+rows+'</ul>';
+  return box;
 }
 
 function pages(t){

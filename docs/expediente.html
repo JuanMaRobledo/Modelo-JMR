@@ -61,6 +61,17 @@ iframe{display:block;width:100%;height:max(620px,78vh);border:0;background:var(-
 .catalog-card strong{font:23px Georgia,serif}
 .catalog-card small{font-size:12px;color:var(--ink-soft);line-height:1.5}
 .catalog-card .card-caption{font-size:12px;color:var(--ink-soft)}
+.card-values{border-top:1px solid var(--border);padding-top:9px;font-size:12px;display:flex;flex-direction:column;gap:6px;--sig:#9ca3af}
+.card-values[data-signal=gray]{--sig:#4b5563}.card-values[data-signal=value]{--sig:#eab308}.card-values[data-signal=deep]{--sig:#84cc16}.card-values[data-signal=hist]{--sig:#16a34a}
+.catalog-card[data-signal=gray]{border-left:5px solid #4b5563}.catalog-card[data-signal=value]{border-left:5px solid #eab308}.catalog-card[data-signal=deep]{border-left:5px solid #84cc16}.catalog-card[data-signal=hist]{border-left:5px solid #16a34a}
+.cv-head{display:flex;align-items:center;gap:7px}.cv-light{width:13px;height:13px;border-radius:50%;background:var(--sig);box-shadow:0 0 0 3px color-mix(in srgb,var(--sig) 25%,transparent)}
+.card-values dl{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:0}.card-values dt{color:var(--ink-soft);font-size:11px}.card-values dd{margin:0;font-weight:750}
+.card-values ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:3px}
+.cv-zone{display:grid;grid-template-columns:10px 1fr auto;column-gap:6px;align-items:center;color:var(--ink-soft)}.cv-zone i{width:9px;height:9px;border-radius:50%;border:1.5px solid currentColor}
+.cv-zone b{font-weight:600;color:var(--ink);text-align:right}.cv-zone em{grid-column:2/4;font-style:normal;font-size:11px}
+.cv-value{color:#a16207}.cv-deep{color:#4d7c0f}.cv-hist{color:#15803d}.cv-zone.hit i{background:currentColor}.cv-zone.hit span{font-weight:750}
+.catalog-card .cv-head strong{font:750 13px system-ui,Arial}
+.card-values-loading{color:var(--ink-soft)}
 .catalog-card .card-action{font-size:12px;font-weight:750;color:var(--accent);margin-top:auto}
 .catalog-footnote{color:var(--ink-soft);font-size:12px;margin:12px 0}
 .catalog-footnote a{color:var(--accent)}
@@ -214,4 +225,4 @@ footer a{color:inherit}
 <footer>Fuentes: <code>Modelo-JMR-datos</code> y Google Sheets. Un archivo en el repositorio no implica auditoría aprobada ni publicación oficial.
 <a href="https://github.com/JuanMaRobledo/Modelo-JMR/blob/main/docs/PROCESO_UNICO_JMR.md" target="_blank" rel="noopener noreferrer">Procedimiento único para ChatGPT, Claude y Gemini ↗</a></footer>
 </main><script src="jmr-mos-summary.js"></script><script src="jmr-multiples-panel.js?v=20261030-relativa-r2"></script>
-<script src="expediente.js?v=20261031-visor-edicion-r1"></script></body></html>
+<script src="expediente.js?v=20261101-semaforo-r1"></script></body></html>
