@@ -54,3 +54,30 @@ Cada IA debe dejar el mismo resumen estructurado: **ticker, operación, corte, r
 
 **Esta guía no cambia el método, las ponderaciones, los resultados ni las fórmulas.** Cualquier cambio metodológico se hace únicamente en `REGLAS_VIGENTES.md`, con revisión y pruebas.
 
+## Contrato de ejecución A-1.2 y publicación por etapas — 31-oct-2026
+
+**Este capítulo concreta el flujo único ya vigente; no cambia fórmulas, umbrales ni prioridades de `modelo/REGLAS_VIGENTES.md`.** Ante discrepancias prevalecen las reglas vigentes y los controles que se ejecuten de verdad.
+
+### A. Identificar y preparar (una sola vez por revisión)
+1. Resolver ticker, clase de acción, revisión vigente en `Modelo-JMR-datos/catalogo.json`, hoja y última auditoría asociada. No tomar un candidato por versión activa; archivar **solo al promover** una nueva versión y conservar intacta la anterior.
+2. Seleccionar A / A-1.2 salvo decisión expresa B; distinguir `recuperar`, `actualizar` y `desde cero`. Registrar fecha de corte contable, fecha y fuente de cotización, moneda/FX, ajustes de dilución y rutas de evidencia.
+3. Trabajar en copia limpia cuando se solicite nueva valoración; no escribir valores calculados en celdas de salida, no sustituir una hoja oficial por una simulación externa y no mezclar supuestos de distintas revisiones.
+4. Hacer un mapa de fuentes primarias, drivers y clases de referencia: crecimiento, margen, impuesto, I+D/arrendamientos, capital, Sales-to-Capital **incremental**, reinversión, ROIC/RONIC, WACC o Ke, terminal y puente a patrimonio. Documentar dato/cálculo/juicio y contradicciones materiales.
+
+### B. Calcular, contrastar y revisar en la hoja
+5. Ejecutar el modelo principal por sector: FCFF/DCF en operativas, FCFE/Ke en financieras, SOTP en holdings. Cuatro historias completas: Conservadora, Base, Optimista y Disrupción. Mostrar Base como ancla, MOS35 = Base×0,65, promedio ordinario ponderado de las tres primeras, Disrupción aparte, precio de referencia y diferencia de cada precio.
+6. DCF inverso y sensibilidades nativas del método principal (riesgo/descuento, crecimiento, margen, reinversión/Sales-to-Capital y ROIC terminal conforme corresponda) con ejes, centros, unidades y fechas rastreables. El análisis AZ Stocks es contraste separado, **nunca sustituto del modelo principal ni mezcla de ponderaciones**.
+7. Evaluar cinco múltiplos prioritarios de la casa: EV/EBITDA, EV/FCFF, P/E, P/FCFE y P/OCF; calcular solo los económicamente aplicables. P/S y P/BV son complementarios opcionales, excepto que una financiera puede requerir P/BV por razón económica explicada. Para financieras, priorizar P/E, P/FCFE y P/BV y no fingir EBITDA industrial.
+8. Para cada múltiplo, verificar serie histórica y/o pares de misma definición, ancla **independiente del precio actual y de otros métodos**, proyección denominador, descuento FY+3→valor presente, pesos y matriz Base nativa 5×5 de la **misma hoja y revisión**. Anclas heredadas, sintéticas, ligadas al precio observado o a otra metodología son `PENDIENTE_ANCLA`, con `peso=0` hasta justificación: **nunca certificarlas ni usarlas para suplir otra matriz**. Datos ausentes: `N/D`, no cero; `N/A` solo con motivación económica y denominador comprobado.
+9. Conciliar hoja → captura fuente con fórmula/celda/fecha → JSON → análisis → app, incluyendo escala, FX, identificador de revisión y hash o rastro del origen. Comprobar controles existentes mediante CI; no alterar gates para lograr un verde artificial. Si una hoja no tiene DCF nativo o presenta discrepancia material, el valor externo puede conservarse **únicamente como candidato**, no valor vigente oficial.
+
+### C. Escribir, publicar y auditar sin duplicidad
+10. Nivel 1: **14 capítulos canónicos completos** del Estilo JMR, con apartados extensos según negocio, incluidos ciclos empresarial, macro, monetario y crédito/mercado, ventajas, riesgos y tesis falsable. **No** confundir los 18 apartados de auditoría con el índice del research. Nivel 2: 12 apartados, tablas históricas, supuestos y fuentes, fórmulas efectivamente usadas, proyecciones por año, puente de equity, escenarios, DCF inverso, sensibilidad DCF **y de cada múltiplo aplicable**, conciliaciones y salvedades. Se usan los números de **la misma valoración**, sin recalcularlos en el artículo.
+11. Estados de avance: `CANDIDATO` (investigación/cálculo provisional, nunca en catálogo), `EN_REVISION` (expediente válido, controles técnico-financieros y editoriales aprobados, salvedades abiertas y **sin auditoría económica exigible**), `AUDITADO` solo tras revisión independiente. Una valoración `EN_REVISION` **no equivale** a exactitud económica certificada. El archivo histórico permanece accesible.
+12. Promover solo cuando haya un valor calculado y conciliado de hoja oficial, link único de revisión entre valoración, análisis y hoja, pruebas estructurales/financieras/editoriales verdes y comprobación funcional. Validar ficha única, resumen Base/MOS/precio, cuatro historias, estados, tablas, cinco prioridades de múltiplos con N/D explícito, matrices, enlaces y modos visor/edición mediante autenticación real. `Vercel READY` no demuestra esta prueba visual.
+13. Después de revisión visual del usuario, ejecutar **por separado** el prompt 3/3 de auditoría económica. Si falla una prueba: dejar PR en borrador, conservar el último catálogo correcto, anotar evidencia, clasificación del fallo y cambio mínimo; nunca publicar a medias.
+
+### D. Entregable invariable por empresa
+`Identidad y corte | Versión A-1.2 | Estado (candidato/EN_REVISION/auditado) | Hoja oficial | Valor Base y MOS35 | Cuatro escenarios y promedio ordinario | Precio observado con fecha | Cinco múltiplos: aplicabilidad/anclas/VP/pesos/5×5 | Nivel 1 y Nivel 2 | Gates y QA | Salvedades y siguiente acción`.
+
+**Orden de operaciones:** no esperar a la certificación económica para comenzar **otra** valoración; sí esperar al cierre de gates técnicos de **esa revisión** para convertirla en activa. Conservadora no sustituye MOS y no se ajusta el precio objetivo para coincidir con cotización.
