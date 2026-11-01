@@ -3532,9 +3532,14 @@
 
   var viewingArchive = false;
   var auditState = null;
-  var AUDIT_STATUS_URL = 'https://raw.githubusercontent.com/JuanMaRobledo/Modelo-JMR-datos/main/auditorias/estado-valoraciones-2026-10-18.json';
+  // El estado global de auditorías del 18-oct se retiró de Modelo-JMR-datos (commit 0472379):
+  // el estado vigente por revisión está en catalogo.json (controlModeloA) y en la ficha única.
+  // Sin URL no se hace la petición (evita un 404 en cada ficha); si vuelve a publicarse un
+  // estado global, basta con asignar aquí su ruta.
+  var AUDIT_STATUS_URL = null;
 
   function loadAuditState(){
+    if(!AUDIT_STATUS_URL){ auditState = null; return Promise.resolve(null); }
     return fetch(AUDIT_STATUS_URL, {cache:'no-store'}).then(function(res){
       if(!res.ok) throw new Error('HTTP ' + res.status);
       return res.json();
@@ -3759,6 +3764,23 @@
     if(hasApiKey()) fetchLiveQuote();
   }
 
+  // Rotula una cotización consultada según la sesión regular de NYSE/Nasdaq (9:30–16:00, hora de
+  // Nueva York, lunes a viernes). Fuera de sesión es el último cierre disponible, no un precio
+  // «en vivo». No contempla festivos: por eso siempre advierte que puede estar retrasada.
+  function quoteSessionNote(source, now){
+    now = now || new Date();
+    var parts = {};
+    try{
+      new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',weekday:'short',hour:'2-digit',minute:'2-digit',hourCycle:'h23'})
+        .formatToParts(now).forEach(function(p){ parts[p.type] = p.value; });
+    }catch(_){}
+    var mins = Number(parts.hour) * 60 + Number(parts.minute);
+    var open = ['Mon','Tue','Wed','Thu','Fri'].indexOf(parts.weekday) >= 0 && mins >= 570 && mins < 960;
+    var at = now.toLocaleString('es-CO',{dateStyle:'medium',timeStyle:'short'});
+    return (open ? 'Cotización intradía' : 'Último cierre disponible (mercado cerrado)') +
+      ' · ' + source + ' · consultada ' + at + ' · puede estar retrasada';
+  }
+
   function fetchLiveQuote(){
     var status = document.getElementById('livePriceStatus');
     var note = document.getElementById('rPriceNote');
@@ -3782,10 +3804,10 @@
       if(!q){ status.textContent = 'No encontré "' + currentTicker + '" en Financial Modeling Prep.'; return; }
       if(q.price != null){
         document.getElementById('rPrice').textContent = fmtMoney(q.price);
-        note.textContent = 'En vivo · ' + new Date().toLocaleTimeString();
+        note.textContent = quoteSessionNote('Financial Modeling Prep');
         renderPriceCompare(currentPrecioAnalisis, q.price);
         document.getElementById('rPriceLabel').textContent = 'Último precio disponible';
-        renderPosicion(currentPosicion, q.price, 'en vivo (Financial Modeling Prep)');
+        renderPosicion(currentPosicion, q.price, 'consultado en Financial Modeling Prep');
         if(currentResumen){ currentResumen.precio = q.price; renderHeadline(); renderCharts(); }
       } else {
         note.textContent = 'Dato del Excel (FMP no reportó precio para este ticker)';
