@@ -1,4 +1,4 @@
-const CACHE = "modelo-jmr-v190-optional-ps-pbv-20261030";
+const CACHE = "modelo-jmr-v191-semaforo-fichas-20261102";
 const APP_SHELL = [
   "catalog-reset.js",
   "index.html",
