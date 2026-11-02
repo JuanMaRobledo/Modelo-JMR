@@ -26,6 +26,8 @@ Dejar una copia limpia de la plantilla vigente con estados completos, corte de m
 
 ## Controles de cierre (todos deben cumplirse para `CERRADA`)
 - `python3 scripts/estados_completos.py <TICKER>` → 0 hallazgos.
+
+- `python3 scripts/auditar_ceros_materiales.py <TICKER> --sheet-id <ID>` → 0 alertas sin resolver sobre ceros o vacíos en conceptos clave; cotejo primario SEC/NIIF y matriz de reclasificaciones obligatorios aunque el script no marque alertas. Si el motor aún no ejecutó el comando o solo se aplicó una prueba equivalente, registrar alcance real y evidencia, **no** «fase 1 acreditada».
 - `python3 scripts/diff_formulas_plantilla.py --sheet-id <ID> [--excepciones reference/excepciones_formulas/<TICKER>.json]` → 0 no declarados.
 - Precio, Treasury y prima con la misma fecha (o ajuste documentado).
 - Cada cifra del inventario verificada contra su documento (no de memoria).
