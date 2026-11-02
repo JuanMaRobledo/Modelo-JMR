@@ -1,6 +1,6 @@
 # Instrucciones de fase JMR — invocación en una frase
 
-**Estado:** propuesta operativa (2-nov-2026). Orquesta las cuatro fases de la [Propuesta Claude](../PROPUESTA_CLAUDE_FASES.md) y de la [Propuesta ChatGPT](../PROPUESTA_CHATGPT_FASES.md). **No son prompts maestros:** el contenido lo siguen fijando `modelo/REGLAS_VIGENTES.md`, `docs/PROCESO_UNICO_JMR.md` y los tres prompts maestros (1/3 valoración, 2/3 análisis, 3/3 auditoría). Si algo de aquí choca con ellos, prevalecen ellos.
+**Estado:** vigente como forma de ejecución desde el 2-nov-2026 (ver [`PROCESO_UNICO_JMR.md`](../../PROCESO_UNICO_JMR.md), «Ejecución por fases»); la elección de modelo sigue siendo recomendación. Orquesta las cuatro fases de la [Propuesta Claude](../PROPUESTA_CLAUDE_FASES.md) y de la [Propuesta ChatGPT](../PROPUESTA_CHATGPT_FASES.md). **No son prompts maestros:** el contenido lo siguen fijando `modelo/REGLAS_VIGENTES.md`, `docs/PROCESO_UNICO_JMR.md` y los tres prompts maestros (1/3 valoración, 2/3 análisis, 3/3 auditoría). Si algo de aquí choca con ellos, prevalecen ellos.
 
 ## Cómo se invoca
 
