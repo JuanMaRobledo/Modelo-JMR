@@ -360,6 +360,7 @@ function sensitivityHtml(rec){
   const mats=normalizeDcfMatrices(rec.sensibilidadDCF);
   const base=rec.valorEsperado?.dcfBase??rec.valorPrincipal;
   const fmt=n=>typeof n==='number'&&isFinite(n)?n.toLocaleString('es-CO',{maximumFractionDigits:2,minimumFractionDigits:2}):'N/D';
+  const currencySymbol=String(rec.moneda||rec.currency||'USD').toUpperCase()==='COP'?'COP $':'US$';
   let parts=['<h3>DCF · sensibilidades del escenario Base</h3><p>Valores por acción calculados en el modelo, no simulados en la página. La celda central debe coincidir con el DCF Base oficial.</p>'];
   if(!mats.length)parts.push('<p class="status-note">No hay matrices DCF certificadas en esta revisión.</p>');
   mats.forEach((m,i)=>{
@@ -374,7 +375,7 @@ function sensitivityHtml(rec){
       parts.push('<tr><th>'+esc(fmt(rr[ri]*100))+'%</th>'+
         row.map((v,ci)=>'<td'+(ri===2&&ci===2?' class="base-matrix"':'')+'>'+esc(fmt(v))+'</td>').join('')+'</tr>');
     });
-    parts.push('</tbody></table></div><p>Centro Base: US$'+esc(fmt(base))+'. Ejes en % de los supuestos indicados por el título.</p></article>');
+    parts.push('</tbody></table></div><p>Centro Base: '+esc(currencySymbol)+esc(fmt(base))+'. Ejes en % de los supuestos indicados por el título.</p></article>');
   });
   const mult=rec.sensibilidadMultiples;
   parts.push('<h3>Sensibilidades de múltiplos</h3>');
