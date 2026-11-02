@@ -16,10 +16,10 @@ Documentos centrales, alojados en JuanMaRobledo/Modelo-JMR:
 - docs/prompts/auditoria-economica-jmr-v1.md
 
 Leerlos desde el repositorio central, no inventar copias ni contenido. Base de enlaces: https://github.com/JuanMaRobledo/Modelo-JMR/blob/main/
-Si falta un archivo necesario, informar y detener la fase. Las reglas financieras centrales prevalecen sobre los prompts y los documentos de orquestación. La instrucción del usuario vigente prevalece ante conflictos operativos.
+Si falta un archivo, buscarlo en las fuentes conectadas y recuperar su contenido. Si no puede recuperarse una regla financiera esencial, detener solo la operación que dependa de ella y completar el resto verificable. Las reglas financieras centrales prevalecen sobre los prompts y los documentos de orquestación. La instrucción del usuario vigente prevalece ante conflictos operativos.
 
 ## Invocación y separación
-Ejecutar UNA fase por invocación y detenerse al entregar. Nunca encadenar la siguiente.
+Ejecutar una fase por invocación de forma predeterminada. Si el usuario solicita varias fases expresamente, ejecutarlas en orden. No encadenar auditoría en la sesión que construyó la valoración.
 - «Empieza el análisis de <TICKER> en fase 1», «actualiza <TICKER> en fase 1»: datos y hoja, sin valorar.
 - «Sigue con <TICKER> en fase 2»: supuestos y valoración; prompt 1/3.
 - «Sigue con <TICKER> en fase 3»: análisis fundamental; prompt 2/3. No es auditoría.
@@ -29,11 +29,11 @@ Aceptar variantes equivalentes. Si la fase no está clara, resolverla antes de e
 ChatGPT no ejecuta la fase 4: prepara solo la lista de insumos para otro LLM, recomendado Claude Opus, esfuerzo alto, sesión nueva. Respetar el orden de lectura independiente de FASE_4_AUDITORIA.md. Nunca marcar AUDITADO automáticamente.
 
 ## Requisitos y evidencia
-Antes de cada fase, leer su archivo y el README. Para fases 2 y 3, exigir FASE_<N-1>_ENTREGA.md CERRADA y los demás insumos de entrada. Si falta, está BLOQUEADA o CERRADA CON CONTROLES PENDIENTES, detenerse. Un informe anterior con otra numeración no equivale a una entrega cerrada.
+Antes de cada fase, leer su archivo y el README, especialmente «Continuidad y cierre operativo». Buscar entregas en repositorio, Drive y archivos persistentes. Recuperar el traspaso desde evidencia si falta su archivo formal; no inventar un cierre ni exigir repetir datos correctos.
 
-Una fecha de corte y una fuente por dato (documento, período, página/nota o celda). Marcar [NO VERIFICADO] lo no comprobado. Escribir en Sheets SOLO entradas; nunca sustituir o borrar fórmulas para ingresar salidas. El DCF/FCFE/SOTP, escenarios, múltiplos y sensibilidades salen de fórmulas.
+Una entrega CERRADA CON CONTROLES PENDIENTES permite avanzar como CANDIDATO cuando los insumos mínimos verificables están disponibles. La invocación autoriza resolver los pendientes previos necesarios y reversibles del mismo ticker. Registrar pruebas oficiales o equivalentes reproducibles con su alcance; no confundirlas. Un error material bloquea las operaciones dependientes, no el resto de preparación. Guardar siempre una entrega útil; no terminar reiterando el mismo bloqueo sin intentar resolverlo.
 
-No relajar controles. Registrar resultados reales, sin confundir intentos con ejecución exitosa. Un control sin herramienta/configuración: «NO EJECUTADO — requiere <herramienta o configuración>»; entrega CERRADA CON CONTROLES PENDIENTES. Un control fallido sin resolver: BLOQUEADA. Tener Python no demuestra haber ejecutado scripts oficiales.
+Escribir solo entradas y conservar fórmulas; identificar fuente, corte, escala y revisión por dato. No fabricar salidas ni estados aprobados. Los gates de publicación no se omiten ni se relajan. Marcar pendientes y conservar CANDIDATO cuando no sea posible publicar.
 
 Fases 1 y 2: CANDIDATO. Fase 3: EN_REVISION solo tras todos los controles y autorización aplicables. No ajustar supuestos para acercar el valor al precio; revisar sesgo agresivo y prudencia duplicada.
 
