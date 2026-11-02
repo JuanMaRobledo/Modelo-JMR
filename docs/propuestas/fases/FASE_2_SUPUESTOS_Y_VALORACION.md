@@ -20,7 +20,7 @@ Recuperar `FASE_1_ENTREGA.md` y sus evidencias (repositorio, Drive o archivos pe
    - Revisar explícitamente **sesgo agresivo y prudencia duplicada**; cada riesgo en un solo lugar (flujos, tasa o probabilidad).
 1b. **Ciclo de vida y probabilidades.** `scripts/ciclo_de_vida.py` y `scripts/probabilidades.py` fijan la etapa y las probabilidades previas; `reference/damodaran/<TICKER>.json` guarda la lectura sectorial de Damodaran usada.
 2. **Cuatro historias** completas y probabilidades = previa de la etapa + ajustes de 5 pp solo por indicadores que cruzaron su umbral escrito. Disrupción aparte.
-3. **En la hoja:** escribir solo entradas; el DCF (o FCFE/SOTP), escenarios, sensibilidades nativas 5×5 (centro = Base), DCF inverso y múltiplos aplicables con anclas independientes (sin ancla → `PENDIENTE_ANCLA`, peso 0) salen de fórmulas. Motores especiales en pestañas añadidas y declaradas.
+3. **En la hoja:** escribir solo entradas; el DCF (o FCFE/SOTP), escenarios, sensibilidades nativas 5×5 (centro = Base), DCF inverso y múltiplos aplicables con anclas independientes salen de fórmulas. `PENDIENTE_ANCLA` (peso 0) solo procede si el dato que forma el ancla **no existe públicamente** y se documenta la búsqueda; precios de cierre, acciones y balances de un emisor cotizado siempre existen: si faltan en la hoja, es un dato de fase 1 que se completa en esta misma invocación, no una ancla pendiente (caso AMZN-20261102-A12-R2). Los cinco prioritarios aplicables deben quedar en OK, o N/A solo para EV/FCFF y P/FCFE con flujo FY+3 negativo. Motores especiales en pestañas añadidas y declaradas.
 3b. **Múltiplos por ciclo.** `scripts/multiples_by_cycle.py` para operativas; bancos usan P/E, P/FCFE y P/BV con el contrato `review-relative-v1`.
 4. **Recálculo independiente** del valor principal fuera de la hoja (código propio que lea las entradas de la hoja) y comparación.
 5. **Captura** de la hoja con SHA-256 y **JSON candidato** construido solo desde la captura.
@@ -30,6 +30,8 @@ Recuperar `FASE_1_ENTREGA.md` y sus evidencias (repositorio, Drive o archivos pe
 - Centros de todas las matrices = Base o VP3 del método; probabilidades suman 1; MOS = Base × 0,65.
 - `diff_formulas_plantilla.py` → 0 no declarados; `integridad_hojas.py <TICKER>` sin hallazgos nuevos no explicados.
 - `scripts/controles_supuestos.py <TICKER>`, `scripts/probabilidades.py` y `scripts/inputs_completos.py <TICKER>` / `candados.py <TICKER>`: resultado real en la entrega (en A-1.2 las celdas «PENDIENTE» legadas se explican una a una, no se ocultan).
+- `node scripts/validar_matrices_candidato.cjs <JSON candidato>` (Modelo-JMR-datos): misma regla de múltiplos que el CI del catálogo. Si falla, la fase no queda CERRADA y no se puede publicar.
+- `precios_historicos.py <TICKER> --sheet-id <ID>` completo.
 - Aislamiento: `AISLAMIENTO=OK`.
 - Tabla de supuestos completa, con cada fila revisada en ambas direcciones.
 - Ningún supuesto ajustado para acercarse al precio (el DCF inverso solo se reporta).

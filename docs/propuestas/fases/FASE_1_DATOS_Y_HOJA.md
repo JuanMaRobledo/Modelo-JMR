@@ -26,6 +26,7 @@ Dejar una copia limpia de la plantilla vigente con estados completos, corte de m
 - `python3 scripts/estados_completos.py <TICKER>` → 0 hallazgos.
 - `python3 scripts/diff_formulas_plantilla.py --sheet-id <ID> [--excepciones reference/excepciones_formulas/<TICKER>.json]` → 0 no declarados.
 - `python3 scripts/ubicacion_hoja.py <TICKER> --sheet-id <ID>` → ubicación OK: la hoja vive en `Análisis/<TICKER>/` (REGLAS §11). Una carpeta con el nombre del ticker dentro de un archivo histórico no cumple: si `Análisis/<TICKER>` no existe, se crea (caso AMZN-20261102-A12-R2, 2-nov-2026).
+- `python3 scripts/precios_historicos.py <TICKER> --sheet-id <ID>` → completo: precio de cierre de cada ejercicio en `Trailing Valuation!B3:K3` (base ajustada por splits, igual que las acciones de `Income Statement!27`) y `Entradas históricas auxiliares!B4:K5` con 0 explícito si no hay minoritarios ni preferentes. Sin esto la hoja no calcula múltiplos históricos (caso AMZN-20261102-A12-R2).
 - Precio, Treasury y prima con la misma fecha (o ajuste documentado).
 - Cada cifra del inventario verificada contra su documento (no de memoria).
 - `python3 scripts/inputs_completos.py <TICKER>` y `scripts/candados.py <TICKER>`: se informan tal cual; las entradas pendientes de fase 2 no bloquean la fase 1 pero quedan listadas en «Pendiente».
