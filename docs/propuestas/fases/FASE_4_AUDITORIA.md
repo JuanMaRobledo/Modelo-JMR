@@ -18,7 +18,7 @@
 3. Verificar fuentes de los insumos materiales contra los documentos primarios (no contra el análisis).
 4. Examinar cada supuesto con las seis preguntas del prompt y en ambas direcciones; cuantificar el efecto de cada hallazgo (también los favorables al valor).
 5. Formato de la hoja: `diff_formulas_plantilla.py` y excepciones declaradas.
-5b. Ejecutar de forma independiente `inputs_completos.py`, `candados.py`, `estados_completos.py`, `integridad_hojas.py` y `controles_supuestos.py` y reportar resultados reales; la comprobación de `AISLAMIENTO=OK` es propia, no heredada.
+5b. Ejecutar de forma independiente `inputs_completos.py`, `candados.py`, `estados_completos.py`, `integridad_hojas.py` y `controles_supuestos.py` y reportar resultados reales; la comprobación de `AISLAMIENTO=OK` es propia, no heredada. Si la revisión auditada aún no está en el catálogo, ejecutarlos con `JMR_HOJA_<TICKER>=<sheet_id>` (JMR-valuation, `hoja_vigente.py`); no aceptar resultados contra la ancla legada. Añadir `ubicacion_hoja.py <TICKER> --sheet-id <ID>`.
 6. Clasificar hallazgos (A bloqueante, B reserva material, C no bloqueante, D no aplica) y emitir dictamen.
 
 ## Controles de cierre
