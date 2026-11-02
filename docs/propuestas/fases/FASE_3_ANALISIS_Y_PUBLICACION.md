@@ -2,6 +2,8 @@
 
 **Invocación:** «Sigue con <TICKER> en fase 3». **Aplica:** prompt maestro **2/3 Análisis fundamental** (`docs/prompts/research-fundamental-jmr-v5.md`). **Estado de salida:** `EN_REVISION` si todos los controles pasan; si no, `CANDIDATO` con la entrega `BLOQUEADA`. **No** recalcula, **no** cambia supuestos ni la hoja, **no** audita.
 
+**Modelo recomendado (no normativo; ver [README](README.md)):** Claude Opus alto (redacción) y Sonnet medio (captura, JSON, PR) · ChatGPT Work, mismo modo que la fase 2. Declarar en la entrega el modelo y esfuerzo realmente usados.
+
 ## Requisito de entrada
 `FASE_2_ENTREGA.md` `CERRADA` y JSON candidato de la misma `<REV>`.
 

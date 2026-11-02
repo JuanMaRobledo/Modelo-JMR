@@ -2,6 +2,8 @@
 
 **Invocación:** «Empieza el análisis de <TICKER> en fase 1». **Estado de salida:** `CANDIDATO`. **No** estima supuestos, **no** valora, **no** escribe análisis.
 
+**Modelo recomendado (no normativo; ver [README](README.md)):** Claude Sonnet medio · ChatGPT (chat). Declarar en la entrega el modelo y esfuerzo realmente usados.
+
 ## Objetivo
 Dejar una copia limpia de la plantilla vigente con estados completos, corte de mercado coherente y un inventario de insumos donde cada cifra tenga fuente.
 
