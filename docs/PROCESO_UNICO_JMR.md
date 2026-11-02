@@ -2,6 +2,22 @@
 
 **Objetivo:** usar la misma valoración, análisis y auditoría en ChatGPT (chat o Work), Claude Code, Gemini o herramientas equivalentes. **No es un método financiero nuevo**, ni sustituye las reglas vigentes ni los tres prompts.
 
+## Ejecución por fases (vigente desde el 2-nov-2026)
+
+El proceso se ejecuta **en cuatro fases numeradas**, una por invocación y con traspaso por archivo. No cambia el método ni las reglas: ordena la «Secuencia obligatoria» de abajo y fija qué herramienta y modelo usar. Detalle operativo en [`docs/propuestas/fases/`](propuestas/fases/README.md) (README, una instrucción por fase y [`MODO_CHATGPT.md`](propuestas/fases/MODO_CHATGPT.md)).
+
+| Fase | Frase de invocación | Pasos de la secuencia | Prompt maestro | Estado de salida | Modelo recomendado (no normativo) |
+|---|---|---|---|---|---|
+| 1 Datos y hoja | «Empieza el análisis de <T> en fase 1» | 1–2 y preparación de la hoja | — | `CANDIDATO` | Claude Sonnet medio · ChatGPT (chat) |
+| 2 Supuestos y valoración | «Sigue con <T> en fase 2» | 3 | 1/3 | `CANDIDATO` | Claude Opus alto · ChatGPT Work (Astra/Sol alto) |
+| 3 Análisis y publicación | «Sigue con <T> en fase 3» | 4, 5 y 7–8 (publicar EN_REVISIÓN) | 2/3 | `EN_REVISIÓN` | Claude Opus alto (+ Sonnet medio para captura/PR) · ChatGPT Work; PR y CI con Claude Code |
+| 4 Auditoría | «Audita <T> en fase 4» | 6 | 3/3 | dictamen (nunca `AUDITADO` automático) | Otro LLM o Claude Opus alto en sesión nueva |
+
+- Una fase por invocación; la siguiente solo arranca con la entrega anterior `CERRADA` (`FASE_<N>_ENTREGA.md`). Un control no ejecutado deja la fase «CERRADA CON CONTROLES PENDIENTES».
+- La fase 4 la hace un agente o sesión distinto del de las fases 2 y 3; si no, se califica «no independiente».
+- Las habilidades de Claude Code (`fase-jmr`, `analisis-nuevo`, `actualizar-cartera`, `valoracion-colombia`) y ChatGPT usan estas mismas fases. La instrucción de una sola frase de arriba sigue siendo válida: equivale a ejecutar las fases 1–3 en orden, deteniéndose entre cada una.
+- Emisores colombianos: mismas fases con `colombia-nucleo-v1.md` como contexto local.
+
 ## Selección previa del método
 
 Para cada revisión nueva consignar expresamente `Método A` / `A-1.2` (calibración por drivers y base rates), salvo elección expresa de `Método B` (JMR tradicional) por el usuario. Documento selector: [`modelo/METODOS_VALORACION.md`](../modelo/METODOS_VALORACION.md). A y B comparten el motor y los controles. Las revisiones antiguas sin etiqueta se leen como B sin modificarlas. **El selector de la app y el ejecutor no están adaptados todavía:** esta elección es normativa/documental hasta su integración técnica y regresión.
