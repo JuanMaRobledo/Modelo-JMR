@@ -13,7 +13,7 @@ El proceso se ejecuta **en cuatro fases numeradas**, una por invocación y con t
 | 3 Análisis y publicación | «Sigue con <T> en fase 3» | 4, 5 y 7–8 (publicar EN_REVISIÓN) | 2/3 | `EN_REVISIÓN` | Claude Opus alto (+ Sonnet medio para captura/PR) · ChatGPT Work; PR y CI con Claude Code |
 | 4 Auditoría | «Audita <T> en fase 4» | 6 | 3/3 | dictamen (nunca `AUDITADO` automático) | Otro LLM o Claude Opus alto en sesión nueva |
 
-- Una fase por invocación; la siguiente solo arranca con la entrega anterior `CERRADA` (`FASE_<N>_ENTREGA.md`). Un control no ejecutado deja la fase «CERRADA CON CONTROLES PENDIENTES».
+- Una fase por invocación de forma predeterminada; varias si el usuario las solicita expresamente. Recuperar entregas y resolver dependencias previas dentro del alcance. Se permite continuar como CANDIDATO con controles pendientes e insumos materiales verificados. Una falta documental o un script no disponible no detiene automáticamente el trabajo. Aplicar [Continuidad y cierre operativo](propuestas/fases/README.md#continuidad-y-cierre-operativo--actualización-2-nov-2026); los gates financieros y de publicación permanecen obligatorios.
 - La fase 4 la hace un agente o sesión distinto del de las fases 2 y 3; si no, se califica «no independiente».
 - Las habilidades de Claude Code (`fase-jmr`, `analisis-nuevo`, `actualizar-cartera`, `valoracion-colombia`) y ChatGPT usan estas mismas fases. La instrucción de una sola frase de arriba sigue siendo válida: equivale a ejecutar las fases 1–3 en orden, deteniéndose entre cada una.
 - Emisores colombianos: mismas fases con `colombia-nucleo-v1.md` como contexto local.
