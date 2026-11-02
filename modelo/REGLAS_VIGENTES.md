@@ -273,6 +273,7 @@ Hojas de trabajo conservadas tras el archivo del 24-oct-2026 (identidad document
 
 | Versión | Fecha | Cambio |
 |---|---|---|
+| 25 | 2-nov-2026 | §0B: indicadores de rentabilidad y múltiplos históricos y LTM mediante fórmulas trazables; precios históricos con fecha y split, sin sobrescribir celdas derivadas. Conserva A-1.2, MOS y valores existentes. |
 | 24 | 2-nov-2026 | §0A: integridad de conceptos contra fuentes primarias, ceros/agrupaciones documentados y control complementario anticeros antes de promover. Aplica a cualquier IA, sin alterar resultados existentes ni método económico. |
 | 23 | 30-oct-2026 | Unificación documental: tres prompts activos 1/3 valoración, 2/3 análisis (14 capítulos con ciclos autónomos, Nivel 2 con 12 apartados), 3/3 auditoría (18 secciones). Sensibilidades DCF Base y de múltiplos Base aplicables obligatorias en la hoja; P/S y P/BV opcionales. Los prompts históricos no son autoridad ni se ejecutan. No modifica fórmulas, valoraciones ni datos. |
 | 22 | 30-oct-2026 | §5A, §8, §9: P/S y P/BV pasan a ser complementarios opcionales; no bloquean publicación/cobertura cuando no se usan, sin cambiar plantillas, fórmulas, pesos existentes ni valoraciones. Cinco métodos prioritarios sujetos a aplicabilidad; matrices solo cuando hay base verificable. |
