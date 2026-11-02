@@ -25,6 +25,7 @@ Dejar una copia limpia de la plantilla vigente con estados completos, corte de m
 ## Controles de cierre (todos deben cumplirse para `CERRADA`)
 - `python3 scripts/estados_completos.py <TICKER>` → 0 hallazgos.
 - `python3 scripts/diff_formulas_plantilla.py --sheet-id <ID> [--excepciones reference/excepciones_formulas/<TICKER>.json]` → 0 no declarados.
+- `python3 scripts/ubicacion_hoja.py <TICKER> --sheet-id <ID>` → ubicación OK: la hoja vive en `Análisis/<TICKER>/` (REGLAS §11). Una carpeta con el nombre del ticker dentro de un archivo histórico no cumple: si `Análisis/<TICKER>` no existe, se crea (caso AMZN-20261102-A12-R2, 2-nov-2026).
 - Precio, Treasury y prima con la misma fecha (o ajuste documentado).
 - Cada cifra del inventario verificada contra su documento (no de memoria).
 - `python3 scripts/inputs_completos.py <TICKER>` y `scripts/candados.py <TICKER>`: se informan tal cual; las entradas pendientes de fase 2 no bloquean la fase 1 pero quedan listadas en «Pendiente».
