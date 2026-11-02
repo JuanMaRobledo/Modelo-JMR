@@ -26,7 +26,7 @@ autorización explícita, en `Modelo-JMR-datos/colombia/expedientes/`.
 - Ticker `.CL` más identidad BVC/COP verificada en respuesta; sin fallback a ADR.
 - Cada consulta crea un UUID y un expediente sin supuestos heredados.
 - Clave local propia: `jmr-colombia-dossiers-v1`.
-- Prompts propios: `colombia-research-v1.md`, `colombia-valuation-v1.md`.
+- Prompts: los tres maestros vigentes con `colombia-nucleo-v1.md` antepuesto como contexto local; `colombia-research-v1.md` y `colombia-valuation-v1.md` son archivos de compatibilidad (no vigentes).
 - Carpeta remota propia; las bibliotecas US no se leen ni se escriben.
 - El adaptador FMP existente rechaza `.CL` y dirige a este apartado.
 - Endpoints `/api/` excluidos de caché offline del service worker.

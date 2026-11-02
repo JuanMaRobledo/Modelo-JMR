@@ -1,3 +1,8 @@
+# ARCHIVO DE COMPATIBILIDAD — Prompt Colombia de valoración v1 (NO VIGENTE)
+
+> **No ejecutar este documento como prompt maestro** (2-nov-2026). Se conserva íntegro como antecedente histórico y porque comparte el bloque cuantitativo `JMR-WORK-BASE-INVERSE-SENSITIVITY-20261015` con el prompt 1/3 (control `tests/work-prompt-parity.test.mjs`). Para valorar y analizar emisores colombianos usar `modelo/REGLAS_VIGENTES.md`, los tres prompts maestros activos (`valoracion-modelo-jmr-v5.md`, `research-fundamental-jmr-v5.md`, `auditoria-economica-jmr-v1.md`) y, antepuesto como contexto local, `colombia-nucleo-v1.md` — la misma combinación que carga la app (`docs/research.js`). Donde este archivo contradiga las reglas vigentes, prevalecen ellas.
+
+<!-- CONTENIDO HISTÓRICO ORIGINAL — SOLO REFERENCIA, NO INSTRUCCIONES VIGENTES -->
 REGLA GLOBAL JMR · 17-OCT-2026 · HISTORIAS Y SIETE MÚLTIPLOS
 1. La historia determina los supuestos de cada escenario. DCF y múltiplos comparten el crecimiento, margen EBIT e impuestos de Valuation output para esa misma historia; los métodos de valoración permanecen separados. Justificar también el múltiplo de salida por crecimiento, margen/ROE, riesgo, régimen histórico y comparables; los percentiles históricos son una referencia inicial, no una regla automática ni un objetivo que deba coincidir con Toro.
 2. Calcular las cuatro historias completas. El promedio y el rango principal incluyen SOLO Conservador, Base y Optimista. Promedio = suma(p_i × V_i) / suma(p_i), i en esas tres historias, conservando los pesos relativos existentes. Si no hay probabilidades aprobadas, presentar media aritmética de las tres, expresamente rotulada; nunca inventar probabilidades.
