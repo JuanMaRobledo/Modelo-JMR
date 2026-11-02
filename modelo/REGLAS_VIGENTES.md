@@ -1,6 +1,6 @@
 # Reglas vigentes del Modelo JMR
 
-**Versión 24 · 2-nov-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
+**Versión 25 · 2-nov-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
 (`docs/prompts/*.md`), `METODOLOGIA.md`, una habilidad o un comentario de código dice otra cosa, prevalece este
 documento. Una regla nueva no se agrega como «regla del día X» en un prompt: se cambia aquí, se sube la versión y se
 anota en el registro de cambios del final.
@@ -18,6 +18,14 @@ Por instrucción del usuario, la preparación de candidatos no se detiene autom�
 - **Prueba contra reclasificaciones ficticias:** cuando una partida reportada está escondida en «Other Operating Expenses» u otro agregado, trasladarla sin duplicarla y demostrar estabilidad de EBIT, CFO y DCF por el mero cambio de presentación. Los totales que cuadran no prueban por sí solos que todas las categorías estén bien.
 - **Dos validaciones complementarias, nunca intercambiables:** `estados_completos.py` busca huecos; `auditar_ceros_materiales.py` alerta sobre ceros o vacíos sin evidencia; adicionalmente `auditar_estados_sec.py` / `auditar_estados_ifrs.py` y el cotejo humano/IA con informes primarios verifican cifras y definiciones. Guardar resultados por ticker, revisión y `sheet_id`. Un control no ejecutado se declara y no se presume aprobado.
 - **Puerta de publicación:** no promover `EN_REVISION` cuando quede sin resolver un dato o reclasificación material que afecte la valoración o no permita acotar su impacto; se admite investigación como `CANDIDATO` conforme a continuidad operativa. Esta exigencia aplica por igual a ChatGPT, Claude y cualquier otro ejecutor y no modifica A-1.2, fórmulas ni el MOS.
+
+## 0B. Arquitectura de cálculos: datos primarios, fórmulas y trazabilidad de indicadores
+
+- **Capas obligatorias para cualquier IA:** (1) dato externo capturado (estados oficiales, precio fechado, acciones y tasas) como entrada con fuente/corte/unidad/nota; (2) indicadores financieros derivados calculados con **fórmulas nativas en Sheets/Excel**, nunca pegados como resultados; (3) fotografía de salida identificada por revisión, corte y versión de fórmula para JSON, análisis y auditoría. La hoja sigue siendo fuente de los cálculos.
+- **Prohibido sustituir fórmulas por números:** ROIC, ROE, ROA, NOPAT, capital invertido promedio, márgenes, rentabilidad, crecimiento, eficiencia, salud financiera y `Trailing Valuation` (market cap, EV, P/E, EV/EBITDA, P/FCF, P/OCF, P/BV y otros múltiplos) deben salir de fórmulas rastreables. La IA puede calcular comprobaciones independientes, pero no pegarlas encima. Si la plantilla ya trae fórmulas correctas, preservarlas.
+- **Precisar denominadores y fechas:** ROE/ROA usan media de saldos inicial/final; ROIC debe declarar NOPAT, capital invertido promedio y tratamiento de caja excedentaria, goodwill, leases, I+D y SBC. Trading/trailing multiples requieren un **precio de cierre fechado para cada período** y acciones con split aplicado; no usar precio de hoy sobre beneficios de 2018 y llamarlo múltiplo histórico. Un denominador cero/no disponible produce N/D o vacío explicado, nunca múltiplo artificial. Diferenciar múltiplos observados LTM de proyecciones forward.
+- **Prueba de integridad para fases 1–3:** inspeccionar `Eficiencia de capital`, `Márgenes`, `Salud Financiera`, `Por acción`, `Trailing Valuation` y `Income Statement`/estados. Comprobar que cada celda de salida B:L conserve fórmula en comparación con plantilla y que NO haya números pegados en rangos derivados. `diff_formulas_plantilla.py` sigue obligatorio; incorporar verificación específica de estos rangos en evidencia; probar al menos ROIC, ROE, ROA, P/E y EV/EBITDA contra cálculo independiente con cifras primarias para dos períodos (incluido LTM si está completo). Bloquear publicación por fórmulas sustituidas, falta de split, precio sin fecha o desajuste material.
+- **Múltiplos históricos secundarios:** `Múltiplos históricos` se alimenta de `Trailing Valuation` por fórmulas/función reproducible con filtros documentados de denominadores positivos y outliers, sin valores manuales sin trazabilidad. El motor histórico no sobreescribe los siete métodos de valoración principal ni el DCF. Las fórmulas del maestro solo se alteran en mantenimiento separado con respaldo y prueba de regresión; para una empresa, solo se escribe en su copia.
 
 ## 1. Valor principal y margen de seguridad
 
