@@ -27,3 +27,6 @@
 ## Lo que esta propuesta no resuelve
 - No hay comparación medida contra modelos de otros proveedores; la elección de Claude por fase se basa en lo observado en NU, no en una prueba controlada.
 - La calidad de los datos de mercado (CDS, consenso, betas) depende de las conexiones disponibles.
+
+## Invocación por fases
+Cada fase se ejecuta con una frase («Empieza el análisis de <TICKER> en fase 1», «Sigue con <TICKER> en fase 2», «… en fase 3», «Audita <TICKER> en fase 4»). Las instrucciones de cada fase y el formato de traspaso están en [`fases/`](fases/README.md). Claude Code: habilidad `fase-jmr`.

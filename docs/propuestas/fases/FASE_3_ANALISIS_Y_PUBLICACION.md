@@ -1,0 +1,21 @@
+# Fase 3 · Análisis fundamental y publicación EN_REVISION
+
+**Invocación:** «Sigue con <TICKER> en fase 3». **Aplica:** prompt maestro **2/3 Análisis fundamental** (`docs/prompts/research-fundamental-jmr-v5.md`). **Estado de salida:** `EN_REVISION` si todos los controles pasan; si no, `CANDIDATO` con la entrega `BLOQUEADA`. **No** recalcula, **no** cambia supuestos ni la hoja, **no** audita.
+
+## Requisito de entrada
+`FASE_2_ENTREGA.md` `CERRADA` y JSON candidato de la misma `<REV>`.
+
+## Pasos
+1. **Nivel 1:** 14 capítulos canónicos (capítulo 5 de ciclos), mínimo 330 palabras por capítulo y 7.500 en total, con hechos y mecanismos propios del emisor.
+2. **Nivel 2:** 12 apartados reproducibles con tablas leídas de la captura (no reescritas): históricos, fuentes, supuestos por historia, fórmulas literales, proyección, DCF y puente, escenarios, múltiplos, sensibilidades, matrices, conciliaciones (incluido el recálculo independiente) y salvedades.
+3. **Verificación de cada afirmación:** toda cifra sale del JSON de la revisión o de un documento citado y comprobado en esta fase; las cifras calculadas en el texto se generan por código desde el JSON, no se escriben a mano.
+4. **Publicación:** promover al catálogo (`valoraciones/` y `analisis/`), retirar del catálogo la revisión anterior del mismo ticker sin borrarla (marca `sustituidaPor`), ejecutar **todos los pasos** de los workflows del repositorio de datos en local, PR, CI en verde y fusión.
+
+## Controles de cierre
+- Workflows locales: `validar_catalogo`, `auditar_ponderaciones`, `auditar_integridad`, `auditar_profundidad`, `validar_profundidad_metodo_a`, `validar_no_regresion_20`, pruebas Node y Python → todos en verde.
+- Pruebas de la app (Modelo-JMR) en verde.
+- CI remoto en verde sobre el commit fusionado.
+- Si una guarda del repositorio debe cambiar por la promoción (conteos, identificador de revisión), el cambio se declara en el PR y no relaja el criterio.
+
+## Entrega
+`FASE_3_ENTREGA.md`, PR fusionado, rutas del JSON y del análisis. «Para la fase siguiente»: identificador de la revisión publicada, hoja, JSON, análisis y lista de salvedades.
