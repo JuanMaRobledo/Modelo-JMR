@@ -2,6 +2,8 @@
 
 **Invocación:** «Audita <TICKER> en fase 4». **Aplica:** prompt maestro **3/3 Auditoría económica** (`docs/prompts/auditoria-economica-jmr-v1.md`): 18 secciones exactas, dictamen VERIFICADO / VERIFICADO CON RESERVA MATERIAL / PENDIENTE. **No** modifica la valoración, la hoja ni el análisis; **no** cambia el estado a `AUDITADO` sin autorización expresa.
 
+**Modelo recomendado (no normativo; ver [README](README.md)):** Claude Opus alto en sesión nueva, u otro LLM distinto del de las fases 2 y 3 (no ChatGPT si hizo 2 y 3). Declarar en la entrega el modelo y esfuerzo realmente usados.
+
 ## Requisito de independencia (obligatorio)
 - Debe ejecutarse en una **sesión nueva** y, preferiblemente, con **otro LLM** distinto del que hizo las fases 2 y 3.
 - Si quien audita reconoce que construyó la valoración en la misma conversación, debe declararlo en la sección 1 y calificar la auditoría como «no independiente»; el expediente no puede pasar a `AUDITADO` con esa auditoría.

@@ -16,6 +16,20 @@ Variantes válidas: «empieza la fase N de <TICKER>», «<TICKER> fase N», «ac
 - **Claude Code:** la habilidad `fase-jmr` (repositorio JMR-valuation, `.claude/skills/fase-jmr/`) reconoce la frase y ejecuta el archivo de la fase.
 - **ChatGPT (chat o Work):** cargar este directorio como instrucciones del proyecto, o pegar el archivo de la fase con la frase al final.
 
+## Fases y modelo recomendado (resumen)
+
+| Fase | Etapa del proceso | Estado de salida | Propuesta Claude | Propuesta ChatGPT |
+|---|---|---|---|---|
+| **1. Datos y hoja** | Preparación de datos | `CANDIDATO` | Claude **Sonnet**, esfuerzo medio | **ChatGPT (chat)** — escribe en Google Sheets |
+| **2. Supuestos y valoración** | **Valoración** (prompt 1/3) | `CANDIDATO` | Claude **Opus**, esfuerzo alto | **ChatGPT Work**, Astra alto o Sol alto |
+| **3. Análisis y publicación** | **Análisis** (prompt 2/3) y paso a **revisión** (`EN_REVISION`) | `EN_REVISION` | Claude **Opus** alto para redactar; **Sonnet** medio para captura, JSON, pruebas y PR | **ChatGPT Work**, mismo modo que la fase 2 |
+| **4. Auditoría económica** | **Auditoría** independiente (prompt 3/3) | dictamen, nunca `AUDITADO` automático | Claude **Opus** alto en **sesión nueva**, o LLM de otro proveedor | **Otro LLM** (no ChatGPT); recomendado Claude Opus alto en sesión nueva |
+
+- **Revisión** = lo que ocurre entre fases: el usuario lee la entrega `FASE_<N>_ENTREGA.md` y, al invocar la fase siguiente, la da por revisada. El estado `EN_REVISION` lo fija la fase 3, no un modelo distinto.
+- **Regla de independencia:** la fase 4 nunca la hace el mismo modelo y sesión que hicieron las fases 2 y 3. Si no hay otro LLM disponible, mínimo una sesión nueva sin contexto, y la auditoría se califica «no independiente».
+- Los modelos son **recomendaciones no normativas** (ver las dos propuestas): no hay comparación medida entre proveedores, y los modos Astra/Sol de ChatGPT no están verificados desde este repositorio. Los datos y los controles pesan más que el modelo.
+- Cada `FASE_<N>_ENTREGA.md` debe declarar herramienta, modelo y esfuerzo realmente usados, aunque difieran de la recomendación.
+
 ## Reglas comunes a las cuatro fases
 1. **Una fase por sesión y por invocación.** Al terminar, la fase se detiene y entrega; nunca encadena la siguiente por su cuenta. La invocación de la fase siguiente por el usuario equivale a su revisión de la entrega anterior.
 2. **Traspaso por archivo, no por memoria.** Cada fase deja `Modelo-JMR-datos/candidatos/valoraciones/<REV>/FASE_<N>_ENTREGA.md` con el formato de abajo y la fase siguiente parte **solo** de ese archivo, de la hoja y del repositorio. Si la entrega anterior falta o no está en estado `CERRADA`, la fase se detiene y lo informa.

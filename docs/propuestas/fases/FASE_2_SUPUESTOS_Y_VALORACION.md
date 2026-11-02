@@ -2,6 +2,8 @@
 
 **Invocación:** «Sigue con <TICKER> en fase 2». **Aplica:** prompt maestro **1/3 Valoración** (`docs/prompts/valoracion-modelo-jmr-v5.md`) y `REGLAS_VIGENTES.md`. **Estado de salida:** `CANDIDATO`. **No** escribe el artículo, **no** audita, **no** publica.
 
+**Modelo recomendado (no normativo; ver [README](README.md)):** Claude Opus alto · ChatGPT Work (Astra/Sol alto). Declarar en la entrega el modelo y esfuerzo realmente usados.
+
 ## Requisito de entrada
 `FASE_1_ENTREGA.md` en estado `CERRADA`. Si no existe o está bloqueada, detenerse.
 
