@@ -2,7 +2,7 @@
 (function () {
   var params = new URLSearchParams(location.search);
   var col = params.get('mercado') === 'colombia' || /(?:^|\/)colombia\.html$/.test(location.pathname);
-  var bvc = /^(?:ECOPETROL|CELSIA|ISA|GEB|GRUPOSURA|PFGRUPSURA|GRUPOARGOS|GRUPOARG|PFGRUPOARG|CEMARGOS|PFCEMARGOS|PFDAVVNDA|PFDAVIGRP|DAVIGRP|MINEROS|BVC|BCOLOMBIA|PFBCOLOM|CIBEST|PFCIBEST)(?:\.CL)?$/;
+  var bvc = /^(?:ECOPETROL|CELSIA|ISA|GEB|GRUPOSURA|PFGRUPSURA|GRUPOARGOS|GRUPOARG|PFGRUPOARG|CEMARGOS|PFCEMARGOS|PFDAVVNDA|PFDAVIGRP|DAVIGRP|MINEROS|BVC|BCOLOMBIA|PFBCOLOM|CIBEST|PFCIBEST|TERPEL)(?:\.CL)?$/;
   window.jmrEsCOP = function (r) {
     if (!r) return false;
     var nested = r.visor || r.valoracionActual || r.research || r.linkedValuation || r.bitacoraPropia;
