@@ -1,0 +1,29 @@
+# Fase 2 · Supuestos y valoración
+
+**Invocación:** «Sigue con <TICKER> en fase 2». **Aplica:** prompt maestro **1/3 Valoración** (`docs/prompts/valoracion-modelo-jmr-v5.md`) y `REGLAS_VIGENTES.md`. **Estado de salida:** `CANDIDATO`. **No** escribe el artículo, **no** audita, **no** publica.
+
+## Requisito de entrada
+`FASE_1_ENTREGA.md` en estado `CERRADA`. Si no existe o está bloqueada, detenerse.
+
+## Pasos
+1. **Supuestos con evidencia en ambas direcciones.** Para cada motor, tabla `supuesto | valor | historia 3/5 años y UDM | consenso o pares con fecha | mecanismo | qué lo refuta | efecto en valor`:
+   - **Crecimiento** (año 1, años 2–5, 6–10) frente a historia, ritmo del último trimestre y consenso.
+   - **Márgenes** normalizados (tasa efectiva normal si la del UDM está distorsionada) frente a historia y pares.
+   - **Reinversión:** Sales-to-Capital marginal y ROIC (operativas); capital regulatorio, APR/RWA y deducciones de CET1 (financieras: el patrimonio requerido se liga a los activos de riesgo observados; el ROE es un resultado, no un supuesto impuesto); por segmento (holdings).
+   - **Costo de capital:** beta de abajo hacia arriba **y** beta de regresión (con error estándar), prima madura y prima país de la fecha del corte, ponderación por exposición de ingresos.
+   - **Terminal:** g del corte con techo en la tasa libre; ROIC/ROE terminal según la regla de moat.
+   - Revisar explícitamente **sesgo agresivo y prudencia duplicada**; cada riesgo en un solo lugar (flujos, tasa o probabilidad).
+2. **Cuatro historias** completas y probabilidades = previa de la etapa + ajustes de 5 pp solo por indicadores que cruzaron su umbral escrito. Disrupción aparte.
+3. **En la hoja:** escribir solo entradas; el DCF (o FCFE/SOTP), escenarios, sensibilidades nativas 5×5 (centro = Base), DCF inverso y múltiplos aplicables con anclas independientes (sin ancla → `PENDIENTE_ANCLA`, peso 0) salen de fórmulas. Motores especiales en pestañas añadidas y declaradas.
+4. **Recálculo independiente** del valor principal fuera de la hoja (código propio que lea las entradas de la hoja) y comparación.
+5. **Captura** de la hoja con SHA-256 y **JSON candidato** construido solo desde la captura.
+
+## Controles de cierre
+- Recálculo independiente = hoja (diferencia < 1e-6 por acción) en las cuatro historias.
+- Centros de todas las matrices = Base o VP3 del método; probabilidades suman 1; MOS = Base × 0,65.
+- `diff_formulas_plantilla.py` → 0 no declarados; `integridad_hojas.py <TICKER>` sin hallazgos nuevos no explicados.
+- Tabla de supuestos completa, con cada fila revisada en ambas direcciones.
+- Ningún supuesto ajustado para acercarse al precio (el DCF inverso solo se reporta).
+
+## Entrega
+`FASE_2_ENTREGA.md`, `VALORACION_A12_EN_REVISION.json` en `candidatos/valoraciones/<REV>/` (estado CANDIDATO), captura con hash. «Para la fase siguiente»: valores por historia, tabla de supuestos, salvedades y rutas.

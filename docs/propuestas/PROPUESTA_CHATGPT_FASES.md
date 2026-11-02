@@ -30,3 +30,6 @@ Correr la **fase 2 de una empresa ya valorada** (por ejemplo NU con los datos de
 - si detectan el impuesto diferido del 1S26, la densidad creciente del APR y la prima país desactualizada;
 - cuántas cifras erróneas o inventadas aparecen (verificadas contra el 20-F y el 6-K).
 Se elige el modo con menos errores verificables, no el que llega al valor más parecido a la R2.
+
+## Invocación por fases
+Cada fase se ejecuta con una frase («Empieza el análisis de <TICKER> en fase 1», «Sigue con <TICKER> en fase 2», «… en fase 3», «Audita <TICKER> en fase 4»). Las instrucciones de cada fase y el formato de traspaso están en [`fases/`](fases/README.md). ChatGPT: cargar `docs/propuestas/fases/` como instrucciones del proyecto.
