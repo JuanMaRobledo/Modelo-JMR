@@ -24,6 +24,8 @@ Variantes válidas: «empieza la fase N de <TICKER>», «<TICKER> fase N», «ac
 5. **Nunca relajar un control para ponerlo en verde.** Si un control falla y no se puede corregir dentro de la fase, la entrega queda `BLOQUEADA` con la causa exacta.
 6. **Estados:** fases 1 y 2 → `CANDIDATO`; fase 3 → `EN_REVISION` (si los controles pasan); fase 4 → dictamen, nunca `AUDITADO` automático.
 
+7. **Emisores colombianos (BVC, COP):** mismas cuatro fases y mismos prompts maestros, con `docs/prompts/colombia-nucleo-v1.md` antepuesto como contexto local en las fases 2, 3 y 4 (no es un cuarto prompt). Moneda COP, estados NIIF, holdings por SOTP y financieras por FCFE según `REGLAS_VIGENTES.md`. En Claude Code, el procedimiento de datos y scripts es el de la habilidad `valoracion-colombia`. `colombia-valuation-v1.md` y `colombia-research-v1.md` son archivos de compatibilidad: no se ejecutan. Colombia figura en pausa desde el 21-oct-2026 (`docs/prompts/CONCILIACION_PROMPTS.md`); invocar una fase para un emisor colombiano equivale a reactivarlo para ese emisor.
+
 ## Formato de `FASE_<N>_ENTREGA.md`
 ```
 # <TICKER> · <REV> · Fase <N> · <CERRADA | BLOQUEADA>

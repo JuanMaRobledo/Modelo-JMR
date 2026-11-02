@@ -7,6 +7,9 @@
 - Si quien audita reconoce que construyó la valoración en la misma conversación, debe declararlo en la sección 1 y calificar la auditoría como «no independiente»; el expediente no puede pasar a `AUDITADO` con esa auditoría.
 - Lee solo lo publicado: catálogo, JSON, análisis, hoja y fuentes primarias. No lee las entregas de las fases 2 y 3 hasta haber formado su propio juicio (las usa al final para contrastar).
 
+
+**Emisor colombiano:** anteponer `docs/prompts/colombia-nucleo-v1.md` al prompt 3/3 como contexto local.
+
 ## Pasos
 1. Resolver la revisión vigente en `catalogo.json` y leer `auditorias/solicitudes/<TICKER>/<REV>.json` si existe.
 2. Reproducir el valor principal con código propio y comparar con la hoja; verificar identidades, centros de matrices y fechas.

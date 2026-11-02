@@ -5,6 +5,9 @@
 ## Requisito de entrada
 `FASE_1_ENTREGA.md` en estado `CERRADA`. Si no existe o está bloqueada, detenerse.
 
+
+**Emisor colombiano:** anteponer `docs/prompts/colombia-nucleo-v1.md` al prompt 1/3. Holdings: SOTP Base como valor principal; financieras: FCFE/Ke con capital regulatorio.
+
 ## Pasos
 1. **Supuestos con evidencia en ambas direcciones.** Para cada motor, tabla `supuesto | valor | historia 3/5 años y UDM | consenso o pares con fecha | mecanismo | qué lo refuta | efecto en valor`:
    - **Crecimiento** (año 1, años 2–5, 6–10) frente a historia, ritmo del último trimestre y consenso.

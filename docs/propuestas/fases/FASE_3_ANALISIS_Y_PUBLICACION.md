@@ -5,6 +5,9 @@
 ## Requisito de entrada
 `FASE_2_ENTREGA.md` `CERRADA` y JSON candidato de la misma `<REV>`.
 
+
+**Emisor colombiano:** anteponer `docs/prompts/colombia-nucleo-v1.md` al prompt 2/3.
+
 ## Pasos
 1. **Nivel 1:** 14 capítulos canónicos (capítulo 5 de ciclos), mínimo 330 palabras por capítulo y 7.500 en total, con hechos y mecanismos propios del emisor.
 2. **Nivel 2:** 12 apartados reproducibles con tablas leídas de la captura (no reescritas): históricos, fuentes, supuestos por historia, fórmulas literales, proyección, DCF y puente, escenarios, múltiplos, sensibilidades, matrices, conciliaciones (incluido el recálculo independiente) y salvedades.

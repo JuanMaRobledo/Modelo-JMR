@@ -5,6 +5,9 @@
 ## Objetivo
 Dejar una copia limpia de la plantilla vigente con estados completos, corte de mercado coherente y un inventario de insumos donde cada cifra tenga fuente.
 
+
+**Emisor colombiano:** fuentes NIIF (Superfinanciera/SIMEV y estados de la emisora), precio en COP de la BVC, tasa libre y prima en la moneda del modelo según `colombia-nucleo-v1.md`; en Claude Code, scripts de la habilidad `valoracion-colombia` (`co_datos_niif.py`, `co_completar_estados.py`, `moneda_cop.py`).
+
 ## Pasos
 1. **Identidad y método.** Ticker, emisor, CIK/regulador, clase de acción, moneda, calendario fiscal. Clasificar: operativa (FCFF/WACC), financiera (FCFE/Ke con capital regulatorio) u holding (SOTP). Método `A-1.2` salvo elección expresa de B. Operación: `desde cero` o `actualizar`. Asignar `<REV>` = `<TICKER>-<AAAAMMDD>-A12-R<n>` (consultar `catalogo.json` y `candidatos/` para no repetir).
 2. **Fuentes primarias.** Último 10-K/20-F y 10-Q/6-K de estados, y **todos** los 8-K/6-K hasta hoy (`scripts/novedades_sec.py`). Hechos posteriores al corte: listarlos con fecha.
