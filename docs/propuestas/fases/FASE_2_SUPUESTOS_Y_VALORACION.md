@@ -5,7 +5,7 @@
 **Modelo recomendado (no normativo; ver [README](README.md)):** Claude Opus alto · ChatGPT Work (Astra/Sol alto). Declarar en la entrega el modelo y esfuerzo realmente usados.
 
 ## Requisito de entrada
-`FASE_1_ENTREGA.md` en estado `CERRADA`. Si no existe o está bloqueada, detenerse.
+Recuperar `FASE_1_ENTREGA.md` y sus evidencias (repositorio, Drive o archivos persistentes). Admitir `CERRADA CON CONTROLES PENDIENTES` si los insumos materiales para el cálculo están verificados. Si falta el archivo formal, reconstruirlo desde evidencia; resolver pendientes previos necesarios dentro de esta fase. Aplicar «Continuidad y cierre operativo» del README. No calcular con datos materiales ausentes ni fórmulas rotas; aislar esas dependencias y completar el resto. Los controles oficiales siguen informándose con su resultado real.
 
 
 **Emisor colombiano:** anteponer `docs/prompts/colombia-nucleo-v1.md` al prompt 1/3. Holdings: SOTP Base como valor principal; financieras: FCFE/Ke con capital regulatorio.
