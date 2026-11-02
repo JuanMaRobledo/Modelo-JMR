@@ -14,7 +14,7 @@
 Variantes válidas: «empieza la fase N de <TICKER>», «<TICKER> fase N», «actualiza <TICKER> en fase 1» (operación *actualizar* en lugar de *desde cero*).
 
 - **Claude Code:** la habilidad `fase-jmr` (repositorio JMR-valuation, `.claude/skills/fase-jmr/`) reconoce la frase y ejecuta el archivo de la fase.
-- **ChatGPT (chat o Work):** cargar este directorio como instrucciones del proyecto, o pegar el archivo de la fase con la frase al final.
+- **ChatGPT (chat o Work):** seguir [MODO_CHATGPT.md](MODO_CHATGPT.md): instrucciones del proyecto para pegar, qué fase puede ejecutar y cuál requiere Claude Code (promoción y PR de la fase 3), controles «NO EJECUTADO» y dónde queda la entrega.
 
 ## Fases y modelo recomendado (resumen)
 
