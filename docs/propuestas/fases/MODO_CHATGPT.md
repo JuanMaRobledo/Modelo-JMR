@@ -1,6 +1,6 @@
 # Modo ChatGPT — cómo ejecutar las cuatro fases desde ChatGPT
 
-**Estado:** propuesta operativa (2-nov-2026), **sin probar** con ChatGPT. No sé qué herramientas tiene hoy el chat ni ChatGPT Work (código, Google Sheets, GitHub); donde lo ignoro, el modo dice qué hacer si falta. Las reglas y controles son los de [README](README.md) y los tres prompts maestros; este archivo solo adapta la forma de ejecutarlos.
+**Estado:** vigente; actualización de continuidad operativa del 2-nov-2026. Verificar las herramientas reales de cada sesión antes de declarar una limitación. Las reglas y controles son los de [README](README.md) y los tres prompts maestros; este archivo solo adapta la forma de ejecutarlos.
 
 ## 1. Instrucciones del proyecto (pegar una vez)
 Crear en ChatGPT un proyecto «JMR» y pegar como instrucciones:
@@ -8,7 +8,7 @@ Crear en ChatGPT un proyecto «JMR» y pegar como instrucciones:
 ```
 Eres el ejecutor de UNA fase del proceso JMR. Cuando el usuario diga «Empieza el análisis de <TICKER> en fase 1», «Sigue con <TICKER> en fase 2/3» o «Audita <TICKER> en fase 4»:
 1. Lee el archivo de esa fase (FASE_<N>_*.md) y el README de fases, adjuntos al proyecto. Si tienes el prompt maestro de la fase (1/3, 2/3, 3/3), léelo también: prevalece.
-2. Ejecuta SOLO esa fase y detente. No encadenes la siguiente.
+2. Ejecuta la fase solicitada; si el usuario pide varias, ejecútalas en orden. Recupera los pendientes previos necesarios. Mantén independiente la auditoría.
 3. Ninguna cifra sin fuente (documento, período, celda). Lo no verificado: [NO VERIFICADO].
 4. Si un control exige un script o una herramienta que no tienes, NO lo omitas en silencio ni lo des por pasado: márcalo «NO EJECUTADO — requiere <herramienta>» y deja la fase BLOQUEADA o «CERRADA CON CONTROLES PENDIENTES», según el README.
 5. Nunca relajes un control. Nunca marques AUDITADO.
@@ -31,7 +31,7 @@ Archivos a adjuntar al proyecto: `docs/propuestas/fases/*.md`, `modelo/REGLAS_VI
 | `estados_completos`, `diff_formulas_plantilla`, `integridad_hojas`, `inputs_completos`, `candados`, `controles_supuestos` | ChatGPT los corre (si tiene Python y JMR-valuation) | Se marcan «NO EJECUTADO»; los corre Claude Code antes de cerrar la fase |
 | Revisión manual de la hoja | Siempre posible | Compara contra la plantilla vigente celda a celda en las pestañas listadas; dejar la lista en la entrega |
 
-Una fase con controles «NO EJECUTADO» **no está `CERRADA`**: queda `CERRADA CON CONTROLES PENDIENTES` y la siguiente fase no arranca hasta que se ejecuten (regla 2 del README).
+Una fase con controles «NO EJECUTADO» **no está `CERRADA`**: queda `CERRADA CON CONTROLES PENDIENTES` y se puede continuar preparando la siguiente como CANDIDATO si los insumos mínimos están verificados. Aplicar «Continuidad y cierre operativo» del README; no promover hasta pasar los gates.
 
 ## 4. Dónde queda la entrega
 - ChatGPT escribe `FASE_<N>_ENTREGA.md` en el chat y, si tiene acceso, como pestaña de texto «ENTREGA FASE N» en la hoja de la empresa.
@@ -48,3 +48,6 @@ Una fase con controles «NO EJECUTADO» **no está `CERRADA`**: queda `CERRADA C
 - Cambiar de herramienta entre fases pierde contexto: por eso todo se traspasa por archivo.
 - El modo Astra/Sol y la escritura en Sheets del chat no están verificados aquí; la primera ejecución real debe revisarse celda a celda con `diff_formulas_plantilla`.
 - Sin código, ChatGPT puede reemplazar fórmulas de la plantilla por números (error ya ocurrido en NU): exigir que escriba solo celdas de entrada.
+
+## Recuperación autónoma y cierre
+Buscar entregas también en Drive y archivos persistentes. Si falta el documento formal, reconstruirlo desde evidencia verificable. Usar scripts oficiales o documentar pruebas equivalentes y sus límites. No enviar al usuario a otra herramienta antes de intentar resolver lo que permite esta sesión. BLOQUEADA se reserva para faltas materiales que impiden el entregable; el research completo sin promoción puede cerrarse CON CONTROLES PENDIENTES.
