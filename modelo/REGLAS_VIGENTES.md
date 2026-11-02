@@ -7,6 +7,10 @@ anota en el registro de cambios del final.
 
 **Doble método:** desde esta versión las valoraciones seleccionan `Método A` o `Método B` por revisión. La selección normativa y precedencia se describen en [`METODOS_VALORACION.md`](METODOS_VALORACION.md), con reglas particulares en [`METODO_A_JMR.md`](METODO_A_JMR.md) y copia íntegra del método anterior en [`METODO_B_JMR.md`](METODO_B_JMR.md). El presente documento mantiene las reglas **compartidas** de cálculo, plantilla y publicación. Para revisiones nuevas, la metodología vigente es A / A-1.2, salvo elección expresa de B por el usuario; registrar y comunicar la selección antes de estimar. La interpretación B sin etiqueta se conserva exclusivamente para leer revisiones históricas, sin reclasificarlas ni recalcularlas.
 
+## Continuidad operativa de fases — 2-nov-2026
+
+Por instrucción del usuario, la preparación de candidatos no se detiene automáticamente por una entrega formal ausente o un control técnico pendiente. Recuperar evidencia, resolver dependencias previas y completar el trabajo verificable. Admitir avance entre fases como CANDIDATO con insumos materiales comprobados, identificando controles oficiales, pruebas equivalentes y límites. Detener solo operaciones afectadas por datos materiales ausentes, fórmulas rotas o discrepancias no resueltas. Nunca certificar un control no realizado. Las reglas de cálculo y los gates de promoción/publicación se conservan íntegros. Detalle operativo en [README de fases](../docs/propuestas/fases/README.md), «Continuidad y cierre operativo». Esta actualización reemplaza las puertas documentales absolutas anteriores, no modifica A-1.2 ni concede autorización de publicación.
+
 ## 1. Valor principal y margen de seguridad
 
 - **Empresas operativas (internacionales y colombianas):** valor principal = DCF Base (FCFF; FCFE en financieras).
