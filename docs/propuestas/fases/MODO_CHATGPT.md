@@ -22,7 +22,7 @@ Archivos a adjuntar al proyecto: `docs/propuestas/fases/*.md`, `modelo/REGLAS_VI
 |---|---|---|---|
 | **1 Datos y hoja** | Chat con Google Sheets | Copia de la plantilla `vigente.ia` en `AAA Finanzas / Análisis / <TICKER>/`, estados completos con nota por celda, corte de mercado, inventario de insumos | Entrega el inventario y las celdas a pegar; el usuario (o Claude Code) copia la hoja |
 | **2 Valoración** | Work, Astra/Sol alto | Escribe solo entradas en la hoja; el DCF/FCFE y sensibilidades salen de fórmulas; recálculo independiente | Sin código: recálculo «NO EJECUTADO»; la fase no puede quedar `CERRADA` |
-| **3 Análisis y publicación** | Work | Redacta Nivel 1 (14 cap.) y Nivel 2 (12 apart.) desde la captura de la hoja y entrega los textos | **Promoción al catálogo, workflows locales, PR y CI: los hace Claude Code** (o una persona con git) con la frase «Publica <TICKER> fase 3» sobre los textos entregados |
+| **3 Análisis y publicación** | Work | Redacta Nivel 1 (14 cap.) y Nivel 2 (12 apart.) desde la captura de la hoja y entrega los textos | **Promoción al catálogo, workflows locales, PR y CI: los hace Claude Code** (o una persona con git) con la frase «Sigue con <TICKER> en fase 3: publica los textos ya entregados» (la habilidad `fase-jmr` ejecuta solo los pasos de publicación) |
 | **4 Auditoría** | Otro LLM (no ChatGPT) | — | Se hace en Claude Opus alto en sesión nueva (ver README) |
 
 ## 3. Controles de cierre: quién los ejecuta
