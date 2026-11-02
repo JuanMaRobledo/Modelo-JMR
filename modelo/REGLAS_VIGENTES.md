@@ -1,6 +1,6 @@
 # Reglas vigentes del Modelo JMR
 
-**Versión 23 · 30-oct-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
+**Versión 24 · 2-nov-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
 (`docs/prompts/*.md`), `METODOLOGIA.md`, una habilidad o un comentario de código dice otra cosa, prevalece este
 documento. Una regla nueva no se agrega como «regla del día X» en un prompt: se cambia aquí, se sube la versión y se
 anota en el registro de cambios del final.
@@ -10,6 +10,14 @@ anota en el registro de cambios del final.
 ## Continuidad operativa de fases — 2-nov-2026
 
 Por instrucción del usuario, la preparación de candidatos no se detiene automáticamente por una entrega formal ausente o un control técnico pendiente. Recuperar evidencia, resolver dependencias previas y completar el trabajo verificable. Admitir avance entre fases como CANDIDATO con insumos materiales comprobados, identificando controles oficiales, pruebas equivalentes y límites. Detener solo operaciones afectadas por datos materiales ausentes, fórmulas rotas o discrepancias no resueltas. Nunca certificar un control no realizado. Las reglas de cálculo y los gates de promoción/publicación se conservan íntegros. Detalle operativo en [README de fases](../docs/propuestas/fases/README.md), «Continuidad y cierre operativo». Esta actualización reemplaza las puertas documentales absolutas anteriores, no modifica A-1.2 ni concede autorización de publicación.
+
+## 0A. Integridad verificable de datos — obligatoria para cualquier IA
+
+- **Completo no significa relleno.** Una celda no vacía —en especial un `0`— no demuestra que el rubro esté capturado. La Fase 1 coteja estados primarios SEC/NIIF, por período y moneda, con la clasificación en la hoja: ventas, costo de ventas/ingresos, SG&A, I+D, D&A, SBC, deuda, arrendamientos, CFO, inversión y financiación. Registrar reporte, página/nota, período, escala, celda y regla de traslado.
+- **Cuatro estados para una partida sin cifra separada:** cero explícito publicado, incluida en otra línea (indicar línea y conciliación), no aplicable con justificación, o pendiente de verificar. Está prohibido llamar `0 económico` a «no desglosado» y prohibido sustituir ausencia de fuente por un cero. Los hallazgos pendientes se conservan identificables.
+- **Prueba contra reclasificaciones ficticias:** cuando una partida reportada está escondida en «Other Operating Expenses» u otro agregado, trasladarla sin duplicarla y demostrar estabilidad de EBIT, CFO y DCF por el mero cambio de presentación. Los totales que cuadran no prueban por sí solos que todas las categorías estén bien.
+- **Dos validaciones complementarias, nunca intercambiables:** `estados_completos.py` busca huecos; `auditar_ceros_materiales.py` alerta sobre ceros o vacíos sin evidencia; adicionalmente `auditar_estados_sec.py` / `auditar_estados_ifrs.py` y el cotejo humano/IA con informes primarios verifican cifras y definiciones. Guardar resultados por ticker, revisión y `sheet_id`. Un control no ejecutado se declara y no se presume aprobado.
+- **Puerta de publicación:** no promover `EN_REVISION` cuando quede sin resolver un dato o reclasificación material que afecte la valoración o no permita acotar su impacto; se admite investigación como `CANDIDATO` conforme a continuidad operativa. Esta exigencia aplica por igual a ChatGPT, Claude y cualquier otro ejecutor y no modifica A-1.2, fórmulas ni el MOS.
 
 ## 1. Valor principal y margen de seguridad
 
@@ -257,6 +265,7 @@ Hojas de trabajo conservadas tras el archivo del 24-oct-2026 (identidad document
 
 | Versión | Fecha | Cambio |
 |---|---|---|
+| 24 | 2-nov-2026 | §0A: integridad de conceptos contra fuentes primarias, ceros/agrupaciones documentados y control complementario anticeros antes de promover. Aplica a cualquier IA, sin alterar resultados existentes ni método económico. |
 | 23 | 30-oct-2026 | Unificación documental: tres prompts activos 1/3 valoración, 2/3 análisis (14 capítulos con ciclos autónomos, Nivel 2 con 12 apartados), 3/3 auditoría (18 secciones). Sensibilidades DCF Base y de múltiplos Base aplicables obligatorias en la hoja; P/S y P/BV opcionales. Los prompts históricos no son autoridad ni se ejecutan. No modifica fórmulas, valoraciones ni datos. |
 | 22 | 30-oct-2026 | §5A, §8, §9: P/S y P/BV pasan a ser complementarios opcionales; no bloquean publicación/cobertura cuando no se usan, sin cambiar plantillas, fórmulas, pesos existentes ni valoraciones. Cinco métodos prioritarios sujetos a aplicabilidad; matrices solo cuando hay base verificable. |
 | 21 | 30-oct-2026 | §8: Nivel 2 incluye sensibilidades 5×5 por múltiplo Base y, cuando existe, segundo ancla LTM; centros conciliados al VP3 propio. No modifica fórmulas, resultados ni estados de auditoría. |
