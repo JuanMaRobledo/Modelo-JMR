@@ -1,11 +1,11 @@
 # Fase 3 · Análisis fundamental y publicación EN_REVISION
 
-**Invocación:** «Sigue con <TICKER> en fase 3». **Aplica:** prompt maestro **2/3 Análisis fundamental** (`docs/prompts/research-fundamental-jmr-v5.md`). **Estado de salida:** `EN_REVISION` si todos los controles pasan; si no, `CANDIDATO` con la entrega `BLOQUEADA`. **No** recalcula, **no** cambia supuestos ni la hoja, **no** audita.
+**Invocación:** «Sigue con <TICKER> en fase 3». **Aplica:** prompt maestro **2/3 Análisis fundamental** (`docs/prompts/research-fundamental-jmr-v5.md`). **Estado de salida:** `EN_REVISION` si todos los controles pasan; si falta validación o publicación, `CANDIDATO` con la entrega `CERRADA CON CONTROLES PENDIENTES`; `BLOQUEADA` solo si faltan insumos materiales que impiden el análisis. **No** recalcula, **no** cambia supuestos ni la hoja, **no** audita.
 
 **Modelo recomendado (no normativo; ver [README](README.md)):** Claude Opus alto (redacción) y Sonnet medio (captura, JSON, PR) · ChatGPT Work, mismo modo que la fase 2. Declarar en la entrega el modelo y esfuerzo realmente usados.
 
 ## Requisito de entrada
-`FASE_2_ENTREGA.md` `CERRADA` y JSON candidato de la misma `<REV>`.
+Entrega recuperable de fase 2 y captura/JSON de la misma revisión con cifras nativas verificables. Admitir controles técnicos pendientes para redactar como CANDIDATO. Si falta el JSON formal, obtener una captura y construirlo con trazabilidad, sin inventar ni recalcular supuestos de valoración. Un error material impide solo las conclusiones dependientes. Aplicar «Continuidad y cierre operativo» del README.
 
 
 **Emisor colombiano:** anteponer `docs/prompts/colombia-nucleo-v1.md` al prompt 2/3.
@@ -30,3 +30,6 @@
 
 ## Entrega
 `FASE_3_ENTREGA.md`, PR fusionado, rutas del JSON y del análisis. «Para la fase siguiente»: identificador de la revisión publicada, hoja, JSON, análisis y lista de salvedades.
+
+## Cierre del trabajo editorial sin promoción
+Los textos N1/N2 se entregan completos aunque los gates de publicación no puedan ejecutarse. En ChatGPT, PR, CI y promoción pendientes no vuelven fallida una redacción terminada: entregar CERRADA CON CONTROLES PENDIENTES y estado CANDIDATO, con instrucciones concretas de publicación. No afirmar EN_REVISION ni publicación sin autorización y pruebas. Solo completar publicación en la herramienta y alcance autorizados.
