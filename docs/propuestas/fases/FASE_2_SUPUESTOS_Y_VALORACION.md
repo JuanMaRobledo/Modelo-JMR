@@ -16,8 +16,10 @@
    - **Costo de capital:** beta de abajo hacia arriba **y** beta de regresión (con error estándar), prima madura y prima país de la fecha del corte, ponderación por exposición de ingresos.
    - **Terminal:** g del corte con techo en la tasa libre; ROIC/ROE terminal según la regla de moat.
    - Revisar explícitamente **sesgo agresivo y prudencia duplicada**; cada riesgo en un solo lugar (flujos, tasa o probabilidad).
+1b. **Ciclo de vida y probabilidades.** `scripts/ciclo_de_vida.py` y `scripts/probabilidades.py` fijan la etapa y las probabilidades previas; `reference/damodaran/<TICKER>.json` guarda la lectura sectorial de Damodaran usada.
 2. **Cuatro historias** completas y probabilidades = previa de la etapa + ajustes de 5 pp solo por indicadores que cruzaron su umbral escrito. Disrupción aparte.
 3. **En la hoja:** escribir solo entradas; el DCF (o FCFE/SOTP), escenarios, sensibilidades nativas 5×5 (centro = Base), DCF inverso y múltiplos aplicables con anclas independientes (sin ancla → `PENDIENTE_ANCLA`, peso 0) salen de fórmulas. Motores especiales en pestañas añadidas y declaradas.
+3b. **Múltiplos por ciclo.** `scripts/multiples_by_cycle.py` para operativas; bancos usan P/E, P/FCFE y P/BV con el contrato `review-relative-v1`.
 4. **Recálculo independiente** del valor principal fuera de la hoja (código propio que lea las entradas de la hoja) y comparación.
 5. **Captura** de la hoja con SHA-256 y **JSON candidato** construido solo desde la captura.
 
@@ -25,6 +27,8 @@
 - Recálculo independiente = hoja (diferencia < 1e-6 por acción) en las cuatro historias.
 - Centros de todas las matrices = Base o VP3 del método; probabilidades suman 1; MOS = Base × 0,65.
 - `diff_formulas_plantilla.py` → 0 no declarados; `integridad_hojas.py <TICKER>` sin hallazgos nuevos no explicados.
+- `scripts/controles_supuestos.py <TICKER>`, `scripts/probabilidades.py` y `scripts/inputs_completos.py <TICKER>` / `candados.py <TICKER>`: resultado real en la entrega (en A-1.2 las celdas «PENDIENTE» legadas se explican una a una, no se ocultan).
+- Aislamiento: `AISLAMIENTO=OK`.
 - Tabla de supuestos completa, con cada fila revisada en ambas direcciones.
 - Ningún supuesto ajustado para acercarse al precio (el DCF inverso solo se reporta).
 
