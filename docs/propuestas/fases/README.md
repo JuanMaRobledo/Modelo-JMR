@@ -1,69 +1,47 @@
-# Instrucciones de fase JMR — invocación en una frase
+# Proceso oficial Modelo JMR · CINCO FASES
 
-**Estado:** vigente como forma de ejecución desde el 2-nov-2026 (ver [`PROCESO_UNICO_JMR.md`](../../PROCESO_UNICO_JMR.md), «Ejecución por fases»); la elección de modelo sigue siendo recomendación. Orquesta las cuatro fases de la [Propuesta Claude](../PROPUESTA_CLAUDE_FASES.md) y de la [Propuesta ChatGPT](../PROPUESTA_CHATGPT_FASES.md). **No son prompts maestros:** el contenido lo siguen fijando `modelo/REGLAS_VIGENTES.md`, `docs/PROCESO_UNICO_JMR.md` y los tres prompts maestros (1/3 valoración, 2/3 análisis, 3/3 auditoría). Si algo de aquí choca con ellos, prevalecen ellos.
+**Versión v2 · 2-nov-2026 · propuesta en PR, no integrada a main hasta fusión y controles.** Fuente normativa: `modelo/REGLAS_VIGENTES.md`; metodología A-1.2 por defecto. Este README es el **único orquestador** para ChatGPT, Work, Claude Code y otros agentes. La plantilla y el motor conservan las reglas financieras, el MOS, los cuatro escenarios y los controles de publicación.
 
-## Cómo se invoca
+## Fases canónicas e invocaciones
+| Fase | Pedido válido | Qué hace | Entrega / estado |
+|---|---|---|---|
+| **1 · Valoración inicial** | «Empieza Fase 1 de AMZN» | Solo insumos de `Input sheet`, costo de capital y múltiplos; DCF Damodaran A-1.2 y **propuesta** de historias Base/Conservadora/Optimista/Disrupción | [FASE_1_VALORACION_INICIAL.md](FASE_1_VALORACION_INICIAL.md), `FASE_1_ENTREGA.md` · CANDIDATO |
+| **2 · Históricos completos** | «Continúa Fase 2 de AMZN» | Estados, notas, precios y ratios calculados hasta 10 FY + LTM o máximo disponible | [FASE_2_HISTORICOS_COMPLETOS.md](FASE_2_HISTORICOS_COMPLETOS.md), `FASE_2_ENTREGA.md` · CANDIDATO |
+| **3 · Revisión de supuestos** | «Continúa Fase 3 de AMZN» | Validar/cambiar razonabilidad de crecimiento, márgenes, ROIC, S/C, reinversión, WACC, terminal y múltiplos | [FASE_3_REVISION_SUPUESTOS.md](FASE_3_REVISION_SUPUESTOS.md), `FASE_3_ENTREGA.md` · CANDIDATO_REVISADO |
+| **4 · Análisis + publicación** | «Continúa Fase 4 de AMZN» | Nivel 1/2 completo, pruebas hoja–JSON–app, publicación **EN_REVISION** solo si gates pasan | [FASE_4_ANALISIS_PUBLICACION.md](FASE_4_ANALISIS_PUBLICACION.md), `FASE_4_ENTREGA.md` · EN_REVISION o CANDIDATO |
+| **5 · Auditoría guiada** | «Audita AMZN en Fase 5» | Auditoría económica **guiada por las observaciones del usuario**, con comprobación independiente y dictamen | [FASE_5_AUDITORIA_GUIADA.md](FASE_5_AUDITORIA_GUIADA.md), `FASE_5_ENTREGA.md` · dictamen independiente |
 
-| Frase del usuario | Instrucción que se ejecuta | Prompt maestro que aplica |
-|---|---|---|
-| «Empieza el análisis de **<TICKER>** en fase 1» | [FASE_1_DATOS_Y_HOJA.md](FASE_1_DATOS_Y_HOJA.md) | — (procedimiento de datos de las habilidades) |
-| «Sigue con **<TICKER>** en fase 2» (o «… en fase 2») | [FASE_2_SUPUESTOS_Y_VALORACION.md](FASE_2_SUPUESTOS_Y_VALORACION.md) | 1/3 Valoración |
-| «Sigue con **<TICKER>** en fase 3» | [FASE_3_ANALISIS_Y_PUBLICACION.md](FASE_3_ANALISIS_Y_PUBLICACION.md) | 2/3 Análisis fundamental |
-| «Audita **<TICKER>** en fase 4» | [FASE_4_AUDITORIA.md](FASE_4_AUDITORIA.md) | 3/3 Auditoría económica |
+**Prompts maestros no cambian de contenido:** 1/3 `valoracion-modelo-jmr-v5.md` se ejecuta en **F1** (y las partes pertinentes en revisión F3), 2/3 `research-fundamental-jmr-v5.md` en **F4** y 3/3 `auditoria-economica-jmr-v1.md` en **F5**. F2 es captura/validación de datos, F3 juicio sobre hipótesis, no se crean prompts maestros 4/3 y 5/3.
 
-Variantes válidas: «empieza la fase N de <TICKER>», «<TICKER> fase N», «actualiza <TICKER> en fase 1» (operación *actualizar* en lugar de *desde cero*).
+## Contratos permanentes
+1. **Una revisión por emisor, una sola hoja vigente:** ticker/revisión/corte/`sheet_id` identificados. Archivar revisiones sustituidas; no mezclar R2/R3 con R4 u otros emisores.
+2. **Valoración temprana, no definitiva:** F1 puede estimar DCF y múltiples **solo** desde sus insumos materiales verificados; los históricos completos no son precondición universal de esta propuesta. Una entrada crítica ausente produce N/D y suspende el precio afectado; un número no verificado no se pega por cumplir calendario. F1 produce *hipótesis*, F3 determina su validez después de F2.
+3. **Origen de números:** fuente primaria SEC/NIIF + período, moneda, escala, nota/URL, celda. Definir `dato / agregado no desglosado / no aplica / pendiente`. `0` no sustituye dato desconocido; SG&A, I+D, D&A, leases, CAPEX, CFO, deuda y acciones necesitan cotejo positivo. Ninguna IA puede autoaprobar un cotejo omitido.
+4. **La hoja calcula:** conservar fórmulas para ROIC, ROE, ROA, márgenes, crecimiento, indicadores, `Trailing Valuation`, DCF, múltiplos y matrices. La IA solo coloca entradas y supuestos verificados. No sustituir fórmulas con resultados manuales; versiones de fórmula no se editan por empresa.
+5. **Cuatro historias y valor principal:** DCF FCFF Base (FCFE financiera, SOTP holdings), MOS 35% **sobre Base**, promedio ordinario sin Disrupción, terminal y tasas coherentes, sensibilidad 5×5 cuando aplicable, ancla por ciclo y cinco múltiplos prioritarios aplicables; P/S/P/BV opcionales.
+6. **No impedir investigación por falta secundaria:** clasificar cada bloqueo material/estructural vs documental/cierre. Se permite proseguir como CANDIDATO si la fase siguiente puede trabajar con los insumos materiales verificables. Prohibido llamar VERIFIED a control NO EJECUTADO.
+7. **Gates no se trasladan a F5:** F4 puede publicar como `EN_REVISION` **solo** con controles técnicos aprobados y sin errores materiales. La invocación F4 autoriza intentar promoción preliminar; no salta CI, conciliación, integridad ni permisos. F5 es auditoría económica posterior guiada por el usuario; no sustituye CI.
+8. **Independencia de F5:** preferentemente otro LLM y sesión distinta de la construcción F1/F3/F4. Si no, declaración explícita «no independiente» y sin dictamen independiente.
+9. **Colombia:** las mismas cinco fases, `colombia-nucleo-v1.md` antepuesto a los tres prompts cuando aplique; NIIF, COP, FCFE/SOTP según empresa.
+10. **Una fase por petición salvo solicitud de varias:** dentro de la fase ejecutar todos sus pasos y resolver dependencias reversibles del mismo ticker. Dejar la entrega y detallar APROBADO / PARCIAL / NO EJECUTADO, herramienta/LLM/esfuerzo, commit/PR/hoja, razón, impacto y tareas exactas para la siguiente. No seguir auditoría por iniciativa del constructor.
 
-- **Claude Code:** la habilidad `fase-jmr` (repositorio JMR-valuation, `.claude/skills/fase-jmr/`) reconoce la frase y ejecuta el archivo de la fase.
-- **ChatGPT (chat o Work):** seguir [MODO_CHATGPT.md](MODO_CHATGPT.md): instrucciones del proyecto para pegar, qué fase puede ejecutar y cuál requiere Claude Code (promoción y PR de la fase 3), controles «NO EJECUTADO» y dónde queda la entrega.
+## Retiro de Forward Valuation y perfil de plantilla
+- **Hoja `Forward Valuation` se declara DEPRECADA** para revisiones nuevas. Su función prospectiva está cubierta por DCF, `Financials Multiples`, `Descuento de múltiplos` y escenarios.
+- **Eliminarla físicamente exige migración y regresión verificables:** (a) probar todas las referencias de fórmula de todas las pestañas incluyendo rangos lejanos, nombres, validaciones, scripts/Google Sheets y app; (b) respaldo de plantillas Maestra/IA/Manual y prueba en copia; (c) actualizar `reference/plantillas.json`, validador de 46→45, UI/pruebas y documentación; (d) comparar DCF/múltiplos con los de la copia anterior; (e) recién entonces borrar la pestaña solo en **nuevas plantillas**. **NO borrarla de expedientes históricos ni de AMZN R4 por cambiar esta regla.**
+- Hasta ejecutar y aprobar esos controles, las hojas oficiales existentes conservan sus **46 pestañas**. Que no se use la hoja no autoriza borrarla a ciegas. Una copia de 45 hojas no es oficial hasta registrar plantilla y pasar controles. La app puede ocultar el acceso rápido en futura migración; sin cambiar motor.
 
-## Fases y modelo recomendado (resumen)
-
-| Fase | Etapa del proceso | Estado de salida | Propuesta Claude | Propuesta ChatGPT |
-|---|---|---|---|---|
-| **1. Datos y hoja** | Preparación de datos | `CANDIDATO` | Claude **Sonnet**, esfuerzo medio | **ChatGPT (chat)** — escribe en Google Sheets |
-| **2. Supuestos y valoración** | **Valoración** (prompt 1/3) | `CANDIDATO` | Claude **Opus**, esfuerzo alto | **ChatGPT Work**, Astra alto o Sol alto |
-| **3. Análisis y publicación** | **Análisis** (prompt 2/3) y paso a **revisión** (`EN_REVISION`) | `EN_REVISION` | Claude **Opus** alto para redactar; **Sonnet** medio para captura, JSON, pruebas y PR | **ChatGPT Work**, mismo modo que la fase 2 |
-| **4. Auditoría económica** | **Auditoría** independiente (prompt 3/3) | dictamen, nunca `AUDITADO` automático | Claude **Opus** alto en **sesión nueva**, o LLM de otro proveedor | **Otro LLM** (no ChatGPT); recomendado Claude Opus alto en sesión nueva |
-
-- **Revisión** = lo que ocurre entre fases: el usuario lee la entrega `FASE_<N>_ENTREGA.md` y, al invocar la fase siguiente, la da por revisada. El estado `EN_REVISION` lo fija la fase 3, no un modelo distinto.
-- **Regla de independencia:** la fase 4 nunca la hace el mismo modelo y sesión que hicieron las fases 2 y 3. Si no hay otro LLM disponible, mínimo una sesión nueva sin contexto, y la auditoría se califica «no independiente».
-- Los modelos son **recomendaciones no normativas** (ver las dos propuestas): no hay comparación medida entre proveedores, y los modos Astra/Sol de ChatGPT no están verificados desde este repositorio. Los datos y los controles pesan más que el modelo.
-- Cada `FASE_<N>_ENTREGA.md` debe declarar herramienta, modelo y esfuerzo realmente usados, aunque difieran de la recomendación.
-
-## Reglas comunes a las cuatro fases
-1. **Alcance por invocación.** Una fase de forma predeterminada; si el usuario solicita varias, ejecutarlas en orden, sin pedir frases adicionales. Mantener la independencia de fase 4.
-2. **Traspaso por archivo, no por memoria.** Cada fase deja `Modelo-JMR-datos/candidatos/valoraciones/<REV>/FASE_<N>_ENTREGA.md` con el formato de abajo y la fase siguiente parte **solo** de ese archivo, de la hoja y del repositorio. Si falta la entrega, recuperarla desde la hoja y las evidencias; si tiene controles pendientes, aplicar la continuidad operativa descrita abajo y no bloquear por su estado documental.
-3. **Ninguna cifra sin fuente.** Cada número que entra a la hoja, al JSON o al texto lleva documento, período y celda, o sale del JSON de la revisión. Prohibido escribir cifras de memoria; lo no verificado se marca [NO VERIFICADO].
-4. **La hoja calcula.** Solo se escriben celdas de entrada; las salidas salen de fórmulas. Al cierre de las fases 1 y 2, `diff_formulas_plantilla.py` debe dar 0 reemplazos no declarados (fórmula → número o vacío).
-5. **Nunca relajar un control para ponerlo en verde.** Si falla un control, corregirlo dentro del alcance o aislar las operaciones materialmente afectadas; completar el resto. El estado depende de su impacto real, no del simple número de controles pendientes.
-5b. **Controles no ejecutados.** Un control que la herramienta no pudo correr se marca «NO EJECUTADO — requiere <herramienta>». La fase queda `CERRADA CON CONTROLES PENDIENTES` y la siguiente puede continuar como CANDIDATO con insumos verificables; los controles de publicación siguen pendientes hasta su ejecución. Ver [MODO_CHATGPT.md](MODO_CHATGPT.md).
-6. **Estados:** fases 1 y 2 → `CANDIDATO`; fase 3 → `EN_REVISION` (si los controles pasan); fase 4 → dictamen, nunca `AUDITADO` automático.
-
-7. **Emisores colombianos (BVC, COP):** mismas cuatro fases y mismos prompts maestros, con `docs/prompts/colombia-nucleo-v1.md` antepuesto como contexto local en las fases 2, 3 y 4 (no es un cuarto prompt). Moneda COP, estados NIIF, holdings por SOTP y financieras por FCFE según `REGLAS_VIGENTES.md`. En Claude Code, el procedimiento de datos y scripts es el de la habilidad `valoracion-colombia`. `colombia-valuation-v1.md` y `colombia-research-v1.md` son archivos de compatibilidad: no se ejecutan. Colombia figura en pausa desde el 21-oct-2026 (`docs/prompts/CONCILIACION_PROMPTS.md`); invocar una fase para un emisor colombiano equivale a reactivarlo para ese emisor.
-
-## Formato de `FASE_<N>_ENTREGA.md`
+## Entrega reproducible de cada fase
 ```
-# <TICKER> · <REV> · Fase <N> · <CERRADA | CERRADA CON CONTROLES PENDIENTES | BLOQUEADA>
-Fecha · herramienta y modelo usados · hoja (sheet_id) · commits/PR
-## Hecho y verificado        (con evidencia: comando, celda, documento)
-## Controles de cierre       (cada control: resultado real, no intención)
-## Decisiones y juicios      (qué se eligió, alternativa, efecto)
-## Pendiente o bloqueado     (qué falta, por qué, qué se necesita)
-## Para la fase siguiente    (insumos exactos que debe leer)
+# <TICKER> · <REV> · FASE_<N> · <CERRADA / CERRADA CON CONTROLES PENDIENTES / BLOQUEADA>
+Fecha · método · corte · hoja sheet_id · LLM/esfuerzo · PR/commit
+## Hecho y comprobado (celdas, documentos, comandos y salidas)
+## Juicios o decisiones de la fase (valor anterior/nuevo y razones)
+## Controles ejecutados (APROBADO/PARCIAL/NO EJECUTADO, razón)
+## Bloqueos materiales vs pendientes secundarios
+## Insumos exactos para la fase siguiente
 ```
 
-## Continuidad y cierre operativo — actualización 2-nov-2026
+## Compatibilidad e historial
+Los archivos antiguos `FASE_1_DATOS_Y_HOJA.md`, `FASE_2_SUPUESTOS_Y_VALORACION.md`, `FASE_3_ANALISIS_Y_PUBLICACION.md`, `FASE_4_AUDITORIA.md` describen el **flujo de cuatro fases obsoleto** y se conservan solo como antecedentes hasta su archivo físico. **No ejecutarlos** bajo el proceso nuevo. Las entregas de AMZN R4 generadas bajo fases anteriores se conservarán con el nombre original y se deben **remapear por evidencia**, no renombrar ni declarar completas por equiparación: antiguo F1 (datos parciales) → nuevo F1 y/o F2 según comprobantes; antiguo F2 valoración → nuevo F1; antiguo F3 análisis → nuevo F4; antiguo F4 auditoría → nuevo F5. Una revisión incompleta conserva estado CANDIDATO.
 
-Esta actualización sustituye la exigencia de detener el trabajo por una entrega ausente o por cualquier control pendiente. No cambia fórmulas, parámetros financieros, criterios económicos ni gates de publicación.
-
-1. **Completar el trabajo solicitado.** Una fase por invocación de forma predeterminada. Si el usuario pide expresamente varias fases, ejecutarlas en orden sin pedir una nueva frase entre ellas. La auditoría conserva su independencia y no se encadena en la sesión que construyó el modelo.
-2. **Recuperar antes de bloquear.** Buscar entrega, inventario, hoja y capturas en repositorio, Drive y archivos persistentes. Identificar ticker, revisión, hoja y corte; no tomar una versión por el título más antiguo. Si falta el archivo formal, reconstruirlo desde evidencia leída, conservando fuentes y pruebas realmente realizadas. La ausencia de un nombre de archivo no es un bloqueo económico.
-3. **Resolver dependencias dentro de la fase.** La invocación autoriza completar los pendientes previos necesarios y reversibles del mismo ticker y revisión, sin reiniciar datos correctos. Una entrega CERRADA CON CONTROLES PENDIENTES permite continuar como CANDIDATO si los insumos mínimos de la operación están verificados.
-4. **Mínimos para calcular.** Identidad, revisión/hoja, escala/moneda, corte identificado, estados materiales reconciliables y fórmulas nativas accesibles. Comprobar directamente antes de escribir. Una cifra material ausente, fórmula rota o discrepancia no explicada impide únicamente los cálculos dependientes; continuar investigación y secciones independientes. Nunca presentar un valor no comprobado como oficial.
-5. **Herramientas y equivalencia.** Ejecutar scripts oficiales cuando sea viable. Si no hay cliente, credenciales o script utilizable, intentar una comprobación directa equivalente: misma propiedad, alcance, tolerancia, evidencia reproducible y diferencias declaradas. Registrar APROBADO POR PRUEBA EQUIVALENTE, no afirmar que se ejecutó el comando oficial. Si no cubre el alcance, registrar NO EJECUTADO o PARCIAL y continuar la preparación independiente. Los gates exigidos para publicar siguen siendo obligatorios; una prueba alternativa no los pone en verde.
-6. **Clasificar, no detener todo.** Separar (a) errores materiales de datos/fórmulas que bloquean operaciones dependientes, (b) comprobaciones técnicas pendientes de automatizar y (c) reservas económicas/supuestos debatibles que deben justificarse y sensibilizarse. No confundir un control de publicación pendiente con imposibilidad de redactar o preparar un candidato.
-7. **Cierre honesto.** CERRADA: entregable completo y controles requeridos acreditados, con equivalencias identificadas cuando sean admisibles. CERRADA CON CONTROLES PENDIENTES: entregable de trabajo preparado, pero falta validación o publicación; enumerar cada pendiente y su efecto. BLOQUEADA: falta material que realmente impide completar el entregable solicitado, después de intentar recuperación; conservar todo lo alcanzado y explicar la operación exacta detenida. Nunca prometer que toda fase quedará aprobada.
-8. **Publicación separada.** Fases 1/2 y research pendiente de promoción permanecen CANDIDATO. No publicar, promover a EN_REVISION ni marcar AUDITADO por cerrar un documento. Exigir autorización y todos los gates aplicables antes de promover. ChatGPT puede finalizar textos de fase 3 sin PR ni publicación; registrar publicación pendiente para Claude Code.
-9. **Decisiones rutinarias.** Resolver autónomamente búsquedas, recuperación, cálculos de comprobación, supuestos razonados y documentación dentro del alcance. Preguntar solo por una decisión material del usuario sin autorización previa. Un corte específico de una revisión puede documentarse sin actualizar la Cartera global; no cambiar esta última sin autorización ni mezclar tasas de fechas diferentes como si fueran simultáneas.
-10. **Entrega útil siempre.** Guardar FASE_N_ENTREGA.md con resultados reales, enlaces, alcance de pruebas y tareas concretas pendientes. No limitarse a reiterar el mismo bloqueo ni trasladar al usuario operaciones que el entorno actual sí puede ejecutar. Conservar el aislamiento y la independencia de auditoría.
-11. **Cada fase se hace completa.** Dentro de su invocación se ejecutan **todos** los pasos y controles del archivo de la fase (incluidos los marcados 0, 1b, 3b, 5b…), en orden y sin saltar ninguno por cansancio, longitud o costo. La flexibilidad de esta sección es para no detenerse ante un bloqueo, no para omitir pasos. Un paso sin ejecutar solo se admite si el entorno no tiene la herramienta tras intentar la comprobación equivalente, y entonces queda listado con su motivo en «Pendiente». Una fase con pasos omitidos sin esa justificación **no puede declararse CERRADA ni CERRADA CON CONTROLES PENDIENTES**: queda BLOQUEADA hasta completarlos. Antes de entregar, la fase recorre su lista de pasos y controles y declara en la entrega `PASOS: n/n ejecutados` (o cuáles no, y por qué).
+Ver [MODO_CHATGPT.md](MODO_CHATGPT.md) y habilidad `.claude/skills/fase-jmr/SKILL.md` actualizados para este contrato.

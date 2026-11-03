@@ -98,7 +98,9 @@ test('las referencias activas y la interfaz usan el mismo contrato editorial',()
   const sections=[...styleSection.matchAll(/^(\d{1,2})\. \*\*/gm)].map(m=>Number(m[1]));
   assert.deepEqual(sections,Array.from({length:14},(_,i)=>i+1));
   assert.match(styleSection,/5\. \*\*Ciclos de la empresa, del mercado y de la macroeconomía/);
-  assert.match(rules,/\*\*Versión 23 · 30-oct-2026/);
+  assert.match(rules,/\*\*Versión 26 · 2-nov-2026/);
+  assert.match(rules,/Estilo JMR de 14 capítulos/);
+  assert.match(process,/cinco fases/i);
   assert.match(process,/tres prompts maestros activos/i);
   assert.match(interfaceJs,/Índice JMR de 14 capítulos/);
   assert.match(interfaceJs,/jmr-research-prompt-v23-14-capitulos-20261030/);
@@ -120,3 +122,31 @@ test('Colombia comparte los tres prompts maestros y no revive Porter ni el índi
   assert.doesNotMatch(local,/Research v5: 18 secciones|cinco fuerzas de Porter.*obligatorio/i);
 });
 
+
+test('cinco fases JMR: valoración primero, históricos segundo, revisión tercero, publicación cuarto y auditoría guiada quinto',()=>{
+  const root=new URL('../',import.meta.url);
+  const read=(p)=>fs.readFileSync(new URL(p,root),'utf8');
+  const process=read('docs/PROCESO_UNICO_JMR.md');
+  const readme=read('docs/propuestas/fases/README.md');
+  const rules=read('modelo/REGLAS_VIGENTES.md');
+  const files=[
+    'FASE_1_VALORACION_INICIAL.md',
+    'FASE_2_HISTORICOS_COMPLETOS.md',
+    'FASE_3_REVISION_SUPUESTOS.md',
+    'FASE_4_ANALISIS_PUBLICACION.md',
+    'FASE_5_AUDITORIA_GUIADA.md'
+  ];
+  for(const filename of files){
+    assert.ok(readme.includes(filename),filename+' no está declarado en el README');
+    assert.match(read('docs/propuestas/fases/'+filename),/Fase [1-5]/);
+  }
+  assert.match(rules,/Orden operativo obligatorio: cinco fases/);
+  assert.match(read('docs/propuestas/fases/FASE_1_VALORACION_INICIAL.md'),/Input sheet/);
+  assert.match(read('docs/propuestas/fases/FASE_2_HISTORICOS_COMPLETOS.md'),/hasta diez años|diez años|10 FY/i);
+  assert.match(read('docs/propuestas/fases/FASE_3_REVISION_SUPUESTOS.md'),/Sales-to-Capital/);
+  assert.match(read('docs/propuestas/fases/FASE_4_ANALISIS_PUBLICACION.md'),/EN_REVISION/);
+  assert.match(read('docs/propuestas/fases/FASE_5_AUDITORIA_GUIADA.md'),/usuario/);
+  assert.match(process,/Cinco fases|CINCO fases/);
+  assert.match(readme,/Forward Valuation.*DEPRECADA/);
+  assert.doesNotMatch(read('docs/expediente.js'),/indicadores:\['Trailing Valuation','Forward Valuation'/);
+});

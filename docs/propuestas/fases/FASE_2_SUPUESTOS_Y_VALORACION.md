@@ -1,3 +1,5 @@
+> **HISTÓRICO — NO EJECUTAR:** este archivo corresponde al flujo JMR antiguo de cuatro fases. Su numeración ya no describe la fase actual. El proceso oficial vigente **una vez integrado el PR** es [README de cinco fases](README.md); para esta fase usar [FASE_2_HISTORICOS_COMPLETOS.md](FASE_2_HISTORICOS_COMPLETOS.md), y para auditoría ahora [FASE_5_AUDITORIA_GUIADA.md](FASE_5_AUDITORIA_GUIADA.md). Se conserva este texto solo para trazabilidad de revisiones antiguas.
+
 # Fase 2 · Supuestos y valoración
 
 **Invocación:** «Sigue con <TICKER> en fase 2». **Aplica:** prompt maestro **1/3 Valoración** (`docs/prompts/valoracion-modelo-jmr-v5.md`) y `REGLAS_VIGENTES.md`. **Estado de salida:** `CANDIDATO`. **No** escribe el artículo, **no** audita, **no** publica.

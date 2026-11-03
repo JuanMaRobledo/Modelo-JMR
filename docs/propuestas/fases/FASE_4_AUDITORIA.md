@@ -1,3 +1,5 @@
+> **HISTÓRICO — NO EJECUTAR:** este archivo corresponde al flujo JMR antiguo de cuatro fases. Su numeración ya no describe la fase actual. El proceso oficial vigente **una vez integrado el PR** es [README de cinco fases](README.md); para esta fase usar [FASE_4_ANALISIS_PUBLICACION.md](FASE_4_ANALISIS_PUBLICACION.md), y para auditoría ahora [FASE_5_AUDITORIA_GUIADA.md](FASE_5_AUDITORIA_GUIADA.md). Se conserva este texto solo para trazabilidad de revisiones antiguas.
+
 # Fase 4 · Auditoría económica independiente
 
 **Invocación:** «Audita <TICKER> en fase 4». **Aplica:** prompt maestro **3/3 Auditoría económica** (`docs/prompts/auditoria-economica-jmr-v1.md`): 18 secciones exactas, dictamen VERIFICADO / VERIFICADO CON RESERVA MATERIAL / PENDIENTE. **No** modifica la valoración, la hoja ni el análisis; **no** cambia el estado a `AUDITADO` sin autorización expresa.

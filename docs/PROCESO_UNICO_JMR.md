@@ -2,21 +2,21 @@
 
 **Objetivo:** usar la misma valoración, análisis y auditoría en ChatGPT (chat o Work), Claude Code, Gemini o herramientas equivalentes. **No es un método financiero nuevo**, ni sustituye las reglas vigentes ni los tres prompts.
 
-## Ejecución por fases (vigente desde el 2-nov-2026)
+## Flujo operativo de CINCO fases — decisión del usuario, 2-nov-2026
 
-El proceso se ejecuta **en cuatro fases numeradas**, una por invocación y con traspaso por archivo. No cambia el método ni las reglas: ordena la «Secuencia obligatoria» de abajo y fija qué herramienta y modelo usar. Detalle operativo en [`docs/propuestas/fases/`](propuestas/fases/README.md) (README, una instrucción por fase y [`MODO_CHATGPT.md`](propuestas/fases/MODO_CHATGPT.md)).
+Esta sección **sustituye la tabla antigua de cuatro fases** y ordena la misma valoración JMR A-1.2 (sin cambiar sus fórmulas ni reglas económicas). Detalle operativo obligatorio en [README oficial de fases](propuestas/fases/README.md) y sus cinco archivos `FASE_1_VALORACION_INICIAL.md`, `FASE_2_HISTORICOS_COMPLETOS.md`, `FASE_3_REVISION_SUPUESTOS.md`, `FASE_4_ANALISIS_PUBLICACION.md` y `FASE_5_AUDITORIA_GUIADA.md`.
 
-| Fase | Frase de invocación | Pasos de la secuencia | Prompt maestro | Estado de salida | Modelo recomendado (no normativo) |
-|---|---|---|---|---|---|
-| 1 Datos y hoja | «Empieza el análisis de <T> en fase 1» | 1–2 y preparación de la hoja | — | `CANDIDATO` | Claude Sonnet medio · ChatGPT (chat) |
-| 2 Supuestos y valoración | «Sigue con <T> en fase 2» | 3 | 1/3 | `CANDIDATO` | Claude Opus alto · ChatGPT Work (Astra/Sol alto) |
-| 3 Análisis y publicación | «Sigue con <T> en fase 3» | 4, 5 y 7–8 (publicar EN_REVISIÓN) | 2/3 | `EN_REVISIÓN` | Claude Opus alto (+ Sonnet medio para captura/PR) · ChatGPT Work; PR y CI con Claude Code |
-| 4 Auditoría | «Audita <T> en fase 4» | 6 | 3/3 | dictamen (nunca `AUDITADO` automático) | Otro LLM o Claude Opus alto en sesión nueva |
+| Fase | Trabajo | Prompt y estado |
+|---|---|---|
+| **1 · Valoración inicial** | Solo datos necesarios para alimentar `Input sheet` (y costo de capital) y `Financials Multiples`/múltiplos; calcular DCF Damodaran provisional y **proponer cuatro historias** con evidencia. | Maestro 1/3; CANDIDATO, no definitivo. |
+| **2 · Históricos completos** | Capturar, cotejar y documentar estados 10 FY + LTM disponibles; indicadores históricos ROIC/ROE/ROA, series y trading vía fórmulas. | Captura SEC/NIIF, controles; CANDIDATO. |
+| **3 · Calidad económica** | Revisar lógica y coherencia de crecimiento, márgenes, Sales-to-Capital, reinversión, ROIC marginal/terminal, WACC, inversiones, múltiplos y sensibilidades. Cambiar o mantener supuestos con explicación y puente de impacto. | Contrato económico maestro 1/3; CANDIDATO_REVISADO. |
+| **4 · Análisis y publicación** | Nivel 1 y Nivel 2 narrativo y reproducible, alineados con revisión y hoja; CI y controles de publicación obligatorios; publicar EN_REVISION en la app si todos pasan. | Maestro 2/3; EN_REVISION solo después de gates. |
+| **5 · Auditoría guiada por usuario** | El usuario guía preguntas/alcances y un revisor separado comprueba además los mínimos económicos y materiales, emite dictamen por revisión. | Maestro 3/3, 18 secciones; VERIFICADO / CON RESERVA / PENDIENTE. |
 
-- Una fase por invocación de forma predeterminada; varias si el usuario las solicita expresamente. Recuperar entregas y resolver dependencias previas dentro del alcance. Se permite continuar como CANDIDATO con controles pendientes e insumos materiales verificados. Una falta documental o un script no disponible no detiene automáticamente el trabajo. Aplicar [Continuidad y cierre operativo](propuestas/fases/README.md#continuidad-y-cierre-operativo--actualización-2-nov-2026); los gates financieros y de publicación permanecen obligatorios.
-- La fase 4 la hace un agente o sesión distinto del de las fases 2 y 3; si no, se califica «no independiente».
-- Las habilidades de Claude Code (`fase-jmr`, `analisis-nuevo`, `actualizar-cartera`, `valoracion-colombia`) y ChatGPT usan estas mismas fases. La instrucción de una sola frase de arriba sigue siendo válida: equivale a ejecutar las fases 1–3 en orden, deteniéndose entre cada una.
-- Emisores colombianos: mismas fases con `colombia-nucleo-v1.md` como contexto local.
+**Incompatibilidad de rótulos:** un `FASE_N_ENTREGA` anterior al nuevo contrato NO prueba que la fase N nueva se haya ejecutado: asignar por contenido y evidencia, no por número. Se prohíbe reutilizar cifras de revisiones archivadas. Se conserva la continuidad como CANDIDATO si hay insumos verificables, pero no se fabrican datos ni se relajan los gates de publicación.
+
+**Hoja Forward Valuation:** deprecada; no participa en el núcleo obligatorio de cálculos. **Retiro físico pospuesto hasta validar dependencias, migrar plantillas Maestra/IA/Manual a perfil de 45 pestañas, adaptar validador y app y ejecutar regresión**. Hasta entonces conservar la plantilla oficial de 46 y las hojas históricas sin borrarlas.
 
 ## Selección previa del método
 
@@ -48,7 +48,7 @@ Esa instrucción funciona **solo si el entorno tiene acceso a los repositorios, 
 
 1. **Resolver identidad y método:** ticker, **A o B y su versión**, corte de información, moneda, revisión, `sheet_id`, ruta de valoración y rutas de análisis/auditoría. Consultar el registro vigente; no elegir versiones por antigüedad de un título.
 2. **Elegir operación:** **recuperar** (reunir última hoja/revisión, sin recalcular por defecto); **actualizar** (solo nueva evidencia/entradas y sus impactos); o **valorar desde cero** (copia nueva de plantilla, nunca reutilización silenciosa). No mezclar las tres sin documentar la razón.
-3. **Valoración:** aplicar las reglas de calibración A o B **sin mezclar supuestos** y registrar `metodo_valoracion`/`version_metodo` en el expediente; evidencia primaria, hasta 10 años + LTM donde esté disponible, supuestos con fuentes, cuatro historias, DCF/FCFE/SOTP según negocio, cinco múltiplos prioritarios evaluados y los aplicables calculados (P/S y P/BV solo opcionales), sensibilidades e inverso exigibles. La IA obtiene datos crudos y estima supuestos; **la hoja realiza los cálculos**. No alterar fórmulas, pestañas, selectores ni escribir precios objetivos sobre resultados calculados.
+3. **Valoración:** aplicar las reglas de calibración A o B **sin mezclar supuestos** y registrar `metodo_valoracion`/`version_metodo` en el expediente; evidencia primaria para los inputs materiales en Fase 1, históricos hasta 10 años + LTM en Fase 2, supuestos con fuentes y revisión económica en Fase 3, cuatro historias, DCF/FCFE/SOTP según negocio, cinco múltiplos prioritarios evaluados y los aplicables calculados (P/S y P/BV solo opcionales), sensibilidades e inverso exigibles. La IA obtiene datos crudos y estima supuestos; **la hoja realiza los cálculos**. No alterar fórmulas, pestañas, selectores ni escribir precios objetivos sobre resultados calculados.
 4. **Análisis fundamental:** desarrollar los 14 capítulos narrativos (con ciclos en capítulo independiente) del Estilo JMR y el Nivel 2 cuantitativo definidos en las reglas, usando cifras de **esa valoración**, sin recalcularlas ni sustituir el artículo completo por una nota breve.
 5. **Revisión del usuario:** tras controles técnicos aprobados y autorización, publicar valoración + análisis como EN_REVISIÓN. Guardar opcionalmente las observaciones de la ficha en GitHub por ticker y revisión, sin modificarlas mientras el usuario escribe.
 6. **Auditoría posterior:** cuando el usuario diga «Audita <TICKER>», resolver primero el archivo activo desde `catalogo.json`, leer `auditorias/solicitudes/<TICKER>/<REVISION_ID>.json` si existe, y comprobar esos puntos más los mínimos independientes de crecimiento, márgenes, ROIC, reinversión, WACC/Ke, valor terminal, DCF, múltiplos y materialidad. Dictaminar VERIFICADO, VERIFICADO CON RESERVA MATERIAL o PENDIENTE.
