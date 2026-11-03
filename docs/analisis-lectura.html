@@ -238,6 +238,15 @@ function scenarioValues(v){
     v.escenariosDCF&&Array.isArray(v.escenariosDCF.historias)?v.escenariosDCF.historias:
     Array.isArray(v.escenariosDCF)?v.escenariosDCF:[]);
   const byId=Object.fromEntries(histories.filter(h=>h&&h.id).map(h=>[h.id,h]));
+  // Algunos expedientes FCFE identifican historias por nombre, sin id A/B/C/D.
+  // Los identificadores explícitos prevalecen; solo se adaptan valores existentes.
+  const namedIds={base:'A',conservador:'B',conservadora:'B',optimista:'D',disrupcion:'C'};
+  for(const h of histories){
+    if(!h||h.id)continue;
+    const name=String(h.nombre||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase();
+    const id=namedIds[name];
+    if(id&&!byId[id])byId[id]=h;
+  }
   // La ficha puede conservar los escenarios del modelo anterior como antecedentes.
   // Nunca tratar una referencia histórica como un DCF calculado en la revisión actual.
   const visible=Array.isArray(v.escenariosVisibles?.historias)?v.escenariosVisibles.historias:[];
@@ -447,3 +456,4 @@ try{
 }catch(e){error(e.message);}
 })();
 </script></body></html>
+

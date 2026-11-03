@@ -402,7 +402,8 @@ function normalizeDcfMatrices(s){
 // interpreta N/A como cero; INTEGRADO_EN_REVISION NO es auditoría económica.
 function nativeMultiplesHtml(rec){
   const s=rec?.sensibilidadMultiples;
-  if(!s||s.contrato!=='base-native-five-priority-v1')return '';
+  const bank=s?.contrato==='review-relative-v1'&&s.tipo==='MULTIPLOS_BANCARIOS';
+  if(!s||(!bank&&s.contrato!=='base-native-five-priority-v1'))return '';
   const esc=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const fmt=x=>typeof x==='number'&&Number.isFinite(x)?
     x.toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2}):'N/D';
@@ -411,11 +412,15 @@ function nativeMultiplesHtml(rec){
   if(!sourceOk)return '<p class="status-note">Sensibilidades de múltiplos ocultas: revisión, hoja o fotografía no coincide con el expediente.</p>';
   if(s.estadoPublicacion!=='INTEGRADO_EN_REVISION'||s.controlesTecnicosAprobados!==true)
     return '<p class="status-note">Matrices candidatas sin validación técnica: no mostradas como resultados oficiales.</p>';
-  const expected=['EV/EBITDA','EV/FCFF','P/E','P/FCFE','P/OCF','P/V','P/BV'];
-  if(!Array.isArray(s.matrices)||s.matrices.length!==7||
+  const expected=bank?['P/E','P/FCFE','P/BV']:['EV/EBITDA','EV/FCFF','P/E','P/FCFE','P/OCF','P/V','P/BV'];
+  if(!Array.isArray(s.matrices)||s.matrices.length!==expected.length||
      !s.matrices.every((m,i)=>m?.metodo===expected[i]&&m.escenario==='base'))
-    return '<p class="status-note">Siete sensibilidades Base incompletas o desordenadas: no se muestran matrices.</p>';
+    return '<p class="status-note">'+(bank?'Tres sensibilidades bancarias':'Siete sensibilidades Base')+' incompletas o desordenadas: no se muestran matrices.</p>';
+  if(bank&&(s.certificado!==false||s.pesoEnDCFPrincipal!==0||
+     !s.matrices.every(m=>m.estado==='OK'&&m.peso===0&&m.ancla==='PROVISIONAL'&&m.anclaCertificada===false)))
+    return '<p class="status-note">Contrastes bancarios sin reservas y peso cero conciliados: matrices no mostradas.</p>';
   let result='<p class="status-note">Matrices Base integradas técnicamente en EN_REVISION. Son sensibilidades del valor presente por acción de FY+3, no una auditoría económica ni un cambio del DCF.</p>';
+  if(bank)result+='<p class="status-note">Contrastes bancarios provisionales · peso 0 % · anclas no certificadas. '+esc(s.advertencia||'')+'</p>';
   for(const m of s.matrices){
     result+='<section class="jmr-native-matrix sens-card"><h4>'+esc(m.metodo)+'</h4>';
     if(m.estado==='N/A'){
@@ -433,10 +438,13 @@ function nativeMultiplesHtml(rec){
         Math.abs(m.centro-m.vp3Original)<=Math.max(.01,Math.abs(m.centro)*1e-8);
       if(!valid)result+='<p class="status-note">Matriz ocultada: centro FY+3, ejes o celdas no concilian.</p>';
       else{
-        result+='<p class="sens-axes">Filas: fundamental FY+3 · Columnas: múltiplo elegido</p>'+
-          '<div class="sensitivity-table-scroll"><table class="jmr-native-matrix-table"><thead><tr><th scope="col">FY+3 ↓ · múltiplo →</th>'+
-          m.multiploElegido.map(x=>'<th scope="col">'+esc(fmt(x))+'×</th>').join('')+'</tr></thead><tbody>';
-        m.matriz.forEach((r,i)=>{result+='<tr><th scope="row">'+esc(fmt(m.fundamentalFY3[i]))+'</th>'+
+        const columnAxis=bank?m.fundamentalFY3:m.multiploElegido;
+        const rowAxis=bank?m.multiploElegido:m.fundamentalFY3;
+        if(bank)result+='<p class="status-note">'+esc(m.fuenteAncla||'')+' '+esc(m.limitacion||'')+'</p>';
+        result+='<p class="sens-axes">'+(bank?'Filas: múltiplo elegido · Columnas: fundamental FY+3':'Filas: fundamental FY+3 · Columnas: múltiplo elegido')+'</p>'+
+          '<div class="sensitivity-table-scroll"><table class="jmr-native-matrix-table"><thead><tr><th scope="col">'+(bank?'Múltiplo ↓ · FY+3 →':'FY+3 ↓ · múltiplo →')+'</th>'+
+          columnAxis.map(x=>'<th scope="col">'+esc(fmt(x))+(bank?'':'×')+'</th>').join('')+'</tr></thead><tbody>';
+        m.matriz.forEach((r,i)=>{result+='<tr><th scope="row">'+esc(fmt(rowAxis[i]))+(bank?'×':'')+'</th>'+
           r.map((n,j)=>'<td data-v="'+n+'"'+(i===2&&j===2?' class="base-matrix"':'')+'>'+esc(fmt(n))+'</td>').join('')+'</tr>';});
         result+='</tbody></table></div><p class="sens-foot">Centro Base · VP FY+3: '+esc(fmt(m.centro))+' por acción.</p>';
       }
@@ -878,3 +886,4 @@ el('viewFrame').addEventListener('load',function(){
 });
 loadInventory();
 })();
+

@@ -1,0 +1,267 @@
+{
+  "ticker": "PAGS",
+  "revisionId": "PAGS-20261030-A12-R1",
+  "sheet_id": "17J1q1niSBxe5vwoCOaaRJvKZiZYi8feYLdMODnYXVTI",
+  "valorPrincipal": 12.880006211613892,
+  "valorEsperado": {
+    "valor": 12.938959847810086,
+    "valorCentral": 12.880006211613892,
+    "tipoPromedio": "50% Base + 25% Conservador + 25% Optimista",
+    "disrupcionSeparada": true,
+    "historias": [
+      {
+        "nombre": "Base",
+        "peso": 0.5,
+        "valor": 12.880006211613892,
+        "crecimientoNIprimeros5": 0.08849160214393681,
+        "Ke": 0.1246923949169112,
+        "gTerminal": 0.058,
+        "ROEterminal": 0.139
+      },
+      {
+        "nombre": "Conservador",
+        "peso": 0.25,
+        "valor": 9.125797966913115
+      },
+      {
+        "nombre": "Optimista",
+        "peso": 0.25,
+        "valor": 16.87002900109944
+      },
+      {
+        "nombre": "Disrupcion",
+        "peso": 0,
+        "valor": 7.939647028477495
+      }
+    ]
+  },
+  "sensibilidadMultiples": {
+    "contrato": "review-relative-v1",
+    "revisionId": "PAGS-20261030-A12-R1",
+    "sourceSheetId": "17J1q1niSBxe5vwoCOaaRJvKZiZYi8feYLdMODnYXVTI",
+    "sourcePath": "evidencia/relativos-revision-20261031/PAGS-20261030-A12-R1.json",
+    "resultadosSha256": "2b90f05f38e387549cd92e1fa7e3374cc1c48866062abeb754009c7e2c3fce60",
+    "estadoPublicacion": "INTEGRADO_EN_REVISION",
+    "controlesTecnicosAprobados": true,
+    "certificado": false,
+    "certificacionEconomica": "NO_CERTIFICADA",
+    "pesoEnDCFPrincipal": 0,
+    "tipo": "MULTIPLOS_BANCARIOS",
+    "advertencia": "Tres matrices P/E, P/FCFE y P/BV computadas con supuestos explícitos sobre FY+3 y Ke. Sus anclas no son independientes ni certificadas económicamente; peso cero, solo contraste.",
+    "matrices": [
+      {
+        "metodo": "P/E",
+        "escenario": "base",
+        "estado": "OK",
+        "peso": 0,
+        "ancla": "PROVISIONAL",
+        "anclaCertificada": false,
+        "fuenteAncla": "P/E observado de PAGS 5,59287x con NI LTM SEC; multiple FY+3 de 6x es un supuesto, no una ancla certificada.",
+        "limitacion": "P/E normalizado no calibrado con ciclo historico ni pares de riesgo equivalente; contraste ilustrativo con peso cero.",
+        "origen": "'FCFE financiero PAGS'!N144:S149",
+        "unidadResultado": "USD/accion",
+        "fundamentalFY3": [
+          2067.06712224,
+          2325.4505125200003,
+          2583.8339028,
+          2842.21729308,
+          3100.60068336
+        ],
+        "multiploElegido": [
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "matriz": [
+          [
+            3.8356242291930838,
+            4.315077257842219,
+            4.794530286491354,
+            5.27398331514049,
+            5.753436343789625
+          ],
+          [
+            4.794530286491354,
+            5.393846572302775,
+            5.993162858114194,
+            6.592479143925613,
+            7.191795429737032
+          ],
+          [
+            5.753436343789626,
+            6.472615886763329,
+            7.191795429737032,
+            7.910974972710735,
+            8.630154515684437
+          ],
+          [
+            6.712342401087897,
+            7.551385201223884,
+            8.39042800135987,
+            9.229470801495857,
+            10.068513601631844
+          ],
+          [
+            7.6712484583861675,
+            8.630154515684438,
+            9.589060572982708,
+            10.54796663028098,
+            11.50687268757925
+          ]
+        ],
+        "centro": 7.191795429737032,
+        "vp3Original": 7.191795429737032,
+        "formula": {
+          "tipo": "affine-product",
+          "factor": 0.0004638969131583602,
+          "constante": 0,
+          "descripcion": "VP3 USD/accion = multiplo por fundamental FY+3 BRLm descontado tres anos a Ke BRL, dividido por FX y acciones diluidas en millones. No incorpora dividendos."
+        }
+      },
+      {
+        "metodo": "P/FCFE",
+        "escenario": "base",
+        "estado": "OK",
+        "peso": 0,
+        "ancla": "PROVISIONAL",
+        "anclaCertificada": false,
+        "fuenteAncla": "FCFE del DCF Base FY+3 y multiples de salida 8x a 16x elegidos como escenarios; sin serie comparable independiente.",
+        "limitacion": "FCFE es residual despues de capital retenido; ancla de salida hipotetica, no una valoracion de mercado certificada.",
+        "origen": "'FCFE financiero PAGS'!N153:S158",
+        "unidadResultado": "USD/accion",
+        "fundamentalFY3": [
+          1081.44571296,
+          1216.62642708,
+          1351.8071412,
+          1486.98785532,
+          1622.1685694399998
+        ],
+        "multiploElegido": [
+          8,
+          10,
+          12,
+          14,
+          16
+        ],
+        "matriz": [
+          [
+            4.013434623923889,
+            4.515113951914374,
+            5.016793279904861,
+            5.518472607895347,
+            6.020151935885832
+          ],
+          [
+            5.016793279904861,
+            5.643892439892968,
+            6.270991599881076,
+            6.898090759869183,
+            7.525189919857291
+          ],
+          [
+            6.020151935885833,
+            6.7726709278715616,
+            7.525189919857291,
+            8.277708911843021,
+            9.030227903828747
+          ],
+          [
+            7.023510591866806,
+            7.901449415850156,
+            8.779388239833507,
+            9.657327063816858,
+            10.535265887800206
+          ],
+          [
+            8.026869247847777,
+            9.030227903828749,
+            10.033586559809722,
+            11.036945215790695,
+            12.040303871771664
+          ]
+        ],
+        "centro": 7.525189919857291,
+        "vp3Original": 7.525189919857291,
+        "formula": {
+          "tipo": "affine-product",
+          "factor": 0.0004638969131583602,
+          "constante": 0,
+          "descripcion": "VP3 USD/accion = multiplo por fundamental FY+3 BRLm descontado tres anos a Ke BRL, dividido por FX y acciones diluidas en millones. No incorpora dividendos."
+        }
+      },
+      {
+        "metodo": "P/BV",
+        "escenario": "base",
+        "estado": "OK",
+        "peso": 0,
+        "ancla": "PROVISIONAL",
+        "anclaCertificada": false,
+        "fuenteAncla": "P/BV observado PAGS 0,8012x en el expediente con patrimonio contable junio 2026; salida 0,8x es juicio provisional.",
+        "limitacion": "Patrimonio del motor FCFE NO equivale al capital regulatorio liberable; multiple opcional con peso cero.",
+        "origen": "'FCFE financiero PAGS'!N162:S167",
+        "unidadResultado": "USD/accion",
+        "fundamentalFY3": [
+          14674.807649280003,
+          16509.158605440003,
+          18343.509561600004,
+          20177.860517760004,
+          22012.211473920004
+        ],
+        "multiploElegido": [
+          0.6,
+          0.7,
+          0.8,
+          0.9,
+          1
+        ],
+        "matriz": [
+          [
+            4.084558781816211,
+            4.595128629543238,
+            5.1056984772702645,
+            5.61626832499729,
+            6.126838172724317
+          ],
+          [
+            4.76531857878558,
+            5.360983401133777,
+            5.9566482234819755,
+            6.552313045830172,
+            7.147977868178369
+          ],
+          [
+            5.446078375754949,
+            6.126838172724318,
+            6.807597969693686,
+            7.4883577666630545,
+            8.169117563632424
+          ],
+          [
+            6.126838172724318,
+            6.892692944314857,
+            7.658547715905397,
+            8.424402487495938,
+            9.190257259086476
+          ],
+          [
+            6.807597969693686,
+            7.658547715905397,
+            8.509497462117107,
+            9.360447208328818,
+            10.211396954540529
+          ]
+        ],
+        "centro": 6.807597969693686,
+        "vp3Original": 6.807597969693686,
+        "formula": {
+          "tipo": "affine-product",
+          "factor": 0.0004638969131583602,
+          "constante": 0,
+          "descripcion": "VP3 USD/accion = multiplo por fundamental FY+3 BRLm descontado tres anos a Ke BRL, dividido por FX y acciones diluidas en millones. No incorpora dividendos."
+        }
+      }
+    ]
+  }
+}
