@@ -36,6 +36,18 @@
 - **Puerta C · promoción/publicación:** runner específico del candidato con `--ticker --revision-id --sheet-id --cutoff --manifest`; valida evidencia A+B, integridad estructural, correspondencia exacta de libro↔motor↔JSON↔app y todas las pruebas oficiales, sin sustituirlas por comparaciones con empresas publicadas. Falla cerrado ante `NO_EJECUTADO`, evidencia ajena o error material. Publicación `EN_REVISION` solo con aprobación de usuario en el contexto correspondiente.
 - **F5:** auditoría económica independiente post-publicación, guiada por observaciones, con mismo snapshot congelado y versiones. No sirve para diferir problemas técnicos ya conocidos.
 
+### Dos auditorías de LLM, con revisión visual del usuario en medio — decisión 3-nov-2026
+
+**Orden requerido, sin confundirlas con los controles deterministas:**
+
+1. **Valoración y análisis (LLM constructor):** producir F1–F4, con capturas y cálculo por scripts/Sheets. Mantener pruebas técnicas automáticas sobre la revisión candidata.
+2. **Auditoría interna del mismo LLM:** autocrítica estructurada de coherencia económica, supuestos, narrativa, números, excepciones y trazabilidad; emitir `auditoria_interna_llm.json` con preguntas, evidencias, hallazgos, correcciones y límites. Esta revisión **no es independiente** y nunca se presenta como tal. No reemplaza SEC, CI ni auditoría externa.
+3. **Publicación preliminar condicionada y revisión visual del usuario:** solo si pasan todos los gates oficiales y existe autorización aplicable, presentar expediente `EN_REVISION` para revisión visual (app, indicadores, valor Base, MOS, escenarios, sensibilidades, múltiplos, Nivel 1/2). El usuario deja instrucciones/observaciones explícitas. **No iniciar auditoría económica externa antes de esa revisión visual e instrucciones.**
+4. **Auditoría económica independiente (otro LLM):** se inicia posteriormente, usando expediente/snapshot congelado, su propia investigación y las observaciones del usuario como prioridades. Registrar identidad del modelo ejecutor, versión/sesión y evidencia; dictamen `APROBADA / CON_SALVEDADES / RECHAZADA / NO_EJECUTADA`. Si se carece de acceso real al segundo LLM, estado `PENDIENTE_AUDITOR_EXTERNO`, no fingir independencia cambiando de rol o prompt.
+5. **Correcciones posteriores:** aplicar cambios puntuales, registrar antes/después, ejecutar pruebas dependientes, devolver resultados al usuario y actualizar la revisión. Ningún dictamen se transfiere automáticamente a una revisión económica distinta.
+
+**Resumen del contrato de auditoría:** controles técnicos de scripts + primera auditoría **LLM interno** → **revisión visual e instrucciones del usuario** → segunda auditoría **LLM externo independiente**. Se conserva la separación de F5 y la autoridad del usuario sobre el inicio de la auditoría independiente. El comando general de «valorar y analizar» termina antes de F5; una solicitud de «valorar, analizar y auditar» tampoco omite la revisión visual previa.
+
 ### El agente ve un informe corto, no miles de celdas
 
 Un `resumen_ejecucion.json` más un parte de una pantalla: valor principal Base y MOS35%, cuatro historias, WACC, ROIC, márgenes, S/C, múltiplos y rango de sensibilidad, errores materiales por componente, salvedades documentadas, **cambio desde la ejecución previa** y próximo paso exacto. El detalle completo queda en artefactos y solo se abre si hay anomalía. Métricas: tokens entrada/salida, volumen de contexto, lecturas de Sheets, llamadas a SEC, reprocesos, tiempo de ejecución y pruebas verificadas; nunca prometer porcentaje de ahorro sin comparativa real.
