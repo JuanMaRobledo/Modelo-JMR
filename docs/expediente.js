@@ -121,13 +121,19 @@ function renderCatalogCards(){
     const title=document.createElement('strong');title.textContent=t;
     head.append(companyLogo(t,'card'),title);
     card.appendChild(head);
-    const info=document.createElement('small');info.textContent='Valoración vigente en catálogo';
-    card.appendChild(info);
-    const supports=document.createElement('span');supports.className='card-caption';
-    supports.textContent='Modelo A · '+(controlModeloA(t).estado==='INCOMPLETA_EN_REVISION'?'INCOMPLETA / EN_REVISIÓN · ':'Metodología por verificar · ')+(p.analysisPath?'Análisis disponible':'Análisis pendiente')+' · '+(p.auditPath?'Auditoría disponible':'Auditoría pendiente');
-    card.appendChild(supports);
-    const values=cardValuesNode(t);card.appendChild(values);
+    const values=cardValuesNode(t);
+    const badge=values.querySelector('.cv-head');if(badge)head.appendChild(badge);
+    card.appendChild(values);
     if(values.dataset.signal)card.dataset.signal=values.dataset.signal;
+    // Estado del expediente en etiquetas cortas (antes, una frase larga).
+    const supports=document.createElement('ul');supports.className='card-caption';
+    const chip=(text,ok)=>{const li=document.createElement('li');li.textContent=text;li.className=ok?'ok':'pending';return li;};
+    supports.append(
+      chip(controlModeloA(t).estado==='INCOMPLETA_EN_REVISION'?'Modelo A · EN_REVISIÓN':'Metodología por verificar',false),
+      chip(p.analysisPath?'Análisis':'Análisis pendiente',!!p.analysisPath),
+      chip(p.auditPath?'Auditoría':'Auditoría pendiente',!!p.auditPath));
+    supports.setAttribute('aria-label','Valoración vigente en catálogo; estado del expediente');
+    card.appendChild(supports);
     const actions=document.createElement('div');actions.className='card-links';
     const open=document.createElement('button');open.type='button';open.className='card-open';
     open.textContent='Abrir ficha completa';
@@ -191,8 +197,12 @@ function cardValuesNode(t){
     const gap=calc.price===null?'':(ratio<=z.max?(ratio<=1-calc.mos?'dentro':'en zona, sin MOS'):'falta '+((1-calc.base*z.max/calc.price)*100).toLocaleString('es-CO',{maximumFractionDigits:1})+'%');
     return '<li class="cv-zone cv-'+z.key+(hit?' hit':'')+'"><i></i><span>'+z.label+'</span><b>'+m(calc.base*z.min)+'–'+m(calc.base*z.max).replace(/^(COP |US\$ )/,'')+'</b><em>'+gap+'</em></li>';
   }).join('');
+  // Potencial = valor intrínseco Base / precio − 1: verde si el precio está por debajo del valor.
+  const up=calc.price?calc.base/calc.price-1:null;
+  const upTxt=up===null?'—':(up>=0?'+':'')+(up*100).toLocaleString('es-CO',{maximumFractionDigits:1,minimumFractionDigits:1})+' %';
   box.innerHTML='<div class="cv-head"><span class="cv-light" title="'+sig.label+'"></span><strong>'+sig.label+'</strong></div>'+
-    '<dl><div><dt>Valor intrínseco</dt><dd>'+m(calc.base)+'</dd></div><div><dt>'+(d.live?'Precio hoy':'Precio ref.')+'</dt><dd>'+m(calc.price)+'</dd></div></dl>'+
+    '<dl><div><dt>Valor intrínseco</dt><dd>'+m(calc.base)+'</dd></div><div><dt>'+(d.live?'Precio hoy':'Precio ref.')+'</dt><dd>'+m(calc.price)+'</dd></div>'+
+    '<div class="cv-up '+(up===null?'':up>=0?'pos':'neg')+'"><dt>Potencial</dt><dd>'+upTxt+'</dd></div></dl>'+
     '<ul>'+rows+'</ul>';
   return box;
 }
@@ -205,7 +215,7 @@ function pages(t){
   const path=inDirectory?officialPath:'';
   const analysisPath=fromCatalog(state.catalog.analisis,t);
   const auditPath=fromCatalog(state.catalog.auditorias,t);
-  const v=path?'visor.html?path='+encodeURIComponent(path):'visor.html?ticker='+encodeURIComponent(t);
+  const v=(path?'visor.html?path='+encodeURIComponent(path):'visor.html?ticker='+encodeURIComponent(t))+'&embed=expediente';
   const a=isA12Review(t)?'analisis-a12-revision.html?ticker='+encodeURIComponent(t):analysisPath?'analisis-lectura.html?ticker='+encodeURIComponent(t)+'&analisis='+encodeURIComponent(analysisPath):'';
   return {
     valPath:path,official:!!officialPath&&inDirectory,analysisPath,auditPath,
@@ -445,7 +455,7 @@ function sensitivityHtml(rec){
   // Ejes en tasas (|x|≤1,5) se muestran en %, otros ejes como número.
   const axis=list=>{const pct=list.every(v=>Math.abs(v)<=1.5);return v=>pct?v.toLocaleString('es-CO',{maximumFractionDigits:2,minimumFractionDigits:1,style:'percent'}):fmt(v);};
   const currencySymbol=String(rec.moneda||rec.currency||'USD').toUpperCase()==='COP'?'COP $':'US$';
-  const money=n=>esc(currencySymbol)+esc(fmt(n));
+  const money=n=>esc(currencySymbol)+' '+esc(fmt(n));
   let parts=['<div class="sens-head" data-intrinsic="'+(typeof base==='number'&&isFinite(base)?base:'')+'" data-price="'+(price??'')+'">'+
     '<div><h3>Sensibilidades del escenario Base</h3><p class="sens-intro">Valores por acción calculados en el modelo, no simulados en la página. La celda central coincide con el DCF Base oficial.</p></div>'+
     '<dl class="sens-kpis"><div><dt>Valor intrínseco Base</dt><dd>'+money(base)+'</dd></div>'+

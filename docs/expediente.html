@@ -54,7 +54,7 @@ iframe{display:block;width:100%;height:max(620px,78vh);border:0;background:var(-
 .catalog-heading p{margin:0;color:var(--ink-soft);font-size:13px;max-width:720px}
 .catalog-heading label{font-size:12px;max-width:320px;width:100%}
 .catalog-heading input{width:100%;min-width:0}
-.catalog-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:14px}
+.catalog-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,310px),1fr));gap:14px}
 .catalog-card{display:flex;flex-direction:column;text-align:left;gap:9px;padding:17px;border:1px solid var(--border);background:var(--surface);border-radius:13px;min-height:155px;color:var(--ink);width:100%;box-shadow:var(--shadow);transition:border-color .15s,transform .15s}
 .catalog-card:hover,.catalog-card:focus-visible{border-color:var(--accent);transform:translateY(-1px)}
 .catalog-card.active{border:2px solid var(--accent);padding:16px}
@@ -76,7 +76,30 @@ iframe{display:block;width:100%;height:max(620px,78vh);border:0;background:var(-
 .catalog-footnote{color:var(--ink-soft);font-size:12px;margin:12px 0}
 .catalog-footnote a{color:var(--accent)}
 .catalog-empty{padding:24px 15px;border:1px dashed var(--border);border-radius:12px;color:var(--ink-soft)}
-@media(max-width:650px){.catalog-cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.catalog-card{min-height:150px;padding:12px}.catalog-card strong{font-size:20px}.catalog-card.active{padding:11px}}
+/* Tarjetas del catálogo (3-nov-2026): identidad + semáforo, tres cifras clave, zonas compactas y estado en etiquetas. */
+.catalog-card{gap:12px;padding:16px 16px 14px;border-color:var(--border-soft,#e2e8f0);border-radius:14px}
+.catalog-card .card-identity{display:flex;align-items:center;flex-wrap:wrap;gap:8px 10px;min-width:0}
+.catalog-card .card-identity strong{font:700 21px Georgia,serif;flex:1 0 auto;white-space:nowrap}
+.catalog-card .card-identity .cv-head{margin-left:auto;padding:4px 9px 4px 7px;border-radius:999px;background:color-mix(in srgb,var(--sig,#9ca3af) 14%,var(--surface,#fff));white-space:nowrap}
+.catalog-card[data-signal=gray] .cv-head{--sig:#64748b}.catalog-card[data-signal=value] .cv-head{--sig:#eab308}.catalog-card[data-signal=deep] .cv-head{--sig:#84cc16}.catalog-card[data-signal=hist] .cv-head{--sig:#16a34a}
+.catalog-card .cv-head .cv-light{width:9px;height:9px;box-shadow:none}
+.catalog-card .cv-head strong{font:700 11.5px system-ui,sans-serif;color:var(--ink)}
+.card-values{border-top:0;padding-top:0;gap:10px}
+.card-values dl{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:10px;border-radius:10px;background:var(--surface-2,#f1f5f9)}
+.card-values dd{font-size:13.5px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.card-values .cv-up.pos dd{color:var(--positive,#047857)}.card-values .cv-up.neg dd{color:var(--negative,#b91c1c)}
+.cv-zone{grid-template-columns:10px auto 1fr;column-gap:7px;row-gap:0}
+.cv-zone b{font-variant-numeric:tabular-nums;white-space:nowrap}
+.cv-zone em{grid-column:2/4;color:var(--ink-faint,#64748b)}
+.catalog-card .card-caption{display:flex;flex-wrap:wrap;gap:5px;list-style:none;margin:0;padding:0}
+.catalog-card .card-caption li{font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--border-soft,#e2e8f0);color:var(--ink-soft)}
+.catalog-card .card-caption li.ok{background:var(--positive-soft,#d1fae5);border-color:transparent;color:var(--positive,#047857)}
+.catalog-card .card-links{margin-top:auto}
+.catalog-card .card-open{width:100%}
+/* Pestañas de la ficha: en pantallas angostas, una fila desplazable en lugar de cuadrícula apretada. */
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .cv-value{color:#facc15}:root:not([data-theme="light"]) .cv-deep{color:#a3e635}:root:not([data-theme="light"]) .cv-hist{color:#4ade80}}
+:root[data-theme="dark"] .cv-value{color:#facc15}:root[data-theme="dark"] .cv-deep{color:#a3e635}:root[data-theme="dark"] .cv-hist{color:#4ade80}
+@media(max-width:560px){.catalog-cards{grid-template-columns:1fr;gap:10px}.catalog-card{min-height:0;padding:14px}.catalog-card.active{padding:13px}}
 
 
 /* Identidad visual consistente entre fichas y artículo abierto. */
@@ -262,4 +285,4 @@ footer a{color:inherit}
 <footer>Fuentes: <code>Modelo-JMR-datos</code> y Google Sheets. Un archivo en el repositorio no implica auditoría aprobada ni publicación oficial.
 <a href="https://github.com/JuanMaRobledo/Modelo-JMR/blob/main/docs/PROCESO_UNICO_JMR.md" target="_blank" rel="noopener noreferrer">Procedimiento único para ChatGPT, Claude y Gemini ↗</a></footer>
 </main><script src="jmr-mos-summary.js"></script><script src="jmr-multiples-panel.js?v=20261030-relativa-r2"></script>
-<script src="expediente.js?v=20261101-semaforo-r1"></script></body></html>
+<script src="expediente.js?v=20261103-diseno-r1"></script></body></html>
