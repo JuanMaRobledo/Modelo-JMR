@@ -1,6 +1,6 @@
 # Proceso oficial Modelo JMR · CINCO FASES
 
-**Versión v2 · 2-nov-2026 · INTEGRADA A MAIN mediante PR #166 (CI aprobada).** Fuente normativa: `modelo/REGLAS_VIGENTES.md`; metodología A-1.2 por defecto. Este README es el **único orquestador** para ChatGPT, Work, Claude Code y otros agentes. La plantilla y el motor conservan las reglas financieras, el MOS, los cuatro escenarios y los controles de publicación.
+**Versión v2 · 2-nov-2026 · INTEGRADA A MAIN mediante PR #166 (CI aprobada).** Resumen operativo para cargar primero: [`docs/CONTEXTO_CORTO.md`](../../CONTEXTO_CORTO.md). Fuente normativa: `modelo/REGLAS_VIGENTES.md`; metodología A-1.2 por defecto. Este README es el **único orquestador** para ChatGPT, Work, Claude Code y otros agentes. La plantilla y el motor conservan las reglas financieras, el MOS, los cuatro escenarios y los controles de publicación.
 
 **Cobertura F1 obligatoria:** además de Input sheet y los cinco múltiplos, consultar el [contrato universal de insumos y hojas auxiliares](CONTRATO_INSUMOS_FASE_1.md), incluidos WACC, capitalización de I+D, Option value, leases y validación de deuda/activos no operativos. F2 no releva la captura mínima necesaria para valorar en F1.
 
@@ -44,6 +44,6 @@ Fecha · método · corte · hoja sheet_id · LLM/esfuerzo · PR/commit
 ```
 
 ## Compatibilidad e historial
-Los archivos antiguos `FASE_1_DATOS_Y_HOJA.md`, `FASE_2_SUPUESTOS_Y_VALORACION.md`, `FASE_3_ANALISIS_Y_PUBLICACION.md`, `FASE_4_AUDITORIA.md` describen el **flujo de cuatro fases obsoleto** y se conservan solo como antecedentes hasta su archivo físico. **No ejecutarlos** bajo el proceso nuevo. Las entregas de AMZN R4 generadas bajo fases anteriores se conservarán con el nombre original y se deben **remapear por evidencia**, no renombrar ni declarar completas por equiparación: antiguo F1 (datos parciales) → nuevo F1 y/o F2 según comprobantes; antiguo F2 valoración → nuevo F1; antiguo F3 análisis → nuevo F4; antiguo F4 auditoría → nuevo F5. Una revisión incompleta conserva estado CANDIDATO.
+Los archivos antiguos `FASE_1_DATOS_Y_HOJA.md`, `FASE_2_SUPUESTOS_Y_VALORACION.md`, `FASE_3_ANALISIS_Y_PUBLICACION.md`, `FASE_4_AUDITORIA.md` describen el **flujo de cuatro fases obsoleto** y se conservan solo como antecedentes, archivados en [`archivo/`](archivo/README.md) desde el 3-nov-2026. **No ejecutarlos** bajo el proceso nuevo. Las entregas de AMZN R4 generadas bajo fases anteriores se conservarán con el nombre original y se deben **remapear por evidencia**, no renombrar ni declarar completas por equiparación: antiguo F1 (datos parciales) → nuevo F1 y/o F2 según comprobantes; antiguo F2 valoración → nuevo F1; antiguo F3 análisis → nuevo F4; antiguo F4 auditoría → nuevo F5. Una revisión incompleta conserva estado CANDIDATO.
 
 Ver [MODO_CHATGPT.md](MODO_CHATGPT.md) y habilidad `.claude/skills/fase-jmr/SKILL.md` actualizados para este contrato.

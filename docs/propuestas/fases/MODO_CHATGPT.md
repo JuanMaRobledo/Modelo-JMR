@@ -22,7 +22,8 @@ No ejecutes F5 en la misma sesión que construyó F1/F3/F4 como si fuera auditor
 - `modelo/REGLAS_VIGENTES.md`, `docs/PROCESO_UNICO_JMR.md`, `docs/propuestas/fases/README.md`.
 - Canónicos: `FASE_1_VALORACION_INICIAL.md`, `FASE_2_HISTORICOS_COMPLETOS.md`, `FASE_3_REVISION_SUPUESTOS.md`, `FASE_4_ANALISIS_PUBLICACION.md`, `FASE_5_AUDITORIA_GUIADA.md`.
 - Prompts existentes, sin cambio de contenido: `docs/prompts/valoracion-modelo-jmr-v5.md` para F1/F3; `research-fundamental-jmr-v5.md` F4; `auditoria-economica-jmr-v1.md` F5. Colombia anteponer `colombia-nucleo-v1.md`.
-- Los antiguos `FASE_1_DATOS_Y_HOJA.md`/F2/F3/F4 de cuatro fases se conservan para historial, **no deben ejecutarse**.
+- Los antiguos `FASE_1_DATOS_Y_HOJA.md`/F2/F3/F4 de cuatro fases están en `docs/propuestas/fases/archivo/`, solo para historial; **no deben ejecutarse**.
+- Para ahorrar contexto, cargar primero `docs/CONTEXTO_CORTO.md` y consultar `modelo/REGLAS_VIGENTES.md` en las secciones que indica para la fase.
 
 ## Recomendación de herramienta según fase (no normativa)
 - **F1:** Work de esfuerzo alto para juicio DCF/múltiplos; chat también puede preparar datos y hoja. Claude Opus alto para hipótesis, Sonnet para captura.
