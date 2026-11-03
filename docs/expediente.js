@@ -14,7 +14,7 @@ if(params.get('seccion')==='multiplos'){params.set('seccion','valoracion');param
 const initialView=DOSSIER_VIEWS.includes(params.get('seccion'))?params.get('seccion'):'analisis';
 const SHEETS_BY_VIEW={
   financieros:['Income Statement','Balance Sheet','Cash Flow Statement','Trailing 12 month Worskheet','Por acción','Dividendos'],
-  indicadores:['Trailing Valuation','Forward Valuation','Márgenes','Eficiencia de capital','Salud Financiera','Crecimiento y Márgenes'],
+  indicadores:['Trailing Valuation','Márgenes','Eficiencia de capital','Salud Financiera','Crecimiento y Márgenes'],
   modelo:['Input sheet','Valuation output','Resumen de Valoración','Escenarios e historias',
     'Cost of capital worksheet','Descuento de múltiplos','Sensibilidad DCF']
 };
