@@ -13,7 +13,7 @@
       'Márgenes','Eficiencia de capital','Salud Financiera','Crecimiento y Márgenes','Estadísticas','Diagnostics','Cualitativo','Tesis de Inversión y Supuestos']},
     {id:'multiplos',title:'Múltiplos y otras tablas',desc:'Valoraciones secundarias, normalización histórica y métricas prospectivas.',names:[
       'Descuento de múltiplos','Múltiplos históricos','Múltiplos y mercado FY+3',
-      'Financials Multiples','Trailing Valuation','Forward Valuation',
+      'Financials Multiples','Trailing Valuation',
       'EVEBITDA','EVFCFF','PE','PFCFE','POCF','PV','PBV','Control historias y múltiplos','Sensibilidad por múltiplo','Sensibilidad múltiplos META']}
   ];
   var NAME_ALIASES = {
