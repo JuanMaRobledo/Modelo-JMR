@@ -28263,61 +28263,61 @@
    },
    "valuation": {
     "price": 19.31,
-    "price_as_of": "2026-10-26",
+    "price_as_of": "2026-10-30",
     "market_cap": 37152440000.0,
     "fcf_yield": 0.06292991792732859,
     "pe": 21.98369230769231,
     "ev_ebit": 13.60932397487994,
     "p_fcf": 15.890692899914457,
-    "p_fcf_median_hist": 19.206481432942425,
-    "pe_median_hist": 23.940804399349368,
-    "p_fcf_vs_hist": -0.17263904086777804,
-    "pe_vs_hist": -0.08174796715311061,
-    "hist_years": 3,
-    "label": "Algo bajo su historia",
+    "p_fcf_median_hist": null,
+    "pe_median_hist": null,
+    "p_fcf_vs_hist": null,
+    "pe_vs_hist": null,
+    "hist_years": 0,
+    "label": "Sin historia",
     "peg": null,
     "multiples": {
      "pe": {
       "current": 21.98369230769231,
-      "median_hist": 23.940804399349368,
-      "vs_hist": -0.08174796715311061,
-      "hist_years": 3
+      "median_hist": null,
+      "vs_hist": null,
+      "hist_years": 0
      },
      "p_fcf": {
       "current": 15.890692899914457,
-      "median_hist": 19.206481432942425,
-      "vs_hist": -0.17263904086777804,
-      "hist_years": 3
+      "median_hist": null,
+      "vs_hist": null,
+      "hist_years": 0
      },
      "p_fcfe": {
       "current": 15.890692899914457,
       "median_hist": null,
       "vs_hist": null,
-      "hist_years": 2
+      "hist_years": 0
      },
      "p_ocf": {
       "current": 13.603969242035884,
-      "median_hist": 15.053964964736847,
-      "vs_hist": -0.09631985500813278,
-      "hist_years": 3
+      "median_hist": null,
+      "vs_hist": null,
+      "hist_years": 0
      },
      "ev_ebitda": {
       "current": 11.245555555555555,
-      "median_hist": 14.699744670441971,
-      "vs_hist": -0.23498293285542904,
-      "hist_years": 3
+      "median_hist": null,
+      "vs_hist": null,
+      "hist_years": 0
      },
      "ev_fcff": {
       "current": 13.916381631711651,
-      "median_hist": 16.073707568130935,
-      "vs_hist": -0.13421458162499966,
-      "hist_years": 3
+      "median_hist": null,
+      "vs_hist": null,
+      "hist_years": 0
      },
      "ev_ebit": {
       "current": 13.60932397487994,
-      "median_hist": 18.368829028868372,
-      "vs_hist": -0.2591077006873119,
-      "hist_years": 3
+      "median_hist": null,
+      "vs_hist": null,
+      "hist_years": 0
      }
     },
     "shares": 1924000000,
@@ -43262,136 +43262,6 @@
    }
   },
   {
-   "ticker": "FOXA",
-   "name": "Fox Corporation (Class A)",
-   "sector": "Communication Services",
-   "industry": "Broadcasting",
-   "sic": "4833",
-   "tier": "No pasa filtros",
-   "score": 30.5,
-   "error": null,
-   "metrics": {
-    "years": 10,
-    "last_fiscal_year_end": "2026-06-30",
-    "ltm_revenue": 17959000000.0,
-    "roic_observations_5y": 5,
-    "fcf_observations_5y": 5,
-    "roic_last": 0.0,
-    "roic_median_5y": 0.0,
-    "roic_min_5y": 0.0,
-    "roic_median_10y": 0.0,
-    "roe_median_5y": 0.14504386783647563,
-    "gross_margin_median_5y": null,
-    "gross_margin_std_5y": null,
-    "operating_margin_ltm": 0.0,
-    "operating_margin_median_5y": 0.0,
-    "fcf_ltm": 2205000000.0,
-    "fcf_margin_median_5y": 0.10693848354792561,
-    "fcf_positive_ratio": 1.0,
-    "fcf_positive_last_5y": 5,
-    "fcf_conversion_5y": 1.1136476426799007,
-    "revenue_cagr_5y": 0.05816323382679833,
-    "revenue_cagr_10y": 0.06253806859170097,
-    "revenue_growth_consistency": 0.8888888888888888,
-    "fcf_per_share_cagr_5y": -0.015838786191919252,
-    "eps_cagr_5y": 0.01238324302478655,
-    "net_debt_to_ebitda": 5.583720930232558,
-    "interest_coverage": 0.0,
-    "negative_equity": false,
-    "shares_cagr_5y": -0.059000243810559905,
-    "sbc_pct_revenue": 0.007795534272509605
-   },
-   "quality": {
-    "coverage": 0.88,
-    "group_scores": {
-     "Rentabilidad": 0.0,
-     "Moat": 0.0,
-     "Caja": 74.0,
-     "Crecimiento": 33.4,
-     "Balance": 0.0,
-     "Capital": 100.0
-    },
-    "passes_filters": false,
-    "failed_filters": [
-     "ROIC mediano 5a 0% < 12%",
-     "Deuda neta/EBITDA 5.6x > 3x"
-    ],
-    "flags": []
-   },
-   "valuation": {
-    "price": 62.76,
-    "price_as_of": "2026-11-02",
-    "market_cap": 27551640000.0,
-    "fcf_yield": 0.08003153351306855,
-    "pe": 13.277898795180723,
-    "ev_ebit": null,
-    "p_fcf": 12.495074829931973,
-    "p_fcf_median_hist": 10.669656724841523,
-    "pe_median_hist": 14.102910111406587,
-    "p_fcf_vs_hist": 0.17108498915812698,
-    "pe_vs_hist": -0.05849936713122672,
-    "hist_years": 8,
-    "label": "Cara vs su historia",
-    "peg": 10.722472916507746,
-    "multiples": {
-     "pe": {
-      "current": 13.277898795180723,
-      "median_hist": 14.102910111406587,
-      "vs_hist": -0.05849936713122672,
-      "hist_years": 8
-     },
-     "p_fcf": {
-      "current": 12.495074829931973,
-      "median_hist": 10.669656724841523,
-      "vs_hist": 0.17108498915812698,
-      "hist_years": 8
-     },
-     "p_fcfe": {
-      "current": 12.472449071978271,
-      "median_hist": 10.972841187741448,
-      "vs_hist": 0.13666541405084254,
-      "hist_years": 8
-     },
-     "p_ocf": {
-      "current": 10.14419734904271,
-      "median_hist": 8.990460062588813,
-      "vs_hist": 0.1283290597390938,
-      "hist_years": 8
-     },
-     "ev_ebitda": {
-      "current": null,
-      "median_hist": null,
-      "vs_hist": null,
-      "hist_years": 0
-     },
-     "ev_fcff": {
-      "current": 11.901194760430911,
-      "median_hist": 10.785283838904508,
-      "vs_hist": 0.10346606896900634,
-      "hist_years": 8
-     },
-     "ev_ebit": {
-      "current": null,
-      "median_hist": null,
-      "vs_hist": null,
-      "hist_years": 0
-     }
-    },
-    "shares": 439000000,
-    "net_debt": 2401000000.0,
-    "ltm": {
-     "net_income": 2075000000.0,
-     "ocf": 2716000000.0,
-     "fcf": 2205000000.0,
-     "fcff": 2516775887.038378,
-     "fcfe": 2209000000.0,
-     "ebit": null,
-     "ebitda": null
-    },
-    "eps_growth": 0.01238324302478655
-   }
-  },
-  {
    "ticker": "FOX",
    "name": "Fox Corporation (Class B)",
    "sector": "Communication Services",
@@ -43498,6 +43368,136 @@
       "current": 10.715074051243395,
       "median_hist": 10.336050927810437,
       "vs_hist": 0.03667001314913687,
+      "hist_years": 8
+     },
+     "ev_ebit": {
+      "current": null,
+      "median_hist": null,
+      "vs_hist": null,
+      "hist_years": 0
+     }
+    },
+    "shares": 439000000,
+    "net_debt": 2401000000.0,
+    "ltm": {
+     "net_income": 2075000000.0,
+     "ocf": 2716000000.0,
+     "fcf": 2205000000.0,
+     "fcff": 2516775887.038378,
+     "fcfe": 2209000000.0,
+     "ebit": null,
+     "ebitda": null
+    },
+    "eps_growth": 0.01238324302478655
+   }
+  },
+  {
+   "ticker": "FOXA",
+   "name": "Fox Corporation (Class A)",
+   "sector": "Communication Services",
+   "industry": "Broadcasting",
+   "sic": "4833",
+   "tier": "No pasa filtros",
+   "score": 30.5,
+   "error": null,
+   "metrics": {
+    "years": 10,
+    "last_fiscal_year_end": "2026-06-30",
+    "ltm_revenue": 17959000000.0,
+    "roic_observations_5y": 5,
+    "fcf_observations_5y": 5,
+    "roic_last": 0.0,
+    "roic_median_5y": 0.0,
+    "roic_min_5y": 0.0,
+    "roic_median_10y": 0.0,
+    "roe_median_5y": 0.14504386783647563,
+    "gross_margin_median_5y": null,
+    "gross_margin_std_5y": null,
+    "operating_margin_ltm": 0.0,
+    "operating_margin_median_5y": 0.0,
+    "fcf_ltm": 2205000000.0,
+    "fcf_margin_median_5y": 0.10693848354792561,
+    "fcf_positive_ratio": 1.0,
+    "fcf_positive_last_5y": 5,
+    "fcf_conversion_5y": 1.1136476426799007,
+    "revenue_cagr_5y": 0.05816323382679833,
+    "revenue_cagr_10y": 0.06253806859170097,
+    "revenue_growth_consistency": 0.8888888888888888,
+    "fcf_per_share_cagr_5y": -0.015838786191919252,
+    "eps_cagr_5y": 0.01238324302478655,
+    "net_debt_to_ebitda": 5.583720930232558,
+    "interest_coverage": 0.0,
+    "negative_equity": false,
+    "shares_cagr_5y": -0.059000243810559905,
+    "sbc_pct_revenue": 0.007795534272509605
+   },
+   "quality": {
+    "coverage": 0.88,
+    "group_scores": {
+     "Rentabilidad": 0.0,
+     "Moat": 0.0,
+     "Caja": 74.0,
+     "Crecimiento": 33.4,
+     "Balance": 0.0,
+     "Capital": 100.0
+    },
+    "passes_filters": false,
+    "failed_filters": [
+     "ROIC mediano 5a 0% < 12%",
+     "Deuda neta/EBITDA 5.6x > 3x"
+    ],
+    "flags": []
+   },
+   "valuation": {
+    "price": 62.76,
+    "price_as_of": "2026-11-02",
+    "market_cap": 27551640000.0,
+    "fcf_yield": 0.08003153351306855,
+    "pe": 13.277898795180723,
+    "ev_ebit": null,
+    "p_fcf": 12.495074829931973,
+    "p_fcf_median_hist": 10.669656724841523,
+    "pe_median_hist": 14.102910111406587,
+    "p_fcf_vs_hist": 0.17108498915812698,
+    "pe_vs_hist": -0.05849936713122672,
+    "hist_years": 8,
+    "label": "Cara vs su historia",
+    "peg": 10.722472916507746,
+    "multiples": {
+     "pe": {
+      "current": 13.277898795180723,
+      "median_hist": 14.102910111406587,
+      "vs_hist": -0.05849936713122672,
+      "hist_years": 8
+     },
+     "p_fcf": {
+      "current": 12.495074829931973,
+      "median_hist": 10.669656724841523,
+      "vs_hist": 0.17108498915812698,
+      "hist_years": 8
+     },
+     "p_fcfe": {
+      "current": 12.472449071978271,
+      "median_hist": 10.972841187741448,
+      "vs_hist": 0.13666541405084254,
+      "hist_years": 8
+     },
+     "p_ocf": {
+      "current": 10.14419734904271,
+      "median_hist": 8.990460062588813,
+      "vs_hist": 0.1283290597390938,
+      "hist_years": 8
+     },
+     "ev_ebitda": {
+      "current": null,
+      "median_hist": null,
+      "vs_hist": null,
+      "hist_years": 0
+     },
+     "ev_fcff": {
+      "current": 11.901194760430911,
+      "median_hist": 10.785283838904508,
+      "vs_hist": 0.10346606896900634,
       "hist_years": 8
      },
      "ev_ebit": {
