@@ -442,7 +442,7 @@ function nativeMultiplesHtml(rec){
         const rowAxis=bank?m.multiploElegido:m.fundamentalFY3;
         if(bank)result+='<p class="status-note">'+esc(m.fuenteAncla||'')+' '+esc(m.limitacion||'')+'</p>';
         result+='<p class="sens-axes">'+(bank?'Filas: múltiplo elegido · Columnas: fundamental FY+3':'Filas: fundamental FY+3 · Columnas: múltiplo elegido')+'</p>'+
-          '<div class="sensitivity-table-scroll"><table class="jmr-native-matrix-table"><thead><tr><th scope="col">FY+3 ↓ · múltiplo →</th>'+
+          '<div class="sensitivity-table-scroll"><table class="jmr-native-matrix-table"><thead><tr><th scope="col">'+(bank?'Múltiplo ↓ · FY+3 →':'FY+3 ↓ · múltiplo →')+'</th>'+
           columnAxis.map(x=>'<th scope="col">'+esc(fmt(x))+(bank?'':'×')+'</th>').join('')+'</tr></thead><tbody>';
         m.matriz.forEach((r,i)=>{result+='<tr><th scope="row">'+esc(fmt(rowAxis[i]))+(bank?'×':'')+'</th>'+
           r.map((n,j)=>'<td data-v="'+n+'"'+(i===2&&j===2?' class="base-matrix"':'')+'>'+esc(fmt(n))+'</td>').join('')+'</tr>';});

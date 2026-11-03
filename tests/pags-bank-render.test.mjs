@@ -15,6 +15,7 @@ test('PAGS: tres contrastes bancarios reales, ejes y reservas sin modificar dato
  assert.equal((html.match(/class="jmr-native-matrix-table"/g)||[]).length,3);
  assert.match(html,/peso 0 %/);assert.match(html,/anclas no certificadas/);
  assert.match(html,/Filas: múltiplo elegido · Columnas: fundamental FY\+3/);
+ assert.match(html,/Múltiplo ↓ · FY\+3 →/);
  assert.match(html,/>2.067,07<\/th>/);
  assert.match(html,/>4,00×<\/th>/);
  assert.match(html,/7,19 por acción/);
