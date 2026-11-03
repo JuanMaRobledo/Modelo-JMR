@@ -52,7 +52,7 @@
       'Duración ventaja · FCFF','Cost of capital worksheet','Sensibilidad DCF',
       'Motor sensibilidad DCF','Crecimiento y Márgenes']},
     {id:'ratios',title:'Eficiencia, deuda y valoración histórica',description:'Evolución LTM, capital invertido, solvencia y márgenes',names:[
-      'Trailing Valuation','Forward Valuation','Márgenes','Eficiencia de capital','Salud Financiera']},
+      'Trailing Valuation','Márgenes','Eficiencia de capital','Salud Financiera']},
     {id:'multiplos',title:'Múltiplos',description:'Métricas relativas y sus hojas de respaldo',names:[
       'Descuento de múltiplos','Múltiplos históricos','Financials Multiples',
       'Supuestos de los Múltiplos','Sensibilidad por múltiplo','Entradas históricas auxiliares',
