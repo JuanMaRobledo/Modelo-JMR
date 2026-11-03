@@ -4,7 +4,7 @@
 
 ## 1. Reglas que aplican en todas las fases
 
-1. **Aislamiento.** Una revisión vigente por emisor (ticker · `revision_id` · `sheet_id` · corte). No mezclar empresas, no reutilizar cifras, supuestos ni dictámenes de revisiones archivadas (§10). Declarar `AISLAMIENTO=OK`.
+1. **Aislamiento.** Una revisión vigente por emisor (ticker · `revision_id` · `sheet_id` · corte). No mezclar empresas, no reutilizar cifras, supuestos ni dictámenes de revisiones archivadas (§10). La vigente de cada emisor y sus sustituidas están en `Modelo-JMR-datos/registro/REVISIONES.md`; una sustituida es evidencia, nunca insumo. Declarar `AISLAMIENTO=OK`.
 2. **Método.** A-1.2 por defecto; B solo por elección expresa del usuario. Nunca mezclar supuestos A y B en una revisión (§12).
 3. **Origen de cada número.** Fuente primaria SEC/NIIF (o Treasury/Damodaran/mercado según el dato) con período, moneda, escala, nota/URL y celda (§0A, §11).
 4. **Un cero no es un dato.** Una partida sin cifra separada es: cero publicado, incluida en otra línea (con conciliación), no aplicable (justificado) o pendiente. Nunca rellenar con `0` (§0A).
@@ -31,7 +31,7 @@
 |---|---|---|---|
 | **F1 · Valoración inicial** → CANDIDATO | Insumos de `Input sheet`, costo de capital, conversores materiales y múltiplos (FY + LTM + anclas, **no** 10 años). DCF inverso, cuatro historias propuestas, Base + MOS, múltiplos aplicables, 5×5 si es viable. | Seguir el grafo real de fórmulas (`CONTRATO_INSUMOS_FASE_1.md`); WACC, I+D, leases y Option value investigados o N/A con nota SEC. | §0A, §0D, §1–§5A, §12 |
 | **F2 · Históricos** → CANDIDATO | Hasta 10 FY + LTM de los tres estados, precios históricos fechados con splits, ratios por fórmula. | Clasificar cada partida (§0A); scripts `estados_completos.py`, `auditar_estados_sec.py`/NIIF, `auditar_ceros_materiales.py`, `diff_formulas_plantilla.py`; probar ROIC/ROE/ROA/P/E/EV-EBITDA contra cálculo independiente en dos períodos. | §0A, §0B |
-| **F3 · Supuestos** → CANDIDATO_REVISADO | MANTENER / CAMBIAR / RESERVA para crecimiento, margen, S/C y reinversión, ROIC, WACC y terminal, múltiplos. | Tabla `antes → después → causa → evidencia → celda → impacto en Base y MOS`; 5×5 y DCF inverso; `controles_todas.sh` y `candados.py`. | §2–§5, §4B, §4C, §6 |
+| **F3 · Supuestos** → CANDIDATO_REVISADO | MANTENER / CAMBIAR / RESERVA para crecimiento, margen, S/C y reinversión, ROIC, WACC y terminal, múltiplos. | Tabla `antes → después → causa → evidencia → celda → impacto en Base y MOS`, partiendo de los drivers de la revisión anterior en `Modelo-JMR-datos/registro/DRIVERS.md`; 5×5 y DCF inverso; `controles_todas.sh` y `candados.py`. | §2–§5, §4B, §4C, §6 |
 | **F4 · Análisis y publicación** → EN_REVISION o CANDIDATO | Nivel 1 (14 capítulos, el 5 de ciclos) y Nivel 2 (12 apartados) con cifras de la misma revisión, sin recalcular. | Publicar solo con todos los gates aprobados (§6 y §8A) y conciliación hoja ↔ JSON ↔ app; la ficha muestra «auditoría pendiente». | §6, §8, §8A, §9 |
 | **F5 · Auditoría guiada** → dictamen | Primero las preguntas del usuario (`auditorias/solicitudes/<TICKER>/<REV>.json`), luego el mínimo independiente. | Otro modelo o sesión; dictamen VERIFICADO / CON RESERVA MATERIAL / PENDIENTE (§4B); no modifica hoja ni artículo. | §4B, §8, §8A |
 
@@ -41,7 +41,9 @@
 
 ## 4. Entrega de cada fase
 
-`Modelo-JMR-datos/candidatos/valoraciones/<REV>/FASE_<N>_ENTREGA.md`, con el formato del [README de fases](propuestas/fases/README.md): título con estado (CERRADA / CERRADA CON CONTROLES PENDIENTES / BLOQUEADA), fecha, método, corte, `sheet_id`, herramienta/modelo/esfuerzo reales, `PASOS: n/n ejecutados`; hecho y comprobado; juicios; controles (APROBADO / PARCIAL / NO EJECUTADO); bloqueos materiales vs secundarios; insumos exactos para la fase siguiente.
+Al cambiar `catalogo.json`, `valoraciones/` o `candidatos/valoraciones/` en Modelo-JMR-datos, regenerar el registro con `python3 scripts/registro_revisiones.py` (CI lo exige).
+
+`Modelo-JMR-datos/candidatos/valoraciones/<REV>/FASE_<N>_ENTREGA.md`, con el formato del [README de fases](propuestas/fases/README.md): título con estado (CERRADA / CERRADA CON CONTROLES PENDIENTES / BLOQUEADA), fecha, método, corte, `sheet_id`, herramienta/modelo/esfuerzo reales, `PASOS: n/n ejecutados`; hecho y comprobado; juicios; **tabla de drivers Base** (crecimiento 1-5, margen terminal, S/C, WACC/Ke, g terminal, ROIC/ROE terminal: anterior → nuevo); controles (APROBADO / PARCIAL / NO EJECUTADO); bloqueos materiales vs secundarios; insumos exactos para la fase siguiente.
 
 ## 5. Cuándo leer el documento completo
 
