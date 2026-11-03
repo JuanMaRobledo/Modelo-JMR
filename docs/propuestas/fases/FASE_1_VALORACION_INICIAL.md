@@ -4,6 +4,12 @@
 ## Objetivo y alcance
 Valorar **desde el principio**, usando **solo los datos materiales que alimentan directamente el DCF** (`Input sheet`, `Cost of capital worksheet`, convertidores aplicables, precio/acciones/impuestos/deuda/caja/activos no operativos) **y la valoración por múltiplos** (`Financials Multiples`, `Descuento de múltiplos`, `Múltiplos históricos` cuando se requieran anclas y `Sensibilidad por múltiplo`). Obtener los históricos mínimos que esas entradas necesitan: últimos FY, LTM, FY+3 ancla y segmentos si son materiales. **No recopilar diez años completos en esta fase:** es Fase 2.
 
+## Contrato de entradas obligatorio para toda empresa
+
+**Ejecutar primero [CONTRATO_INSUMOS_FASE_1.md](CONTRATO_INSUMOS_FASE_1.md)**. La F1 no se declara completa hasta examinar **todas las hojas auxiliares y dependencias** de DCF/múltiplos, incluyendo `Cost of capital worksheet`, `Synthetic rating`, `R& D converter`, `Operating lease converter`, `Option value`, `Failure Rate worksheet`, deuda/valor mercado, opciones/RSU, I+D, NOL, múltiples FY+1/2/3 y ajustes por inversiones no operativas. La lista se resuelve desde fórmulas reales, no por celdas memorizadas. Adjuntar matriz por `hoja!celda`, período, dato, fuente, estado, materialidad, prueba, y N/A documentado.
+
+**No retrasar la F1 por históricos completos de 10 años**, pero sí capturar las observaciones anteriores necesarias para capitalizar I+D/amortización, comparar múltiplos y calcular WACC/DCF. Sin las entradas materiales, el resultado dependiente permanece N/D o candidato con reserva explícita; no asumir cero.
+
 ## Pasos obligatorios
 1. **Aislamiento y corte:** ticker, clase, método A-1.2 (o B expresamente), revisión única/hoja de plantilla limpia, moneda, FY/UDM/corte de mercado y exclusión de versiones anteriores. Identidad, tipos de acción, escala, cifras primarias SEC/NIIF y su fecha.
 2. **Mapa de dependencias mínimo:** recorrer entradas REALES de `Input sheet`, `Cost of capital worksheet` y cinco múltiplos prioritarios; inventariar `celda → dato/fórmula → fuente/período/unidad → estado verificado/N/D/N/A`. Sin números inventados; no usar un cero para dato no desglosado. Reconciliar ventas, EBIT, impuesto, CFO/FCFF, capital, deuda, leases, opciones/SBC, acciones y activos no operativos necesarios. Completar conversiones de I+D y arrendamientos cuando sean materiales; sin doble conteo.

@@ -2,6 +2,8 @@
 
 **Versión v2 · 2-nov-2026 · INTEGRADA A MAIN mediante PR #166 (CI aprobada).** Fuente normativa: `modelo/REGLAS_VIGENTES.md`; metodología A-1.2 por defecto. Este README es el **único orquestador** para ChatGPT, Work, Claude Code y otros agentes. La plantilla y el motor conservan las reglas financieras, el MOS, los cuatro escenarios y los controles de publicación.
 
+**Cobertura F1 obligatoria:** además de Input sheet y los cinco múltiplos, consultar el [contrato universal de insumos y hojas auxiliares](CONTRATO_INSUMOS_FASE_1.md), incluidos WACC, capitalización de I+D, Option value, leases y validación de deuda/activos no operativos. F2 no releva la captura mínima necesaria para valorar en F1.
+
 ## Fases canónicas e invocaciones
 | Fase | Pedido válido | Qué hace | Entrega / estado |
 |---|---|---|---|
