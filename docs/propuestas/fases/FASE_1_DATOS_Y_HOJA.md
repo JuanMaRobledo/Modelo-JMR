@@ -1,3 +1,5 @@
+> **HISTÓRICO — NO EJECUTAR:** este archivo corresponde al flujo JMR antiguo de cuatro fases. Su numeración ya no describe la fase actual. El proceso oficial vigente **una vez integrado el PR** es [README de cinco fases](README.md); para esta fase usar [FASE_1_VALORACION_INICIAL.md](FASE_1_VALORACION_INICIAL.md), y para auditoría ahora [FASE_5_AUDITORIA_GUIADA.md](FASE_5_AUDITORIA_GUIADA.md). Se conserva este texto solo para trazabilidad de revisiones antiguas.
+
 # Fase 1 · Datos y hoja
 
 **Invocación:** «Empieza el análisis de <TICKER> en fase 1». **Estado de salida:** `CANDIDATO`. **No** estima supuestos, **no** valora, **no** escribe análisis.
