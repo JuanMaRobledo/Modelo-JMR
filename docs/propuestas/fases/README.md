@@ -38,6 +38,7 @@
 Fecha · método · corte · hoja sheet_id · LLM/esfuerzo · PR/commit
 ## Hecho y comprobado (celdas, documentos, comandos y salidas)
 ## Juicios o decisiones de la fase (valor anterior/nuevo y razones)
+## Drivers Base anterior → nuevo (crecimiento 1-5, margen terminal, S/C 1-5/6-10, WACC/Ke, g terminal, ROIC/ROE terminal; ver Modelo-JMR-datos/registro/DRIVERS.md)
 ## Controles ejecutados (APROBADO/PARCIAL/NO EJECUTADO, razón)
 ## Bloqueos materiales vs pendientes secundarios
 ## Insumos exactos para la fase siguiente

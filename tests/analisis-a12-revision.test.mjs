@@ -11,7 +11,9 @@ test('Visor de revisión no reemplaza catálogo, tiene whitelist y no permite ed
  const html=read('docs/analisis-a12-revision.html');
  const dossier=read('docs/expediente.html');
  new Script(js);new Script(home);
- assert.match(js,/REVIEW_TICKERS=new Set\(\['META','NVDA','XP'\]\)/);
+ // META/NVDA sustituidas y XP vigente en catálogo: ninguna candidata activa en el visor ni en el expediente.
+ assert.match(js,/REVIEW_TICKERS=new Set\(\[\]\)/);
+ assert.match(home,/A12_REVIEW_TICKERS=new Set\(\[\]\)/);
  assert.match(js,/PREPUBLICACION_CONTROLADA/);
  assert.match(js,/safeArticle\(markup\)/);
  assert.match(js,/tagName==='A'/);
