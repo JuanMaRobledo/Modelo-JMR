@@ -1,3 +1,5 @@
+> **HISTÓRICO — NO EJECUTAR:** este archivo corresponde al flujo JMR antiguo de cuatro fases. Su numeración ya no describe la fase actual. El proceso oficial vigente **una vez integrado el PR** es [README de cinco fases](README.md); para esta fase usar [FASE_3_REVISION_SUPUESTOS.md](FASE_3_REVISION_SUPUESTOS.md), y para auditoría ahora [FASE_5_AUDITORIA_GUIADA.md](FASE_5_AUDITORIA_GUIADA.md). Se conserva este texto solo para trazabilidad de revisiones antiguas.
+
 # Fase 3 · Análisis fundamental y publicación EN_REVISION
 
 **Invocación:** «Sigue con <TICKER> en fase 3». **Aplica:** prompt maestro **2/3 Análisis fundamental** (`docs/prompts/research-fundamental-jmr-v5.md`). **Estado de salida:** `EN_REVISION` si todos los controles pasan; si falta validación o publicación, `CANDIDATO` con la entrega `CERRADA CON CONTROLES PENDIENTES`; `BLOQUEADA` solo si faltan insumos materiales que impiden el análisis. **No** recalcula, **no** cambia supuestos ni la hoja, **no** audita.
