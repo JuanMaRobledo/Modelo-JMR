@@ -161,7 +161,7 @@ test('contrato Fase 1 cubre todas las hojas auxiliares y cinco múltiplos',()=>{
   const names=['Input sheet','Cost of capital worksheet','R& D converter','Operating lease converter','Option value','Synthetic rating','Financials Multiples','EVEBITDA','EVFCFF','PFCFE','POCF','PE'];
   for(const name of names)assert.ok(contract.includes(name),name+' no está cubierto');
   assert.match(contract,/RSU\/SBC/);
-  assert.match(contract,/FY\+1\/+2\/+3/);
+  assert.ok(contract.includes('FY+1/+2/+3'));
   assert.match(fase,/CONTRATO_INSUMOS_FASE_1\.md/);
   assert.match(rules,/Cobertura integral de dependencias de Fase 1/);
 });
