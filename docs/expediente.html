@@ -116,12 +116,48 @@ footer a{color:inherit}
 .sheet-group-info{padding:10px 17px;font-size:12px;color:var(--ink-soft,#57665b);background:var(--surface-2,#f3f5f1)}
 .dossier-inline{padding:20px;max-width:100%;background:var(--surface,#fff)}
 .dossier-inline h3{font:600 21px Georgia,serif}
-.dossier-inline .sensitivity-table-scroll{overflow:auto;width:100%;max-height:650px;border:1px solid var(--border);border-radius:10px}
+.dossier-inline .sensitivity-table-scroll{overflow:auto;width:100%;border:1px solid var(--border-soft,#e2e8f0);border-radius:10px}
 .dossier-inline table{border-collapse:collapse;min-width:680px;width:100%;font-variant-numeric:tabular-nums;font-size:12px}
 .dossier-inline th,.dossier-inline td{padding:11px;border:1px solid var(--border,#dce2dc);text-align:right}
 .dossier-inline th:first-child,.dossier-inline td:first-child{text-align:left;position:sticky;left:0;background:var(--surface,#fff);min-width:155px;z-index:1}
 .dossier-inline thead th{background:var(--surface-2,#f1f3ef)}
 .dossier-inline td.base-matrix{background:var(--accent-soft,#eee4ce);font-weight:800}
+/* Sensibilidades: tarjetas en cuadrícula, celdas coloreadas frente a la referencia (paintSensitivity). */
+.sens-head{display:grid;grid-template-columns:1fr auto;gap:12px 24px;align-items:start;padding:16px 18px;margin:0 0 18px;border:1px solid var(--border-soft,#e2e8f0);border-radius:14px;background:var(--surface-2,#f1f5f9)}
+.sens-head h3{margin:0 0 4px}
+.sens-intro{margin:0;color:var(--ink-soft,#475569);font-size:13px;max-width:62ch}
+.sens-kpis{display:flex;gap:10px;margin:0;flex-wrap:wrap}
+.sens-kpis div{background:var(--surface,#fff);border:1px solid var(--border-soft,#e2e8f0);border-radius:10px;padding:8px 12px;min-width:140px}
+.sens-kpis dt{font-size:11px;color:var(--ink-faint,#64748b);text-transform:uppercase;letter-spacing:.04em}
+.sens-kpis dd{margin:2px 0 0;font-size:18px;font-weight:750;font-variant-numeric:tabular-nums}
+.sens-controls{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;font-size:12.5px;color:var(--ink-soft,#475569)}
+.sens-toggle{display:inline-flex;border:1px solid var(--border,#cbd5e1);border-radius:9px;overflow:hidden;background:var(--surface,#fff)}
+.sens-toggle button{border:0;border-radius:0;background:transparent;color:var(--ink,#0f172a);padding:7px 12px;font-size:12.5px;font-weight:650;cursor:pointer;min-height:auto}
+.sens-toggle button+button{border-left:1px solid var(--border,#cbd5e1)}
+.sens-toggle button[aria-pressed="true"]{background:var(--accent,#4f46e5);color:var(--surface,#fff)}
+.sens-legend{display:inline-flex;align-items:center;gap:6px 14px;flex-wrap:wrap}.sens-legend>span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.sens-legend i{display:inline-block;width:12px;height:12px;border-radius:3px}
+.sens-legend i.up{background:color-mix(in srgb,var(--positive,#047857) 55%,var(--surface,#fff))}
+.sens-legend i.down{background:color-mix(in srgb,var(--negative,#b91c1c) 55%,var(--surface,#fff))}
+.dossier-inline h3.sens-section{font:700 13px/1.2 system-ui,sans-serif;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-faint,#64748b);margin:22px 0 10px}
+.sens-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,430px),1fr));gap:14px}
+.sens-cards>p,.sens-cards>ul{grid-column:1/-1;margin:0}
+.dossier-inline .sens-card{border:1px solid var(--border-soft,#e2e8f0);border-radius:14px;padding:14px 14px 10px;background:var(--surface,#fff);box-shadow:var(--shadow);min-width:0}
+.sens-card h4{margin:0 0 2px;font-size:15px;font-weight:750}
+.sens-axes{margin:0 0 10px;font-size:12px;color:var(--ink-faint,#64748b)}
+.sens-foot{margin:8px 0 0;font-size:12px;color:var(--ink-soft,#475569)}
+.dossier-inline .sens-card .sensitivity-table-scroll{border:0;border-radius:8px}
+.dossier-inline table.sens-grid,.dossier-inline table.jmr-native-matrix-table{min-width:0;width:100%;table-layout:fixed;border-collapse:separate;border-spacing:3px;font-size:13px}
+.dossier-inline .sens-grid th,.dossier-inline .jmr-native-matrix-table th,.dossier-inline .sens-grid td,.dossier-inline .jmr-native-matrix-table td{border:0;border-radius:6px;padding:9px 4px;text-align:center;white-space:nowrap}
+.dossier-inline .sens-grid thead th,.dossier-inline .jmr-native-matrix-table thead th{background:transparent;color:var(--ink-faint,#64748b);font-weight:650;font-size:12px}
+.dossier-inline .sens-grid th:first-child,.dossier-inline .jmr-native-matrix-table th:first-child,.dossier-inline .sens-grid td:first-child,.dossier-inline .jmr-native-matrix-table td:first-child{min-width:0;position:static;background:transparent}
+.dossier-inline .sens-grid tbody th,.dossier-inline .jmr-native-matrix-table tbody th{color:var(--ink-faint,#64748b);font-weight:650;font-size:12px;text-align:right;padding-right:8px}
+.dossier-inline .sens-grid td,.dossier-inline .jmr-native-matrix-table td{background:var(--surface-2,#f1f5f9);font-weight:600}
+.dossier-inline .sens-grid td.sens-up,.dossier-inline .jmr-native-matrix-table td.sens-up{background:color-mix(in srgb,var(--positive,#047857) var(--sens-mix,30%),var(--surface,#fff))}
+.dossier-inline .sens-grid td.sens-down,.dossier-inline .jmr-native-matrix-table td.sens-down{background:color-mix(in srgb,var(--negative,#b91c1c) var(--sens-mix,30%),var(--surface,#fff))}
+.dossier-inline .sens-grid td.base-matrix,.dossier-inline .jmr-native-matrix-table td.base-matrix{outline:2px solid var(--ink,#0f172a);outline-offset:-2px;font-weight:800}
+.dossier-inline .sens-grid tr>:first-child,.dossier-inline .jmr-native-matrix-table tr>:first-child{width:18%;white-space:normal;overflow-wrap:anywhere;line-height:1.2}
+@media(max-width:700px){.sens-head{grid-template-columns:1fr;padding:12px}.sens-kpis div{min-width:0;flex:1}.dossier-inline .sens-grid tr>:first-child,.dossier-inline .jmr-native-matrix-table tr>:first-child{width:24%;font-size:10px;padding-right:3px}.dossier-inline table.sens-grid,.dossier-inline table.jmr-native-matrix-table{font-size:10.5px;border-spacing:2px}.dossier-inline .sens-grid th,.dossier-inline .sens-grid td,.dossier-inline .jmr-native-matrix-table th,.dossier-inline .jmr-native-matrix-table td{padding:8px 2px}}
 .dossier-inline article{padding:13px 0 18px}
 .dossier-inline .status-note{padding:16px;border:1px solid var(--border);border-radius:11px;background:var(--surface-2,#f4f5f2)}
 #viewFrame[hidden],#inlinePanel[hidden]{display:none!important}

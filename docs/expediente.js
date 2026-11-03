@@ -239,7 +239,7 @@ async function loadMosSummary(t,p,requestId){
       el('valuationSummary').innerHTML=JmrMultiplesPanel.summary(rec);
       if(state.view==='valoracion'&&state.valuationMode==='multiplos')el('inlinePanel').innerHTML=JmrMultiplesPanel.render(rec);
     }
-    if(state.view==='sensibilidades')el('inlinePanel').innerHTML=sensitivityHtml(rec);
+    if(state.view==='sensibilidades'){el('inlinePanel').innerHTML=sensitivityHtml(rec);paintSensitivity(el('inlinePanel'),state.sensitivityRef);}
     const reference=Number(rec.precioAnalisis??rec.precio);
     const validRef=Number.isFinite(reference)&&reference>0?reference:null;
     const summary=JmrMosSummary.render(host,rec,{price:validRef,latest:false});
@@ -358,14 +358,33 @@ function renderSheetSubtabs(view){
 }
 function normalizeDcfMatrices(s){
   if(!s||typeof s!=='object')return [];
-  const named=(m,name)=>({nombre:m.nombre||name,ejeFilas:m.ejeFilas,ejeColumnas:m.ejeColumnas,valores:m.valores,centroConciliado:m.centroConciliado===true||(m.centroConciliado==null&&s.centroConciliado===true)});
-  const result=Array.isArray(s.matrices)?s.matrices.map((m,i)=>named(m,'Matriz DCF '+(i+1))):[];
+  // Formatos guardados en Modelo-JMR-datos: lista {nombre|title, ejeFilas|rows, ejeColumnas|columns,
+  // valores|values}, diccionario {clave:{rows,columns,values}}, matriz/wacc/g antiguos y FCFE Ke×g.
+  // Solo se adaptan celdas existentes; nunca se crean números ni se presume la conciliación.
+  const flag=v=>v===true||v===false?v:null;
+  const LABELS={waccVsTerminalGrowth:['WACC × crecimiento terminal','WACC','g terminal'],
+    waccVsTerminalROIC:['ROIC terminal × crecimiento terminal','ROIC terminal','g terminal'],
+    crecimientoVsMargen:['Crecimiento 1-5 × margen EBIT terminal','Crecimiento ventas (CAGR 1-5)','Margen EBIT terminal']};
+  const split=t=>String(t||'').split(/\s+[×x]\s+/);
+  const named=(m,name,key)=>{
+    const lab=LABELS[key]||[];
+    const title=m.nombre||m.title||lab[0]||name;
+    const parts=split(title);
+    return {nombre:title,ejeFilas:m.ejeFilas||m.rows,ejeColumnas:m.ejeColumnas||m.columns,valores:m.valores||m.values,
+      etiquetaFilas:m.rowsLabel||lab[1]||(parts.length===2?parts[0]:''),
+      etiquetaColumnas:m.columnsLabel||lab[2]||(parts.length===2?parts[1]:''),
+      centroConciliado:flag(m.centroConciliado)??flag(s.centroConciliado)};
+  };
+  const result=[];
+  if(Array.isArray(s.matrices))s.matrices.forEach((m,i)=>{if(m&&typeof m==='object')result.push(named(m,'Matriz DCF '+(i+1)));});
+  else if(s.matrices&&typeof s.matrices==='object')
+    Object.entries(s.matrices).forEach(([k,m],i)=>{if(m&&typeof m==='object')result.push(named(m,'Matriz DCF '+(i+1),k));});
   const raw=s.matriz;
-  if(Array.isArray(raw))result.push(named({ejeFilas:s.wacc,ejeColumnas:s.g,valores:raw},'WACC × crecimiento terminal'));
+  if(Array.isArray(raw))result.push(named({ejeFilas:s.wacc,ejeColumnas:s.g,valores:raw},'WACC × crecimiento terminal','waccVsTerminalGrowth'));
   else if(raw&&typeof raw==='object'&&Array.isArray(raw.valores))
-    result.push(named({ejeFilas:raw.wacc||raw.ejeFilas,ejeColumnas:raw.g||raw.ejeColumnas,valores:raw.valores},'WACC × crecimiento terminal'));
+    result.push(named({ejeFilas:raw.wacc||raw.ejeFilas,ejeColumnas:raw.g||raw.ejeColumnas,valores:raw.valores},'WACC × crecimiento terminal','waccVsTerminalGrowth'));
   if(Array.isArray(s.valorPorAccion)&&Array.isArray(s.KeEscenarios)&&Array.isArray(s.gEscenarios))
-    result.push(named({ejeFilas:s.KeEscenarios,ejeColumnas:s.gEscenarios,valores:s.valorPorAccion},'Ke × crecimiento terminal · FCFE'));
+    result.push(named({ejeFilas:s.KeEscenarios,ejeColumnas:s.gEscenarios,valores:s.valorPorAccion,rowsLabel:'Ke',columnsLabel:'g terminal'},'Ke × crecimiento terminal · FCFE'));
   return result;
 }
 // El expediente muestra únicamente las siete matrices Base de la misma
@@ -388,7 +407,7 @@ function nativeMultiplesHtml(rec){
     return '<p class="status-note">Siete sensibilidades Base incompletas o desordenadas: no se muestran matrices.</p>';
   let result='<p class="status-note">Matrices Base integradas técnicamente en EN_REVISION. Son sensibilidades del valor presente por acción de FY+3, no una auditoría económica ni un cambio del DCF.</p>';
   for(const m of s.matrices){
-    result+='<section class="jmr-native-matrix"><h4>'+esc(m.metodo)+'</h4>';
+    result+='<section class="jmr-native-matrix sens-card"><h4>'+esc(m.metodo)+'</h4>';
     if(m.estado==='N/A'){
       const detail=rec.descuentoMultiples?.metodos?.find(x=>x.nombre===m.metodo);
       if(detail?.peso===0&&m.estadoFuente==='N/D'&&m.motivo)
@@ -404,11 +423,12 @@ function nativeMultiplesHtml(rec){
         Math.abs(m.centro-m.vp3Original)<=Math.max(.01,Math.abs(m.centro)*1e-8);
       if(!valid)result+='<p class="status-note">Matriz ocultada: centro FY+3, ejes o celdas no concilian.</p>';
       else{
-        result+='<div class="sensitivity-table-scroll"><table class="jmr-native-matrix-table"><thead><tr><th>Fundamental FY+3 ↓ / múltiplo elegido →</th>'+
-          m.multiploElegido.map(x=>'<th>'+esc(fmt(x))+'×</th>').join('')+'</tr></thead><tbody>';
-        m.matriz.forEach((r,i)=>{result+='<tr><th>'+esc(fmt(m.fundamentalFY3[i]))+'</th>'+
-          r.map((n,j)=>'<td'+(i===2&&j===2?' class="base-matrix"':'')+'>'+esc(fmt(n))+'</td>').join('')+'</tr>';});
-        result+='</tbody></table></div><p>Centro Base · VP FY+3: '+esc(fmt(m.centro))+' por acción.</p>';
+        result+='<p class="sens-axes">Filas: fundamental FY+3 · Columnas: múltiplo elegido</p>'+
+          '<div class="sensitivity-table-scroll"><table class="jmr-native-matrix-table"><thead><tr><th scope="col">FY+3 ↓ · múltiplo →</th>'+
+          m.multiploElegido.map(x=>'<th scope="col">'+esc(fmt(x))+'×</th>').join('')+'</tr></thead><tbody>';
+        m.matriz.forEach((r,i)=>{result+='<tr><th scope="row">'+esc(fmt(m.fundamentalFY3[i]))+'</th>'+
+          r.map((n,j)=>'<td data-v="'+n+'"'+(i===2&&j===2?' class="base-matrix"':'')+'>'+esc(fmt(n))+'</td>').join('')+'</tr>';});
+        result+='</tbody></table></div><p class="sens-foot">Centro Base · VP FY+3: '+esc(fmt(m.centro))+' por acción.</p>';
       }
     }else result+='<p class="status-note">N/D · sin matriz certificada técnicamente; no equivale a cero.</p>';
     result+='</section>';
@@ -420,26 +440,47 @@ function sensitivityHtml(rec){
   if(!rec)return '<p class="status-note">Cargando sensibilidades de la valoración oficial…</p>';
   const mats=normalizeDcfMatrices(rec.sensibilidadDCF);
   const base=rec.valorEsperado?.dcfBase??rec.valorPrincipal;
+  const price=typeof rec.precio==='number'&&isFinite(rec.precio)&&rec.precio>0?rec.precio:null;
   const fmt=n=>typeof n==='number'&&isFinite(n)?n.toLocaleString('es-CO',{maximumFractionDigits:2,minimumFractionDigits:2}):'N/D';
+  // Ejes en tasas (|x|≤1,5) se muestran en %, otros ejes como número.
+  const axis=list=>{const pct=list.every(v=>Math.abs(v)<=1.5);return v=>pct?v.toLocaleString('es-CO',{maximumFractionDigits:2,minimumFractionDigits:1,style:'percent'}):fmt(v);};
   const currencySymbol=String(rec.moneda||rec.currency||'USD').toUpperCase()==='COP'?'COP $':'US$';
-  let parts=['<h3>DCF · sensibilidades del escenario Base</h3><p>Valores por acción calculados en el modelo, no simulados en la página. La celda central debe coincidir con el DCF Base oficial.</p>'];
+  const money=n=>esc(currencySymbol)+esc(fmt(n));
+  let parts=['<div class="sens-head" data-intrinsic="'+(typeof base==='number'&&isFinite(base)?base:'')+'" data-price="'+(price??'')+'">'+
+    '<div><h3>Sensibilidades del escenario Base</h3><p class="sens-intro">Valores por acción calculados en el modelo, no simulados en la página. La celda central coincide con el DCF Base oficial.</p></div>'+
+    '<dl class="sens-kpis"><div><dt>Valor intrínseco Base</dt><dd>'+money(base)+'</dd></div>'+
+    (price?'<div><dt>Precio de referencia</dt><dd>'+money(price)+'</dd></div>':'')+'</dl>'+
+    '<div class="sens-controls"><span>Colorear frente a</span><div class="sens-toggle" role="group" aria-label="Referencia de color">'+
+    '<button type="button" data-sens-ref="intrinsic" aria-pressed="true">Valor intrínseco</button>'+
+    (price?'<button type="button" data-sens-ref="price" aria-pressed="false">Precio de mercado</button>':'')+'</div>'+
+    '<span class="sens-legend"><span><i class="up"></i>Por encima</span><span><i class="down"></i>Por debajo</span><span>más intenso = más lejos</span></span></div></div>',
+    '<h3 class="sens-section">DCF</h3>'];
   if(!mats.length)parts.push('<p class="status-note">No hay matrices DCF certificadas en esta revisión.</p>');
+  else parts.push('<div class="sens-cards">');
   mats.forEach((m,i)=>{
     const rows=m.valores||[],rr=m.ejeFilas||[],cc=m.ejeColumnas||[];
+    const num=v=>typeof v==='number'&&isFinite(v);
+    // Se muestra solo si la valoración declara el centro conciliado y además lo reproduce numéricamente.
     const valid=m.centroConciliado===true && rows.length===5 && rr.length===5 && cc.length===5 &&
-      rows.every(r=>Array.isArray(r)&&r.length===5&&r.every(v=>typeof v==='number'&&isFinite(v))) &&
-      typeof base==='number' && Math.abs(rows[2][2]-base)<.05;
-    parts.push('<article><h3>'+esc(m.nombre||('Matriz '+(i+1)))+'</h3>');
-    if(!valid){parts.push('<p class="status-note">Matriz no mostrada: centro o celdas sin conciliación con la revisión activa.</p></article>');return;}
-    parts.push('<div class="sensitivity-table-scroll"><table><thead><tr><th>Supuesto ↓ / →</th>'+cc.map(v=>'<th>'+esc(fmt(v*100))+'%</th>').join('')+'</tr></thead><tbody>');
+      rr.every(num) && cc.every(num) &&
+      rows.every(r=>Array.isArray(r)&&r.length===5&&r.every(num)) &&
+      typeof base==='number' && Math.abs(rows[2][2]-base)<Math.max(.05,Math.abs(base)*1e-6);
+    parts.push('<article class="sens-card"><h4>'+esc(m.nombre||('Matriz '+(i+1)))+'</h4>');
+    if(!valid){parts.push('<p class="status-note">Matriz no mostrada: '+(m.centroConciliado===true?'centro o celdas sin conciliación con la revisión activa.':'la valoración no declara el centro conciliado (centroConciliado).')+'</p></article>');return;}
+    const fr=axis(rr),fc=axis(cc);
+    if(m.etiquetaFilas||m.etiquetaColumnas)
+      parts.push('<p class="sens-axes">Filas: '+esc(m.etiquetaFilas||'supuesto')+' · Columnas: '+esc(m.etiquetaColumnas||'supuesto')+'</p>');
+    parts.push('<div class="sensitivity-table-scroll"><table class="sens-grid"><thead><tr><th scope="col">'+
+      esc(m.etiquetaFilas&&m.etiquetaColumnas?'↓ · →':'Supuesto ↓ / →')+'</th>'+cc.map(v=>'<th scope="col">'+esc(fc(v))+'</th>').join('')+'</tr></thead><tbody>');
     rows.forEach((row,ri)=>{
-      parts.push('<tr><th>'+esc(fmt(rr[ri]*100))+'%</th>'+
-        row.map((v,ci)=>'<td'+(ri===2&&ci===2?' class="base-matrix"':'')+'>'+esc(fmt(v))+'</td>').join('')+'</tr>');
+      parts.push('<tr><th scope="row">'+esc(fr(rr[ri]))+'</th>'+
+        row.map((v,ci)=>'<td data-v="'+v+'"'+(ri===2&&ci===2?' class="base-matrix"':'')+'>'+esc(fmt(v))+'</td>').join('')+'</tr>');
     });
-    parts.push('</tbody></table></div><p>Centro Base: '+esc(currencySymbol)+esc(fmt(base))+'. Ejes en % de los supuestos indicados por el título.</p></article>');
+    parts.push('</tbody></table></div><p class="sens-foot">Centro Base: '+esc(currencySymbol)+esc(fmt(base))+'.</p></article>');
   });
+  if(mats.length)parts.push('</div>');
   const mult=rec.sensibilidadMultiples;
-  parts.push('<h3>Sensibilidades de múltiplos</h3>');
+  parts.push('<h3 class="sens-section">Múltiplos</h3><div class="sens-cards">');
   const native=nativeMultiplesHtml(rec);
   if(native){parts.push(native);}
   else if(mult?.controlesOK===0){
@@ -449,7 +490,29 @@ function sensitivityHtml(rec){
     parts.push('<p>Disponibilidad de los métodos en el archivo oficial:</p><ul>'+
       mult.controles.map(x=>'<li>'+esc(x.metodo)+': '+esc(x.estado||'N/D')+'</li>').join('')+'</ul>');
   }else parts.push('<p class="status-note">Esta revisión no contiene sensibilidades por múltiplos verificables.</p>');
+  parts.push('</div>');
   return parts.join('');
+}
+// Colorea cada celda frente a la referencia elegida: verde por encima, rojo por debajo,
+// intensidad proporcional a la distancia (satura al ±30 %). No cambia ninguna cifra.
+function paintSensitivity(root,ref){
+  const head=root&&root.querySelector('.sens-head');
+  if(!head)return;
+  const mode=ref||head.dataset.ref||'intrinsic';
+  const target=Number(mode==='price'?head.dataset.price:head.dataset.intrinsic);
+  head.dataset.ref=mode;
+  head.querySelectorAll('[data-sens-ref]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.sensRef===mode)));
+  const label=mode==='price'?'precio de mercado':'valor intrínseco Base';
+  root.querySelectorAll('td[data-v]').forEach(td=>{
+    const v=Number(td.dataset.v);
+    td.classList.remove('sens-up','sens-down','sens-eq');td.style.removeProperty('--sens-mix');
+    if(!isFinite(v)||!isFinite(target)||target<=0){td.removeAttribute('title');return;}
+    const d=(v-target)/target;
+    td.title=(d>=0?'+':'')+(d*100).toLocaleString('es-CO',{maximumFractionDigits:1})+' % frente al '+label;
+    if(Math.abs(d)<.005){td.classList.add('sens-eq');return;}
+    td.classList.add(d>0?'sens-up':'sens-down');
+    td.style.setProperty('--sens-mix',Math.round(14+Math.min(Math.abs(d)/.3,1)*46)+'%');
+  });
 }
 function sourceUrl(){
   const url=String(state.valuationRecord?.hojaGoogle||'');
@@ -547,6 +610,7 @@ function showView(view){
     updateDossierLocation(view);
   }else if(isSensitivity){
     inline.innerHTML=sensitivityHtml(state.valuationRecord);
+    paintSensitivity(inline,state.sensitivityRef);
     updateDossierLocation(view);
   }else if(isMultiples){
     inline.innerHTML=typeof JmrMultiplesPanel==='undefined'?
@@ -717,6 +781,12 @@ async function saveAuditRequest(){
 el('reviewForm').addEventListener('submit',e=>{e.preventDefault();saveAuditRequest();});
 el('auditReviewStatus').addEventListener('change',saveLocalDraft);
 el('auditReviewNotes').addEventListener('input',saveLocalDraft);
+el('inlinePanel').addEventListener('click',event=>{
+  const button=event.target.closest('[data-sens-ref]');
+  if(!button)return;
+  state.sensitivityRef=button.dataset.sensRef;
+  paintSensitivity(el('inlinePanel'),state.sensitivityRef);
+});
 el('connectReviewGitHub').addEventListener('click',()=>GhOAuth.startLogin());
 el('reloadAuditRequest').addEventListener('click',()=>{
  if(state.loc)loadAuditRequest(state.loc.ticker,pages(state.loc.ticker));
