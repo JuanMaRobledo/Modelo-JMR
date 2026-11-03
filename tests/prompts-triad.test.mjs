@@ -122,3 +122,31 @@ test('Colombia comparte los tres prompts maestros y no revive Porter ni el índi
   assert.doesNotMatch(local,/Research v5: 18 secciones|cinco fuerzas de Porter.*obligatorio/i);
 });
 
+
+test('cinco fases JMR: valoración primero, históricos segundo, revisión tercero, publicación cuarto y auditoría guiada quinto',()=>{
+  const root=new URL('../',import.meta.url);
+  const read=(p)=>fs.readFileSync(new URL(p,root),'utf8');
+  const process=read('docs/PROCESO_UNICO_JMR.md');
+  const readme=read('docs/propuestas/fases/README.md');
+  const rules=read('modelo/REGLAS_VIGENTES.md');
+  const files=[
+    'FASE_1_VALORACION_INICIAL.md',
+    'FASE_2_HISTORICOS_COMPLETOS.md',
+    'FASE_3_REVISION_SUPUESTOS.md',
+    'FASE_4_ANALISIS_PUBLICACION.md',
+    'FASE_5_AUDITORIA_GUIADA.md'
+  ];
+  for(const filename of files){
+    assert.ok(readme.includes(filename),filename+' no está declarado en el README');
+    assert.match(read('docs/propuestas/fases/'+filename),/Fase [1-5]/);
+  }
+  assert.match(rules,/Orden operativo obligatorio: cinco fases/);
+  assert.match(read('docs/propuestas/fases/FASE_1_VALORACION_INICIAL.md'),/Input sheet/);
+  assert.match(read('docs/propuestas/fases/FASE_2_HISTORICOS_COMPLETOS.md'),/hasta diez años|diez años|10 FY/i);
+  assert.match(read('docs/propuestas/fases/FASE_3_REVISION_SUPUESTOS.md'),/Sales-to-Capital/);
+  assert.match(read('docs/propuestas/fases/FASE_4_ANALISIS_PUBLICACION.md'),/EN_REVISION/);
+  assert.match(read('docs/propuestas/fases/FASE_5_AUDITORIA_GUIADA.md'),/usuario/);
+  assert.match(process,/Cinco fases|CINCO fases/);
+  assert.match(readme,/Forward Valuation.*DEPRECADA/);
+  assert.doesNotMatch(read('docs/expediente.js'),/indicadores:\['Trailing Valuation','Forward Valuation'/);
+});
