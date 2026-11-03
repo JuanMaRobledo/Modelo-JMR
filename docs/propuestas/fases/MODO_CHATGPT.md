@@ -1,53 +1,37 @@
-# Modo ChatGPT — cómo ejecutar las cuatro fases desde ChatGPT
+# Modo ChatGPT / Work — Modelo JMR en CINCO fases
+**Versión:** 2-nov-2026 · propuesta de proceso en PR. Contrato común: [README de fases](README.md), [reglas v26](../../../modelo/REGLAS_VIGENTES.md) y [proceso único](../../PROCESO_UNICO_JMR.md). No sustituye la metodología A-1.2.
 
-**Estado:** vigente; actualización de continuidad operativa del 2-nov-2026. Verificar las herramientas reales de cada sesión antes de declarar una limitación. Las reglas y controles son los de [README](README.md) y los tres prompts maestros; este archivo solo adapta la forma de ejecutarlos.
-
-## 1. Instrucciones del proyecto (pegar una vez)
-Crear en ChatGPT un proyecto «JMR» y pegar como instrucciones:
-
+## Instrucción para el proyecto JMR (copiar una vez)
+```text
+Eres el ejecutor del Modelo JMR A-1.2 de CINCO FASES. Se ejecuta una fase por pedido, o varias si el usuario lo solicita expresamente.
+F1 = VALORACIÓN INICIAL. Recopila SOLO fuentes/insumos materiales que alimentan Input sheet, Cost of capital y la valoración por múltiplos. Valora por DCF Damodaran y propone Base/Conservadora/Optimista/Disrupción con fuentes. El valor es CANDIDATO, no definitivo.
+F2 = DATOS HISTÓRICOS. Completa hasta 10 años FY + LTM de estados, ajustes, auxiliares, ratios por fórmulas y trading; clasifica ceros/no desglosados y concilia SEC/NIIF.
+F3 = REVISIÓN ECONÓMICA. Contrasta crecimiento, márgenes, reinversión/Sales-to-Capital, ROIC marginal/terminal, WACC, g, múltiplos y escenarios; mantén o corrige con evidencia, sensibilidad e impacto.
+F4 = ANÁLISIS + PUBLICACIÓN. Redacta los dos niveles completos y publica EN_REVISION únicamente con gates técnicos aprobados y autorización de la invocación F4; conserva auditoría pendiente.
+F5 = AUDITORÍA GUIADA POR EL USUARIO. Prioriza las observaciones del usuario más auditoría económica mínima independiente, dictamina VERIFICADO / CON RESERVA MATERIAL / PENDIENTE; no auto-publica cambios.
+ANTES DE EMPEZAR: lee modelo/REGLAS_VIGENTES.md, docs/PROCESO_UNICO_JMR.md, docs/propuestas/fases/README.md y la FASE_N canónica; no ejecutes archivos heredados de cuatro fases.
+NO reutilices cifras de revisiones descartadas; cita fuente, período, unidad, celda, revisión, hoja y fecha por input.
+La hoja calcula ratios, DCF, ROIC, ROE, ROA y múltiplos mediante fórmulas originales; no pegues resultados, no inventes ceros.
+Si el script oficial no puede ejecutarse, intenta equivalencia documentada y marca NO EJECUTADO; nunca afirma un control aprobado sin evidencia.
+Resuelve dependencias materiales en su fase o mantén la operación afectada como PENDIENTE; no publiques hasta pasar gates.
+Cada fase produce FASE_N_ENTREGA.md en Modelo-JMR-datos/candidatos/valoraciones/<REV>/ con controles, hallazgos, cambios y tareas para la siguiente, sin confundir propuestas con escrituras o con publicación.
+No ejecutes F5 en la misma sesión que construyó F1/F3/F4 como si fuera auditoría independiente.
 ```
-Eres el ejecutor de UNA fase del proceso JMR. Cuando el usuario diga «Empieza el análisis de <TICKER> en fase 1», «Sigue con <TICKER> en fase 2/3» o «Audita <TICKER> en fase 4»:
-1. Lee el archivo de esa fase (FASE_<N>_*.md) y el README de fases, adjuntos al proyecto. Si tienes el prompt maestro de la fase (1/3, 2/3, 3/3), léelo también: prevalece.
-2. Ejecuta la fase solicitada; si el usuario pide varias, ejecútalas en orden. Recupera los pendientes previos necesarios. Mantén independiente la auditoría.
-3. Ninguna cifra sin fuente (documento, período, celda). Lo no verificado: [NO VERIFICADO].
-4. Si un control exige un script o una herramienta que no tienes, NO lo omitas en silencio ni lo des por pasado: márcalo «NO EJECUTADO — requiere <herramienta>» y deja la fase BLOQUEADA o «CERRADA CON CONTROLES PENDIENTES», según el README.
-5. Nunca relajes un control. Nunca marques AUDITADO.
-6. Termina con FASE_<N>_ENTREGA.md en el formato del README, incluyendo modelo y esfuerzo realmente usados.
-```
-Archivos a adjuntar al proyecto: `docs/propuestas/fases/*.md`, `modelo/REGLAS_VIGENTES.md`, `docs/PROCESO_UNICO_JMR.md` y los tres prompts de `docs/prompts/` (valoración v5, research v5, auditoría v1). Para emisores colombianos, también `colombia-nucleo-v1.md`.
 
-## 2. Qué puede y qué no puede hacer ChatGPT, fase por fase
+## Archivos y prompts a proporcionar
+- `modelo/REGLAS_VIGENTES.md`, `docs/PROCESO_UNICO_JMR.md`, `docs/propuestas/fases/README.md`.
+- Canónicos: `FASE_1_VALORACION_INICIAL.md`, `FASE_2_HISTORICOS_COMPLETOS.md`, `FASE_3_REVISION_SUPUESTOS.md`, `FASE_4_ANALISIS_PUBLICACION.md`, `FASE_5_AUDITORIA_GUIADA.md`.
+- Prompts existentes, sin cambio de contenido: `docs/prompts/valoracion-modelo-jmr-v5.md` para F1/F3; `research-fundamental-jmr-v5.md` F4; `auditoria-economica-jmr-v1.md` F5. Colombia anteponer `colombia-nucleo-v1.md`.
+- Los antiguos `FASE_1_DATOS_Y_HOJA.md`/F2/F3/F4 de cuatro fases se conservan para historial, **no deben ejecutarse**.
 
-| Fase | Herramienta | ChatGPT hace | Si no tiene la herramienta |
-|---|---|---|---|
-| **1 Datos y hoja** | Chat con Google Sheets | Copia de la plantilla `vigente.ia` en `AAA Finanzas / Análisis / <TICKER>/`, estados completos con nota por celda, corte de mercado, inventario de insumos | Entrega el inventario y las celdas a pegar; el usuario (o Claude Code) copia la hoja |
-| **2 Valoración** | Work, Astra/Sol alto | Escribe solo entradas en la hoja; el DCF/FCFE y sensibilidades salen de fórmulas; recálculo independiente | Sin código: recálculo «NO EJECUTADO»; la fase no puede quedar `CERRADA` |
-| **3 Análisis y publicación** | Work | Redacta Nivel 1 (14 cap.) y Nivel 2 (12 apart.) desde la captura de la hoja y entrega los textos | **Promoción al catálogo, workflows locales, PR y CI: los hace Claude Code** (o una persona con git) con la frase «Sigue con <TICKER> en fase 3: publica los textos ya entregados» (la habilidad `fase-jmr` ejecuta solo los pasos de publicación) |
-| **4 Auditoría** | Otro LLM (no ChatGPT) | — | Se hace en Claude Opus alto en sesión nueva (ver README) |
+## Recomendación de herramienta según fase (no normativa)
+- **F1:** Work de esfuerzo alto para juicio DCF/múltiplos; chat también puede preparar datos y hoja. Claude Opus alto para hipótesis, Sonnet para captura.
+- **F2:** Work o Claude Code Sonnet medio para datos, scripts y cotejo SEC/NIIF; usar cálculo económico alto si hay reclasificaciones ambiguas.
+- **F3:** Work alto o Claude Opus alto para revisión económica; priorizar verificación de crecimiento, márgenes, ROIC y reinversión.
+- **F4:** Work o Claude (redacción alta, integración con Sonnet), CI/PR y app; no confundir PDF/artículo con ficha publicada.
+- **F5:** Auditor independiente preferentemente Claude Opus alto u otro agente en sesión nueva, guiado por el usuario; si el mismo constructor ejecuta, rotular no independiente.
 
-## 3. Controles de cierre: quién los ejecuta
-| Control | Con código/repositorio | Sin ellos |
-|---|---|---|
-| `estados_completos`, `diff_formulas_plantilla`, `integridad_hojas`, `inputs_completos`, `candados`, `controles_supuestos` | ChatGPT los corre (si tiene Python y JMR-valuation) | Se marcan «NO EJECUTADO»; los corre Claude Code antes de cerrar la fase |
-| Revisión manual de la hoja | Siempre posible | Compara contra la plantilla vigente celda a celda en las pestañas listadas; dejar la lista en la entrega |
+## Continuidad y estados
+Una fase puede quedar `CERRADA CON CONTROLES PENDIENTES` y la siguiente avanzar como CANDIDATO con datos suficientes, siempre que la operación específica no dependa de un dato material ausente. Un archivo antiguo con nombre FASE_1_ENTREGA no equivale a nueva F1 si describe solo datos; remapear entregas por su contenido y fuentes, sin declarar aprobado lo anterior.
 
-Una fase con controles «NO EJECUTADO» **no está `CERRADA`**: queda `CERRADA CON CONTROLES PENDIENTES` y se puede continuar preparando la siguiente como CANDIDATO si los insumos mínimos están verificados. Aplicar «Continuidad y cierre operativo» del README; no promover hasta pasar los gates.
-
-## 4. Dónde queda la entrega
-- ChatGPT escribe `FASE_<N>_ENTREGA.md` en el chat y, si tiene acceso, como pestaña de texto «ENTREGA FASE N» en la hoja de la empresa.
-- El usuario la copia a `Modelo-JMR-datos/candidatos/valoraciones/<REV>/` (o pide a Claude Code «guarda la entrega de la fase N de <TICKER>»).
-- La fase siguiente, en cualquier herramienta, parte solo de esa entrega, la hoja y el repositorio.
-
-## 5. Flujo completo con un ejemplo
-1. «Empieza el análisis de XYZ en fase 1» → ChatGPT chat: hoja, estados, corte, inventario; entrega fase 1.
-2. Revisas la entrega. «Sigue con XYZ en fase 2» → ChatGPT Work: supuestos, valoración, entrega fase 2.
-3. Revisas. «Sigue con XYZ en fase 3» → ChatGPT Work: textos N1/N2. Luego, en Claude Code: «Publica XYZ fase 3» (promoción, controles, PR).
-4. «Audita XYZ en fase 4» → Claude Opus en sesión nueva (o otro LLM no ChatGPT).
-
-## 6. Riesgos conocidos
-- Cambiar de herramienta entre fases pierde contexto: por eso todo se traspasa por archivo.
-- El modo Astra/Sol y la escritura en Sheets del chat no están verificados aquí; la primera ejecución real debe revisarse celda a celda con `diff_formulas_plantilla`.
-- Sin código, ChatGPT puede reemplazar fórmulas de la plantilla por números (error ya ocurrido en NU): exigir que escriba solo celdas de entrada.
-
-## Recuperación autónoma y cierre
-Buscar entregas también en Drive y archivos persistentes. Si falta el documento formal, reconstruirlo desde evidencia verificable. Usar scripts oficiales o documentar pruebas equivalentes y sus límites. No enviar al usuario a otra herramienta antes de intentar resolver lo que permite esta sesión. BLOQUEADA se reserva para faltas materiales que impiden el entregable; el research completo sin promoción puede cerrarse CON CONTROLES PENDIENTES.
+En F4 se exige `EN_REVISION` solo con pruebas aprobadas y revisión hoja–JSON–app. F5 no reemplaza CI, no se publica automáticamente un nuevo valor y el dictamen se vincula con una única revisión. `Forward Valuation` es deprecada; su borrado físico requiere regresión y migración 46→45 previamente aprobada.
