@@ -52,17 +52,17 @@ jobs:
           echo "::add-mask::$ua"
           echo "SEC_EDGAR_USER_AGENT=$ua" >> "$GITHUB_ENV"
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Traer el motor del screener (JMR-valuation)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: JuanMaRobledo/JMR-valuation
           token: ${{ secrets.JMR_VALUATION_READ_TOKEN }}
           persist-credentials: false
           path: jmr-valuation
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.11"
           cache: pip
@@ -73,7 +73,7 @@ jobs:
       # Los archivos de la SEC cambian poco: se reusan hasta 7 días (el
       # propio screener decide qué volver a bajar) y la corrida tarda minutos.
       - name: Cache de SEC EDGAR
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: jmr-valuation/data/screener_cache
           key: sec-${{ github.run_id }}
