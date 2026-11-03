@@ -6,7 +6,10 @@ const RAW='https://raw.githubusercontent.com/'+ROOT+'/main/';
 const CONTENTS='https://api.github.com/repos/'+ROOT+'/contents/';
 const el=id=>document.getElementById(id);
 const DOSSIER_VIEWS=['analisis','valoracion','financieros','indicadores','modelo','sensibilidades','revision'];
-const A12_REVIEW_TICKERS=new Set(['META','NVDA','XP']);
+// Candidatas A-1.2 en revisión visual, aún fuera del catálogo. Vacío desde 3-nov-2026: META y NVDA
+// fueron sustituidas por sus revisiones 20261101 y XP-20261031-A12-R1 ya es la vigente del catálogo.
+// Las copias de docs/revisiones-a12/ se conservan como evidencia (Modelo-JMR-datos/registro/REVISIONES.md).
+const A12_REVIEW_TICKERS=new Set([]);
 const isA12Review=t=>A12_REVIEW_TICKERS.has(t)&&params.get('candidato')==='A12';
 const params=new URLSearchParams(location.search);
 // Alias de enlaces antiguos o escritos a mano: «múltiplos» es una subpestaña de Valoración.

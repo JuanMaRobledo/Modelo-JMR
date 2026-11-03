@@ -1,7 +1,8 @@
 /* Lector de análisis candidatos A-1.2: no altera el catálogo, los estados ni la valoración vigente. */
 (function(){
 'use strict';
-const REVIEW_TICKERS=new Set(['META','NVDA','XP']);
+// Vacío desde 3-nov-2026: no hay candidatas A-1.2 fuera del catálogo (ver expediente.js).
+const REVIEW_TICKERS=new Set([]);
 const qs=new URLSearchParams(location.search);
 const ticker=String(qs.get('ticker')||'').toUpperCase();
 const get=id=>document.getElementById(id);
