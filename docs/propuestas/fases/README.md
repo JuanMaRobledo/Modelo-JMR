@@ -1,6 +1,6 @@
 # Proceso oficial Modelo JMR · CINCO FASES
 
-**Versión v2 · 2-nov-2026 · propuesta en PR, no integrada a main hasta fusión y controles.** Fuente normativa: `modelo/REGLAS_VIGENTES.md`; metodología A-1.2 por defecto. Este README es el **único orquestador** para ChatGPT, Work, Claude Code y otros agentes. La plantilla y el motor conservan las reglas financieras, el MOS, los cuatro escenarios y los controles de publicación.
+**Versión v2 · 2-nov-2026 · INTEGRADA A MAIN mediante PR #166 (CI aprobada).** Fuente normativa: `modelo/REGLAS_VIGENTES.md`; metodología A-1.2 por defecto. Este README es el **único orquestador** para ChatGPT, Work, Claude Code y otros agentes. La plantilla y el motor conservan las reglas financieras, el MOS, los cuatro escenarios y los controles de publicación.
 
 ## Fases canónicas e invocaciones
 | Fase | Pedido válido | Qué hace | Entrega / estado |
