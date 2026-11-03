@@ -55,3 +55,14 @@ Guardar un artefacto inmutable por corrida, idealmente JSON y log, con: ticker, 
 6. Las pruebas no pueden aprobar R5 leyendo el expediente publicado, una plantilla o la hoja R2.
 
 Este documento es un **contrato piloto propuesto**; su adopción normativa y su integración en los runners oficiales requieren pruebas en AMZN y revisión del PR.
+
+## Decisión provisional sobre `Sector` y `Crecimiento y Márgenes` (lectura real AMZN R5)
+
+En la hoja candidata R5 se verificó que **ambas hojas tienen dependencias activas**, aunque no todos sus resultados son drivers directos del DCF Base:
+
+- `Sector!A3:B7` incluye cinco comparables (MSFT, GOOGL, ORCL, WMT, COST) con datos fiscalmente fechados; `Sector!K3:N11` alimenta fórmulas de cuantiles/resúmenes en `Crecimiento y Márgenes!C15:F20`.
+- `Crecimiento y Márgenes!C6:C9` y `D6:E17` calculan crecimiento histórico, márgenes y referencia sectorial, y están enlazados a `Input sheet!B30,B138,B141:B143`, `Origen de los Supuestos!F11:J11,F19:J19` y `Supuestos Recomendados!E6:H9`.
+- `Input sheet!B30` es una **referencia de margen**, no el margen de proyección de cada historia; no confundir los diagnósticos de pares mixtos con el driver económico de Amazon.
+- Los enlaces primarios de `Input sheet!B12:B16` a `Income Statement` y `Balance Sheet` permanecen en R5, y `Valuation output` usa el `Input sheet` y fórmulas de historias. Es el patrón fuente única a preservar.
+
+**No eliminar ni deprecarlas físicamente todavía**. Una consolidación opcional en una sola hoja de `Referencias y calibración` requiere: (1) inventario global de referencias, nombres y scripts, incluidas fórmulas indirectas; (2) copia aislada y migración de pares + estadísticas + paneles diagnósticos; (3) prueba comparativa de DCF, WACC, cinco múltiplos, sensibilidades y valores de celdas enlazadas, con mismo snapshot y SHA; (4) homologación de las tres plantillas y validadores/perfil de pestañas; (5) solo después retiro de hojas en nuevas copias. Mientras tanto, **mantener las 46 hojas sin alterar y ocultar/organizar visualmente las redundantes si conviene**. Este hallazgo no autoriza actualizar R5 ni plantillas maestras.
