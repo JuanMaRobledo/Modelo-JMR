@@ -1,6 +1,6 @@
 # Reglas vigentes del Modelo JMR
 
-**Versión 26 · 2-nov-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
+**Versión 27 · 2-nov-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
 (`docs/prompts/*.md`), `METODOLOGIA.md`, una habilidad o un comentario de código dice otra cosa, prevalece este
 documento. Una regla nueva no se agrega como «regla del día X» en un prompt: se cambia aquí, se sube la versión y se
 anota en el registro de cambios del final.
@@ -39,6 +39,14 @@ Por instrucción del usuario, la preparación de candidatos no se detiene autom�
 - **Compatibilidad:** los expedientes y las entregas creados bajo el esquema de 4 fases son históricos: su número NO acredita la nueva fase equivalente. Se mapean por evidencia, respetando la revisión, sin reiniciar datos correctos ni arrastrar R2/R3 a una revisión nueva.
 
 **Retiro de `Forward Valuation`:** módulo declarado **obsoleto** del análisis principal; sus indicadores prospectivos están cubiertos por DCF y múltiples FY+1/2/3. **No borrar aún de la plantilla de 46 hojas ni de AMZN R4 u otras hojas vigentes:** para convertir la plantilla futura a **45** se exige (1) inventario y pruebas de dependencias de fórmula/nombres/validaciones/scripts, (2) respaldos y migración sin pérdida de cálculo de las variantes Maestra/IA/Manual, (3) validador y app compatibles con perfil 45 y legado 46, (4) comparación regresiva de DCF/múltiplos antes/después. No se cambia el motor por un borrado de pestaña sin pruebas. Al completarse, actualizar el registro `reference/plantillas.json` y subir nueva versión del perfil. Archivo histórico permanece intacto.
+
+## 0D. Cobertura integral de dependencias de Fase 1 (versión 27)
+
+**No basta con completar las celdas visibles de Input sheet.** La fase 1 debe obtener, de fuentes primarias y con corte definido, **todas las entradas materiales** de las hojas auxiliares requeridas por DCF Damodaran y múltiplos aplicables: `Cost of capital worksheet`, `Synthetic rating`, `R& D converter`, `Operating lease converter`, `Option value`, `Failure Rate worksheet` y notas sobre opciones, RSU/SBC, NOL, preferentes, minoritarios, deuda a mercado y activos no operativos, además de `Financials Multiples`, sus cinco métodos, anclas FY+1/2/3 y matrices. **Es obligatorio inspeccionar las fórmulas reales de la plantilla** para encontrar dependencias indirectas, no rellenar listas genéricas ni convertir celdas sin evidencia en cero.
+
+El registro de fuente y estado por celda y el algoritmo de cobertura se establecen en [Contrato único de insumos F1](../docs/propuestas/fases/CONTRATO_INSUMOS_FASE_1.md), que es vinculante para ChatGPT, Work, Claude y cualquier agente. `Option value` puede concluir `NO_APLICA` solo con evidencia de que no hay opciones/warrants económicos; ello **no** exime evaluar RSU/SBC ni dilución. I+D no desglosada requiere proxy explicado, reversibilidad y sensibilidad, sin falsificar una partida reportada; ASC842/NIIF16 debe verificarse antes de capitalizar leases. WACC se calcula en su hoja y se comprueba, sin confundir tasa libre de riesgo con costo de capital.
+
+**Puerta de Fase 1:** entregar matriz cobertura de entradas, cálculo DCF Base/escenarios y múltiplos aplicables o `N/D` por dependencias materiales no verificadas. La ausencia de historia de diez años completos no es excusa para omitir la amortización mínima de I+D, opción value, WACC o anclas relevantes; esos insumos pertenecen a la fase 1. Fase 2 obtiene el resto de históricos. Controles técnicos de publicación siguen en F4, auditoría guiada en F5.
 
 ## 1. Valor principal y margen de seguridad
 
@@ -286,6 +294,7 @@ Hojas de trabajo conservadas tras el archivo del 24-oct-2026 (identidad document
 
 | Versión | Fecha | Cambio |
 |---|---|---|
+| 27 | 2-nov-2026 | §0D: contrato vinculante de obtención completa de datos mínimos de DCF, cinco múltiplos y todas sus hojas auxiliares (WACC, I+D, leases, Option value y demás); control por celda y no cero ficticio. Sin cambios económicos ni publicaciones. |
 | 26 | 2-nov-2026 | §0C: flujo operativo de cinco fases, valoración inicial focalizada, historia en F2, juicio F3, publicación F4 y auditoría guiada F5; Forward Valuation deprecado, retiro físico solo tras regresión y perfil 45. |
 | 25 | 2-nov-2026 | §0B: indicadores de rentabilidad y múltiplos históricos y LTM mediante fórmulas trazables; precios históricos con fecha y split, sin sobrescribir celdas derivadas. Conserva A-1.2, MOS y valores existentes. |
 | 24 | 2-nov-2026 | §0A: integridad de conceptos contra fuentes primarias, ceros/agrupaciones documentados y control complementario anticeros antes de promover. Aplica a cualquier IA, sin alterar resultados existentes ni método económico. |
