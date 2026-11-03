@@ -98,7 +98,7 @@ test('las referencias activas y la interfaz usan el mismo contrato editorial',()
   const sections=[...styleSection.matchAll(/^(\d{1,2})\. \*\*/gm)].map(m=>Number(m[1]));
   assert.deepEqual(sections,Array.from({length:14},(_,i)=>i+1));
   assert.match(styleSection,/5\. \*\*Ciclos de la empresa, del mercado y de la macroeconomía/);
-  assert.match(rules,/\*\*Versión 26 · 2-nov-2026/);
+  assert.match(rules,/\*\*Versión 27 · 2-nov-2026/);
   assert.match(rules,/Estilo JMR de 14 capítulos/);
   assert.match(process,/cinco fases/i);
   assert.match(process,/tres prompts maestros activos/i);
@@ -149,4 +149,19 @@ test('cinco fases JMR: valoración primero, históricos segundo, revisión terce
   assert.match(process,/Cinco fases|CINCO fases/);
   assert.match(readme,/Forward Valuation.*DEPRECADA/);
   assert.doesNotMatch(read('docs/expediente.js'),/indicadores:\['Trailing Valuation','Forward Valuation'/);
+});
+
+
+test('contrato Fase 1 cubre todas las hojas auxiliares y cinco múltiplos',()=>{
+  const root=new URL('../',import.meta.url);
+  const read=p=>fs.readFileSync(new URL(p,root),'utf8');
+  const contract=read('docs/propuestas/fases/CONTRATO_INSUMOS_FASE_1.md');
+  const fase=read('docs/propuestas/fases/FASE_1_VALORACION_INICIAL.md');
+  const rules=read('modelo/REGLAS_VIGENTES.md');
+  const names=['Input sheet','Cost of capital worksheet','R& D converter','Operating lease converter','Option value','Synthetic rating','Financials Multiples','EVEBITDA','EVFCFF','PFCFE','POCF','PE'];
+  for(const name of names)assert.ok(contract.includes(name),name+' no está cubierto');
+  assert.match(contract,/RSU\/SBC/);
+  assert.match(contract,/FY\+1\/+2\/+3/);
+  assert.match(fase,/CONTRATO_INSUMOS_FASE_1\.md/);
+  assert.match(rules,/Cobertura integral de dependencias de Fase 1/);
 });
