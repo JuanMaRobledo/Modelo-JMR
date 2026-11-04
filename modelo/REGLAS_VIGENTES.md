@@ -1,6 +1,6 @@
 # Reglas vigentes del Modelo JMR
 
-**Versión 30 · 4-nov-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
+**Versión 31 · 4-nov-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
 (`docs/prompts/*.md`), `METODOLOGIA.md`, una habilidad o un comentario de código dice otra cosa, prevalece este
 documento. Una regla nueva no se agrega como «regla del día X» en un prompt: se cambia aquí, se sube la versión y se
 anota en el registro de cambios del final.
@@ -77,6 +77,25 @@ El registro de fuente y estado por celda y el algoritmo de cobertura se establec
   probabilidad). Nada se ajusta para acercarse al precio.
 
 - Cuatro historias: Base, Conservadora, Optimista y Disrupción, cada una con DCF completo.
+- **Historias → números (Damodaran, *Stories to Numbers* y *Narrative and Numbers*, v31).** Cada historia se
+  completa en `Escenarios e historias` (sección desde la fila 104) en este orden: (1) **tipo de historia** por ciclo de
+  vida (start-up, crecimiento joven, alto crecimiento, crecimiento maduro, madurez estable, declive) y **la historia en
+  un párrafo** atada a flujos, crecimiento y riesgo, escrita antes de mirar el precio; (2) **vínculo con la historia**
+  para cada palanca (crecimiento, margen, impuestos, ventas/capital, ROIC, costo de capital y, si aplica, fracaso):
+  una frase que diga qué parte de la historia justifica ese número; (3) **prueba de las 3P** con números calculados
+  por fórmula —posible: participación del mercado en el año 10 frente al TAM; plausible: margen del año 10, ROIC
+  terminal y ventas/capital frente a la industria de Damodaran; probable: crecimiento 1-5 frente a la industria,
+  ganancia de participación y valor del crecimiento— y un juicio Sí / Con reserva / No por cada P, con evidencia;
+  (4) **tres disparadores** (ruptura, cambio o desplazamiento de la historia) con señal observable, umbral y efecto.
+  Una señal REVISAR exige explicar la ventaja o la evidencia que la sostiene; IMPOSIBLE (participación > 100 %) obliga
+  a rehacer la historia. La Base debe ser «probable» = Sí. Ninguna señal se corrige para acercar el valor al precio.
+- **Riesgo en un solo lugar en las historias (v31):** el costo de capital es común a las cuatro historias (riesgo
+  sistemático); la **probabilidad de fracaso solo se usa en Disrupción**, con su entrada propia
+  (`Escenarios e historias!B216`, que lee `Valuation output!B179`), y entonces esa historia no castiga además sus
+  flujos por el mismo riesgo. `Input sheet!B52 = "Yes"` (fracaso para todas) genera alerta §2 en las otras historias.
+- **Tamaño del mercado (TAM, v31):** dato de Fase 1 con fuente, fecha, moneda y escala de los ingresos, más su
+  crecimiento anual (`Escenarios e historias!B106:B107`). Sin dato confiable se registra N/D con motivo y la prueba
+  «posible» queda N/D; nunca se inventa un mercado para que la participación parezca razonable.
 - El promedio y el rango ordinarios usan **solo Conservadora, Base y Optimista** (pesos renormalizados). Disrupción
   se presenta aparte («¿Qué pasaría si todo fallara?») y conserva su probabilidad como dato. *(Decisión del usuario
   del 21-oct-2026: se mantiene así.)*
@@ -307,6 +326,7 @@ Hojas de trabajo conservadas tras el archivo del 24-oct-2026 (identidad document
 
 | Versión | Fecha | Cambio |
 |---|---|---|
+| 31 | 4-nov-2026 | §2: historias → números según Damodaran (tipo de historia, párrafo, vínculo por palanca, prueba 3P con números frente a TAM e industria, juicio por P y disparadores ruptura/cambio/desplazamiento); costo de capital común y fracaso solo en Disrupción (entrada propia); TAM como dato de F1. Sección nueva en `Escenarios e historias` A104:N238 (`JMR-valuation/scripts/build_historias_sheet.py`), aplicada a Maestra, IA, Manual y 24 hojas vigentes de operativas con valores idénticos antes y después (DUOL pendiente: tabla propia en esa área; financieras y sustituidas sin la sección, AVISO en `diff_formulas_plantilla.py`). |
 | 30 | 4-nov-2026 | §1 y §11: la pestaña `DCF FCFE` se añade a Maestra, IA y Manual (perfil 47) y a las 25 hojas vigentes de operativas (XP, NU y PAGS excluidas), sin cambiar fórmulas existentes ni valores; Ke terminal = (WACC_T − wD·Kd·(1−t) − wP·Kp)/wE; control hoja = Python 25/25 (`verificar_fcfe_sheet.py`). Respaldo y resultados en `JMR-valuation/reference/backups/dcf_fcfe_2026-11-04/`. |
 | 29 | 4-nov-2026 | §1: el DCF por FCFE y el ponderado FCFF/FCFE (50 % / 50 % por defecto) se muestran con su ponderación en la tabla de valores potenciales de la app, igual que el DCF y los múltiplos; siguen sin entrar en el valor principal ni llevar MOS. Sin cambios de método ni de valores. |
 | 28 | 4-nov-2026 | §1 y §9: el DCF por FCFE (pestaña `DCF FCFE` de la plantilla) pasa a mostrarse en registro, app y Nivel 2 como dato informativo; no es valor principal, no lleva MOS y el ponderado FCFF/FCFE no entra en el valor principal. Sin cambios de método ni de valores principales. |

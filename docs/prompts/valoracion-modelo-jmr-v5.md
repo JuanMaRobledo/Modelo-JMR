@@ -45,6 +45,12 @@ todo lo necesario está escrito aquí y las herramientas son opcionales. Reglas 
 
 1. Escribe en un párrafo qué será la empresa en 5-10 años: de dónde sale el crecimiento, qué margen es sostenible y
    por qué, cuánto hay que reinvertir y qué riesgo tiene. Pásalo por el filtro posible / plausible / probable.
+   Va en `Escenarios e historias` desde la fila 104 (REGLAS §2, Damodaran *Stories to Numbers*): tipo de historia por
+   ciclo de vida, el párrafo, una frase de «vínculo con la historia» por palanca, el juicio Sí / Con reserva / No de
+   cada P con su evidencia y tres disparadores (ruptura, cambio, desplazamiento) con señal y umbral. Las señales
+   numéricas de las 3P (participación frente al TAM; margen, ROIC, ventas/capital y crecimiento frente a la industria;
+   valor del crecimiento) las calcula la hoja: no se pegan. El TAM y su crecimiento se buscan con fuente; si no hay
+   dato confiable, N/D con motivo. Costo de capital común a las historias; fracaso solo en Disrupción (B216).
 2. **Visión externa:** compara el crecimiento propuesto con las tasas base de su tamaño (Mauboussin & Callahan,
    *The Base Rate Book*). Alejarse de la tasa base exige evidencia específica escrita.
 3. Descompón el crecimiento: segmento o región, orgánico frente a comprado (las compras son reinversión, no
