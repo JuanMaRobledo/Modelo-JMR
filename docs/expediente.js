@@ -354,7 +354,7 @@ function renderSheetSubtabs(view){
   const current=currentSheet(view);
   const titles={financieros:'Estados financieros: informes originales anuales/LTM y series por acción.',
     indicadores:'Ratios y calidad financiera: valoración de mercado, márgenes, eficiencia y deuda.',
-    modelo:'Hojas principales; el selector dentro del modelo permite consultar las 46 pestañas y anexos, incluidas las ocultas.'};
+    modelo:'Hojas principales; el selector dentro del modelo permite consultar todas las pestañas (47 en el perfil vigente, con DCF FCFE solo informativa) y anexos, incluidas las ocultas.'};
   info.textContent=titles[view];
   const choices=names.includes(current)?names:[...names,current];
   choices.forEach(name=>{

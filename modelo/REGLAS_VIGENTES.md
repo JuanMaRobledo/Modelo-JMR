@@ -1,6 +1,6 @@
 # Reglas vigentes del Modelo JMR
 
-**Versión 29 · 4-nov-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
+**Versión 30 · 4-nov-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
 (`docs/prompts/*.md`), `METODOLOGIA.md`, una habilidad o un comentario de código dice otra cosa, prevalece este
 documento. Una regla nueva no se agrega como «regla del día X» en un prompt: se cambia aquí, se sube la versión y se
 anota en el registro de cambios del final.
@@ -63,7 +63,8 @@ El registro de fuente y estado por celda y el algoritmo de cobertura se establec
   DCF FCFF Base (FCFE/SOTP en financieras y holdings). Los valores se copian de la hoja sin recalcular
   (`JMR-valuation/scripts/dcf_fcfe_registro.py`); se bloquea si el DCF FCFF Base de la pestaña no coincide con
   `valorPrincipal` o si el promedio FCFF no concilia con `Escenarios e historias!H10`. Las financieras con su propio
-  `DCF FCFE financiero` (NU, XP, PAGS) no usan esta pestaña.
+  `DCF FCFE financiero` (NU, XP, PAGS) no usan esta pestaña. Una brecha FCFE/FCFF grande señala incoherencia entre deuda, Kd, pesos y WACC: se explica en F3/F5 y
+  nunca se usa para ajustar supuestos. Construcción y control: `JMR-valuation/scripts/build_fcfe_sheet.py` y `verificar_fcfe_sheet.py` (v30).
 - **Precio con MOS = valor principal × (1 − MOS)**, MOS = 35%. Nunca sobre el esperado ni sobre el ponderado de
   métodos. En el registro: `baseMOS = "dcfBase"` o `"sotpBase"`. Un holding sin SOTP no tiene precio con MOS.
 - Código: `JMR-valuation/scripts/normalize_saved_mos.py`, `consistencia_migracion.py` (M2), `docs/valuation-board.js`
@@ -281,8 +282,8 @@ Hojas de trabajo conservadas tras el archivo del 24-oct-2026 (identidad document
 
 **Ubicación en Drive (obligatoria).** Toda hoja de valoración se crea —copia de la plantilla— directamente en `AAA Finanzas / Análisis / <TICKER>/` (id de Análisis `1IVpgm89jA4BmYVc3HKSCQ1iec4fpYE25`): una carpeta por empresa, nombrada con el **ticker** (no con el nombre de la empresa), que se crea si no existe. Nunca en la carpeta de plantillas, en la raíz de Análisis, en un archivo histórico ni en otra carpeta. La hoja vigente de cada ticker vive en esa carpeta; las anteriores se archivan según las reglas de revisiones sustituidas. Al mover un archivo se conserva su ID.
 
-**Formato único.** Cada nueva valoración parte de una copia de la plantilla maestra vigente (registro en `JMR-valuation/reference/plantillas.json`), compartida por IA y Manual. Desde 28-oct-2026 el formato oficial contiene 46 pestañas de valoración, datos y supuestos. Las copias históricas de 61 pestañas conservan su versión:
-- las mismas 46 pestañas del perfil vigente, en el mismo orden y con las mismas dimensiones; no se añaden, quitan, renombran ni reordenan en una valoración individual. Los soportes propios de una empresa (conciliaciones SEC, registros de revisión y auditorías) van a expedientes independientes y no agregan pestañas a la valoración;
+**Formato único.** Cada nueva valoración parte de una copia de la plantilla maestra vigente (registro en `JMR-valuation/reference/plantillas.json`), compartida por IA y Manual. Desde 28-oct-2026 el formato oficial contiene 46 pestañas de valoración, datos y supuestos; desde 4-nov-2026, 47 con la pestaña informativa `DCF FCFE` (§1). Las copias históricas de 61 pestañas conservan su versión:
+- las mismas pestañas del perfil vigente (47; el 4-nov-2026 se añadió `DCF FCFE` a las hojas vigentes de operativas del catálogo, sin cambiar sus valores; las financieras con FCFE propio, las revisiones sustituidas y cualquier copia anterior que falte conservan 46 y su ausencia es solo AVISO en `diff_formulas_plantilla.py`), en el mismo orden y con las mismas dimensiones; no se añaden, quitan, renombran ni reordenan en una valoración individual. Los soportes propios de una empresa (conciliaciones SEC, registros de revisión y auditorías) van a expedientes independientes y no agregan pestañas a la valoración;
 - todas las fórmulas de la plantilla intactas: una fórmula sustituida por un número, o editada, es un hallazgo bloqueante;
 - **todos los selectores** (validaciones de datos: `B12`, `B22`, `B26`, selectores de método, de historia y de ponderación) con su validación original. Cambiar una opción es elegir de la lista; un selector reemplazado por un valor o eliminado es un hallazgo bloqueante.
 
@@ -290,7 +291,7 @@ Hojas de trabajo conservadas tras el archivo del 24-oct-2026 (identidad document
 
 **Auditoría independiente.** Una vez publicada la valoración y el análisis como EN_REVISIÓN, el usuario hace la revisión visual. La auditoría económica se inicia solo cuando la solicita y se documenta en un **Google Sheets independiente por ticker y revisión**, vinculado al expediente. No se añaden pestañas de auditoría a la valoración ni se modifican sus resultados.
 
-**Control.** Las valoraciones nuevas deben compararse con el perfil oficial de 46 pestañas; los expedientes históricos de 61 pestañas conservan su perfil original. Antes de confiar en el resultado UNIFICADA de `scripts/unificacion_hojas.py`, se debe adaptar el validador a los dos perfiles y validar referencias, fórmulas y selectores. No declarar la regresión integral superada hasta ejecutar ese control.
+**Control.** Las valoraciones nuevas deben compararse con el perfil oficial vigente (47 pestañas; 46 en copias anteriores al 4-nov-2026); los expedientes históricos de 61 pestañas conservan su perfil original. Antes de confiar en el resultado UNIFICADA de `scripts/unificacion_hojas.py`, se debe adaptar el validador a los dos perfiles y validar referencias, fórmulas y selectores. No declarar la regresión integral superada hasta ejecutar ese control.
 
 **Entregables.** El análisis fundamental siempre completo (§9). La auditoría explica el porqué de cada supuesto estimado y la fuente de **todos** los datos de entrada, con un inventario que cubra todas las celdas de entrada (prompt de auditoría v1.3).
 
@@ -306,6 +307,7 @@ Hojas de trabajo conservadas tras el archivo del 24-oct-2026 (identidad document
 
 | Versión | Fecha | Cambio |
 |---|---|---|
+| 30 | 4-nov-2026 | §1 y §11: la pestaña `DCF FCFE` se añade a Maestra, IA y Manual (perfil 47) y a las 25 hojas vigentes de operativas (XP, NU y PAGS excluidas), sin cambiar fórmulas existentes ni valores; Ke terminal = (WACC_T − wD·Kd·(1−t) − wP·Kp)/wE; control hoja = Python 25/25 (`verificar_fcfe_sheet.py`). Respaldo y resultados en `JMR-valuation/reference/backups/dcf_fcfe_2026-11-04/`. |
 | 29 | 4-nov-2026 | §1: el DCF por FCFE y el ponderado FCFF/FCFE (50 % / 50 % por defecto) se muestran con su ponderación en la tabla de valores potenciales de la app, igual que el DCF y los múltiplos; siguen sin entrar en el valor principal ni llevar MOS. Sin cambios de método ni de valores. |
 | 28 | 4-nov-2026 | §1 y §9: el DCF por FCFE (pestaña `DCF FCFE` de la plantilla) pasa a mostrarse en registro, app y Nivel 2 como dato informativo; no es valor principal, no lleva MOS y el ponderado FCFF/FCFE no entra en el valor principal. Sin cambios de método ni de valores principales. |
 | 27 | 2-nov-2026 | §0D: contrato vinculante de obtención completa de datos mínimos de DCF, cinco múltiplos y todas sus hojas auxiliares (WACC, I+D, leases, Option value y demás); control por celda y no cero ficticio. Sin cambios económicos ni publicaciones. |
