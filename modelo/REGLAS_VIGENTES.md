@@ -1,6 +1,6 @@
 # Reglas vigentes del Modelo JMR
 
-**Versión 28 · 4-nov-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
+**Versión 29 · 4-nov-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
 (`docs/prompts/*.md`), `METODOLOGIA.md`, una habilidad o un comentario de código dice otra cosa, prevalece este
 documento. Una regla nueva no se agrega como «regla del día X» en un prompt: se cambia aquí, se sube la versión y se
 anota en el registro de cambios del final.
@@ -57,7 +57,9 @@ El registro de fuente y estado por celda y el algoritmo de cobertura se establec
   ponderado; solo añade la deuda (endeudamiento neto con razón deuda/valor, intereses y ahorro fiscal) y descuenta al
   costo del patrimonio. **Debe figurar en toda valoración cuya hoja tenga la pestaña:** en el registro (`dcfFCFE`), en la
   app (tablero de valoración) y en el Nivel 2 del análisis. **No es valor principal, no lleva MOS** y el «ponderado
-  FCFF/FCFE» (peso de la entrada `B8`, 50 % por defecto) **no entra en el valor principal**: el principal sigue siendo el
+  FCFF/FCFE» (peso de la entrada `B8`, 50 % por defecto) **no entra en el valor principal**, pero **se muestra con su
+  ponderación (p. ej. 50 % FCFF · 50 % FCFE) en la tabla de valores potenciales de la app, junto al DCF, los múltiplos y
+  el ponderado DCF + múltiplos**: el principal sigue siendo el
   DCF FCFF Base (FCFE/SOTP en financieras y holdings). Los valores se copian de la hoja sin recalcular
   (`JMR-valuation/scripts/dcf_fcfe_registro.py`); se bloquea si el DCF FCFF Base de la pestaña no coincide con
   `valorPrincipal` o si el promedio FCFF no concilia con `Escenarios e historias!H10`. Las financieras con su propio
@@ -304,6 +306,7 @@ Hojas de trabajo conservadas tras el archivo del 24-oct-2026 (identidad document
 
 | Versión | Fecha | Cambio |
 |---|---|---|
+| 29 | 4-nov-2026 | §1: el DCF por FCFE y el ponderado FCFF/FCFE (50 % / 50 % por defecto) se muestran con su ponderación en la tabla de valores potenciales de la app, igual que el DCF y los múltiplos; siguen sin entrar en el valor principal ni llevar MOS. Sin cambios de método ni de valores. |
 | 28 | 4-nov-2026 | §1 y §9: el DCF por FCFE (pestaña `DCF FCFE` de la plantilla) pasa a mostrarse en registro, app y Nivel 2 como dato informativo; no es valor principal, no lleva MOS y el ponderado FCFF/FCFE no entra en el valor principal. Sin cambios de método ni de valores principales. |
 | 27 | 2-nov-2026 | §0D: contrato vinculante de obtención completa de datos mínimos de DCF, cinco múltiplos y todas sus hojas auxiliares (WACC, I+D, leases, Option value y demás); control por celda y no cero ficticio. Sin cambios económicos ni publicaciones. |
 | 26 | 2-nov-2026 | §0C: flujo operativo de cinco fases, valoración inicial focalizada, historia en F2, juicio F3, publicación F4 y auditoría guiada F5; Forward Valuation deprecado, retiro físico solo tras regresión y perfil 45. |
