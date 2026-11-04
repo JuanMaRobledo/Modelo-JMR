@@ -30,7 +30,7 @@
 ## Retiro de Forward Valuation y perfil de plantilla
 - **Hoja `Forward Valuation` se declara DEPRECADA** para revisiones nuevas. Su función prospectiva está cubierta por DCF, `Financials Multiples`, `Descuento de múltiplos` y escenarios.
 - **Eliminarla físicamente exige migración y regresión verificables:** (a) probar todas las referencias de fórmula de todas las pestañas incluyendo rangos lejanos, nombres, validaciones, scripts/Google Sheets y app; (b) respaldo de plantillas Maestra/IA/Manual y prueba en copia; (c) actualizar `reference/plantillas.json`, validador de 46→45, UI/pruebas y documentación; (d) comparar DCF/múltiplos con los de la copia anterior; (e) recién entonces borrar la pestaña solo en **nuevas plantillas**. **NO borrarla de expedientes históricos ni de AMZN R4 por cambiar esta regla.**
-- Hasta ejecutar y aprobar esos controles, las hojas oficiales existentes conservan sus **46 pestañas**. Que no se use la hoja no autoriza borrarla a ciegas. Una copia de 45 hojas no es oficial hasta registrar plantilla y pasar controles. La app puede ocultar el acceso rápido en futura migración; sin cambiar motor.
+- Hasta ejecutar y aprobar esos controles, las hojas oficiales existentes conservan sus **46 pestañas** (47 desde 4-nov-2026 con la pestaña informativa `DCF FCFE`). Que no se use la hoja no autoriza borrarla a ciegas. Una copia de 45 hojas no es oficial hasta registrar plantilla y pasar controles. La app puede ocultar el acceso rápido en futura migración; sin cambiar motor.
 
 ## Entrega reproducible de cada fase
 ```

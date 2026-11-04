@@ -1,6 +1,6 @@
 # Contexto corto — Modelo JMR (cinco fases)
 
-**Versión 1 · 3-nov-2026 · basado en `modelo/REGLAS_VIGENTES.md` v27.** Resumen operativo para que cualquier IA (Claude, ChatGPT, Gemini) cargue lo esencial sin leer ~20.000 palabras. **No crea reglas ni las cambia:** cada punto remite a su sección (§) de `REGLAS_VIGENTES.md`, que prevalece ante cualquier diferencia. Si una regla cambia allí, actualizar este resumen en el mismo PR.
+**Versión 1 · 3-nov-2026 · basado en `modelo/REGLAS_VIGENTES.md` v28.** Resumen operativo para que cualquier IA (Claude, ChatGPT, Gemini) cargue lo esencial sin leer ~20.000 palabras. **No crea reglas ni las cambia:** cada punto remite a su sección (§) de `REGLAS_VIGENTES.md`, que prevalece ante cualquier diferencia. Si una regla cambia allí, actualizar este resumen en el mismo PR.
 
 ## 1. Reglas que aplican en todas las fases
 
@@ -8,7 +8,7 @@
 2. **Método.** A-1.2 por defecto; B solo por elección expresa del usuario. Nunca mezclar supuestos A y B en una revisión (§12).
 3. **Origen de cada número.** Fuente primaria SEC/NIIF (o Treasury/Damodaran/mercado según el dato) con período, moneda, escala, nota/URL y celda (§0A, §11).
 4. **Un cero no es un dato.** Una partida sin cifra separada es: cero publicado, incluida en otra línea (con conciliación), no aplicable (justificado) o pendiente. Nunca rellenar con `0` (§0A).
-5. **La hoja calcula; la IA aporta datos crudos y supuestos.** No pegar resultados sobre fórmulas, no editar fórmulas ni reemplazar selectores (`B12`, `B22`, `B26`, método, historia, ponderación). Hacerlo es hallazgo bloqueante (§0B, §11). Perfil oficial: 46 pestañas; `Forward Valuation` deprecada pero no se borra.
+5. **La hoja calcula; la IA aporta datos crudos y supuestos.** No pegar resultados sobre fórmulas, no editar fórmulas ni reemplazar selectores (`B12`, `B22`, `B26`, método, historia, ponderación). Hacerlo es hallazgo bloqueante (§0B, §11). Perfil oficial: 47 pestañas (46 en copias anteriores al 4-nov-2026); `Forward Valuation` deprecada pero no se borra; `DCF FCFE` es solo informativa (§1).
 6. **Honestidad de controles.** Nunca declarar APROBADO un control no ejecutado; registrar `NO EJECUTADO` con motivo. Los gates no se relajan (§0A, §6).
 7. **Sin sesgo hacia el precio.** Nada se ajusta para acercar el valor a la cotización. La Base es la mediana, no el caso prudente: la prudencia vive solo en el MOS. Cada riesgo va en un solo lugar: flujos, tasa o probabilidad (§2).
 8. **Materialidad (§4B).** Bloquea solo lo que mueve el valor Base o la decisión, rompe una fórmula/puente o no se puede acotar. `impacto % = 100 × |V_alt − V_base| / |V_base|`. No bloqueante: <2 % individual y <3 % acumulado, sin cruzar la decisión ni defecto estructural.
@@ -16,7 +16,7 @@
 
 ## 2. Núcleo de valoración (§1–§5)
 
-- **Valor principal:** DCF Base (FCFF operativas · FCFE financieras · SOTP holdings). **Precio con MOS = Base × 0,65.** Nunca sobre el ponderado (§1).
+- **Valor principal:** DCF Base (FCFF operativas · FCFE financieras · SOTP holdings). La pestaña `DCF FCFE` de operativas es contraste informativo, sin peso ni MOS. **Precio con MOS = Base × 0,65.** Nunca sobre el ponderado (§1).
 - **Cuatro historias** con DCF completo: Base, Conservadora, Optimista, Disrupción. Promedio y rango solo con C/B/O renormalizados; Disrupción aparte (§2).
 - **Probabilidades previas por etapa** (B/C/O/D): madura 50/20/20/10 · crecimiento maduro 45/22,5/22,5/10 · alto crecimiento 40/22,5/22,5/15 · declive 40/25/15/20 · holding 45/22,5/22,5/10. Ajustes de 5 pp solo con cruce de umbral documentado; máximo 15 pp por historia (§3).
 - **Costo de capital:** Rf y ERP del mismo corte; WACC se calcula en `Cost of capital worksheet` (`B12 = Detailed`), nunca se escribe a mano; comprobar `B14 = E63 = Input sheet!B36`. Pesos a mercado (§4, §4A).
