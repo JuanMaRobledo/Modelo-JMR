@@ -305,6 +305,21 @@
       'Sólo comparación FY+3 homogénea, no múltiplo actual LTM']};
   }
 
+  // DCF por FCFE y ponderado FCFF/FCFE (informativos, REGLAS §1 v28): se muestran junto a los demás valores potenciales, con su ponderación,
+  // pero no son el valor principal ni llevan MOS. Lee rec.dcfFCFE; nunca recalcula.
+  function fcfeFrom(rec) {
+    var b = rec && rec.dcfFCFE;
+    if (!b || b.estado !== 'INFORMATIVO' || !b.historias || !b.supuestos) return null;
+    var fe = {}, po = {}, ff = {};
+    ['conservador', 'base', 'optimista'].forEach(function (k) {
+      var h = b.historias[k] || {};
+      fe[k] = num(h.dcfFCFE); po[k] = num(h.ponderadoFcffFcfe); ff[k] = num(h.dcfFCFF);
+    });
+    var w = num(b.supuestos.pesoFcfeEnPonderado);
+    if (fe.base == null || po.base == null || w == null) return null;
+    return { fcfe: fe, pond: po, fcff: ff, w: w };
+  }
+
 function fromRecord(rec, extra) {
     rec = rec || {}; extra = extra || {};
     var result = fromParts({ dm: rec.descuentoMultiples, vp: rec.valorPresentePonderado, metodosFY3: rec.metodos, objetivoFY3: rec.objetivoPonderado,
@@ -317,6 +332,7 @@ function fromRecord(rec, extra) {
     // la diferencia contra el costo promedio.
     result.costo = num(extra.costo);
     result.hist = histFrom(rec.multiplesHistoricos);
+    result.fcfe = fcfeFrom(rec);
     result.impliedMultiples = impliedMultiplesFromRecord(rec);
     var savedMarket = rec.cotizacionMultiples || null;
     // A verified, dated snapshot takes precedence over a stale "precio" on the
@@ -546,12 +562,17 @@ function fromRecord(rec, extra) {
     d.metodos.forEach(function (m) { r.push({ g: 'met', cls: 'met', label: m.nombre, peso: m.peso, pesoRelativo: m.pesoRelativo, t: m[h] || {base:null,conservador:null,optimista:null}, aplicados: m.aplicados }); });
     r.push({ g: 'mult', cls: 'mult', label: 'Múltiplos consolidados', sub: h === 'hoy' ? 'promedio de 1, 2 y 3 años, traído a hoy' : 'precio FY+3 + dividendos', peso: d.mult.peso, t: d.mult[h] });
     r.push({ g: 'pond', cls: 'pond', label: 'Ponderado DCF + múltiplos', sub: unified(d) ? 'DCF de la historia del mismo caso + múltiplos; secundario' : 'pesos del tipo de empresa', peso: (num(d.dcf.peso) != null && num(d.mult.peso) != null) ? d.dcf.peso + d.mult.peso : null, t: d.pond[h] });
+    if (h === 'hoy' && d.fcfe) {
+      var f = d.fcfe, wf = Math.round((1 - f.w) * 100) + ' % FCFF · ' + Math.round(f.w * 100) + ' % FCFE';
+      r.push({ g: 'fcfe', cls: 'fcfe', label: 'DCF por FCFE', sub: 'mismo motor que el DCF FCFF, más la deuda; informativo', pesoTxt: 'no entra en el valor principal', t: f.fcfe });
+      r.push({ g: 'fcfe', cls: 'fcfe', label: 'Ponderado FCFF/FCFE', sub: 'informativo; no es el valor principal ni lleva MOS', pesoTxt: wf, t: f.pond });
+    }
     return r.filter(function (x) { return x.t; });
   }
 
   function tableHtml(d, h) {
     var rows = rowsFor(d, h), group = null, out = '';
-    var heads = { dcf: ['Valor intrínseco', 'DCF de Damodaran — el valor que manda'], mult: ['Secundario', 'Múltiplos · precio relativo'], met: null, pond: ['Secundario', 'Ponderado · mezcla opcional'] };
+    var heads = { dcf: ['Valor intrínseco', 'DCF de Damodaran — el valor que manda'], mult: ['Secundario', 'Múltiplos · precio relativo'], met: null, pond: ['Secundario', 'Ponderado · mezcla opcional'], fcfe: ['Informativo', 'Flujo al accionista · DCF FCFE y ponderado FCFF/FCFE'] };
     rows.forEach(function (x) {
       var g = x.g === 'met' ? 'mult' : x.g;
       if (g !== group) {
@@ -560,9 +581,9 @@ function fromRecord(rec, extra) {
         out += '<tr class="jvb-grp g-' + g + '"><td colspan="6"><span class="jvb-tag ' + (g === 'dcf' ? 'main' : '') + '">' + hd[0] + '</span>' + esc(hd[1]) + '</td></tr>';
       }
       out += '<tr class="jvb-row ' + x.cls + '" data-g="' + x.g + '"><td class="lbl"><span class="nm">' + esc(x.label) + '</span>' +
-        (x.sub ? '<span class="sb">' + esc(x.sub) + '</span>' : '') + '<span class="pw">peso ' + pct(x.peso) + '</span>' +
+        (x.sub ? '<span class="sb">' + esc(x.sub) + '</span>' : '') + '<span class="pw">' + (x.pesoTxt ? esc(x.pesoTxt) : 'peso ' + pct(x.peso)) + '</span>' +
         (num(x.pesoRelativo) != null ? '<span class="sb">Peso dentro del bloque relativo: ' + pct(x.pesoRelativo) + '</span>' : '') + '</td>' +
-        '<td class="n w">' + pct(x.peso) + '</td>' +
+        '<td class="n w">' + (x.pesoTxt ? esc(x.pesoTxt) : pct(x.peso)) + '</td>' +
         K.map(function (k) { return '<td class="n' + (k === 'base' ? ' b' : '') + '">' + (x.g === 'met' && num(x.t[k]) == null ? 'N/D · pendiente de cálculo' : n2(x.t[k])) + (x.g === 'met' ? '<span class="jvb-applied">' + (x.aplicados && x.aplicados[k] ? 'Múltiplo FY+1–3: ' + (x.aplicados[k].every(function(v) { return v === x.aplicados[k][0]; }) ? n2(x.aplicados[k][0]) + '×' : x.aplicados[k].map(function(v,i) { return 'FY+' + (i+1) + ': ' + n2(v) + '×'; }).join(' · ')) : 'Múltiplo aplicado: no disponible') + '</span>' : '') + (k === 'base' ? '<span class="vsm">' + vsPrecio(x.t.base, d.precio) + '</span>' : '') + '</td>'; }).join('') +
         '<td class="n vs">' + vsPrecio(x.t.base, d.precio) + '</td></tr>';
     });
@@ -750,7 +771,7 @@ function fromRecord(rec, extra) {
   if (global.document && !document.getElementById('jvb-css')) {
     var st = document.createElement('style'); st.id = 'jvb-css';
     st.textContent = [
-      '.jvb{--jvb-dcf:var(--accent);--jvb-mult:color-mix(in oklab,var(--ink-soft,#5b6474) 70%,var(--surface,#fff));--jvb-met:color-mix(in oklab,var(--ink-soft,#5b6474) 38%,var(--surface,#fff));--jvb-pond:color-mix(in oklab,#b7791f 75%,var(--surface,#fff));margin:0 0 18px;font-variant-numeric:tabular-nums}',
+      '.jvb{--jvb-dcf:var(--accent);--jvb-mult:color-mix(in oklab,var(--ink-soft,#5b6474) 70%,var(--surface,#fff));--jvb-met:color-mix(in oklab,var(--ink-soft,#5b6474) 38%,var(--surface,#fff));--jvb-pond:color-mix(in oklab,#b7791f 75%,var(--surface,#fff));--jvb-fcfe:color-mix(in oklab,#2b7a78 70%,var(--surface,#fff));margin:0 0 18px;font-variant-numeric:tabular-nums}',
       '.jvb *{box-sizing:border-box}',
       '.jvb-compact>.jvb-hero{grid-template-columns:1fr}.jvb-secondary{margin:12px 0;border:1px solid var(--border-soft,#ddd);border-radius:12px;padding:12px;background:var(--surface,#fff)}.jvb-secondary>summary{cursor:pointer;font-weight:650;color:var(--accent-ink,var(--accent))}.jvb-secondary[open]>summary{margin-bottom:12px}@media print{.jvb-secondary:not([open]){display:none!important}}',
       '.jvb-weights{padding:10px 12px;border:1px solid var(--border-soft,#ccc);background:var(--surface,#fff);border-radius:10px;margin:9px 0 13px}.jvb-weights summary{cursor:pointer;font-weight:650;font-size:13px}.jvb-weights input[type=checkbox]{width:16px;height:16px;cursor:pointer}.jvb-weights input[type=number]{width:76px;padding:6px;border:1px solid var(--border-soft,#ccc);border-radius:7px;background:var(--surface);color:var(--ink)}.jvb-weights-table td{white-space:normal!important}.jvb-weights-result{padding:8px 10px;background:var(--accent-soft,#faf3e6);border-radius:8px;font-size:12px}.jvb-weights-reset{padding:7px 9px;border:1px solid var(--border-soft);border-radius:8px;background:var(--surface);color:var(--ink);cursor:pointer}',
@@ -803,7 +824,7 @@ function fromRecord(rec, extra) {
       '.jvb-tag.main{background:var(--jvb-dcf);color:#fff;border-color:transparent}',
       '.jvb .jvb-row td.lbl{position:relative;padding-left:20px}',
       '.jvb .jvb-row td.lbl::before{content:"";position:absolute;left:8px;top:10px;bottom:10px;width:4px;border-radius:4px;background:var(--jvb-met)}',
-      '.jvb .jvb-row.dcf td.lbl::before{background:var(--jvb-dcf)}.jvb-row.mult td.lbl::before{background:var(--jvb-mult)}.jvb-row.pond td.lbl::before{background:var(--jvb-pond)}',
+      '.jvb .jvb-row.dcf td.lbl::before{background:var(--jvb-dcf)}.jvb-row.mult td.lbl::before{background:var(--jvb-mult)}.jvb-row.pond td.lbl::before{background:var(--jvb-pond)}.jvb .jvb-row.fcfe td.lbl::before{background:var(--jvb-fcfe)}.jvb .jvb-row.fcfe td.w{font-size:11.5px;white-space:normal;max-width:150px}',
       '.jvb .jvb-row .nm{display:block;font-weight:600;color:var(--ink)}.jvb-row .sb{display:block;font-size:11px;color:var(--ink-faint);margin-top:1px}.jvb-row .pw{display:none;font-size:11px;color:var(--ink-faint)}',
       '.jvb .jvb-row.dcf td{background:var(--accent-soft,rgba(79,70,229,.06))}.jvb-row.dcf .nm{font-size:14px}.jvb-row.dcf td.n.b{color:var(--accent-ink,var(--accent));font-size:15px;font-weight:700}',
       '.jvb .jvb-row.met .nm{font-weight:500;color:var(--ink-soft);padding-left:12px}',
@@ -818,7 +839,7 @@ function fromRecord(rec, extra) {
       '.jvb-rr .rt{position:relative;height:22px}',
       '.jvb-rr .rt::before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:var(--border-soft)}',
       '.jvb-rr .rb{position:absolute;top:6px;height:10px;border-radius:6px;background:var(--jvb-met);min-width:3px}',
-      '.jvb-rr.dcf .rb{background:var(--jvb-dcf);top:4px;height:14px}.jvb-rr.mult .rb{background:var(--jvb-mult)}.jvb-rr.pond .rb{background:var(--jvb-pond)}',
+      '.jvb-rr.dcf .rb{background:var(--jvb-dcf);top:4px;height:14px}.jvb-rr.mult .rb{background:var(--jvb-mult)}.jvb-rr.pond .rb{background:var(--jvb-pond)}.jvb-rr.fcfe .rb{background:var(--jvb-fcfe)}',
       '.jvb-rr .rd{position:absolute;top:50%;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:var(--surface);border:2px solid var(--ink)}',
       '.jvb-rr .rp{position:absolute;top:-3px;bottom:-3px;width:0;border-left:2px dashed var(--negative)}',
       '.jvb-rr .rv{font:600 12px "IBM Plex Mono",ui-monospace,monospace;text-align:right;color:var(--ink-soft)}.jvb-rr.dcf .rv{color:var(--ink)}',
@@ -861,18 +882,10 @@ function fromRecord(rec, extra) {
   function fcfeHtml(rec) {
     var b = rec && rec.dcfFCFE;
     if (!b || b.estado !== 'INFORMATIVO' || !b.historias || !b.promedio) return '';
-    DISPLAY_CURRENCY = rec.currency === 'COP' || rec.moneda === 'COP' ? 'COP' : 'USD';
-    var s = b.supuestos || {}, rows = [['conservador', 'Conservadora'], ['base', 'Base'], ['optimista', 'Optimista']].map(function (x) {
-      var h = b.historias[x[0]] || {};
-      return '<tr' + (x[0] === 'base' ? ' class="base"' : '') + '><td class="lbl">' + x[1] + ' <small>' + pct(h.probabilidad, 0) + '</small></td><td class="n">' + money(h.dcfFCFF) +
-        '</td><td class="n b">' + money(h.dcfFCFE) + '</td><td class="n">' + pct(h.diferencia, 1) + '</td><td class="n">' + money(h.ponderadoFcffFcfe) + '</td></tr>';
-    }).join('');
-    var pr = b.promedio;
-    rows += '<tr class="avg"><td class="lbl">Promedio ponderado (C/B/O)</td><td class="n">' + money(pr.dcfFCFF) + '</td><td class="n b">' + money(pr.dcfFCFE) + '</td><td class="n">' + pct(pr.diferencia, 1) + '</td><td class="n">' + money(pr.ponderadoFcffFcfe) + '</td></tr>';
-    return '<section class="jvb jvb-fcfe" aria-label="DCF por FCFE (informativo)"><div class="jvb-hist-head"><div><span class="jvb-kicker">Informativo · no es el valor principal</span><h4>DCF por FCFE</h4></div></div>' +
-      '<p class="jvb-hist-note">Mismo motor y supuestos que el DCF FCFF, más la deuda: endeudamiento neto, intereses y ahorro fiscal, descontado al costo del patrimonio (Ke ' + pct(s.ke, 2) +
-      ', Kd ' + pct(s.kd, 2) + ', deuda/valor ' + pct(s.pesoDeuda, 2) + '). No sustituye el DCF Base, no lleva margen de seguridad y el ponderado FCFF/FCFE (peso de FCFE ' + pct(s.pesoFcfeEnPonderado, 0) + ') no entra en el valor principal.</p>' +
-      '<div class="jvb-tw"><table class="jvb-table"><thead><tr><th>Historia</th><th class="n">DCF FCFF</th><th class="n">DCF FCFE</th><th class="n">Dif. FCFE/FCFF</th><th class="n">Pond. FCFF/FCFE</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+    var s = b.supuestos || {}, w = num(s.pesoFcfeEnPonderado);
+    return '<section class="jvb jvb-fcfe" aria-label="DCF por FCFE (informativo)"><div class="jvb-hist-head"><div><span class="jvb-kicker">Informativo · no es el valor principal</span><h4>DCF por FCFE y ponderado FCFF/FCFE</h4></div></div>' +
+      '<p class="jvb-hist-note">Los valores están en la tabla de valores potenciales, con su ponderación' + (w == null ? '' : ' (' + Math.round((1 - w) * 100) + ' % FCFF · ' + Math.round(w * 100) + ' % FCFE)') + '. Mismo motor y supuestos que el DCF FCFF, más la deuda: endeudamiento neto, intereses y ahorro fiscal, descontado al costo del patrimonio (Ke ' + pct(s.ke, 2) +
+      ', Kd ' + pct(s.kd, 2) + ', deuda/valor ' + pct(s.pesoDeuda, 2) + '). No sustituye el DCF Base, no lleva margen de seguridad y el ponderado no entra en el valor principal.</p>' +
       '<p class="jvb-note">Con supuestos coherentes FCFE ≈ FCFF; una diferencia grande señala incoherencia entre deuda, Kd, pesos y WACC, no un valor alternativo. Detalle de flujos y puente en el Nivel 2 del análisis.</p></section>';
   }
 
