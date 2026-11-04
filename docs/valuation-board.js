@@ -844,6 +844,7 @@ function fromRecord(rec, extra) {
       '.jvb-vetab td{padding:6px;border-bottom:1px solid var(--border-soft);vertical-align:top}.jvb-vetab td.n{text-align:right;white-space:nowrap;font-family:"IBM Plex Mono",ui-monospace,monospace}',
       '.jvb-vetab td.hn{color:var(--ink-soft);line-height:1.35}.jvb-vetab td.hn b{color:var(--ink)}.jvb-vetab td.hn small{display:block;font-size:10.5px;color:var(--ink-faint)}',
       '.jvb-venote{font-size:11px;line-height:1.45;color:var(--ink-faint);margin:8px 0 0}',
+      '.jvb-fcfe{margin-top:16px;padding-top:14px;border-top:1px solid var(--border-soft)}.jvb-fcfe .jvb-table tr.avg td{font-weight:700;border-top:1px solid var(--border-soft)}.jvb-fcfe .jvb-table td.lbl small{color:var(--ink-faint);margin-left:4px}',
       '.jvb-vemos{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;font-weight:600;color:var(--ink)}',
       '@media (max-width:760px){.jvb-hero{grid-template-columns:1fr}.jvb-big .v{font-size:28px}}',
       '@media (max-width:560px){.jvb .jvb-table td{font-size:12px}.jvb .jvb-table th,.jvb .jvb-table td{padding:8px 6px}.jvb .jvb-table td.n{font-size:11.5px}.jvb .jvb-grp td{font-size:11.5px}.jvb .jvb-row td.lbl{padding-left:15px}.jvb .jvb-row.met .nm{padding-left:4px}.jvb .jvb-row td.lbl::before{left:5px}',
@@ -855,7 +856,27 @@ function fromRecord(rec, extra) {
     document.head.appendChild(st);
   }
 
-  global.JmrValueBoard = { fromParts: fromParts, fromRecord: fromRecord, html: html, hasData: hasData, veHtml: veHtml, historicalHtml: historicalHtml,
+  // DCF por FCFE (informativo): mismo motor que el DCF FCFF más la deuda. No es el valor principal, no lleva MOS y el
+  // ponderado FCFF/FCFE tampoco entra en el valor principal (REGLAS_VIGENTES §1). Lee rec.dcfFCFE, nunca recalcula.
+  function fcfeHtml(rec) {
+    var b = rec && rec.dcfFCFE;
+    if (!b || b.estado !== 'INFORMATIVO' || !b.historias || !b.promedio) return '';
+    DISPLAY_CURRENCY = rec.currency === 'COP' || rec.moneda === 'COP' ? 'COP' : 'USD';
+    var s = b.supuestos || {}, rows = [['conservador', 'Conservadora'], ['base', 'Base'], ['optimista', 'Optimista']].map(function (x) {
+      var h = b.historias[x[0]] || {};
+      return '<tr' + (x[0] === 'base' ? ' class="base"' : '') + '><td class="lbl">' + x[1] + ' <small>' + pct(h.probabilidad, 0) + '</small></td><td class="n">' + money(h.dcfFCFF) +
+        '</td><td class="n b">' + money(h.dcfFCFE) + '</td><td class="n">' + pct(h.diferencia, 1) + '</td><td class="n">' + money(h.ponderadoFcffFcfe) + '</td></tr>';
+    }).join('');
+    var pr = b.promedio;
+    rows += '<tr class="avg"><td class="lbl">Promedio ponderado (C/B/O)</td><td class="n">' + money(pr.dcfFCFF) + '</td><td class="n b">' + money(pr.dcfFCFE) + '</td><td class="n">' + pct(pr.diferencia, 1) + '</td><td class="n">' + money(pr.ponderadoFcffFcfe) + '</td></tr>';
+    return '<section class="jvb jvb-fcfe" aria-label="DCF por FCFE (informativo)"><div class="jvb-hist-head"><div><span class="jvb-kicker">Informativo · no es el valor principal</span><h4>DCF por FCFE</h4></div></div>' +
+      '<p class="jvb-hist-note">Mismo motor y supuestos que el DCF FCFF, más la deuda: endeudamiento neto, intereses y ahorro fiscal, descontado al costo del patrimonio (Ke ' + pct(s.ke, 2) +
+      ', Kd ' + pct(s.kd, 2) + ', deuda/valor ' + pct(s.pesoDeuda, 2) + '). No sustituye el DCF Base, no lleva margen de seguridad y el ponderado FCFF/FCFE (peso de FCFE ' + pct(s.pesoFcfeEnPonderado, 0) + ') no entra en el valor principal.</p>' +
+      '<div class="jvb-tw"><table class="jvb-table"><thead><tr><th>Historia</th><th class="n">DCF FCFF</th><th class="n">DCF FCFE</th><th class="n">Dif. FCFE/FCFF</th><th class="n">Pond. FCFF/FCFE</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+      '<p class="jvb-note">Con supuestos coherentes FCFE ≈ FCFF; una diferencia grande señala incoherencia entre deuda, Kd, pesos y WACC, no un valor alternativo. Detalle de flujos y puente en el Nivel 2 del análisis.</p></section>';
+  }
+
+  global.JmrValueBoard = { fcfeHtml: fcfeHtml, fromParts: fromParts, fromRecord: fromRecord, html: html, hasData: hasData, veHtml: veHtml, historicalHtml: historicalHtml,
     primaryValues: primaryValues, primaryHtml: primaryHtml, veBox: function (d) { if (d && d.holding) return ''; DISPLAY_CURRENCY = d && d.currency === 'COP' ? 'COP' : 'USD'; var h = unified(d) ? unifiedHtml(d) : primaryHtml(d) + veHtml(d); return h ? '<div class="jvb-vebox">' + h + '</div>' : ''; },
     apply: function () { apply(prefs()); } };
 })(window);

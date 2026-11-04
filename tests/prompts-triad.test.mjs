@@ -98,7 +98,7 @@ test('las referencias activas y la interfaz usan el mismo contrato editorial',()
   const sections=[...styleSection.matchAll(/^(\d{1,2})\. \*\*/gm)].map(m=>Number(m[1]));
   assert.deepEqual(sections,Array.from({length:14},(_,i)=>i+1));
   assert.match(styleSection,/5\. \*\*Ciclos de la empresa, del mercado y de la macroeconomía/);
-  assert.match(rules,/\*\*Versión 27 · 2-nov-2026/);
+  assert.match(rules,/\*\*Versión 28 · 4-nov-2026/);
   assert.match(rules,/Estilo JMR de 14 capítulos/);
   assert.match(process,/cinco fases/i);
   assert.match(process,/tres prompts maestros activos/i);
