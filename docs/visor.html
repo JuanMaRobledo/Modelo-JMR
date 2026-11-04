@@ -3187,7 +3187,8 @@ try{if(window.self!==window.top&&new URLSearchParams(location.search).get('embed
       Array.isArray(r.metodos) && r.metodos.length);
     var d = hasSavedMetrics ? JmrValueBoard.fromRecord(r, {precioLbl: 'Precio de referencia'}) :
       JmrValueBoard.fromParts(Object.assign({}, boardParts, { precio: r.precio, precioLbl: 'Precio de referencia', mos: r.mos, baseMOS: r.baseMOS, hoja: r.hojaGoogle, ve: r.valorEsperado, hist: r.multiplesHistoricos, currency: r.currency, holding: r.valoracionHolding }));
-    box.innerHTML = JmrValueBoard.html(d, { hero: false });
+    if (d && !d.fcfe && JmrValueBoard.fcfeFrom) d.fcfe = JmrValueBoard.fcfeFrom(r);
+    box.innerHTML = JmrValueBoard.html(d, { hero: false }) + (JmrValueBoard.fcfeHtml ? JmrValueBoard.fcfeHtml(r) : '');
   }
   function renderPresentValue(dm, vp, metodosFY3, objetivoFY3){
     var sec = document.getElementById('presentSection');

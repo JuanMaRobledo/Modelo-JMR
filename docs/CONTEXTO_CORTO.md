@@ -1,6 +1,6 @@
 # Contexto corto — Modelo JMR (cinco fases)
 
-**Versión 1 · 3-nov-2026 · basado en `modelo/REGLAS_VIGENTES.md` v28.** Resumen operativo para que cualquier IA (Claude, ChatGPT, Gemini) cargue lo esencial sin leer ~20.000 palabras. **No crea reglas ni las cambia:** cada punto remite a su sección (§) de `REGLAS_VIGENTES.md`, que prevalece ante cualquier diferencia. Si una regla cambia allí, actualizar este resumen en el mismo PR.
+**Versión 1 · 3-nov-2026 · basado en `modelo/REGLAS_VIGENTES.md` v30.** Resumen operativo para que cualquier IA (Claude, ChatGPT, Gemini) cargue lo esencial sin leer ~20.000 palabras. **No crea reglas ni las cambia:** cada punto remite a su sección (§) de `REGLAS_VIGENTES.md`, que prevalece ante cualquier diferencia. Si una regla cambia allí, actualizar este resumen en el mismo PR.
 
 ## 1. Reglas que aplican en todas las fases
 
@@ -16,7 +16,8 @@
 
 ## 2. Núcleo de valoración (§1–§5)
 
-- **Valor principal:** DCF Base (FCFF operativas · FCFE financieras · SOTP holdings). La pestaña `DCF FCFE` de operativas es contraste informativo, sin peso ni MOS. **Precio con MOS = Base × 0,65.** Nunca sobre el ponderado (§1).
+- **Valor principal:** DCF Base (FCFF operativas · FCFE financieras · SOTP holdings). **Precio con MOS = Base × 0,65.** Nunca sobre el ponderado (§1).
+- **DCF por FCFE informativo (§1, v28):** si la hoja tiene la pestaña `DCF FCFE`, mostrarlo en registro (`dcfFCFE`), app y Nivel 2. No es valor principal, sin MOS; el ponderado FCFF/FCFE (50 % / 50 %) no entra en el valor principal, pero se muestra con su ponderación junto a los demás valores potenciales.
 - **Cuatro historias** con DCF completo: Base, Conservadora, Optimista, Disrupción. Promedio y rango solo con C/B/O renormalizados; Disrupción aparte (§2).
 - **Probabilidades previas por etapa** (B/C/O/D): madura 50/20/20/10 · crecimiento maduro 45/22,5/22,5/10 · alto crecimiento 40/22,5/22,5/15 · declive 40/25/15/20 · holding 45/22,5/22,5/10. Ajustes de 5 pp solo con cruce de umbral documentado; máximo 15 pp por historia (§3).
 - **Costo de capital:** Rf y ERP del mismo corte; WACC se calcula en `Cost of capital worksheet` (`B12 = Detailed`), nunca se escribe a mano; comprobar `B14 = E63 = Input sheet!B36`. Pesos a mercado (§4, §4A).
@@ -32,7 +33,7 @@
 | **F1 · Valoración inicial** → CANDIDATO | Insumos de `Input sheet`, costo de capital, conversores materiales y múltiplos (FY + LTM + anclas, **no** 10 años). DCF inverso, cuatro historias propuestas, Base + MOS, múltiplos aplicables, 5×5 si es viable. | Seguir el grafo real de fórmulas (`CONTRATO_INSUMOS_FASE_1.md`); WACC, I+D, leases y Option value investigados o N/A con nota SEC. | §0A, §0D, §1–§5A, §12 |
 | **F2 · Históricos** → CANDIDATO | Hasta 10 FY + LTM de los tres estados, precios históricos fechados con splits, ratios por fórmula. | Clasificar cada partida (§0A); scripts `estados_completos.py`, `auditar_estados_sec.py`/NIIF, `auditar_ceros_materiales.py`, `diff_formulas_plantilla.py`; probar ROIC/ROE/ROA/P/E/EV-EBITDA contra cálculo independiente en dos períodos. | §0A, §0B |
 | **F3 · Supuestos** → CANDIDATO_REVISADO | MANTENER / CAMBIAR / RESERVA para crecimiento, margen, S/C y reinversión, ROIC, WACC y terminal, múltiplos. | Tabla `antes → después → causa → evidencia → celda → impacto en Base y MOS`, partiendo de los drivers de la revisión anterior en `Modelo-JMR-datos/registro/DRIVERS.md`; 5×5 y DCF inverso; `controles_todas.sh` y `candados.py`. | §2–§5, §4B, §4C, §6 |
-| **F4 · Análisis y publicación** → EN_REVISION o CANDIDATO | Nivel 1 (14 capítulos, el 5 de ciclos) y Nivel 2 (12 apartados) con cifras de la misma revisión, sin recalcular. | Publicar solo con todos los gates aprobados (§6 y §8A) y conciliación hoja ↔ JSON ↔ app; la ficha muestra «auditoría pendiente». | §6, §8, §8A, §9 |
+| **F4 · Análisis y publicación** → EN_REVISION o CANDIDATO | Nivel 1 (14 capítulos, el 5 de ciclos) y Nivel 2 (12 apartados + sección «DCF por FCFE (informativo)», §1) con cifras de la misma revisión, sin recalcular. | Publicar solo con todos los gates aprobados (§6 y §8A) y conciliación hoja ↔ JSON ↔ app; la ficha muestra «auditoría pendiente». | §6, §8, §8A, §9 |
 | **F5 · Auditoría guiada** → dictamen | Primero las preguntas del usuario (`auditorias/solicitudes/<TICKER>/<REV>.json`), luego el mínimo independiente. | Otro modelo o sesión; dictamen VERIFICADO / CON RESERVA MATERIAL / PENDIENTE (§4B); no modifica hoja ni artículo. | §4B, §8, §8A |
 
 **Controles de publicación (§6), `bash scripts/controles_todas.sh` sin fallas:** probabilidades = previa + ajustes; supuestos S1–S6 (márgenes vs sector y Optimista ≤ Base + 10 pp, ROIC terminal, orden de historias, salto del múltiplo Optimista, g ≤ Rf, probabilidades); hoja = app = motor; integridad de la hoja; estados completos. Una alerta se cierra con evidencia, nunca relajando el control.

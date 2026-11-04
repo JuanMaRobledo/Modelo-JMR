@@ -1,6 +1,6 @@
 # Reglas vigentes del Modelo JMR
 
-**Versión 28 · 4-nov-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
+**Versión 30 · 4-nov-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
 (`docs/prompts/*.md`), `METODOLOGIA.md`, una habilidad o un comentario de código dice otra cosa, prevalece este
 documento. Una regla nueva no se agrega como «regla del día X» en un prompt: se cambia aquí, se sube la versión y se
 anota en el registro de cambios del final.
@@ -51,8 +51,20 @@ El registro de fuente y estado por celda y el algoritmo de cobertura se establec
 ## 1. Valor principal y margen de seguridad
 
 - **Empresas operativas (internacionales y colombianas):** valor principal = DCF Base (FCFF; FCFE en financieras).
-- **Contraste FCFE de operativas (informativo, v28):** la pestaña `DCF FCFE` reutiliza las filas de `Valuation output` de Conservadora, Base y Optimista y solo añade la deuda (endeudamiento neto = D/V a mercado × reinversión; Ke que converge al Ke terminal implícito en el WACC terminal). Muestra FCFE, diferencia con FCFF y un ponderado FCFF/FCFE (peso editable en B8). **No es valor principal, no lleva MOS y no alimenta historias, JSON ni app.** Una brecha grande señala incoherencia entre deuda, Kd, pesos y WACC; se explica, no se usa para ajustar supuestos. Código: `JMR-valuation/scripts/build_fcfe_sheet.py` y `verificar_fcfe_sheet.py`.
 - **Holdings (Grupo Argos, Grupo Sura y sus preferenciales):** valor principal = SOTP Base.
+- **DCF por FCFE (informativo, v28):** la pestaña `DCF FCFE` de la plantilla vigente calcula, con el mismo motor y los
+  mismos supuestos que el DCF FCFF, un valor por acción por historia (Conservadora, Base, Optimista) y su promedio
+  ponderado; solo añade la deuda (endeudamiento neto con razón deuda/valor, intereses y ahorro fiscal) y descuenta al
+  costo del patrimonio. **Debe figurar en toda valoración cuya hoja tenga la pestaña:** en el registro (`dcfFCFE`), en la
+  app (tablero de valoración) y en el Nivel 2 del análisis. **No es valor principal, no lleva MOS** y el «ponderado
+  FCFF/FCFE» (peso de la entrada `B8`, 50 % por defecto) **no entra en el valor principal**, pero **se muestra con su
+  ponderación (p. ej. 50 % FCFF · 50 % FCFE) en la tabla de valores potenciales de la app, junto al DCF, los múltiplos y
+  el ponderado DCF + múltiplos**: el principal sigue siendo el
+  DCF FCFF Base (FCFE/SOTP en financieras y holdings). Los valores se copian de la hoja sin recalcular
+  (`JMR-valuation/scripts/dcf_fcfe_registro.py`); se bloquea si el DCF FCFF Base de la pestaña no coincide con
+  `valorPrincipal` o si el promedio FCFF no concilia con `Escenarios e historias!H10`. Las financieras con su propio
+  `DCF FCFE financiero` (NU, XP, PAGS) no usan esta pestaña. Una brecha FCFE/FCFF grande señala incoherencia entre deuda, Kd, pesos y WACC: se explica en F3/F5 y
+  nunca se usa para ajustar supuestos. Construcción y control: `JMR-valuation/scripts/build_fcfe_sheet.py` y `verificar_fcfe_sheet.py` (v30).
 - **Precio con MOS = valor principal × (1 − MOS)**, MOS = 35%. Nunca sobre el esperado ni sobre el ponderado de
   métodos. En el registro: `baseMOS = "dcfBase"` o `"sotpBase"`. Un holding sin SOTP no tiene precio con MOS.
 - Código: `JMR-valuation/scripts/normalize_saved_mos.py`, `consistencia_migracion.py` (M2), `docs/valuation-board.js`
@@ -232,7 +244,7 @@ El cambio afecta la secuencia y los estados, no el método financiero, fórmulas
 
 **Nivel 1, siempre largo y explicativo:** 1. Tesis de inversión y conclusión; 2. La empresa y su modelo económico; 3. Industria, competencia y ventaja competitiva; 4. Motores del crecimiento futuro; 5. Ciclos de la empresa, del mercado y de la macroeconomía; 6. Historia financiera y calidad de resultados; 7. Reinversión, eficiencia del capital y ROIC; 8. Dirección, gobierno y asignación de capital; 9. Nuestro proceso de valoración; 10. Supuestos económicos y su justificación; 11. Valor intrínseco, escenarios y precio; 12. Riesgos, tesis contraria y factores de ruptura; 13. Catalizadores y plan de seguimiento; 14. Fuentes, limitaciones y estado del estudio. El lector debe entender el negocio, su economía, nuestros juicios y cómo llegamos al valor sin abrir una hoja. Cada sección contiene hechos, mecanismos y pruebas específicas del emisor, no títulos vacíos. Las subsecciones varían por sector.
 
-**Nivel 2, cuantitativo:** estados y series 3/5/10 años y LTM, ratios, hojas, ajustes contables, fuentes, Inputs, Cost of Capital, reinversión anual, DCF/FCFE/SOTP, EV→equity, cuatro historias, múltiplos, inverso, matrices de sensibilidad Base, controles y conciliaciones. Conservar la misma revisión y enlaces; ninguna simulación local modifica resultados oficiales. El Nivel 1 puede mantener tablas breves interpretativas y cifras decisivas; no duplicar anexos numéricos masivos.
+**Nivel 2, cuantitativo:** estados y series 3/5/10 años y LTM, ratios, hojas, ajustes contables, fuentes, Inputs, Cost of Capital, reinversión anual, DCF/FCFE/SOTP, **sección «DCF por FCFE (informativo)» (§1)**, EV→equity, cuatro historias, múltiplos, inverso, matrices de sensibilidad Base, controles y conciliaciones. Conservar la misma revisión y enlaces; ninguna simulación local modifica resultados oficiales. El Nivel 1 puede mantener tablas breves interpretativas y cifras decisivas; no duplicar anexos numéricos masivos.
 
 **Ciclo corporativo (Damodaran) y ciclo de mercado (Howard Marks), obligatorios en Nivel 1:** desarrollar el capítulo 5 separado «Ciclos de la empresa, del mercado y de la macroeconomía» con (a) etapa de vida de la empresa —start-up, crecimiento joven, alto crecimiento, crecimiento maduro, madurez estable o declive—, evidencia de ventas, márgenes, FCFF/FCFE, reinversión, ROIC, asignación de capital y transición; (b) fase macroeconómica y monetaria **observada a la fecha de corte**, inflación, tasas efectivas y su dirección, crecimiento, consumo, empleo, crédito, divisas y demanda sectorial; (c) ciclo de liquidez/crédito y actitud ante riesgo, expectativas y precio frente al valor; (d) canal causal a volumen, precios, márgenes, capital de trabajo, inversiones, ROIC, WACC/Ke y valor terminal; (e) hipótesis a favor y contraria, señales líderes y umbrales para cambiar el juicio. Distinguir ciclo de vida estructural de fluctuación macro coyuntural, y distinguir hechos observados de inferencias. La fase cíclica no es una profecía ni se aplica el mismo diagnóstico a todos los emisores. Fuentes primarias (Damodaran, Fed, BEA, BLS, FMI/bancos centrales y SEC/IR) y secundarias fechadas; no introducir datos posteriores a la fecha de corte como conocidos de antemano.
 
@@ -295,7 +307,9 @@ Hojas de trabajo conservadas tras el archivo del 24-oct-2026 (identidad document
 
 | Versión | Fecha | Cambio |
 |---|---|---|
-| 28 | 4-nov-2026 | §1 y §11: pestaña informativa `DCF FCFE` en Maestra, IA y Manual (perfil 47): mismo motor que `Valuation output`, tres historias y ponderado FCFF/FCFE; sin cambio del valor principal, MOS ni fórmulas existentes. Añadida también a las 25 hojas vigentes de operativas (XP, NU y PAGS excluidas), control hoja = Python 25/25. Respaldo y resultados en `JMR-valuation/reference/backups/dcf_fcfe_2026-11-04/`. |
+| 30 | 4-nov-2026 | §1 y §11: la pestaña `DCF FCFE` se añade a Maestra, IA y Manual (perfil 47) y a las 25 hojas vigentes de operativas (XP, NU y PAGS excluidas), sin cambiar fórmulas existentes ni valores; Ke terminal = (WACC_T − wD·Kd·(1−t) − wP·Kp)/wE; control hoja = Python 25/25 (`verificar_fcfe_sheet.py`). Respaldo y resultados en `JMR-valuation/reference/backups/dcf_fcfe_2026-11-04/`. |
+| 29 | 4-nov-2026 | §1: el DCF por FCFE y el ponderado FCFF/FCFE (50 % / 50 % por defecto) se muestran con su ponderación en la tabla de valores potenciales de la app, igual que el DCF y los múltiplos; siguen sin entrar en el valor principal ni llevar MOS. Sin cambios de método ni de valores. |
+| 28 | 4-nov-2026 | §1 y §9: el DCF por FCFE (pestaña `DCF FCFE` de la plantilla) pasa a mostrarse en registro, app y Nivel 2 como dato informativo; no es valor principal, no lleva MOS y el ponderado FCFF/FCFE no entra en el valor principal. Sin cambios de método ni de valores principales. |
 | 27 | 2-nov-2026 | §0D: contrato vinculante de obtención completa de datos mínimos de DCF, cinco múltiplos y todas sus hojas auxiliares (WACC, I+D, leases, Option value y demás); control por celda y no cero ficticio. Sin cambios económicos ni publicaciones. |
 | 26 | 2-nov-2026 | §0C: flujo operativo de cinco fases, valoración inicial focalizada, historia en F2, juicio F3, publicación F4 y auditoría guiada F5; Forward Valuation deprecado, retiro físico solo tras regresión y perfil 45. |
 | 25 | 2-nov-2026 | §0B: indicadores de rentabilidad y múltiplos históricos y LTM mediante fórmulas trazables; precios históricos con fecha y split, sin sobrescribir celdas derivadas. Conserva A-1.2, MOS y valores existentes. |
