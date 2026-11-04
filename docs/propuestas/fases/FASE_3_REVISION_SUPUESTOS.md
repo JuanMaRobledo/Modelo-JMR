@@ -6,6 +6,7 @@
 ¿Son lógicos y están respaldados **crecimiento, márgenes, reinversión/Sales-to-Capital, ROIC, WACC y valor terminal** dada la historia verificada y el ciclo del negocio? La respuesta puede ser `MANTENER`, `CAMBIAR` o `RESERVA DOCUMENTADA`. No se recalibra a la cotización.
 
 ## Pruebas y decisiones
+0. **Historias → números (Damodaran, §2):** revisar que cada historia tenga tipo, párrafo, vínculo por palanca, juicio 3P y disparadores; explicar con evidencia cada señal REVISAR (margen, ROIC, ventas/capital o crecimiento sobre la industria; ganancia de participación) y rehacer la historia ante IMPOSIBLE. Una historia que no pasa «probable» no puede ser la Base. Registrar MANTENER/CAMBIAR/RESERVA también para la historia, no solo para los números.
 1. Contrastar el crecimiento 1–5 y 6–10 contra FY, LTM, segmentos, sector, reinversión y vida corporativa de Damodaran. Explicar la desaceleración.
 2. Margen EBIT GAAP vs ajustado (I+D y leases) frente a economía y competencia; justificar trayectoria y escenario, sin mezclar definiciones.
 3. **Reinversión:** conciliación CAPEX, D&A, cambio NWC, adquisiciones y activos intangibles/I+D; capital invertido ajustado; Sales-to-Capital marginal 1–5 y convergencia industrial 6–10; lag de inversiones y retorno incremental. Comprobar flujos negativos, reinversión/NOPAT, ventas por unidad de capital y shocks razonables, no asumir que atípicos son automáticamente errores.
