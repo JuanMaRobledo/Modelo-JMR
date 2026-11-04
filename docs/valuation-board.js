@@ -889,7 +889,7 @@ function fromRecord(rec, extra) {
       '<p class="jvb-note">Con supuestos coherentes FCFE ≈ FCFF; una diferencia grande señala incoherencia entre deuda, Kd, pesos y WACC, no un valor alternativo. Detalle de flujos y puente en el Nivel 2 del análisis.</p></section>';
   }
 
-  global.JmrValueBoard = { fcfeHtml: fcfeHtml, fromParts: fromParts, fromRecord: fromRecord, html: html, hasData: hasData, veHtml: veHtml, historicalHtml: historicalHtml,
+  global.JmrValueBoard = { fcfeHtml: fcfeHtml, fcfeFrom: fcfeFrom, fromParts: fromParts, fromRecord: fromRecord, html: html, hasData: hasData, veHtml: veHtml, historicalHtml: historicalHtml,
     primaryValues: primaryValues, primaryHtml: primaryHtml, veBox: function (d) { if (d && d.holding) return ''; DISPLAY_CURRENCY = d && d.currency === 'COP' ? 'COP' : 'USD'; var h = unified(d) ? unifiedHtml(d) : primaryHtml(d) + veHtml(d); return h ? '<div class="jvb-vebox">' + h + '</div>' : ''; },
     apply: function () { apply(prefs()); } };
 })(window);
