@@ -243,3 +243,8 @@ completa automática (S2/S3).
 - [ ] Retornos existentes, marginales y terminales se distinguen; eficiencia no se perpetúa.
 - [ ] Cada supuesto material tiene ficha, contraevidencia y falsador; impactos no ejecutados se declaran.
 - [ ] Convenciones JMR y enseñanzas del autor están diferenciadas; la Base admite contradicción específica.
+
+
+## Biblioteca de consulta Damodaran–JMR (índice inicial, 5-nov-2026)
+
+Antes de revisar supuestos, consultar [la biblioteca Damodaran–JMR](biblioteca-damodaran/README.md) y su [catálogo de fuentes y videos](biblioteca-damodaran/FUENTES_Y_VIDEOS.md). Para justificar las hipótesis de una empresa, utilizar la [ficha de historia a números](biblioteca-damodaran/PLANTILLA_FICHA.md) y [criterios de decisión](biblioteca-damodaran/CRITERIOS.md); el primer [ejemplo DUOL](biblioteca-damodaran/casos/DUOL.md) conserva en **CANDIDATO** sus reservas de arrendamientos, ROIC terminal, margen y escenarios. Esta biblioteca es **material interpretativo**, no agrega requisitos normativos a los de `modelo/REGLAS_VIGENTES.md`. Las fuentes marcadas «video indexado» no acreditan transcripción ni visionado. **No modificar fórmulas originales Damodaran ni sus comentarios/notas** para aplicar sus criterios; todas las variantes se experimentan en auxiliares JMR con control de integridad.
