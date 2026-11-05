@@ -1,6 +1,6 @@
 # Reglas vigentes del Modelo JMR
 
-**Versión 32 · 5-nov-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
+**Versión 33 · 4-nov-2026 (Colombia).** Este documento es la única fuente de las reglas de método. Si un prompt
 (`docs/prompts/*.md`), `METODOLOGIA.md`, una habilidad o un comentario de código dice otra cosa, prevalece este
 documento. Una regla nueva no se agrega como «regla del día X» en un prompt: se cambia aquí, se sube la versión y se
 anota en el registro de cambios del final.
@@ -72,11 +72,25 @@ El registro de fuente y estado por celda y el algoritmo de cobertura se establec
 
 ## 2. Historias y promedio
 
-- **Calibración honesta:** la Base es el desenlace más probable (la mediana), no el prudente; la prudencia vive solo
+- **Calibración honesta:** la Base es el escenario central defendido como más probable, no el prudente; la prudencia vive solo
   en el MOS. Conservadora y Optimista exigen la misma evidencia. Cada riesgo va en un solo lugar (flujos, tasa o
   probabilidad). Nada se ajusta para acercarse al precio.
 
 - Cuatro historias: Base, Conservadora, Optimista y Disrupción, cada una con DCF completo.
+- **Calidad económica de supuestos (v33):** en F1/F3, para cada hipótesis material guardar mecanismo → motor →
+  evidencia a favor y en contra con fecha → rango defendible → valor y trayectoria elegidos → dependencias →
+  falsador → celda → impacto Base/MOS (o NO EJECUTADO). Usar el soporte existente y materialidad §4B.
+  Conciliar crecimiento por motores con mercado accesible; en plataformas distinguir volumen bruto, cuota,
+  comisión e ingresos netos. Justificar conjuntamente crecimiento y margen, capacidad e inversión, e intangibles
+  sin doble conteo. Distinguir ROIC de activos existentes, de nuevas inversiones y terminal: g = reinversión × ROIC
+  requiere beneficio operativo, retornos y períodos compatibles; la eficiencia transitoria no se perpetúa.
+  En F3 responder la objeción económica más fuerte a la Base; en F5 verificar esas relaciones sin modificar inputs.
+  Registrar después previsión y resultado observado por motor; revisar solo las hipótesis afectadas y sus controles.
+  Detalle y fuentes: `docs/HISTORIAS_A_NUMEROS.md` v2 y `docs/FUENTES_STORIES_TO_NUMBERS.md`.
+- **Atribución y estadística (v33):** Base, moda, mediana y esperanza no son equivalentes. El promedio C/B/O sigue
+  siendo condicionado a esas historias. Las ponderaciones §3, costo de capital común entre historias, fracaso solo
+  en Disrupción y etiquetas operativas de disparadores son convenciones JMR, no reglas universales de Damodaran.
+  Se conservan valores, fórmulas, límites y gates. Las 3P exigen juicio sustentado; COMPLETA no certifica calidad económica.
 - **Historias → números (Damodaran, *Stories to Numbers* y *Narrative and Numbers*, v31).** Cada historia se
   completa en `Escenarios e historias` (sección desde la fila 104) en este orden: (1) **tipo de historia** por ciclo de
   vida (start-up, crecimiento joven, alto crecimiento, crecimiento maduro, madurez estable, declive) y **la historia en
@@ -109,7 +123,7 @@ El registro de fuente y estado por celda y el algoritmo de cobertura se establec
 
 ## 3. Probabilidades
 
-- **Previa por etapa del ciclo de vida** (Damodaran), en `JMR-valuation/reference/probabilidades_prior.json`
+- **Previa JMR por etapa del ciclo de vida** (clasificación inspirada en Damodaran; porcentajes propios del proyecto), en `JMR-valuation/reference/probabilidades_prior.json`
   (Base / Conservadora / Optimista / Disrupción):
 
   | Etapa | Previa |
@@ -333,6 +347,7 @@ Hojas de trabajo conservadas tras el archivo del 24-oct-2026 (identidad document
 
 | Versión | Fecha | Cambio |
 |---|---|---|
+| 33 | 4-nov-2026 (Colombia) | §2: calidad económica de supuestos, fichas causales y seguimiento; guía v2 con fuentes originales, motores de ingresos, comisión, margen/inversión conjuntos, ROIC marginal y eficiencia; distingue convenciones JMR y conceptos estadísticos. Sin recalcular valoraciones ni alterar fórmulas, probabilidades o gates. La fecha local difiere de registros anteriores fechados en UTC. |
 | 32 | 5-nov-2026 | §2: los supuestos salen de la historia; guía `docs/HISTORIAS_A_NUMEROS.md` obligatoria en F1/F3/F5; crecimiento derivado de TAM₁₀ × participación objetivo con fila de brecha historia − modelo en cada historia (`build_historias_sheet.py`, aplicada a plantillas y hojas vigentes sin cambio de valores); control de publicación para revisiones nuevas. |
 | 31 | 4-nov-2026 | §2: historias → números según Damodaran (tipo de historia, párrafo, vínculo por palanca, prueba 3P con números frente a TAM e industria, juicio por P y disparadores ruptura/cambio/desplazamiento); costo de capital común y fracaso solo en Disrupción (entrada propia); TAM como dato de F1. Sección nueva en `Escenarios e historias` A104:N238 (`JMR-valuation/scripts/build_historias_sheet.py`), aplicada a Maestra, IA, Manual y 24 hojas vigentes de operativas con valores idénticos antes y después (DUOL, aplicada después de mover su DCF de control a A242:N256, es la primera con las cuatro historias completas; financieras y sustituidas sin la sección, AVISO en `diff_formulas_plantilla.py`). |
 | 30 | 4-nov-2026 | §1 y §11: la pestaña `DCF FCFE` se añade a Maestra, IA y Manual (perfil 47) y a las 25 hojas vigentes de operativas (XP, NU y PAGS excluidas), sin cambiar fórmulas existentes ni valores; Ke terminal = (WACC_T − wD·Kd·(1−t) − wP·Kp)/wE; control hoja = Python 25/25 (`verificar_fcfe_sheet.py`). Respaldo y resultados en `JMR-valuation/reference/backups/dcf_fcfe_2026-11-04/`. |
@@ -365,4 +380,5 @@ Hojas de trabajo conservadas tras el archivo del 24-oct-2026 (identidad document
 | 3 | 21-oct-2026 | Prompts de análisis fundamental (v5 corregido) y auditoría (v1.2) alineados y válidos para cualquier modelo: el análisis copia las cifras de la valoración oficial (no recalcula), MOS solo sobre la Base (el texto anterior decía «sobre el esperado»), promedio de tres historias, probabilidades por previa + indicadores; la auditoría busca sesgo en ambas direcciones (agresividad y prudencia duplicada) y verifica g, ajuste por tasas y ancla C. |
 | 2 | 21-oct-2026 | Prompt de valoración v5 (`docs/prompts/valoracion-modelo-jmr-v5.md`): autocontenido y válido para cualquier modelo de lenguaje, un solo método de múltiplos (el v4 mezclaba λ, ciclo y Toro), etiquetas [Dato]/[Cálculo]/[Juicio] y ficha JSON de salida. Calibración honesta (§2). Topes de Toro retirados (doble prudencia). |
 | 1 | 21-oct-2026 | Consolida las reglas dispersas en los prompts (17, 18 y 21-oct). MOS sobre DCF Base o SOTP Base (antes había código que lo calculaba sobre el esperado). Probabilidades por previa + indicadores. g terminal 4% (antes = tasa libre, 5,29%). Prima por país en la fecha del corte. Ajuste por tasas y tope del ancla C en los múltiplos por ciclo. Controles de razonabilidad y foto de supuestos. |
+
 

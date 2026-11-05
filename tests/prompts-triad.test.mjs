@@ -98,7 +98,7 @@ test('las referencias activas y la interfaz usan el mismo contrato editorial',()
   const sections=[...styleSection.matchAll(/^(\d{1,2})\. \*\*/gm)].map(m=>Number(m[1]));
   assert.deepEqual(sections,Array.from({length:14},(_,i)=>i+1));
   assert.match(styleSection,/5\. \*\*Ciclos de la empresa, del mercado y de la macroeconomía/);
-  assert.match(rules,/\*\*Versión 32 · 5-nov-2026/);
+  assert.match(rules,/\*\*Versión 33 · 4-nov-2026/);
   assert.match(rules,/Estilo JMR de 14 capítulos/);
   assert.match(process,/cinco fases/i);
   assert.match(process,/tres prompts maestros activos/i);
@@ -165,3 +165,4 @@ test('contrato Fase 1 cubre todas las hojas auxiliares y cinco múltiplos',()=>{
   assert.match(fase,/CONTRATO_INSUMOS_FASE_1\.md/);
   assert.match(rules,/Cobertura integral de dependencias de Fase 1/);
 });
+
