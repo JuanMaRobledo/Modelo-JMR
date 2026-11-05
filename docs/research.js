@@ -356,7 +356,7 @@
     var zoneBasis = lv.baseMOS === 'dcfBase' ? 'Zona Value (banda histórica; el MOS va sobre DCF Base)' : (lv.baseMOS === 'valorEsperado' ? 'Zona Value (sobre el DCF esperado)' : 'Zona Value (sobre el objetivo FY+3)');
     var zones = zoneKv(zoneBasis, z.value) + zoneKv('Zona Deep Value', z.deepValue) + zoneKv('Zona histórica', z.historica);
     return '<section class="valuation-block linked-valuation"><span class="linked-tag">✓ Vinculado con el Visor · ' + escapeHtml(lv.sourcePath || '') + '</span>' + visorLink + '<h2>Valoración cuantitativa (Visor)</h2>' +
-      boardHtml + (typeof JmrValueBoard !== 'undefined' && JmrValueBoard.fcfeHtml ? JmrValueBoard.fcfeHtml(lv) : '') + '<div class="linked-grid">' + kv('Fecha de valoración', escapeHtml(lv.fechaValoracion || lv.fecha || '—')) +
+      boardHtml + (typeof JmrValueBoard !== 'undefined' && JmrValueBoard.fcfeHtml ? JmrValueBoard.fcfeHtml(lv) : '') + (typeof JmrValueBoard !== 'undefined' && JmrValueBoard.historiasHtml ? JmrValueBoard.historiasHtml(lv) : '') + '<div class="linked-grid">' + kv('Fecha de valoración', escapeHtml(lv.fechaValoracion || lv.fecha || '—')) +
       kv('Precio del corte de valoración', money(typeof lv.precio === 'number' ? lv.precio : lv.precioAnalisis)) +
       kv('Fecha de consulta del precio guardado', escapeHtml(lv.precioReferenciaConsultadoAt || 'No registrada; no equivale a la fecha de valoración')) +
       zones + '</div></section>';

@@ -6,6 +6,7 @@ Versión única 3-nov-2026 para Modelo-JMR, Modelo-JMR-datos y JMR-valuation (mi
 2. `docs/propuestas/fases/README.md` (orquestador) y el archivo de la fase invocada:
    F1 `FASE_1_VALORACION_INICIAL.md` + `CONTRATO_INSUMOS_FASE_1.md` · F2 `FASE_2_HISTORICOS_COMPLETOS.md` · F3 `FASE_3_REVISION_SUPUESTOS.md` · F4 `FASE_4_ANALISIS_PUBLICACION.md` · F5 `FASE_5_AUDITORIA_GUIADA.md`.
 3. Prompt maestro de la fase: F1/F3 `docs/prompts/valoracion-modelo-jmr-v5.md` · F4 `research-fundamental-jmr-v5.md` · F5 `auditoria-economica-jmr-v1.md`. Colombia: anteponer `colombia-nucleo-v1.md`.
+   **F1, F3 y F5:** `docs/HISTORIAS_A_NUMEROS.md` — cómo hacer cada supuesto desde la historia (Damodaran, *Stories to Numbers*). Leer antes de tocar crecimiento, margen, reinversión o riesgo: el número sale de la historia, nunca al revés.
 4. `modelo/REGLAS_VIGENTES.md`: consultar las secciones que indica `CONTEXTO_CORTO.md` para la fase y ante cualquier duda. **Prevalece sobre todo lo demás**; la instrucción vigente del usuario prevalece en lo operativo.
 
 No ejecutar los archivos del antiguo flujo de cuatro fases (`docs/propuestas/fases/archivo/`). Si falta un archivo, recuperarlo de las fuentes conectadas; no inventar contenido.
