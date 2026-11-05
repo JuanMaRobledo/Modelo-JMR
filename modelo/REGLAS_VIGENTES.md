@@ -1,6 +1,6 @@
 # Reglas vigentes del Modelo JMR
 
-**Versión 31 · 4-nov-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
+**Versión 32 · 5-nov-2026.** Este documento es la única fuente de las reglas de método. Si un prompt
 (`docs/prompts/*.md`), `METODOLOGIA.md`, una habilidad o un comentario de código dice otra cosa, prevalece este
 documento. Una regla nueva no se agrega como «regla del día X» en un prompt: se cambia aquí, se sube la versión y se
 anota en el registro de cambios del final.
@@ -89,6 +89,13 @@ El registro de fuente y estado por celda y el algoritmo de cobertura se establec
   (4) **tres disparadores** (ruptura, cambio o desplazamiento de la historia) con señal observable, umbral y efecto.
   Una señal REVISAR exige explicar la ventaja o la evidencia que la sostiene; IMPOSIBLE (participación > 100 %) obliga
   a rehacer la historia. La Base debe ser «probable» = Sí. Ninguna señal se corrige para acercar el valor al precio.
+- **Los supuestos salen de la historia (v32).** Cómo hacerlo, palanca por palanca, está en
+  [`docs/HISTORIAS_A_NUMEROS.md`](../docs/HISTORIAS_A_NUMEROS.md), de lectura obligatoria en F1, F3 y F5. En particular,
+  el crecimiento se **deriva**: TAM₁₀ × participación objetivo del año 10 que defiende la historia (o unidades × ingreso
+  por unidad) da los ingresos del año 10, y el crecimiento año por año del modelo debe llegar a ellos. La fila «Brecha
+  historia − modelo» de cada historia marca REVISAR si difieren más de 10 %: se cambia la historia o el crecimiento,
+  nunca se deja la brecha sin explicar. Sin TAM confiable, la participación queda N/D y el crecimiento se justifica por
+  unidades o por motores con evidencia.
 - **Riesgo en un solo lugar en las historias (v31):** el costo de capital es común a las cuatro historias (riesgo
   sistemático); la **probabilidad de fracaso solo se usa en Disrupción**, con su entrada propia
   (`Escenarios e historias!B216`, que lee `Valuation output!B179`), y entonces esa historia no castiga además sus
@@ -326,6 +333,7 @@ Hojas de trabajo conservadas tras el archivo del 24-oct-2026 (identidad document
 
 | Versión | Fecha | Cambio |
 |---|---|---|
+| 32 | 5-nov-2026 | §2: los supuestos salen de la historia; guía `docs/HISTORIAS_A_NUMEROS.md` obligatoria en F1/F3/F5; crecimiento derivado de TAM₁₀ × participación objetivo con fila de brecha historia − modelo en cada historia (`build_historias_sheet.py`, aplicada a plantillas y hojas vigentes sin cambio de valores); control de publicación para revisiones nuevas. |
 | 31 | 4-nov-2026 | §2: historias → números según Damodaran (tipo de historia, párrafo, vínculo por palanca, prueba 3P con números frente a TAM e industria, juicio por P y disparadores ruptura/cambio/desplazamiento); costo de capital común y fracaso solo en Disrupción (entrada propia); TAM como dato de F1. Sección nueva en `Escenarios e historias` A104:N238 (`JMR-valuation/scripts/build_historias_sheet.py`), aplicada a Maestra, IA, Manual y 24 hojas vigentes de operativas con valores idénticos antes y después (DUOL, aplicada después de mover su DCF de control a A242:N256, es la primera con las cuatro historias completas; financieras y sustituidas sin la sección, AVISO en `diff_formulas_plantilla.py`). |
 | 30 | 4-nov-2026 | §1 y §11: la pestaña `DCF FCFE` se añade a Maestra, IA y Manual (perfil 47) y a las 25 hojas vigentes de operativas (XP, NU y PAGS excluidas), sin cambiar fórmulas existentes ni valores; Ke terminal = (WACC_T − wD·Kd·(1−t) − wP·Kp)/wE; control hoja = Python 25/25 (`verificar_fcfe_sheet.py`). Respaldo y resultados en `JMR-valuation/reference/backups/dcf_fcfe_2026-11-04/`. |
 | 29 | 4-nov-2026 | §1: el DCF por FCFE y el ponderado FCFF/FCFE (50 % / 50 % por defecto) se muestran con su ponderación en la tabla de valores potenciales de la app, igual que el DCF y los múltiplos; siguen sin entrar en el valor principal ni llevar MOS. Sin cambios de método ni de valores. |

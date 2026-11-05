@@ -872,6 +872,7 @@ function fromRecord(rec, extra) {
       '.jvb .jvb-table .w,.jvb .jvb-table .vs{display:none}.jvb .jvb-table .vsm{display:block;margin-top:3px}.jvb .jvb-table .vsm .jvb-chip{font-size:10.5px;padding:1px 6px}.jvb .jvb-table thead th small{display:none}.jvb .jvb-row .pw{display:block}.jvb .jvb-row .sb{display:none}.jvb .jvb-table thead th{font-size:9.5px;letter-spacing:.03em}',
       '.jvb-vebar span{font-size:9px;letter-spacing:-.02em}.jvb-vetab{font-size:12px}.jvb-rr{grid-template-columns:78px minmax(0,1fr) 70px;gap:6px}.jvb-rr .rl{font-size:11px}.jvb-seg button{padding:6px 8px;font-size:12px}.jvb-rr .rpl{font-size:10px}}',
       '@media (max-width:420px){.jvb .jvb-table th,.jvb .jvb-table td{padding:7px 4px}.jvb .jvb-table td.n{font-size:11px}.jvb .jvb-row td.lbl{padding-left:12px}.jvb .jvb-row td.lbl::before{left:3px}.jvb .jvb-row .nm{font-size:12px}.jvb .jvb-row.dcf .nm{font-size:12.5px}.jvb .jvb-row.dcf td.n.b{font-size:13px}.jvb .jvb-table thead th{font-size:9px}}',
+      '.jvb-hn-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-top:10px}.jvb-hn-card{border:1px solid var(--line,#d8dde3);border-radius:10px;padding:12px;background:var(--card,#fff)}.jvb-hn-card header{display:flex;flex-wrap:wrap;gap:6px;align-items:baseline}.jvb-hn-tipo{margin-left:auto;font-size:12px;color:var(--muted,#667)}.jvb-hn-card p{font-size:13px;line-height:1.45;margin:8px 0}.jvb-hn-chips{display:flex;flex-wrap:wrap;gap:6px}.jvb-hn-chip{font-size:12px;padding:2px 8px;border-radius:999px;border:1px solid currentColor}.jvb-hn-chip.ok{color:#1b7f4b}.jvb-hn-chip.res{color:#9a6400}.jvb-hn-chip.no{color:#b3261e}.jvb-hn-t{width:100%;font-size:12px;border-collapse:collapse}.jvb-hn-t td,.jvb-hn-t th{padding:3px 4px;vertical-align:top;text-align:right}.jvb-hn-t td:first-child,.jvb-hn-t th:first-child{text-align:left}.jvb-hn-t tr.v td{text-align:left;color:var(--muted,#667);border-bottom:1px solid var(--line,#e3e6ea);padding-bottom:6px}.jvb-hn-card details{margin-top:8px;font-size:13px}.jvb-hn-card ul{padding-left:18px;margin:6px 0;font-size:13px}',
       '@media print{.jvb-bar{display:none}.jvb-hz{display:block!important}.jvb-hz[data-hz="fy3"]{margin-top:10px}.jvb-tw,.jvb-range{box-shadow:none}}'
     ].join('\n');
     document.head.appendChild(st);
@@ -889,7 +890,34 @@ function fromRecord(rec, extra) {
       '<p class="jvb-note">Con supuestos coherentes FCFE ≈ FCFF; una diferencia grande señala incoherencia entre deuda, Kd, pesos y WACC, no un valor alternativo. Detalle de flujos y puente en el Nivel 2 del análisis.</p></section>';
   }
 
-  global.JmrValueBoard = { fcfeHtml: fcfeHtml, fcfeFrom: fcfeFrom, fromParts: fromParts, fromRecord: fromRecord, html: html, hasData: hasData, veHtml: veHtml, historicalHtml: historicalHtml,
+  // Historias → números (Damodaran, REGLAS §2 v31-v32; docs/HISTORIAS_A_NUMEROS.md): tipo, historia, juicio de las 3P,
+  // vínculo de cada palanca y disparadores, leídos de rec.historiasNumeros (copia de la hoja). Informativo: no cambia
+  // valor principal, MOS ni probabilidades; nunca recalcula.
+  function historiasHtml(rec) {
+    var b = rec && rec.historiasNumeros;
+    if (!b || b.estado !== 'INFORMATIVO' || !b.historias) return '';
+    var head = '<section class="jvb jvb-hist-numeros" aria-label="Historias y números (Damodaran)"><div class="jvb-hist-head"><div><span class="jvb-kicker">De la historia a los números · Damodaran</span><h4>Historias que sostienen los supuestos</h4></div></div>';
+    if (!b.completas) return head + '<p class="jvb-hist-note">Las historias de esta revisión (tipo, prueba de las 3P, vínculo de cada supuesto y disparadores) se escriben en su próxima revisión. Los números de cada historia ya están en el DCF.</p></section>';
+    var orden = [['base', 'Base'], ['conservador', 'Conservadora'], ['optimista', 'Optimista'], ['disrupcion', 'Disrupción']];
+    var chip = function (k, j) { var v = j && j.juicio; var c = v === 'Sí' ? 'ok' : v === 'No' ? 'no' : 'res'; return '<span class="jvb-hn-chip ' + c + '" title="' + esc(j && j.porque || '') + '">¿' + k + '? ' + esc(v || '—') + '</span>'; };
+    var fmt = function (p, v) { return p.palanca === 'ventasCapital' ? (num(v) == null ? '—' : num(v).toFixed(2).replace('.', ',')) : pct(v, 1); };
+    var cards = orden.map(function (o) {
+      var h = b.historias[o[0]]; if (!h) return '';
+      var pal = (h.palancas || []).map(function (p) { return '<tr><td>' + esc(p.etiqueta || p.palanca) + '</td><td>' + fmt(p, p.anio1) + '</td><td>' + fmt(p, p.anios2a5) + '</td><td>' + fmt(p, p.anios6a10) + '</td><td>' + fmt(p, p.terminal) + '</td></tr>' + (p.vinculo ? '<tr class="v"><td colspan="5">' + esc(p.vinculo) + '</td></tr>' : ''); }).join('');
+      var dis = (h.disparadores || []).map(function (d) { return '<li><b>' + esc(d.tipo || '') + ':</b> ' + esc(d.senal || '') + (d.umbral ? ' <i>(' + esc(d.umbral) + ')</i>' : '') + (d.efecto ? ' → ' + esc(d.efecto) : '') + '</li>'; }).join('');
+      var rev = (h.pruebas || []).filter(function (p) { return /REVISAR|IMPOSIBLE/.test(p.senal || ''); }).map(function (p) { return esc(p.indicador); });
+      return '<article class="jvb-hn-card"><header><b>' + esc(o[1]) + '</b>' + (h.titulo ? ' · ' + esc(h.titulo) : '') + '<span class="jvb-hn-tipo">' + esc(h.tipo || 'sin tipo') + (h.estado !== 'COMPLETA' ? ' · ' + esc(h.estado || 'pendiente') : '') + '</span></header>' +
+        (h.historia ? '<p>' + esc(h.historia) + '</p>' : '') +
+        '<div class="jvb-hn-chips">' + chip('Posible', h.juicios && h.juicios.posible) + chip('Plausible', h.juicios && h.juicios.plausible) + chip('Probable', h.juicios && h.juicios.probable) + '</div>' +
+        (rev.length ? '<p class="jvb-note">Por encima de la industria, con su explicación: ' + rev.join(' · ') + '.</p>' : '') +
+        '<details><summary>Supuestos y su vínculo con la historia</summary><table class="jvb-hn-t"><thead><tr><th>Palanca</th><th>Año 1</th><th>2-5</th><th>6-10</th><th>Terminal</th></tr></thead><tbody>' + pal + '</tbody></table></details>' +
+        (dis ? '<details><summary>Qué la rompería, cambiaría o desplazaría</summary><ul>' + dis + '</ul></details>' : '') + '</article>';
+    }).join('');
+    var tam = b.tam || {};
+    return head + '<p class="jvb-hist-note">Cada supuesto del DCF sale de una historia probada como posible, plausible y probable. Industria de referencia: ' + esc(b.industria || '—') + '. Tamaño del mercado: ' + (num(tam.valor) == null ? 'N/D' : money(tam.valor)) + '.</p><div class="jvb-hn-grid">' + cards + '</div></section>';
+  }
+
+  global.JmrValueBoard = { historiasHtml: historiasHtml, fcfeHtml: fcfeHtml, fcfeFrom: fcfeFrom, fromParts: fromParts, fromRecord: fromRecord, html: html, hasData: hasData, veHtml: veHtml, historicalHtml: historicalHtml,
     primaryValues: primaryValues, primaryHtml: primaryHtml, veBox: function (d) { if (d && d.holding) return ''; DISPLAY_CURRENCY = d && d.currency === 'COP' ? 'COP' : 'USD'; var h = unified(d) ? unifiedHtml(d) : primaryHtml(d) + veHtml(d); return h ? '<div class="jvb-vebox">' + h + '</div>' : ''; },
     apply: function () { apply(prefs()); } };
 })(window);
