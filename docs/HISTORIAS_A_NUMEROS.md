@@ -1,6 +1,6 @@
 # De la historia a los números — guía para hacer los supuestos (Damodaran)
 
-**Versión 1 · 5-nov-2026 · aplica REGLAS_VIGENTES §2 (v31).** Esta guía no crea reglas: explica **cómo** se hacen los
+**Versión 2 · revisión del 4-nov-2026 (Colombia) · aplica REGLAS_VIGENTES §2 (v33).** Esta guía no crea reglas: explica **cómo** se hacen los
 supuestos de cada historia para que salgan de la historia y no al revés. Se usa en F1 (proponer), F3 (revisar) y F5
 (auditar), y la lee cualquier IA antes de tocar crecimiento, margen, reinversión o riesgo.
 
@@ -11,7 +11,7 @@ Publishing, 2017); la pestaña «Stories to Numbers» de su hoja `fcffginzu.xlsx
 ## La idea central
 
 Un número sin historia es una hoja de cálculo; una historia sin números es un cuento. Damodaran une las dos cosas en
-cinco pasos, siempre en este orden:
+cinco pasos con retroalimentación: se empieza por el negocio, pero la evidencia y el cálculo pueden obligar a volver a la historia:
 
 1. **Contar la historia** de la empresa (qué negocio, qué mercado, cómo gana dinero, qué ventaja tiene, qué riesgo corre).
 2. **Probarla**: ¿es posible, plausible y probable?
@@ -39,7 +39,7 @@ crecimiento maduro, madurez estable, declive. El tipo ordena qué palanca import
 valor es crecimiento y supervivencia; en una madura, márgenes y devolución de caja; en declive, cuánto se rescata.
 
 Las cuatro historias JMR (Base, Conservadora, Optimista, Disrupción) son **cuatro historias distintas**, cada una con
-su mecanismo, no la Base ±x %. La Base es la más probable (la mediana), no la prudente.
+su mecanismo, no la Base ±x %. La Base es el escenario central defendido como más probable, sin recortes preventivos. No equivale automáticamente a la mediana ni al valor esperado de una distribución.
 
 ## Paso 2 · Las 3P
 
@@ -61,7 +61,7 @@ El crecimiento se **deriva**, no se elige:
 1. **TAM actual** y su crecimiento, con fuente (F1). Si no hay dato confiable: N/D con motivo, nunca un número
    inventado para que la participación parezca razonable.
 2. **Participación objetivo del año 10**: la que la historia defiende (fila «Participación objetivo del año 10»).
-   Una historia de líder global puede defender 20-30 % de un mercado fragmentado; una de nicho, 2-5 %.
+   No hay cuotas por defecto para líderes o nichos: la cuota se defiende con competencia, distribución y capacidad.
 3. La hoja calcula **ingresos del año 10 implícitos** = TAM₁₀ × participación y el **crecimiento 1-10 implícito**.
 4. El crecimiento año por año del modelo (filas de crecimiento de cada historia) debe llegar a esos ingresos. La fila
    «Brecha historia − modelo» marca REVISAR si difieren más de 10 %: o cambia la historia, o cambia el crecimiento.
@@ -89,8 +89,9 @@ segmentos (filas 96-101 de su hoja).
   de licencias (alto), industrial y de tiendas (bajo).
 - Anclas: el ventas/capital **marginal** de la propia empresa (no el promedio histórico), el de pares y el de la
   industria. Sobre la industria = REVISAR.
-- Comprobar la coherencia: crecimiento = tasa de reinversión × ROIC. Una historia de mucho crecimiento con poca
-  reinversión exige un ROIC muy alto, y la historia tiene que explicarlo.
+- Con retornos estables y períodos consistentes, el crecimiento del beneficio operativo por inversión nueva se
+  relaciona con la tasa de reinversión y el retorno marginal. No es una identidad universal del crecimiento de ventas.
+  Separar el efecto de mejorar los activos existentes; no proyectar eficiencia creciente a perpetuidad (fuentes S4/S5).
 
 ### Rentabilidad: ROIC terminal
 
@@ -104,7 +105,7 @@ segmentos (filas 96-101 de su hoja).
 - **Costo de capital**: riesgo sistemático (beta sectorial, ERP, riesgo país). Es el mismo para las cuatro historias.
 - **Riesgo propio del negocio** (cliente, regulación, tecnología, IA): va en los flujos de la historia que lo sufre
   (menor crecimiento, menor margen), no en la tasa.
-- **Probabilidad de fracaso**: solo en Disrupción, con su entrada propia (`Escenarios e historias!B216`), y entonces
+- **Probabilidad de fracaso (convención JMR, no regla universal de Damodaran)**: solo en Disrupción, con su entrada propia (`Escenarios e historias!B216`), y entonces
   esa historia no castiga además sus flujos por el mismo riesgo.
 
 ### Valor del crecimiento
@@ -127,8 +128,10 @@ Tres disparadores por historia, observables y con umbral (no «si cambia la comp
   producto). Se revalora desde cero.
 - **Cambio**: un hecho que altera una palanca de forma material (márgenes que no llegan, crecimiento que se frena).
   Se cambian los supuestos afectados.
-- **Desplazamiento**: un hecho que mueve la probabilidad entre historias sin cambiar su contenido (los indicadores
-  del §3 que mueven 5 pp).
+- **Desplazamiento (etiqueta operativa JMR)**: un hecho que mueve probabilidades según §3. No confundir esta
+  adaptación con el *narrative shift* de Damodaran, que modifica las características del negocio y sus inputs.
+  En el autor, *change* amplía, reduce o sustituye el alcance del negocio, y *break* invalida su historia.
+  Clasificar primero el hecho económico y después su efecto sobre parámetros, alcance o probabilidades (fuente S2).
 
 Los disparadores alimentan el capítulo 5 (ciclos), el plan de seguimiento (capítulo 13) y los indicadores de
 probabilidad del §3.
@@ -145,9 +148,98 @@ probabilidad del §3.
 - [ ] Tres disparadores observables por historia.
 - [ ] TAM con fuente, o N/D con motivo.
 
-## Ejemplo resuelto
+## Ejemplo documentado, pendiente de juicio económico
 
 DUOL-20261103-A12-R2 es la primera hoja con las cuatro historias completas
 (`JMR-valuation/scripts/duol_historias_20261104.py` deja el contenido reproducible). Muestra cómo justificar un margen
 y un ROIC muy por encima de la industria (marca, hábito, distribución gratuita), cómo registrar un TAM N/D sin
 inventarlo y cómo escribir disparadores medibles (suscriptores, margen EBITDA ajustado, bookings).
+
+
+## Construcción y revisión económica obligatoria (v33)
+
+Esta sección aplica §2: completa la justificación de los inputs; no añade pestañas, campos JSON ni cambios de motor.
+Fuentes y límites de la investigación en [FUENTES_STORIES_TO_NUMBERS.md](FUENTES_STORIES_TO_NUMBERS.md).
+Los controles estructurales COMPLETA y 3P no certifican por sí solos calidad económica.
+
+### Ficha por supuesto material
+
+Registrar en el soporte F1/F3 de la misma revisión, sin crear otra plantilla:
+
+| Afirmación del negocio | Motor y definición | Evidencia a favor y en contra (fuente/fecha) | Rango defendible | Valor y trayectoria elegidos | Dependencias | Hecho que lo refuta | Celda e impacto en Base/MOS |
+|---|---|---|---|---|---|---|---|
+| Una afirmación concreta por fila | Unidad, período y base contable | Distinguir dato de juicio; N/D explicado | Por qué ese intervalo | Por qué este valor y no otro | Qué debe cambiar conjuntamente | Indicador, umbral y plazo | Si no se midió el impacto, NO EJECUTADO |
+
+La materialidad sigue §4B; no exigir precisión inexistente ni detener soportes independientes por un dato secundario.
+
+### Ingresos: dos perspectivas compatibles
+
+Construir la trayectoria con los motores disponibles: clientes × ingreso por cliente; tiendas × ventas por tienda;
+volumen × precio; o transacciones × comisión. Explicitar retención, conversión y mezcla cuando sean materiales.
+Contrastar con el mercado accesible, su crecimiento y la cuota resultante; no sumar mercados solapados ni dar por
+alcanzable todo el gasto mundial. El TAM desconocido sigue N/D: un modelo por unidades puede sostener el crecimiento.
+
+Para intermediarios, si el mercado está expresado en volumen bruto, ingresos = mercado bruto × cuota × comisión.
+Si ya mide ingresos netos, no multiplicar otra vez por comisión. La participación calculada con ventas netas sobre
+GMV no es una cuota comparable. Registrar y explicar la diferencia en el soporte; no modificar la fórmula de la
+plantilla durante una valoración para ocultar este problema. Casos formativos: Uber y Zomato (S3/S6/S8).
+
+### Márgenes y crecimiento se eligen conjuntamente
+
+Descomponer el paso desde margen actual a objetivo: precio, mezcla, costo variable, escala y costos fijos. Indicar
+qué mejora se alcanza, cuándo y a qué costo. Preservar el puente de margen reportado a ajustado; aplicar §0B y el
+contrato de entrada existente. Comparar negocios equivalentes, no solo empresas con la misma etiqueta sectorial.
+
+Si ganar cuota exige precios menores, más distribución o gasto comercial, reconocerlo. No combinar crecimiento
+masivo y margen de nicho exclusivo sin evidencia. Ferrari enseña el costo de abandonar exclusividad; META ilustra
+la interdependencia entre expansión, rentabilidad e inversión (S2/S3).
+
+### Inversión: capacidad, escala y desfase
+
+Distinguir ventas/capital medio (ventas / saldo de capital) del incremental utilizado para estimar la reinversión.
+Un cociente de diferencias de un solo año puede ser inestable: revisar ventanas plurianuales, adquisiciones,
+capacidad ociosa, construcción en curso y cambios de mix. La media histórica y los pares sirven de anclas, no de
+sustitutos automáticos del juicio sobre inversión futura.
+
+Digital no significa sin inversión: analizar I+D, tecnología y adquisiciones junto con capital físico y de trabajo,
+sin duplicar gastos capitalizados. La capacidad ya pagada puede sostener crecimiento temporal con poca inversión;
+no extrapolarlo para siempre. El desfase debe seguir evidencia y §4C. No normalizar capex ni cambiar el lag solo
+porque el FCFF sea negativo. Caso para estudiar: Amazon, con su composición de negocios e inversión (S6/S9).
+
+### ROIC y terminal: tres preguntas distintas
+
+Separar retorno de activos existentes, retorno de capital nuevo y retorno terminal. Un ROIC histórico elevado no
+prueba que el próximo dólar obtendrá lo mismo. Explicar duración y erosión de la ventaja. La referencia sectorial
+no demuestra por sí sola una ventaja perpetua. Mantener el criterio terminal oficial de §4; documentar RESERVA y
+sensibilidad si el mecanismo económico contradice su ancla, sin sustituir fórmulas ni elegir un ROIC para subir valor.
+
+La expansión de margen produce crecimiento del beneficio además del crecimiento de ventas. No imponer de forma
+mecánica g = reinversión × ROIC durante esa transición. En estabilidad, el control terminal relaciona reinversión,
+g y retorno marginal con períodos compatibles; las ganancias de eficiencia no duran indefinidamente (S4/S5).
+
+### Riesgo, alternativas y revisión posterior
+
+Para cada riesgo material, anotar evento, flujos condicionados a continuidad, tasa sistemática, fracaso/recuperación
+y posibles solapamientos. No contar dos veces el mismo evento. Menor margen en supervivencia y un fracaso distinto
+pueden coexistir. Costo de capital común entre historias y fracaso solo en Disrupción siguen siendo convenciones
+JMR: Damodaran usa otros diseños en sus casos y permite evolución del riesgo con la madurez (S3/S6).
+
+Conservar cuatro historias con mecanismos defendibles, incluidos sus costos y restricciones. Las tres P son juicios
+respaldados por pruebas; una marca Sí no es una probabilidad estimada. No asignar probabilidades por intuición ni
+atribuir a Damodaran los porcentajes propios de §3. Un promedio C/B/O renormalizado es condicionado a ese conjunto,
+no la esperanza de todos los desenlaces. Base, moda, mediana y esperanza no son sinónimos.
+
+Antes de cerrar F3, escribir la objeción económica más fuerte a la Base y responderla con evidencia o RESERVA.
+Después de cada resultado relevante, conservar previsión original, dato observado, error por motor y explicación:
+¿cambió el dato, el mecanismo, la trayectoria o el alcance del negocio? Actualizar solo lo afectado y ejecutar sus
+controles. Esto aplica el bucle de retroalimentación del autor sin convertir cada trimestre en una revaloración
+completa automática (S2/S3).
+
+### Lista adicional de cierre
+
+- [ ] Los motores explican el recorrido anual y concilian con ingresos al año 10; mercado y comisión usan bases compatibles.
+- [ ] El margen objetivo tiene un puente causal y costos coherentes con el crecimiento.
+- [ ] La inversión considera capacidad, intangibles, escala y desfase sin duplicaciones.
+- [ ] Retornos existentes, marginales y terminales se distinguen; eficiencia no se perpetúa.
+- [ ] Cada supuesto material tiene ficha, contraevidencia y falsador; impactos no ejecutados se declaran.
+- [ ] Convenciones JMR y enseñanzas del autor están diferenciadas; la Base admite contradicción específica.

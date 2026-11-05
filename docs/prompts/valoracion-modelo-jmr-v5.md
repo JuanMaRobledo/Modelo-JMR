@@ -53,6 +53,11 @@ todo lo necesario está escrito aquí y las herramientas son opcionales. Reglas 
    dato confiable, N/D con motivo. Costo de capital común a las historias; fracaso solo en Disrupción (B216).
    Cómo hacer cada supuesto desde la historia: `docs/HISTORIAS_A_NUMEROS.md` (lectura obligatoria). El crecimiento
    se deriva de TAM₁₀ × participación objetivo del año 10 (o unidades × ingreso por unidad), nunca al revés.
+   Aplicar íntegra la ficha causal de §2 v33 y la guía v2: evidencia y contraevidencia, rango, elección, trayectoria,
+   dependencias, falsador y celda/impacto. En plataformas conciliar volumen bruto × cuota × comisión con ingresos
+   netos; justificar conjuntamente crecimiento, margen, capacidad e inversión. Distinguir ROIC existente, marginal
+   y terminal; no perpetuar eficiencia ni aplicar la identidad de crecimiento de beneficios a ventas. Responder la
+   objeción más fuerte a la Base en F3. Porcentajes y diseño de escenarios son convenciones JMR; documentar fuentes.
 2. **Visión externa:** compara el crecimiento propuesto con las tasas base de su tamaño (Mauboussin & Callahan,
    *The Base Rate Book*). Alejarse de la tasa base exige evidencia específica escrita.
 3. Descompón el crecimiento: segmento o región, orgánico frente a comprado (las compras son reinversión, no
@@ -120,7 +125,7 @@ favor y en contra, y un DCF anual a 10 años más la perpetuidad: ingresos por s
 reinversión (ventas/capital), ROIC, FCFF y valor terminal.
 
 **Calibración honesta (ni optimista ni conservadora por sistema):**
-- **La Base es el desenlace más probable (la mediana), no el prudente.** La prudencia ya está en el margen de
+- **La Base es el escenario central defendido como más probable; no equivale automáticamente a mediana o esperanza ni es el prudente.** La prudencia ya está en el margen de
   seguridad. Si la Base lleva recortes «por si acaso», el MOS recorta sobre lo ya recortado: no lo hagas.
 - **Conservadora y Optimista tienen la misma exigencia de evidencia.** Ninguna es un ±x% alrededor de la Base: cada
   una es una historia con su propio mecanismo.
@@ -325,3 +330,4 @@ múltiplos superpuestas) está en `docs/prompts/archivo/`.
 ## Contrato de entrega y publicación A-1.2 (31-oct-2026)
 
 Aplicar íntegramente [Proceso único JMR, contrato por etapas](../PROCESO_UNICO_JMR.md#contrato-de-ejecucion-a-12-y-publicacion-por-etapas--31-oct-2026) y `modelo/REGLAS_VIGENTES.md`, que prevalecen si existiera conflicto. La valoración se inicia sobre revisión/corte/sheet_id inequívocos. Calibrar conjuntamente crecimiento, margen, reinversión, Sales-to-Capital incremental, ROIC, coste de capital/Ke y terminal. El cálculo primario debe poder verificarse en la hoja oficial; un DCF externo no sustituye el output nativo. Registrar las cuatro historias, Base+MOS35 y promedio ordinario sin Disrupción, sensibilidad por drivers y DCF inverso. Evaluar cinco métodos relativos prioritarios y aplicar P/BV/P/S solo según economía; ninguna ancla dependiente del precio observado u otro múltiplo puede recibir peso positivo sin justificación independiente. Exportar cada matriz Base 5×5 realmente calculada en la hoja, con fuente/celda/revisión y centro conciliado; faltantes son N/D y no se simulan. Conservar una sola revisión activa por ticker, archivar íntegra la anterior y promover EN_REVISION **solo** tras controles aprobados; auditoría económica y certificación no son requisito de EN_REVISION.
+
