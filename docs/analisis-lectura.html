@@ -107,7 +107,7 @@ h1{font:clamp(28px,4.2vw,47px)/1.16 Georgia,serif;margin:4px 0 6px}
 @media(max-width:650px){.identity{align-items:flex-start;gap:11px}.logo{width:54px;height:54px;border-radius:11px;padding:4px}.reader{padding:18px}.reader h2{font-size:22px}.topbar{padding:12px 15px}}
 @media print{.topbar,.actions,.status,.bottom{display:none}body{background:white;color:black}.reader{border:0;box-shadow:none;padding:0}main{max-width:none;padding:0}}
 </style>
-<script src="jmr-mos-summary.js"></script>
+<script src="jmr-mos-summary.js?v=20261108-floyd-escenarios"></script>
 <script src="jmr-analysis-depth.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
 </head><body>
@@ -240,7 +240,9 @@ function scenarioValues(v){
   const byId=Object.fromEntries(histories.filter(h=>h&&h.id).map(h=>[h.id,h]));
   // Algunos expedientes FCFE identifican historias por nombre, sin id A/B/C/D.
   // Los identificadores explícitos prevalecen; solo se adaptan valores existentes.
-  const namedIds={base:'A',conservador:'B',conservadora:'B',optimista:'D',disrupcion:'C'};
+  const floyd=String(v.perfil_valoracion||'').toLowerCase()==='floyd';
+  const optimisticId=floyd?'C':'D';
+  const namedIds={base:'A',conservador:'B',conservadora:'B',optimista:optimisticId,disrupcion:floyd?null:'C'};
   for(const h of histories){
     if(!h||h.id)continue;
     const name=String(h.nombre||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase();
@@ -253,17 +255,17 @@ function scenarioValues(v){
   const refs={
     B:visible.find(h=>h.nombre==='Conservador'),
     A:visible.find(h=>h.nombre==='Base'),
-    D:visible.find(h=>h.nombre==='Optimista'),
-    C:visible.find(h=>h.nombre==='Disrupción')
+    [optimisticId]:visible.find(h=>h.nombre==='Optimista')
   };
+  if(!floyd)refs.C=visible.find(h=>h.nombre==='Disrupción');
   const dcf=(v.descuentoMultiples||{}).dcfHoy||{};
   const keys=[
     ['B','conservador',dcf.conservador],
     ['A','base',v.valorPrincipal??dcf.base],
-    ['D','optimista',dcf.optimista],
-    ['C','disrupcion',v.valorEsperado?.disrupcionSeparada?.valor]
+    [optimisticId,'optimista',dcf.optimista]
   ];
-  const result={provenance:{},historical:false,incomplete:false};
+  if(!floyd)keys.push(['C','disrupcion',v.valorEsperado?.disrupcionSeparada?.valor]);
+  const result={provenance:{},historical:false,incomplete:false,disrupcion:null};
   keys.forEach(([id,key,fallback])=>{
     const story=byId[id];
     const active=officialNumber(story?.valor??story?.value_usd)??officialNumber(fallback);
@@ -275,13 +277,14 @@ function scenarioValues(v){
     const value=active??older??(savedHistorical?savedValue:null);
     result[key]=value;
     result.historical=result.historical||isHistoric;
-    // Disrupción queda fuera del promedio ordinario; no lo bloquea si falta.
-    if(id!=='C')result.incomplete=result.incomplete||active===null;
+    // El escenario omitido (Disrupción) no bloquea las tres historias ordinarias.
+    // En Floyd C sí es Optimista y, por tanto, SÍ cuenta para la completitud.
+    if(key!=='disrupcion')result.incomplete=result.incomplete||active===null||(floyd&&key==='optimista'&&!story);
     result.provenance[key]=isHistoric?'Referencia R4 · pendiente de recalcular en R5':
       active!==null?(id==='A'?'Valor central de la revisión actual':
-        id==='C'?'Revisión actual · fuera del promedio':'Escenario de la revisión actual'):
+        key==='disrupcion'?'Revisión actual · fuera del promedio':'Escenario de la revisión actual'):
       'Pendiente de cálculo';
-    if(id==='C'&&isHistoric)result.provenance[key]+=' · fuera del promedio';
+    if(key==='disrupcion'&&isHistoric)result.provenance[key]+=' · fuera del promedio';
   });
   return result;
 }
@@ -343,9 +346,10 @@ async function valuationSnapshot(catalog,analysis){
   const names=[
     ['Conservador','conservador','Escenario ordinario'],
     ['Base','base','Valor central del modelo'],
-    ['Optimista','optimista','Escenario ordinario'],
-    ['Disrupción','disrupcion','Se muestra por separado; no entra al promedio']
+    ['Optimista','optimista','Escenario ordinario']
   ];
+  if(String(v.perfil_valoracion||'').toLowerCase()!=='floyd')
+    names.push(['Disrupción','disrupcion','Se muestra por separado; no entra al promedio']);
   const rows=names.map(([name,key,sub])=>
     '<div class="scenario-card'+(key==='base'?' is-base':'')+
     (scenarios.provenance[key].startsWith('Referencia R4')?' is-historical':'')+

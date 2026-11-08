@@ -77,3 +77,27 @@ test('escenarios históricos pendientes son visibles sin inventar promedio R5',(
   assert.match(board,/return pendingStoriesHtml\(d\)/);
   assert.match(board,/no se publica un promedio/);
 });
+
+test('Floyd rotula C como Optimista sin crear Disrupción; esquema A-1.2 permanece',()=>{
+  const f=summary();
+  const host={hidden:false,innerHTML:'',querySelector:()=>null};
+  const mk=perfil=>({
+    perfil_valoracion:perfil,
+    valorPrincipal:100.19381867706664,
+    valorEsperado:{historias:[
+      {id:'B',nombre:'Conservadora',valor:48.64133538841416},
+      {id:'A',nombre:'Base',valor:100.19381867706664},
+      {id:'C',nombre:perfil==='Floyd'?'Optimista':'Disrupción',valor:145.08587655923017},
+      ...(perfil==='Floyd'?[]:[{id:'D',nombre:'Optimista',valor:120}])
+    ]}
+  });
+  f.render(host,mk('Floyd'),{price:68.59});
+  assert.match(host.innerHTML,/Floyd \(tres escenarios\)/);
+  assert.match(host.innerHTML,/Optimista/);
+  assert.doesNotMatch(host.innerHTML,/Disrupción/);
+  assert.doesNotMatch(host.innerHTML,/fuera del promedio/);
+  assert.equal((host.innerHTML.match(/class="jmr-mos-story(?: is-base)?"/g)||[]).length,3);
+  f.render(host,mk('A-1.2'),{price:68.59});
+  assert.match(host.innerHTML,/Disrupción · fuera del promedio/);
+  assert.equal((host.innerHTML.match(/class="jmr-mos-story(?: is-base)?"/g)||[]).length,4);
+});

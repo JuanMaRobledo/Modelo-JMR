@@ -55,3 +55,21 @@ test('ids explícitos prevalecen; nombres con tilde; ausente no equivale a cero'
  r.valorEsperado.historias=r.valorEsperado.historias.filter(h=>h.nombre!=='Optimista');
  assert.equal(scenarios(r).optimista,null);assert.equal(scenarios(r).incomplete,true);
 });
+
+test('Floyd: C es Optimista y falta de C bloquea promedio ordinario, sin afectar PAGS',()=>{
+  const r=fresh();
+  r.perfil_valoracion='Floyd';
+  r.valorEsperado.historias=[
+    {id:'B',nombre:'Conservadora',valor:48.64133538841416},
+    {id:'A',nombre:'Base',valor:100.19381867706664},
+    {id:'C',nombre:'Optimista',valor:145.08587655923017}
+  ];
+  const s=scenarios(r);
+  assert.equal(s.conservador,48.64133538841416);
+  assert.equal(s.base,100.19381867706664);
+  assert.equal(s.optimista,145.08587655923017);
+  assert.equal(s.disrupcion,null);
+  assert.equal(s.incomplete,false);
+  r.valorEsperado.historias.pop();
+  assert.equal(scenarios(r).incomplete,true);
+});

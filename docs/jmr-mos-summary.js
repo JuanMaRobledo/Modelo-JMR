@@ -68,8 +68,13 @@
   function scenarios(rec, unit) {
     var ve = rec && rec.valorEsperado, stories = ve && ve.historias;
     if (!Array.isArray(stories) || !stories.length) return '';
-    var names = {B:'Conservador', A:'Base', D:'Optimista', C:'Disrupción'};
-    var ordered = ['B','A','D','C'].map(function(id){
+    // Floyd usa A=Base, B=Conservadora, C=Optimista. El perfil
+    // anterior usa D=Optimista y C=Disrupción. Nunca confundir ambos.
+    var floyd = String(rec.perfil_valoracion || '').toLowerCase() === 'floyd';
+    var names = floyd ?
+      {B:'Conservador', A:'Base', C:'Optimista'} :
+      {B:'Conservador', A:'Base', D:'Optimista', C:'Disrupción'};
+    var ordered = (floyd ? ['B','A','C'] : ['B','A','D','C']).map(function(id){
       return stories.find(function(s){return s && s.id === id;});
     }).filter(Boolean);
     if (!ordered.length) return '';
@@ -79,7 +84,7 @@
       var value = active !== null ? active : prior;
       var status = historic ? 'Referencia R4 · sin recalcular en R5' :
         (value !== null ? 'DCF de la revisión activa' : 'Pendiente de cálculo');
-      var suffix = s.id === 'C' ? ' · fuera del promedio' : '';
+      var suffix = !floyd && s.id === 'C' ? ' · fuera del promedio' : '';
       return '<div class="jmr-mos-story'+(s.id === 'A' ? ' is-base' : '')+'">' +
         '<span>'+names[s.id]+suffix+'</span><strong>'+money(value,unit)+'</strong>' +
         '<small>'+status+'</small></div>';
@@ -88,7 +93,7 @@
     return '<div class="jmr-mos-scenarios"><div class="jmr-mos-scenarios-head">' +
       '<strong>Escenarios de valoración</strong><span>'+ (includesHistoric ?
         'Referencias de revisiones diferentes; no son comparables ni promediables todavía' :
-        'DCF por escenario · Disrupción por separado') +'</span></div>' +
+        (floyd ? 'DCF por escenario · Floyd (tres escenarios)' : 'DCF por escenario · Disrupción por separado')) +'</span></div>' +
       '<div class="jmr-mos-story-grid">'+rows+'</div></div>';
   }
   function render(container, rec, market) {
