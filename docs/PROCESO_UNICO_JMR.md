@@ -1,5 +1,7 @@
 # Proceso único JMR — contrato de ejecución independiente de la IA
 
+> **8-nov-2026 · Un solo flujo Floyd ChatGPT/Claude:** para toda nueva valoración Floyd aplicar primero [`CONTRATO_EJECUCION_FLOYD.md`](CONTRATO_EJECUCION_FLOYD.md) y [`ordenes-floyd.md`](prompts/ordenes-floyd.md). Ambas IAs ejecutan F1 preparación, F2 H1/H2, F3 tres historias y DCF, F4 análisis Nivel 1 de 14 capítulos + Nivel 2 de 12 y publicación, F5 auditoría independiente. Las instrucciones A-1.2 de cuatro historias y las referencias históricas que aparecen más abajo son compatibles solo con expedientes antiguos; **no son una ruta alternativa de Floyd**. `modelo/REGLAS_VIGENTES.md` conserva autoridad metodológica.
+
 **Objetivo:** usar la misma valoración, análisis y auditoría en ChatGPT (chat o Work), Claude Code, Gemini o herramientas equivalentes. **No es un método financiero nuevo**, ni sustituye las reglas vigentes ni los tres prompts.
 
 ## Selección del perfil oficial
