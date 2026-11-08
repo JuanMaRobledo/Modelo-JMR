@@ -42,9 +42,9 @@ function controlModeloA(t){
   const item=control.empresas[t];
   if(!item || !path || item.rutaValoracion!==path)
     return {visible:false,estado:'SIN_CLASIFICAR',detalle:'Revisión nueva o sin clasificación metodológica; verificar antes de publicar.'};
-  if(item.metodo!=='A-1.2' || item.estado==='EXCLUIDA_HASTA_REHACER_A')
+  if(!['A-1.2','Floyd'].includes(item.metodo) || item.estado==='EXCLUIDA_HASTA_REHACER_A')
     return {visible:false,estado:'EXCLUIDA_HASTA_REHACER_A',detalle:'Versión anterior al Modelo A. Rehacer y conservar la revisión previa en el histórico.'};
-  return {visible:true,estado:item.estado,detalle:item.diagnostico||'Revisión pendiente.',multiplos:item.multiplos};
+  return {visible:true,metodo:item.metodo,estado:item.estado,detalle:item.diagnostico||'Revisión pendiente.',multiplos:item.multiplos};
 }
 function status(s,level){el('status').textContent=s;el('status').dataset.level=level||'neutral';}
 async function fetchJSON(url){
@@ -129,7 +129,9 @@ function renderCatalogCards(){
     const supports=document.createElement('ul');supports.className='card-caption';
     const chip=(text,ok)=>{const li=document.createElement('li');li.textContent=text;li.className=ok?'ok':'pending';return li;};
     supports.append(
-      chip(controlModeloA(t).estado==='INCOMPLETA_EN_REVISION'?'Modelo A · EN_REVISIÓN':'Metodología por verificar',false),
+      chip(controlModeloA(t).estado==='INCOMPLETA_EN_REVISION'?
+        ((controlModeloA(t).metodo==='Floyd'?'Floyd':'Modelo A')+' · EN_REVISIÓN'):
+        'Metodología por verificar',false),
       chip(p.analysisPath?'Análisis':'Análisis pendiente',!!p.analysisPath),
       chip(p.auditPath?'Auditoría':'Auditoría pendiente',!!p.auditPath));
     supports.setAttribute('aria-label','Valoración vigente en catálogo; estado del expediente');
