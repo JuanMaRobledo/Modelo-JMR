@@ -90,8 +90,8 @@ test('Floyd comprueba el centro contra el valor presente del método',()=>{
 });
 
 test('expediente Floyd separa estados y valoración y conserva la navegación de siete secciones',()=>{
- assert.match(src,/sourceBookForView=view=>view==='financieros'\\|\\|view==='indicadores'/);
+ assert.match(src,/sourceBookForView=view=>view==='financieros'\|\|view==='indicadores'/);
  assert.match(src,/libro=historicos/);
  assert.match(src,/workbookBook===book/);
- assert.match(src,/rec\\?\\.libros\\?\\.historicos/);
+ assert.match(src,/rec\?\.libros\?\.historicos/);
 });
