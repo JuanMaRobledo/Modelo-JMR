@@ -178,3 +178,10 @@ test('al elegir cualquier hoja por selector, favoritos o pestañas rápidas se s
   assert.match(source,/selectSheet\(btn\.dataset\.originalSheet\)/);
   assert.match(source,/if\(name\)selectSheet\(name\)/);
 });
+
+test('Floyd elige libro por URL y mantiene Históricos H1 en modo visor',()=>{
+ assert.match(source,/get\\('libro'\\)==='historicos'/);
+ assert.match(source,/JmrModelSync\\.load\\(key,sourceBook\\)/);
+ assert.match(source,/sourceBook==='historicos'/);
+ assert.match(source,/&libro='\\+sourceBook/);
+});
