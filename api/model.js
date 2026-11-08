@@ -14,7 +14,11 @@ export default async function handler(req, res) {
   }
   try {
     const ticker = tickerKey(req.query.ticker);
-    const company = await resolveCompany(ticker);
+    const book=String(req.query.libro||'valoracion');
+    const company = await resolveCompany(ticker,book);
+    // H2 es una copia unidireccional: los históricos no se editan desde el visor del DCF.
+    if(req.method==='PATCH' && book==='historicos')
+      return res.status(409).json({error:'Históricos Floyd: solo lectura desde la app. Actualiza H1 en Google Sheets y ejecuta H2 para traspasar la información.'});
     // Las versiones fuera del catálogo pueden consultarse, pero no sobrescribir
     // una hoja histórica desde el editor. Primero deben conciliarse.
     if(req.method==='PATCH' && company.catalogAvailable && !company.official)
@@ -24,7 +28,7 @@ export default async function handler(req, res) {
       if(req.method==='PATCH')return res.status(503).json({error:'La lectura está activa; falta configurar el acceso de escritura a Google Sheets.'});
       const publicSheet=await readPublicWorkbook(company.id);
       const record={...company.record,hojas:undefined};
-      return res.json({record,path:company.path,...publicSheet});
+      return res.json({record,path:company.path,official:company.official,catalogAvailable:company.catalogAvailable,sourceBook:book,sourceUrl:company.sourceUrl,...publicSheet,writable:false});
     }
     const snapshot = await readSheet(company.id);
     if(req.method === 'PATCH') {
@@ -33,9 +37,9 @@ export default async function handler(req, res) {
       const data = validateChanges(snapshot.sheets, body.changes);
       await sheetsRequest(company.id, '/values:batchUpdate', {method:'POST', body:JSON.stringify({valueInputOption:'RAW', data})});
       const updated = await readSheet(company.id);
-      return res.json({ ...company, id:undefined, ...updated });
+      return res.json({ ...company, id:undefined, ...updated, writable:true });
     }
-    res.json({ ...company, id:undefined, ...snapshot });
+    res.json({ ...company, id:undefined, ...snapshot, writable:book==='valoracion' && !(company.catalogAvailable && !company.official) });
   } catch(error) {
     res.status(error.status || 500).json({error:error.status ? error.message : 'No se pudo sincronizar el modelo. Revisa la configuración y el acceso a la hoja.'});
   }
