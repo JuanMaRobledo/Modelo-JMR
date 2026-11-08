@@ -102,5 +102,17 @@ test('el catálogo manda sobre el orden de nombres R6 y nunca confunde NKE con N
   let selected=selectValuationPath(files,{valoraciones:['valoraciones/NKE-20261025-R6.json']},'NKE');
   assert.equal(selected.path,'valoraciones/NKE-20261025-R6.json');assert.equal(selected.official,true);
   selected=selectValuationPath(files,{valoraciones:[]},'NKE');
-  assert.equal(selected.official,false);assert.notEqual(selected.path,files[2].path);
+  assert.equal(selected,null,'las valoraciones archivadas no deben escapar de la lista blanca');
+  selected=selectValuationPath(files,null,'NKE');
+  assert.equal(selected.official,false,'sin catálogo se conserva compatibilidad legacy');
+  assert.notEqual(selected.path,files[2].path);
+});
+
+test('Floyd es multilibro para cualquier empresa, no hardcodea UBER',()=>{
+  for(const ticker of ['UBER','CMG','ADBE']){
+    const v={ticker,perfil_valoracion:'Floyd',hojaGoogle:'https://docs.google.com/spreadsheets/d/'+ticker+'Valor/edit',
+      libros:{historicos:'https://docs.google.com/spreadsheets/d/'+ticker+'Hist/edit',valoracion:'https://docs.google.com/spreadsheets/d/'+ticker+'Valor/edit'}};
+    assert.equal(sourceBook(v,'historicos').id,ticker+'Hist');
+    assert.equal(sourceBook(v,'valoracion').id,ticker+'Valor');
+  }
 });
