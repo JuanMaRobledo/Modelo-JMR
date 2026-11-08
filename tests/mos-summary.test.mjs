@@ -96,8 +96,8 @@ test('Floyd rotula C como Optimista sin crear Disrupción; esquema A-1.2 permane
   assert.match(host.innerHTML,/Optimista/);
   assert.doesNotMatch(host.innerHTML,/Disrupción/);
   assert.doesNotMatch(host.innerHTML,/fuera del promedio/);
-  assert.equal((host.innerHTML.match(/class="jmr-mos-story/g)||[]).length,3);
+  assert.equal((host.innerHTML.match(/class="jmr-mos-story(?: is-base)?"/g)||[]).length,3);
   f.render(host,mk('A-1.2'),{price:68.59});
   assert.match(host.innerHTML,/Disrupción · fuera del promedio/);
-  assert.equal((host.innerHTML.match(/class="jmr-mos-story/g)||[]).length,4);
+  assert.equal((host.innerHTML.match(/class="jmr-mos-story(?: is-base)?"/g)||[]).length,4);
 });
