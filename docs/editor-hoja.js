@@ -1,7 +1,9 @@
 /* Editor de libro JMR: consulta de todas las pestañas, escritura segura de datos fuente. */
 (function(global){
   'use strict';
-  const forceViewer=!!global.location&&new URLSearchParams(global.location.search).get('modo')==='visor';
+  const pageParams=new URLSearchParams(global.location?.search||'');
+  const sourceBook=pageParams.get('libro')==='historicos'?'historicos':'valoracion';
+  const forceViewer=pageParams.get('modo')==='visor'||sourceBook==='historicos';
   if(forceViewer&&typeof document!=='undefined')document.documentElement.classList.add('jmr-view-only');
   function byId(id){return document.getElementById(id);}
   function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
@@ -178,7 +180,7 @@
       (Number.isSafeInteger(gid)&&gid>=0?'#gid='+gid:'');
   }
   function updateNativeSheetLink(){
-    var link=byId('nativeSheet'),url=nativeSheetUrl(snapshot?.record?.hojaGoogle,selected,snapshot?.sheetGids);
+    var link=byId('nativeSheet'),url=nativeSheetUrl(snapshot?.sourceUrl||snapshot?.record?.hojaGoogle,selected,snapshot?.sheetGids);
     if(!link)return;
     link.hidden=!url;
     if(url){
@@ -301,7 +303,7 @@
     }).join('');
     var single=byId('openSheetTab');
     if(single){
-      single.href='editor-hoja.html?ticker='+encodeURIComponent(ticker)+'&sheet='+encodeURIComponent(selected)+'&modo='+(forceViewer?'visor':'edicion');
+      single.href='editor-hoja.html?ticker='+encodeURIComponent(ticker)+'&sheet='+encodeURIComponent(selected)+'&libro='+sourceBook+'&modo='+(forceViewer?'visor':'edicion');
       single.textContent='Abrir «'+selected+'» en nueva pestaña ↗';
     }
   }
@@ -336,7 +338,7 @@
     }).join('');
     byId('workbook').hidden=false;
     byId('companyName').textContent=(result.record?.company||result.record?.empresa||ticker)+
-      ' · '+ticker+' · '+list.length+' pestañas';
+      ' · '+ticker+' · '+(sourceBook==='historicos'?'Históricos H1':'Valoración Floyd')+' · '+list.length+' pestañas';
     byId('sourceDate').textContent='Lectura: '+new Date(result.fetchedAt||Date.now()).toLocaleString('es-CO');
     // La pestaña de Drive se resuelve después de seleccionar la hoja.
     updateNativeSheetLink();
@@ -344,6 +346,7 @@
     byId('calcLink').href='calculadora.html?ticker='+encodeURIComponent(ticker);
     setMode();selectSheet(chosen);pending();updateMultiplesStatus();
     if(result.catalogAvailable && !result.official)setStatus('Hoja recuperada fuera del catálogo oficial: solo lectura hasta conciliar esta versión. No se modificarán fórmulas ni resultados.','warn');
+    else if(sourceBook==='historicos')setStatus('Históricos H1: estados originales y ratios. Solo lectura; el traspaso al DCF se hace mediante H2.','neutral');
     else if(forceViewer)setStatus('Visor del libro oficial: consulta valores y fórmulas sin modificar la hoja.','neutral');
     else if(result.writable)setStatus('Libro oficial importado. Edita solo celdas permitidas y confirma “Guardar cambios en Google Sheets”.','ok');
     else setStatus('Libro importado en solo lectura. Para editar en esta pestaña se necesita la conexión de escritura del servidor. Puedes abrir la hoja original.','warn');
@@ -356,7 +359,7 @@
     setStatus('Importando libro vigente de '+ticker+'…','neutral');
     var request=++loader;
     try{
-      var result=await JmrModelSync.load(key);
+      var result=await JmrModelSync.load(key,sourceBook);
       if(request!==loader)return;
       openSnapshot(result);
     }catch(e){setStatus('No se pudo importar '+ticker+': '+e.message,'error');}
@@ -379,7 +382,7 @@
     if(drafts.size)setStatus('Cambios preparados, todavía NO guardados en Google Sheets.','warn');
   }
   async function save(){
-    if(forceViewer||!snapshot?.writable||busy||!drafts.size)return;
+    if(forceViewer||sourceBook==='historicos'||!snapshot?.writable||busy||!drafts.size)return;
     if(drafts.size>50){setStatus('Máximo 50 cambios por guardado. Descarta o reduce el lote.','error');return;}
     var changes=Array.from(drafts.values()),confirmed=global.confirm('¿Guardar '+changes.length+' cambio(s) directamente en la hoja oficial de '+ticker+'? Se conservarán las fórmulas.');
     if(!confirmed)return;
