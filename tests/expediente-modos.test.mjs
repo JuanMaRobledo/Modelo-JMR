@@ -36,7 +36,7 @@ test('fuente Drive disponible y auditoría separada de edición', () => {
   assert.ok(html.includes('id="reviewReadOnly"'));
   assert.ok(app.includes('function syncReviewMode()'));
   assert.ok(app.includes("view==='sensibilidades'?'Sensibilidad DCF'"));
-  assert.ok(app.includes("state.valuationRecord?.hojaGoogle"));
+  assert.ok(app.includes("rec?.libros?.historicos") && app.includes("rec?.hojaGoogle"));
 });
 
 test('proteger borradores financieros al cambiar empresa, sección, subpestaña y modo', () => {
