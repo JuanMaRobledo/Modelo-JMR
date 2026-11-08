@@ -9,6 +9,13 @@ on:
       - 'docs/prompts/colombia-valuation-v1.md'
       - 'docs/prompts/colombia-research-v1.md'
       - 'tests/work-prompt-parity.test.mjs'
+      - 'AGENTS.md'
+      - 'CLAUDE.md'
+      - 'docs/CONTRATO_EJECUCION_FLOYD.md'
+      - 'docs/prompts/ordenes-floyd.md'
+      - 'docs/propuestas/fases/MODO_CHATGPT.md'
+      - 'docs/PROCESO_UNICO_JMR.md'
+      - 'tests/floyd-agent-parity.test.mjs'
       - '.github/workflows/prompts-triad.yml'
   push:
     branches: [main]
@@ -20,6 +27,13 @@ on:
       - 'docs/prompts/colombia-valuation-v1.md'
       - 'docs/prompts/colombia-research-v1.md'
       - 'tests/work-prompt-parity.test.mjs'
+      - 'AGENTS.md'
+      - 'CLAUDE.md'
+      - 'docs/CONTRATO_EJECUCION_FLOYD.md'
+      - 'docs/prompts/ordenes-floyd.md'
+      - 'docs/propuestas/fases/MODO_CHATGPT.md'
+      - 'docs/PROCESO_UNICO_JMR.md'
+      - 'tests/floyd-agent-parity.test.mjs'
       - '.github/workflows/prompts-triad.yml'
 jobs:
   verify:
@@ -29,4 +43,4 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: '22'
-      - run: node --test tests/prompts-triad.test.mjs tests/work-prompt-parity.test.mjs
+      - run: node --test tests/prompts-triad.test.mjs tests/work-prompt-parity.test.mjs tests/floyd-agent-parity.test.mjs
