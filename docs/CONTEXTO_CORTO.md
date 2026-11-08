@@ -1,11 +1,13 @@
 # Contexto corto — Modelo JMR (cinco fases)
 
-**Versión 1 · 3-nov-2026 · basado en `modelo/REGLAS_VIGENTES.md` v33.** Resumen operativo para que cualquier IA (Claude, ChatGPT, Gemini) cargue lo esencial sin leer ~20.000 palabras. **No crea reglas ni las cambia:** cada punto remite a su sección (§) de `REGLAS_VIGENTES.md`, que prevalece ante cualquier diferencia. Si una regla cambia allí, actualizar este resumen en el mismo PR.
+**Versión 2 · 8-nov-2026 · basado en `modelo/REGLAS_VIGENTES.md` v34.** Resumen operativo para que cualquier IA (Claude, ChatGPT, Gemini) cargue lo esencial sin leer ~20.000 palabras. **No crea reglas ni las cambia:** cada punto remite a su sección (§) de `REGLAS_VIGENTES.md`, que prevalece ante cualquier diferencia. Si una regla cambia allí, actualizar este resumen en el mismo PR.
+
+**Floyd es el perfil oficial para nuevas valoraciones de operativas FCFF.** Para una valoración nueva de una empresa operativa cubierta por Simple Ginzu FCFF, usa Floyd por defecto. Si el usuario elige otro perfil o la tarea continúa una revisión ya identificada, respeta ese perfil. Para Floyd, abre [sus órdenes de ejecución](prompts/ordenes-floyd.md). El resto de este resumen describe A-1.2 y sus reglas compartidas, con las excepciones de §0 para Floyd.
 
 ## 1. Reglas que aplican en todas las fases
 
 1. **Aislamiento.** Una revisión vigente por emisor (ticker · `revision_id` · `sheet_id` · corte). No mezclar empresas, no reutilizar cifras, supuestos ni dictámenes de revisiones archivadas (§10). La vigente de cada emisor y sus sustituidas están en `Modelo-JMR-datos/registro/REVISIONES.md`; una sustituida es evidencia, nunca insumo. Declarar `AISLAMIENTO=OK`.
-2. **Método.** A-1.2 por defecto; B solo por elección expresa del usuario. Nunca mezclar supuestos A y B en una revisión (§12).
+2. **Método de supuestos.** A por defecto; B solo por elección expresa del usuario. Distingue esta elección del perfil de ejecución. Nunca mezclar supuestos A y B en una revisión (§12).
 3. **Origen de cada número.** Fuente primaria SEC/NIIF (o Treasury/Damodaran/mercado según el dato) con período, moneda, escala, nota/URL y celda (§0A, §11).
 4. **Un cero no es un dato.** Una partida sin cifra separada es: cero publicado, incluida en otra línea (con conciliación), no aplicable (justificado) o pendiente. Nunca rellenar con `0` (§0A).
 5. **La hoja calcula; la IA aporta datos crudos y supuestos.** No pegar resultados sobre fórmulas, no editar fórmulas ni reemplazar selectores (`B12`, `B22`, `B26`, método, historia, ponderación). Hacerlo es hallazgo bloqueante (§0B, §11). Perfil oficial: 47 pestañas (46 en copias anteriores al 4-nov-2026); `Forward Valuation` deprecada pero no se borra; `DCF FCFE` es solo informativa (§1).

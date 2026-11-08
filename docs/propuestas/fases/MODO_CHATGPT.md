@@ -1,9 +1,9 @@
 # Modo ChatGPT / Work — Modelo JMR en CINCO fases
-**Versión:** 2-nov-2026 · propuesta de proceso en PR. Contrato común: [README de fases](README.md), [reglas v26](../../../modelo/REGLAS_VIGENTES.md) y [proceso único](../../PROCESO_UNICO_JMR.md). No sustituye la metodología A-1.2.
+**Versión:** 2-nov-2026 · propuesta de proceso en PR. Contrato común: [README de fases](README.md), [reglas v26](../../../modelo/REGLAS_VIGENTES.md) y [proceso único](../../PROCESO_UNICO_JMR.md). La selección oficial del perfil está en REGLAS_VIGENTES §0.
 
 ## Instrucción para el proyecto JMR (copiar una vez)
 ```text
-Eres el ejecutor del Modelo JMR A-1.2 de CINCO FASES. Se ejecuta una fase por pedido, o varias si el usuario lo solicita expresamente.
+Eres el ejecutor del Modelo JMR. Para una valoración nueva de una empresa operativa cubierta por Simple Ginzu FCFF, usa Floyd por defecto. Si el usuario elige otro perfil o la tarea continúa una revisión ya identificada, respeta ese perfil. Para Floyd abre primero docs/prompts/ordenes-floyd.md. Para A-1.2 sigue el flujo descrito abajo. Ejecuta una fase por pedido, o varias si el usuario lo solicita expresamente.
 F1 = VALORACIÓN INICIAL. Sigue el CONTRATO_INSUMOS_FASE_1.md: inventaría y verifica todas las dependencias reales de Input sheet, WACC, Synthetic rating, R& D converter, Operating lease converter, Option value, otras hojas auxiliares y cinco múltiplos, además del DCF. Captura solo historia necesaria para esos modelos, no diez años completos por defecto. Valora por DCF Damodaran y propone Base/Conservadora/Optimista/Disrupción con fuentes. El valor es CANDIDATO, no definitivo.
 F2 = DATOS HISTÓRICOS. Completa hasta 10 años FY + LTM de estados, ajustes, auxiliares, ratios por fórmulas y trading; clasifica ceros/no desglosados y concilia SEC/NIIF.
 F3 = REVISIÓN ECONÓMICA. Contrasta crecimiento, márgenes, reinversión/Sales-to-Capital, ROIC marginal/terminal, WACC, g, múltiplos y escenarios; mantén o corrige con evidencia, sensibilidad e impacto.
@@ -21,7 +21,7 @@ No ejecutes F5 en la misma sesión que construyó F1/F3/F4 como si fuera auditor
 ## Archivos y prompts a proporcionar
 - `modelo/REGLAS_VIGENTES.md`, `docs/PROCESO_UNICO_JMR.md`, `docs/propuestas/fases/README.md`.
 - Canónicos: `FASE_1_VALORACION_INICIAL.md`, `FASE_2_HISTORICOS_COMPLETOS.md`, `FASE_3_REVISION_SUPUESTOS.md`, `FASE_4_ANALISIS_PUBLICACION.md`, `FASE_5_AUDITORIA_GUIADA.md`.
-- Prompts existentes, sin cambio de contenido: `docs/prompts/valoracion-modelo-jmr-v5.md` para F1/F3; `research-fundamental-jmr-v5.md` F4; `auditoria-economica-jmr-v1.md` F5. Colombia anteponer `colombia-nucleo-v1.md`.
+- Prompts maestros: `docs/prompts/valoracion-modelo-jmr-v5.md` para F1/F3; `research-fundamental-jmr-v5.md` F4; `auditoria-economica-jmr-v1.md` F5. Colombia anteponer `colombia-nucleo-v1.md`.
 - Los antiguos `FASE_1_DATOS_Y_HOJA.md`/F2/F3/F4 de cuatro fases están en `docs/propuestas/fases/archivo/`, solo para historial; **no deben ejecutarse**.
 - Para ahorrar contexto, cargar primero `docs/CONTEXTO_CORTO.md` y consultar `modelo/REGLAS_VIGENTES.md` en las secciones que indica para la fase.
 

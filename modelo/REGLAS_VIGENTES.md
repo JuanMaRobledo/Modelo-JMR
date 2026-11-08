@@ -1,11 +1,19 @@
 # Reglas vigentes del Modelo JMR
 
-**Versión 33 · 4-nov-2026 (Colombia).** Este documento es la única fuente de las reglas de método. Si un prompt
+**Versión 34 · 8-nov-2026 (Colombia).** Este documento es la única fuente de las reglas de método. Si un prompt
 (`docs/prompts/*.md`), `METODOLOGIA.md`, una habilidad o un comentario de código dice otra cosa, prevalece este
 documento. Una regla nueva no se agrega como «regla del día X» en un prompt: se cambia aquí, se sube la versión y se
 anota en el registro de cambios del final.
 
-**Doble método:** desde esta versión las valoraciones seleccionan `Método A` o `Método B` por revisión. La selección normativa y precedencia se describen en [`METODOS_VALORACION.md`](METODOS_VALORACION.md), con reglas particulares en [`METODO_A_JMR.md`](METODO_A_JMR.md) y copia íntegra del método anterior en [`METODO_B_JMR.md`](METODO_B_JMR.md). El presente documento mantiene las reglas **compartidas** de cálculo, plantilla y publicación. Para revisiones nuevas, la metodología vigente es A / A-1.2, salvo elección expresa de B por el usuario; registrar y comunicar la selección antes de estimar. La interpretación B sin etiqueta se conserva exclusivamente para leer revisiones históricas, sin reclasificarlas ni recalcularlas.
+**Doble método:** desde esta versión las valoraciones seleccionan `Método A` o `Método B` por revisión. La selección normativa y precedencia se describen en [`METODOS_VALORACION.md`](METODOS_VALORACION.md), con reglas particulares en [`METODO_A_JMR.md`](METODO_A_JMR.md) y copia íntegra del método anterior en [`METODO_B_JMR.md`](METODO_B_JMR.md). El presente documento mantiene las reglas **compartidas** de cálculo, plantilla y publicación. En el flujo compatible A-1.2 se aplica Método A, salvo elección expresa de B por el usuario; registrar y comunicar la selección antes de estimar. La interpretación B sin etiqueta se conserva exclusivamente para leer revisiones históricas, sin reclasificarlas ni recalcularlas.
+
+## 0. Perfil oficial Modelo JMR Floyd
+
+**Decisión del 8-nov-2026.** Floyd es el perfil oficial por defecto para nuevas valoraciones de empresas operativas cubiertas por Simple Ginzu FCFF. Aplica el perfil elegido expresamente por el usuario y respeta el perfil de toda revisión que se continúe. Para financieras, holdings y otros casos que requieren motores que Floyd todavía no cubre, usa el flujo compatible con FCFE/SOTP según corresponda. Los expedientes previos conservan método, cifras, hoja y estado hasta que se apruebe una revisión que los sustituya.
+
+**Órdenes obligatorias:** [F1–F5 de Floyd](../docs/prompts/ordenes-floyd.md). En Floyd, F1 prepara corte y alcance. F2 concilia el libro de Históricos y traspasa FY-2, FY-1, FY y LTM al libro de Valoración. F3 valora tres escenarios (Conservadora, Base y Optimista), con costo de capital común, fracaso solo en Conservadora y módulo de segmentos cuando aplique. F4 redacta el análisis tras cerrar los insumos materiales y comprueba hoja, JSON y visor. F5 es independiente. Se conserva el MOS 35 % sobre el DCF Base.
+
+Para Floyd prevalecen estas instrucciones sobre las cláusulas específicas de A-1.2 acerca de valoración inicial en F1, cuatro historias, probabilidad de Disrupción y formato de 47 pestañas. Conserva los controles comunes de fuentes, integridad, materialidad, cálculo y publicación. El estado oficial del **perfil** es distinto del estado de un **expediente**: para publicar una revisión Floyd en la app exige validadores compatibles con tres escenarios, conciliación y controles de §6 y §8A. Si falta evidencia técnica o financiera, la revisión sigue como CANDIDATO.
 
 ## Continuidad operativa de fases — 2-nov-2026
 
@@ -347,6 +355,7 @@ Hojas de trabajo conservadas tras el archivo del 24-oct-2026 (identidad document
 
 | Versión | Fecha | Cambio |
 |---|---|---|
+| 34 | 8-nov-2026 | §0: Floyd es el perfil oficial para nuevas operativas FCFF. Órdenes F1–F5 de Floyd, tres escenarios y controles de publicación por revisión. |
 | 33 | 4-nov-2026 (Colombia) | §2: calidad económica de supuestos, fichas causales y seguimiento; guía v2 con fuentes originales, motores de ingresos, comisión, margen/inversión conjuntos, ROIC marginal y eficiencia; distingue convenciones JMR y conceptos estadísticos. Sin recalcular valoraciones ni alterar fórmulas, probabilidades o gates. La fecha local difiere de registros anteriores fechados en UTC. |
 | 32 | 5-nov-2026 | §2: los supuestos salen de la historia; guía `docs/HISTORIAS_A_NUMEROS.md` obligatoria en F1/F3/F5; crecimiento derivado de TAM₁₀ × participación objetivo con fila de brecha historia − modelo en cada historia (`build_historias_sheet.py`, aplicada a plantillas y hojas vigentes sin cambio de valores); control de publicación para revisiones nuevas. |
 | 31 | 4-nov-2026 | §2: historias → números según Damodaran (tipo de historia, párrafo, vínculo por palanca, prueba 3P con números frente a TAM e industria, juicio por P y disparadores ruptura/cambio/desplazamiento); costo de capital común y fracaso solo en Disrupción (entrada propia); TAM como dato de F1. Sección nueva en `Escenarios e historias` A104:N238 (`JMR-valuation/scripts/build_historias_sheet.py`), aplicada a Maestra, IA, Manual y 24 hojas vigentes de operativas con valores idénticos antes y después (DUOL, aplicada después de mover su DCF de control a A242:N256, es la primera con las cuatro historias completas; financieras y sustituidas sin la sección, AVISO en `diff_formulas_plantilla.py`). |

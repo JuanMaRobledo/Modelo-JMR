@@ -1,6 +1,8 @@
 # Proceso oficial Modelo JMR · CINCO FASES
 
-**Versión v2 · 2-nov-2026 · INTEGRADA A MAIN mediante PR #166 (CI aprobada).** Resumen operativo para cargar primero: [`docs/CONTEXTO_CORTO.md`](../../CONTEXTO_CORTO.md). Fuente normativa: `modelo/REGLAS_VIGENTES.md`; metodología A-1.2 por defecto. Este README es el **único orquestador** para ChatGPT, Work, Claude Code y otros agentes. La plantilla y el motor conservan las reglas financieras, el MOS, los cuatro escenarios y los controles de publicación.
+**Perfil oficial Floyd.** Para una valoración nueva de una empresa operativa cubierta por Simple Ginzu FCFF, usa Floyd por defecto. Si el usuario elige otro perfil o la tarea continúa una revisión ya identificada, respeta ese perfil. Abre [las órdenes ejecutables Floyd](../../prompts/ordenes-floyd.md) antes de elegir un archivo de fase para Floyd. El flujo de abajo corresponde a A-1.2 y a los expedientes compatibles que requieren FCFE/SOTP.
+
+**Versión v2 · 2-nov-2026 · INTEGRADA A MAIN mediante PR #166 (CI aprobada).** Resumen operativo para cargar primero: [`docs/CONTEXTO_CORTO.md`](../../CONTEXTO_CORTO.md). Fuente normativa: `modelo/REGLAS_VIGENTES.md`; flujo compatible A-1.2 descrito abajo. Este README es el **único orquestador** para ChatGPT, Work, Claude Code y otros agentes. La plantilla y el motor conservan las reglas financieras, el MOS, los cuatro escenarios y los controles de publicación.
 
 **Cobertura F1 obligatoria:** además de Input sheet y los cinco múltiplos, consultar el [contrato universal de insumos y hojas auxiliares](CONTRATO_INSUMOS_FASE_1.md), incluidos WACC, capitalización de I+D, Option value, leases y validación de deuda/activos no operativos. F2 no releva la captura mínima necesaria para valorar en F1.
 
@@ -13,7 +15,7 @@
 | **4 · Análisis + publicación** | «Continúa Fase 4 de AMZN» | Nivel 1/2 completo, pruebas hoja–JSON–app, publicación **EN_REVISION** solo si gates pasan | [FASE_4_ANALISIS_PUBLICACION.md](FASE_4_ANALISIS_PUBLICACION.md), `FASE_4_ENTREGA.md` · EN_REVISION o CANDIDATO |
 | **5 · Auditoría guiada** | «Audita AMZN en Fase 5» | Auditoría económica **guiada por las observaciones del usuario**, con comprobación independiente y dictamen | [FASE_5_AUDITORIA_GUIADA.md](FASE_5_AUDITORIA_GUIADA.md), `FASE_5_ENTREGA.md` · dictamen independiente |
 
-**Prompts maestros no cambian de contenido:** 1/3 `valoracion-modelo-jmr-v5.md` se ejecuta en **F1** (y las partes pertinentes en revisión F3), 2/3 `research-fundamental-jmr-v5.md` en **F4** y 3/3 `auditoria-economica-jmr-v1.md` en **F5**. F2 es captura/validación de datos, F3 juicio sobre hipótesis, no se crean prompts maestros 4/3 y 5/3.
+**Prompts maestros del flujo oficial:** 1/3 `valoracion-modelo-jmr-v5.md` se ejecuta en **F1** (y las partes pertinentes en revisión F3), 2/3 `research-fundamental-jmr-v5.md` en **F4** y 3/3 `auditoria-economica-jmr-v1.md` en **F5**. F2 es captura/validación de datos, F3 juicio sobre hipótesis, no se crean prompts maestros 4/3 y 5/3.
 
 ## Contratos permanentes
 1. **Una revisión por emisor, una sola hoja vigente:** ticker/revisión/corte/`sheet_id` identificados. Archivar revisiones sustituidas; no mezclar R2/R3 con R4 u otros emisores.
