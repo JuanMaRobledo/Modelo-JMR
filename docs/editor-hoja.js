@@ -1,7 +1,7 @@
 /* Editor de libro JMR: consulta de todas las pestañas, escritura segura de datos fuente. */
 (function(global){
   'use strict';
-  const pageParams=new URLSearchParams(global.location?.search||'');
+  const pageParams=global.location?new URLSearchParams(global.location.search):{get:()=>null};
   const sourceBook=pageParams.get('libro')==='historicos'?'historicos':'valoracion';
   const forceViewer=pageParams.get('modo')==='visor'||sourceBook==='historicos';
   if(forceViewer&&typeof document!=='undefined')document.documentElement.classList.add('jmr-view-only');
@@ -382,7 +382,7 @@
     if(drafts.size)setStatus('Cambios preparados, todavía NO guardados en Google Sheets.','warn');
   }
   async function save(){
-    if(forceViewer||sourceBook==='historicos'||!snapshot?.writable||busy||!drafts.size)return;
+    if(forceViewer||!snapshot?.writable||busy||!drafts.size)return;
     if(drafts.size>50){setStatus('Máximo 50 cambios por guardado. Descarta o reduce el lote.','error');return;}
     var changes=Array.from(drafts.values()),confirmed=global.confirm('¿Guardar '+changes.length+' cambio(s) directamente en la hoja oficial de '+ticker+'? Se conservarán las fórmulas.');
     if(!confirmed)return;
