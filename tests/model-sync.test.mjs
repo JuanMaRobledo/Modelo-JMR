@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import { generateKeyPairSync } from 'node:crypto';
-import { unpackSheets, revision, validateChanges, tickerKey, selectValuationPath } from '../lib/model-sheet.js';
+import { unpackSheets, revision, validateChanges, tickerKey, sourceBook, selectValuationPath } from '../lib/model-sheet.js';
 import handler from '../api/model.js';
 import { createSession } from '../sso-session.js';
 
