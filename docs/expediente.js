@@ -22,7 +22,8 @@ const SHEETS_BY_VIEW={
     'Cost of capital worksheet','Descuento de múltiplos','Sensibilidad DCF']
 };
 const displayFromUrl=params.get('modo')==='edicion'?'edicion':'visor';
-const state={displayMode:displayFromUrl,workbookDisplayMode:'',catalog:{valoraciones:[],analisis:[],auditorias:[]},files:[],ticker:'',view:initialView,ready:false,loc:null,reviewSha:null,reviewLoading:false,mosRequest:0,valuationRecord:null,frameMode:'',sheet:'',sheetByView:{},sensitivityMode:'sensibilidades',valuationMode:params.get('metodo')==='multiplos'?'multiplos':'dcf'};
+const sourceBookForView=view=>view==='financieros'||view==='indicadores'?'historicos':'valoracion';
+const state={displayMode:displayFromUrl,workbookDisplayMode:'',workbookBook:'',catalog:{valoraciones:[],analisis:[],auditorias:[]},files:[],ticker:'',view:initialView,ready:false,loc:null,reviewSha:null,reviewLoading:false,mosRequest:0,valuationRecord:null,frameMode:'',sheet:'',sheetByView:{},sensitivityMode:'sensibilidades',valuationMode:params.get('metodo')==='multiplos'?'multiplos':'dcf'};
 const TICKER=/^[A-Z0-9._-]{1,24}$/;
 function valid(x){x=String(x||'').trim().toUpperCase();if(x==='GOOG')x='GOOGL';return TICKER.test(x)?x:'';}
 function tickerFromName(x){return String(x||'').match(/^([A-Za-z0-9._]+)-/)?.[1]?.toUpperCase()||'';}
@@ -224,8 +225,8 @@ function pages(t){
     valoracion:{href:v,help:officialPath&&inDirectory?'Valoración indicada en el catálogo oficial.':'La valoración disponible aún no figura en el catálogo oficial; no se presenta como validada.'},
     analisis:{href:a,help:isA12Review(t)?'Análisis Método A-1.2 candidato EN_REVISIÓN, no publicado en el catálogo financiero oficial. Solo lectura; cuatro escenarios y niveles 1–2. Los demás paneles conservan la valoración vigente.':analysisPath?'Análisis asociado en el catálogo oficial; verificar que corresponda a la misma revisión.':'Biblioteca filtrada por ticker. No se atribuye automáticamente un informe antiguo a esta revisión.'},
     supuestos:{href:'editor-hoja.html?ticker='+encodeURIComponent(t),help:'Libro completo original; cambios de entrada requieren guardar y no republican el estudio.'},
-    financieros:{href:'editor-hoja.html?ticker='+encodeURIComponent(t),help:'Estados financieros originales: resultados, balance, flujos de caja y series por acción.'},
-    indicadores:{href:'editor-hoja.html?ticker='+encodeURIComponent(t),help:'Rentabilidad, ratios de mercado, eficiencia y salud financiera/deuda.'},
+    financieros:{href:'editor-hoja.html?ticker='+encodeURIComponent(t)+'&libro=historicos',help:'Estados financieros originales: resultados, balance, flujos de caja y series por acción.'},
+    indicadores:{href:'editor-hoja.html?ticker='+encodeURIComponent(t)+'&libro=historicos',help:'Rentabilidad, ratios de mercado, eficiencia y salud financiera/deuda.'},
     modelo:{href:'editor-hoja.html?ticker='+encodeURIComponent(t),help:'Supuestos, DCF, costo de capital y todas las pestañas originales de la hoja de Google.'},
     revision:{href:'',help:'Observaciones y estado de revisión visual de esta empresa, sin iniciar automáticamente auditorías.'},
     auditoria:{href:'auditorias.html?ticker='+encodeURIComponent(t),help:auditPath?'Auditoría narrativa incluida en el catálogo oficial; cotejar dictamen y revisión con la valoración. Auditoría integral disponible desde la página de auditorías.':'No hay auditoría narrativa oficial para esta empresa. La página indica el estado real, sin sustituirla por otra empresa.'},
@@ -290,7 +291,7 @@ function openCompany(input){
   if(changedCompany)state.valuationMode='dcf';
   state.ticker=t;state.loc=null;state.reviewSha=null;const mosRequest=++state.mosRequest;el('ticker').value=t;
   el('mosSummary').hidden=true;
-  state.valuationRecord=null;state.sheet='';state.frameMode='';state.workbookDisplayMode='';state.sheetByView={};
+  state.valuationRecord=null;state.sheet='';state.frameMode='';state.workbookDisplayMode='';state.workbookBook='';state.sheetByView={};
   // Respetar ?modo=edicion al abrir un vínculo directo. Al cambiar de
   // empresa, volver a Visor para evitar entrar editando otra hoja.
   if(changedCompany)state.displayMode='visor';
@@ -543,7 +544,9 @@ function paintSensitivity(root,ref){
   });
 }
 function sourceUrl(){
-  const url=String(state.valuationRecord?.hojaGoogle||'');
+  const rec=state.valuationRecord;
+  const book=sourceBookForView(state.view);
+  const url=String(book==='historicos'&&rec?.perfil_valoracion==='Floyd'?rec?.libros?.historicos||'':rec?.libros?.valoracion||rec?.hojaGoogle||'');
   return /^https:\/\/docs\.google\.com\/spreadsheets\/d\/[A-Za-z0-9_-]+(?:\/|$)/.test(url)?url:'';
 }
 function updateNativeLink(){
@@ -564,7 +567,8 @@ function selectWorkbookSheet(view,name){
   if(!['valoracion','sensibilidades'].includes(view)&&(!SHEETS_BY_VIEW[view]||typeof name!=='string'||!name.trim()||name.length>140))return;
   state.sheet=name;state.sheetByView[view]=name;
   const mode=state.displayMode;
-  const base='editor-hoja.html?ticker='+encodeURIComponent(state.ticker)+'&sheet='+encodeURIComponent(name)+'&modo='+mode;
+  const book=sourceBookForView(view);
+  const base='editor-hoja.html?ticker='+encodeURIComponent(state.ticker)+'&sheet='+encodeURIComponent(name)+'&libro='+book+'&modo='+mode;
   const href=base+'&embedded=1&seccion='+view;
   const open=el('openOriginal');
   open.href=base;
@@ -573,10 +577,10 @@ function selectWorkbookSheet(view,name){
   updateNativeLink();
   const existing=frame.getAttribute('src')||'';
   // Reutilizar una lectura solo si coincide empresa y modo.
-  if(state.frameMode==='workbook'&&state.workbookDisplayMode===mode&&existing.includes('editor-hoja.html?ticker='+encodeURIComponent(state.ticker))){
+  if(state.frameMode==='workbook'&&state.workbookDisplayMode===mode&&state.workbookBook===book&&existing.includes('editor-hoja.html?ticker='+encodeURIComponent(state.ticker))){
     frame.contentWindow?.postMessage({type:'jmr-select-source-sheet',ticker:state.ticker,sheet:name,section:view},location.origin);
   }else{
-    state.frameMode='workbook';state.workbookDisplayMode=mode;frame.setAttribute('src',href);
+    state.frameMode='workbook';state.workbookDisplayMode=mode;state.workbookBook=book;frame.setAttribute('src',href);
   }
 }
 function showView(view){

@@ -17,6 +17,15 @@
     var selected=(official&&list.find(function(f){return f.path===official;}))||list[0];
     return selected ? {file:selected,official:!!official&&selected.path===official} : null;
   }
+  function bookUrl(rec,book){
+    if(book!=='valoracion'&&book!=='historicos')throw new Error('Libro desconocido.');
+    var url=book==='historicos'
+      ? ((rec.libros&&rec.libros.historicos)||(rec.perfil_valoracion==='Floyd'?'':rec.hojaGoogle))
+      : ((rec.libros&&rec.libros.valoracion)||rec.hojaGoogle);
+    if(!/^https:\/\/docs\.google\.com\/spreadsheets\/d\/[\w-]+(?:\/|$)/.test(String(url||'')))
+      throw new Error(book==='historicos'?'Falta el libro Históricos de esta revisión.':'La valoración no tiene hoja de Google vinculada.');
+    return url;
+  }
   function findCompany(key){
     var base='https://raw.githubusercontent.com/JuanMaRobledo/Modelo-JMR-datos/main/';
     return Promise.all([
@@ -37,22 +46,32 @@
       if(a[0]==='!')return;var c=wb.Sheets[name][a];sheets[name][a]={v:c.v,w:c.w,formula:c.f||null};
     });});return sheets;
   }
-  function load(key){
-    key=ticker(key);
-    return request('/api/model?ticker='+encodeURIComponent(key)).then(function(s){
+  function load(key,book){
+    key=ticker(key);book=book||'valoracion';
+    if(book!=='valoracion'&&book!=='historicos')return Promise.reject(new Error('Libro desconocido.'));
+    return request('/api/model?ticker='+encodeURIComponent(key)+'&libro='+encodeURIComponent(book)).then(function(s){
       if(s.publicWorkbook){var bytes=Uint8Array.from(atob(s.publicWorkbook),function(c){return c.charCodeAt(0);});s.sheets=fromWorkbook(XLSX.read(bytes,{type:'array'}));delete s.publicWorkbook;}
-      s.writable=!!s.revision && !(s.catalogAvailable && !s.official);return s;}).catch(function(apiError){
-      // GitHub Pages has no server API. Public native sheets remain a read-only alternative.
+      s.sourceBook=s.sourceBook||book;s.sourceUrl=s.sourceUrl||bookUrl(s.record,book);
+      s.writable=book==='valoracion'&&s.writable!==false&&!!s.revision&&!(s.catalogAvailable&&!s.official);
+      return s;
+    }).catch(function(apiError){
+      // GitHub Pages no tiene API. Los dos libros públicos se consultan separadamente en solo lectura.
       return findCompany(key).then(function(found){
-        var id=/^https:\/\/docs\.google\.com\/spreadsheets\/d\/([\w-]+)/.exec(found.record.hojaGoogle||'');
-        if(!id)throw new Error('La valoración no tiene una hoja de Google vinculada.');
-        return fetch('https://docs.google.com/spreadsheets/d/'+id[1]+'/export?format=xlsx', {cache:'no-store',credentials:'omit',signal:AbortSignal.timeout(25000)})
-          .then(function(r){if(!r.ok)throw new Error('No se pudo leer la hoja vigente.');return r.arrayBuffer();})
+        var url=bookUrl(found.record,book),id=/\/d\/([\w-]+)/.exec(url);
+        return fetch('https://docs.google.com/spreadsheets/d/'+id[1]+'/export?format=xlsx',
+          {cache:'no-store',credentials:'omit',signal:AbortSignal.timeout(25000)})
+          .then(function(r){if(!r.ok)throw new Error('No se pudo leer el libro '+book+'.');return r.arrayBuffer();})
           .then(function(bytes){
             var wb=XLSX.read(bytes,{type:'array'});
-            if(!wb.Sheets['Input sheet']||!wb.Sheets['Valuation output'])throw new Error('La respuesta no contiene el Modelo JMR.');
-            return Object.assign(found,{sheets:fromWorkbook(wb),fetchedAt:new Date().toISOString(),writable:false,writeError:apiError.message});
-          }).catch(function(){throw new Error(apiError.message+' No se pudo importar la hoja vigente; se conserva el informe publicado.');});
+            if(book==='valoracion'&&(!wb.Sheets['Input sheet']||!wb.Sheets['Valuation output']))
+              throw new Error('La respuesta no contiene el Modelo JMR.');
+            if(book==='historicos'&&(!wb.Sheets['Income Statement']||!wb.Sheets['Balance Sheet']||!wb.Sheets['Cash Flow Statement']))
+              throw new Error('La respuesta no contiene los tres estados financieros de Históricos.');
+            return Object.assign(found,{sheets:fromWorkbook(wb),sourceBook:book,sourceUrl:url,
+              fetchedAt:new Date().toISOString(),writable:false,writeError:apiError.message});
+          }).catch(function(){
+            throw new Error(apiError.message+' No se pudo importar el libro '+book+'; se conserva el informe publicado.');
+          });
       });
     });
   }
@@ -224,5 +243,5 @@
     var timer=setInterval(function(){if(!document.hidden)refresh();},30000);if(initial)accept(initial);else refresh();
     return {dispose:function(){active=false;clearInterval(timer);global.removeEventListener('focus',focus);global.removeEventListener('jmr-model-updated',update);}};
   }
-  global.JmrModelSync={load:load,findCompany:findCompany,selectCompanyFile:selectCompanyFile,workbook:workbook,record:record,calculatorResult:calculatorResult,mount:mount,ticker:ticker};
+  global.JmrModelSync={load:load,findCompany:findCompany,bookUrl:bookUrl,selectCompanyFile:selectCompanyFile,workbook:workbook,record:record,calculatorResult:calculatorResult,mount:mount,ticker:ticker};
 })(typeof window!=='undefined'?window:globalThis);

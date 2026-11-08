@@ -68,7 +68,7 @@ test('pestaña visible, todas las hojas disponibles, guardado explícito',()=>{
   assert.match(html,/id="saveChanges"/);
   assert.match(html,/id="pendingList"/);
   assert.match(html,/id="nativeSheet"/);
-  assert.match(source,/JmrModelSync\.load\(key\)/);
+  assert.match(source,/JmrModelSync\.load\(key,sourceBook\)/);
   assert.match(source,/method:'PATCH'/);
   assert.match(source,/snapshot\.revision,changes/);
   assert.match(source,/global\.confirm\('¿Guardar/);
@@ -177,4 +177,11 @@ test('al elegir cualquier hoja por selector, favoritos o pestañas rápidas se s
   assert.match(source,/byId\('sheetPicker'\)\.addEventListener\('change',[\s\S]*?selectSheet\(this\.value\)/);
   assert.match(source,/selectSheet\(btn\.dataset\.originalSheet\)/);
   assert.match(source,/if\(name\)selectSheet\(name\)/);
+});
+
+test('Floyd elige libro por URL y mantiene Históricos H1 en modo visor',()=>{
+ assert.match(source,/get\('libro'\)==='historicos'/);
+ assert.match(source,/JmrModelSync\.load\(key,sourceBook\)/);
+ assert.match(source,/sourceBook==='historicos'/);
+ assert.match(source,/&libro='\+sourceBook/);
 });

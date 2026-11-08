@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Archivo de valoraciones · Modelo JMR Floyd</title>
+<link rel="icon" href="favicon.ico"><link rel="stylesheet" href="jmr-theme.css"><link rel="stylesheet" href="jmr-fullwidth.css">
+<style>
+main{max-width:1120px;margin:auto;padding:25px 18px 60px}
+.archive-head{display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap}
+.archive-head a,.archive-links a{color:var(--accent,#2368ad)}
+.archive-table{width:100%;border-collapse:collapse;font-size:14px}
+.archive-table th,.archive-table td{padding:12px;border-bottom:1px solid var(--border,#dbe0db);text-align:left}
+.archive-table th{font-weight:650}
+.archive-table button{border:1px solid var(--border,#dbe0db);padding:6px 10px;background:transparent;color:inherit;border-radius:8px;cursor:pointer}
+.archive-table tr[hidden]{display:none}
+.archive-note{padding:12px 0;color:var(--muted,#64748b)}
+.archive-details{border:1px solid var(--border,#dbe0db);border-radius:12px;padding:16px;margin-top:20px}
+.archive-links{display:flex;gap:14px;flex-wrap:wrap}
+input{border:1px solid var(--border,#dbe0db);border-radius:9px;padding:9px;background:var(--surface,#fff);color:inherit}
+</style>
+</head>
+<body>
+<script src="auth.js"></script>
+<nav class="appnav" aria-label="Navegación principal"><a href="expediente.html">Empresas activas</a><a href="archivo-floyd.html" aria-current="page">Archivo Floyd</a></nav>
+<main>
+<header class="archive-head"><div><h1>Archivo de valoraciones anteriores</h1><p class="archive-note">Solo consulta. Estas revisiones A-1.2 se retiraron del catálogo activo al migrar a Floyd. No son fuentes para nuevas valoraciones ni tienen auditoría vigente implícita.</p></div><a href="expediente.html?ticker=UBER">Abrir UBER Floyd</a></header>
+<label for="search">Buscar por ticker</label> <input id="search" type="search" placeholder="CMG, ADBE, NU…" autocomplete="off">
+<p id="count" role="status">Leyendo inventario archivado…</p>
+<div style="overflow-x:auto"><table class="archive-table"><thead><tr><th>Empresa</th><th>Revisión archivada</th><th>Estado</th><th>Fuentes</th></tr></thead><tbody id="archive-rows"></tbody></table></div>
+<section id="archive-detail" class="archive-details" hidden aria-live="polite"></section>
+</main>
+<script>
+(async function(){
+'use strict';
+const base='https://raw.githubusercontent.com/JuanMaRobledo/Modelo-JMR-datos/main/';
+const $=id=>document.getElementById(id);
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const knownPath=p=>typeof p==='string'&&/^(valoraciones|analisis)\/[A-Za-z0-9._-]+\.json$/.test(p);
+const json=async u=>{const r=await fetch(u,{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);return r.json();};
+try{
+const catalog=await json(base+'catalogo.json');
+const a=catalog.archivoFloyd||{};
+const rows=(a.valoraciones||[]).filter(knownPath).map(path=>{
+  const name=path.split('/').pop().replace(/\.json$/i,'');
+  const ticker=name.split('-')[0].toUpperCase();
+  const analysis=(a.analisis||[]).find(p=>knownPath(p)&&p.split('/').pop().toUpperCase().startsWith(ticker+'-'))||'';
+  return {ticker,path,name,analysis};
+}).sort((x,y)=>x.ticker.localeCompare(y.ticker));
+const body=$('archive-rows');
+function render(){
+const q=$('search').value.toUpperCase().trim();const filtered=rows.filter(r=>!q||r.ticker.includes(q)||r.name.toUpperCase().includes(q));
+body.innerHTML=filtered.map(r=>'<tr><td><strong>'+esc(r.ticker)+'</strong></td><td>'+esc(r.name)+'</td><td>ARCHIVADO · No vigente</td><td><button type="button" data-path="'+esc(r.path)+'">Consultar fuentes</button></td></tr>').join('');
+$('count').textContent=filtered.length+' de '+rows.length+' valoraciones archivadas (sin borrar sus documentos).';
+}
+$('search').addEventListener('input',render);
+body.addEventListener('click',async e=>{
+  const btn=e.target.closest('button[data-path]');if(!btn)return;
+  const r=rows.find(x=>x.path===btn.dataset.path);if(!r)return;
+  const box=$('archive-detail');box.hidden=false;box.textContent='Consultando fuente de '+r.ticker+'…';
+  try{
+    const v=await json(base+r.path);
+    const sheet=typeof v.hojaGoogle==='string'&&/^https:\/\/docs\.google\.com\/spreadsheets\/d\/[\w-]+/.test(v.hojaGoogle)?v.hojaGoogle:'';
+    const num=x=>Number.isFinite(x)?x.toLocaleString('es-CO',{maximumFractionDigits:2}):'N/D';
+    box.innerHTML='<h2>'+esc(r.ticker)+' · Archivo no vigente</h2>'+
+      '<p>Revisión '+esc(v.revisionId||r.name)+'. Base histórica '+esc(num(v.valorPrincipal))+'; MOS histórico '+esc(num(v.precioMOS))+'. No actualizar ni interpretar como precio vigente.</p>'+
+      '<div class="archive-links"><a target="_blank" rel="noopener noreferrer" href="'+esc('https://github.com/JuanMaRobledo/Modelo-JMR-datos/blob/main/'+r.path)+'">Valoración JSON archivada</a>'+
+      (r.analysis?'<a target="_blank" rel="noopener noreferrer" href="'+esc('https://github.com/JuanMaRobledo/Modelo-JMR-datos/blob/main/'+r.analysis)+'">Análisis archivado</a>':'')+
+      (sheet?'<a target="_blank" rel="noopener noreferrer" href="'+esc(sheet)+'">Hoja original de Google Sheets</a>':'')+'</div>';
+  }catch(e){box.textContent='No fue posible comprobar el archivo: '+e.message;}
+});
+render();
+}catch(e){$('count').textContent='No fue posible leer el inventario archivado: '+e.message;}
+})();
+</script></body></html>
