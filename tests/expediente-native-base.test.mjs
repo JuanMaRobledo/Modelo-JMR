@@ -88,3 +88,10 @@ test('Floyd comprueba el centro contra el valor presente del método',()=>{
  assert.match(html,/Matriz ocultada: centro FY\+3/);
  assert.equal((html.match(/class="jmr-native-matrix-table"/g)||[]).length,4);
 });
+
+test('expediente Floyd separa estados y valoración y conserva la navegación de siete secciones',()=>{
+ assert.match(src,/sourceBookForView=view=>view==='financieros'\\|\\|view==='indicadores'/);
+ assert.match(src,/libro=historicos/);
+ assert.match(src,/workbookBook===book/);
+ assert.match(src,/rec\\?\\.libros\\?\\.historicos/);
+});
