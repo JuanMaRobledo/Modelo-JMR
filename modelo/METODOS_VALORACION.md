@@ -12,6 +12,10 @@
 | Escenarios, MOS, múltiplos, sensibilidades | Normas comunes de `REGLAS_VIGENTES.md` | Igual |
 | Auditoría independiente | Otro Google Sheet, solo tras revisión visual y solicitud | Igual |
 
+## Perfil de ejecución
+
+Floyd es el perfil oficial para nuevas valoraciones de operativas con Simple Ginzu FCFF según [REGLAS_VIGENTES §0](REGLAS_VIGENTES.md#0-perfil-oficial-modelo-jmr-floyd). Registra `perfil_valoracion=Floyd` en el expediente y sigue sus [órdenes de ejecución](../docs/prompts/ordenes-floyd.md). Las etiquetas A y B identifican reglas de supuestos. Los campos y versiones de abajo describen el flujo compatible A-1.2.
+
 ## Fuente normativa y precedencia
 
 1. `REGLAS_VIGENTES.md` mantiene las **reglas compartidas** de valoración, estructura de hojas, conservación de fórmulas, métodos de cálculo, estados, 7 múltiplos, materialidad, autorización y publicación.
@@ -36,7 +40,7 @@ Cada **nueva revisión** debe registrar al inicio en el expediente de valoració
 ```
 
 - Para revisiones nuevas: `A`/`A-1.2` o `B`/`B-15`; se conservan `A`/`A-1.0` y `A`/`A-1.1` para expedientes anteriores. No se admiten etiquetas mixtas `A+B` en una sola revisión.
-- **Nuevas valoraciones:** utilizar A / A-1.2 como metodología vigente, salvo elección expresa de B por el usuario. Registrar e informar el método antes de estimar. No convertir revisiones previas a A ni afirmar que existe un selector automático en la app.
+- **Nuevas valoraciones en el flujo compatible:** utilizar A / A-1.2, salvo elección expresa de B por el usuario. Registrar e informar el método antes de estimar. No convertir revisiones previas a A ni afirmar que existe un selector automático en la app.
 - **Revisiones previas sin campo:** interpretar como `B` legado para lectura y comparación, **sin reescribir archivos, resultados, estados ni auditorías**.
 - Toda ficha de A requiere trazabilidad de drivers, tasas base y coherencia según A. No basta declarar `A` en el JSON.
 - La etiqueta del método debe acompañar valoración, análisis y auditoría de una misma revisión. El análisis no recalcula el valor.

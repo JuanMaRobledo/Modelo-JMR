@@ -1,10 +1,10 @@
-# Órdenes de ejecución · Modelo JMR Floyd (candidato)
+# Órdenes de ejecución · Modelo JMR Floyd (perfil oficial)
 
 ## Selecciona el perfil antes de ejecutar
 
-Activa estas órdenes cuando el usuario pida Floyd o continúe una revisión identificada como Floyd. Registra `perfil=Floyd`, ticker, clase, revisión, corte y fase. Si la petición solo menciona JMR, sigue el perfil oficial del orquestador. Lee las reglas generales vigentes de fuentes, aislamiento, integridad, materialidad y trazabilidad. Para el piloto Floyd, aplica las órdenes de este archivo en lugar de las instrucciones A-1.2 sobre valoración temprana en F1, cuatro historias y publicación en F4. Conserva el formato de entrega de fases.
+Para una valoración nueva de una empresa operativa cubierta por Simple Ginzu FCFF, usa Floyd por defecto. Si el usuario elige otro perfil o la tarea continúa una revisión ya identificada, respeta ese perfil. Registra `perfil_valoracion=Floyd`, ticker, clase, revisión, corte y fase. Las financieras, holdings y otros emisores cuyo motor requerido no esté cubierto por Floyd siguen el flujo compatible FCFE/SOTP. Distingue el perfil operativo del método de estimación de supuestos. Lee las reglas generales vigentes de fuentes, aislamiento, integridad, materialidad y trazabilidad. Para Floyd, aplica las órdenes de este archivo en lugar de las instrucciones A-1.2 sobre valoración temprana en F1 y cuatro historias. Conserva el formato de entrega de fases.
 
-Ejecuta la fase pedida. Si te piden varias, ejecútalas en orden y valida las dependencias antes de pasar a cada una. Si te piden una valoración Floyd integral sin número de fase, identifica el primer tramo pendiente y completa F1–F3 en orden. Si también te piden el análisis, continúa con F4 después de cerrar los insumos materiales. Reserva F5 para una sesión independiente que reciba el expediente. Mantén todo como candidato y prepara las evidencias de salida en el expediente de esa revisión.
+Ejecuta la fase pedida. Si te piden varias, ejecútalas en orden y valida las dependencias antes de pasar a cada una. Si te piden una valoración Floyd integral sin número de fase, identifica el primer tramo pendiente y completa F1–F3 en orden. Si también te piden el análisis, continúa con F4 después de cerrar los insumos materiales. Reserva F5 para una sesión independiente que reciba el expediente. Mantén cada expediente como CANDIDATO hasta que cumpla los controles de su fase y los de publicación aplicables.
 
 ## F1 · Preparación del corte
 
@@ -29,7 +29,7 @@ Ejecuta la fase pedida. Si te piden varias, ejecútalas en orden y valida las de
 
 1. Comprueba que Históricos y Valoración están conciliados y que los supuestos materiales de F3 están cerrados. Usa ambos libros y el corte de esa misma revisión.
 2. Aplica el contrato editorial del maestro 2/3. Redacta Nivel 1 y Nivel 2 con tres escenarios. Vincula tesis, ciclo, riesgos y evidencia a los supuestos y las cifras de la hoja. Rehaz borradores anteriores si cambiaron los datos o supuestos que los sustentan.
-3. Prepara el JSON y valida hoja → JSON → visor en un entorno aislado. Si el visor o un validador aún exige el perfil A-1.2, registra el bloqueo de integración y conserva las tres historias. Mantén el expediente fuera del catálogo y de la app oficial hasta que se apruebe la promoción del perfil.
+3. Prepara el JSON y valida hoja → JSON → visor en un entorno aislado. Si el visor o un validador aún exige el perfil A-1.2, registra el bloqueo de integración y conserva las tres historias. Publica como EN_REVISION solo si se aprobaron los controles técnicos y la conciliación del perfil Floyd con los datos y el visor, bajo §6 y §8A. Hasta entonces conserva el expediente como CANDIDATO.
 
 ## F5 · Auditoría independiente
 
@@ -40,7 +40,7 @@ Ejecuta la fase pedida. Si te piden varias, ejecútalas en orden y valida las de
 
 Escribe `Modelo-JMR-datos/candidatos/valoraciones/<REV>/FASE_<N>_ENTREGA.md` por fase. Registra IDs de los libros, documento y corte, herramienta/modelo/esfuerzo identificables, `AISLAMIENTO=OK` cuando esté verificado, pasos ejecutados, controles APROBADO/PARCIAL/NO EJECUTADO con evidencia, faltantes y siguiente acción. Declara el tramo material pendiente y deja N/D la salida dependiente. Si la limitación es inmaterial y está acotada, documenta el impacto y sigue. Conserva las fórmulas y reporta la huella observada.
 
-H4 del plan Floyd (migrar plantilla, validadores, catálogo y app) es mantenimiento del perfil. Registra sus incompatibilidades durante el piloto. La habilitación de Floyd en producción requiere una decisión de promoción aparte del trabajo por emisor.
+H4 del plan Floyd (adaptar registro de plantillas, validadores, catálogo y app) es mantenimiento del perfil. Para copiar la maestra utiliza el ID de Floyd de F1 hasta que el registro técnico disponga de selección por perfil. Registra cualquier incompatibilidad como control pendiente de integración del expediente.
 
 ## Continuación conocida · UBER Floyd 3T-2026
 

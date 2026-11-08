@@ -98,7 +98,7 @@ test('las referencias activas y la interfaz usan el mismo contrato editorial',()
   const sections=[...styleSection.matchAll(/^(\d{1,2})\. \*\*/gm)].map(m=>Number(m[1]));
   assert.deepEqual(sections,Array.from({length:14},(_,i)=>i+1));
   assert.match(styleSection,/5\. \*\*Ciclos de la empresa, del mercado y de la macroeconomía/);
-  assert.match(rules,/\*\*Versión 33 · 4-nov-2026/);
+  assert.match(rules,/\*\*Versión 34 · 8-nov-2026/);
   assert.match(rules,/Estilo JMR de 14 capítulos/);
   assert.match(process,/cinco fases/i);
   assert.match(process,/tres prompts maestros activos/i);
@@ -166,3 +166,16 @@ test('contrato Fase 1 cubre todas las hojas auxiliares y cinco múltiplos',()=>{
   assert.match(rules,/Cobertura integral de dependencias de Fase 1/);
 });
 
+
+test('Floyd es la ruta por defecto de operativas FCFF y conserva los gates de expediente', () => {
+  const orders = fs.readFileSync(new URL('ordenes-floyd.md', root), 'utf8');
+  const rules = fs.readFileSync(new URL('../modelo/REGLAS_VIGENTES.md', import.meta.url), 'utf8');
+  const orquestador = fs.readFileSync(new URL('../docs/propuestas/fases/README.md', import.meta.url), 'utf8');
+  assert.match(rules, /Floyd es el perfil oficial por defecto para nuevas valoraciones de empresas operativas/);
+  assert.match(rules, /flujo compatible con FCFE\/SOTP/);
+  assert.match(orquestador, /usa Floyd por defecto/);
+  for (const doc of docs) assert.match(doc.s, /\(ordenes-floyd\.md\)/);
+  assert.deepEqual([...orders.matchAll(/^## F([1-5]) ·/gm)].map(match => match[1]), ['1', '2', '3', '4', '5']);
+  assert.match(orders, /Conservadora ≤ Base ≤ Optimista/);
+  assert.match(orders, /Publica como EN_REVISION solo si/);
+});

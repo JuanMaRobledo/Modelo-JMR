@@ -1,8 +1,8 @@
 # Proceso oficial Modelo JMR · CINCO FASES
 
-**Ruta explícita Floyd (candidato).** Si el usuario pide Floyd o continúa un expediente Floyd, abre [las órdenes ejecutables Floyd](../../prompts/ordenes-floyd-candidato.md) antes de elegir el archivo de fase. Sigue la ruta Floyd para F1–F5 y los maestros correspondientes. Para las demás revisiones, usa el flujo oficial de abajo.
+**Perfil oficial Floyd.** Para una valoración nueva de una empresa operativa cubierta por Simple Ginzu FCFF, usa Floyd por defecto. Si el usuario elige otro perfil o la tarea continúa una revisión ya identificada, respeta ese perfil. Abre [las órdenes ejecutables Floyd](../../prompts/ordenes-floyd.md) antes de elegir un archivo de fase para Floyd. El flujo de abajo corresponde a A-1.2 y a los expedientes compatibles que requieren FCFE/SOTP.
 
-**Versión v2 · 2-nov-2026 · INTEGRADA A MAIN mediante PR #166 (CI aprobada).** Resumen operativo para cargar primero: [`docs/CONTEXTO_CORTO.md`](../../CONTEXTO_CORTO.md). Fuente normativa: `modelo/REGLAS_VIGENTES.md`; metodología A-1.2 por defecto. Este README es el **único orquestador** para ChatGPT, Work, Claude Code y otros agentes. La plantilla y el motor conservan las reglas financieras, el MOS, los cuatro escenarios y los controles de publicación.
+**Versión v2 · 2-nov-2026 · INTEGRADA A MAIN mediante PR #166 (CI aprobada).** Resumen operativo para cargar primero: [`docs/CONTEXTO_CORTO.md`](../../CONTEXTO_CORTO.md). Fuente normativa: `modelo/REGLAS_VIGENTES.md`; flujo compatible A-1.2 descrito abajo. Este README es el **único orquestador** para ChatGPT, Work, Claude Code y otros agentes. La plantilla y el motor conservan las reglas financieras, el MOS, los cuatro escenarios y los controles de publicación.
 
 **Cobertura F1 obligatoria:** además de Input sheet y los cinco múltiplos, consultar el [contrato universal de insumos y hojas auxiliares](CONTRATO_INSUMOS_FASE_1.md), incluidos WACC, capitalización de I+D, Option value, leases y validación de deuda/activos no operativos. F2 no releva la captura mínima necesaria para valorar en F1.
 

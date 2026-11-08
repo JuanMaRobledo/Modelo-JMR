@@ -2,6 +2,10 @@
 
 **Objetivo:** usar la misma valoración, análisis y auditoría en ChatGPT (chat o Work), Claude Code, Gemini o herramientas equivalentes. **No es un método financiero nuevo**, ni sustituye las reglas vigentes ni los tres prompts.
 
+## Selección del perfil oficial
+
+Para una valoración nueva de una empresa operativa cubierta por Simple Ginzu FCFF, usa Floyd por defecto. Si el usuario elige otro perfil o la tarea continúa una revisión ya identificada, respeta ese perfil. Para Floyd ejecuta las [órdenes F1–F5](prompts/ordenes-floyd.md). El resto de este documento describe el flujo compatible A-1.2 y los contratos compartidos que siguen aplicando.
+
 ## Flujo operativo de CINCO fases — decisión del usuario, 2-nov-2026
 
 Esta sección **sustituye la tabla antigua de cuatro fases** y ordena la misma valoración JMR A-1.2 (sin cambiar sus fórmulas ni reglas económicas). Detalle operativo obligatorio en [README oficial de fases](propuestas/fases/README.md) y sus cinco archivos `FASE_1_VALORACION_INICIAL.md`, `FASE_2_HISTORICOS_COMPLETOS.md`, `FASE_3_REVISION_SUPUESTOS.md`, `FASE_4_ANALISIS_PUBLICACION.md` y `FASE_5_AUDITORIA_GUIADA.md`.
@@ -20,7 +24,7 @@ Esta sección **sustituye la tabla antigua de cuatro fases** y ordena la misma v
 
 ## Selección previa del método
 
-Para cada revisión nueva consignar expresamente `Método A` / `A-1.2` (calibración por drivers y base rates), salvo elección expresa de `Método B` (JMR tradicional) por el usuario. Documento selector: [`modelo/METODOS_VALORACION.md`](../modelo/METODOS_VALORACION.md). A y B comparten el motor y los controles. Las revisiones antiguas sin etiqueta se leen como B sin modificarlas. **El selector de la app y el ejecutor no están adaptados todavía:** esta elección es normativa/documental hasta su integración técnica y regresión.
+Para cada revisión bajo el flujo compatible A-1.2 consignar expresamente `Método A` / `A-1.2` (calibración por drivers y base rates), salvo elección expresa de `Método B` (JMR tradicional) por el usuario. Documento selector: [`modelo/METODOS_VALORACION.md`](../modelo/METODOS_VALORACION.md). A y B comparten el motor y los controles. Las revisiones antiguas sin etiqueta se leen como B sin modificarlas. **El selector de la app y el ejecutor no están adaptados todavía:** esta elección es normativa/documental hasta su integración técnica y regresión.
 
 ## Una instrucción para cualquier herramienta
 
