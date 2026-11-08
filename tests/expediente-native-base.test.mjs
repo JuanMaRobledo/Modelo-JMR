@@ -57,3 +57,34 @@ test('es invocado desde el panel de sensibilidades y conserva el render DCF prev
  assert.match(src,/if\(native\)\{parts\.push\(native\);\}/);
  assert.match(src,/function normalizeDcfMatrices\(s\)/);
 });
+
+const mkFloyd=()=>{
+ const rec=mk();
+ rec.ticker='UBER';
+ rec.perfil_valoracion='Floyd';
+ rec.sensibilidadMultiples.matrices=rec.sensibilidadMultiples.matrices.slice(0,5).map(m=>({
+  ...m,estado:'OK',centro:10,vp3Original:10,
+  fundamentalFY3:[100,200,300,400,500],multiploElegido:[1,2,3,4,5],
+  matriz:Array.from({length:5},()=>Array(5).fill(10))
+ }));
+ for(const method of rec.descuentoMultiples.metodos)method.base={vp:[8,9,10]};
+ return rec;
+};
+test('Floyd muestra cinco matrices Base con múltiplos en las filas',()=>{
+ const rec=mkFloyd();
+ const html=native(rec);
+ assert.equal((html.match(/class="jmr-native-matrix-table"/g)||[]).length,5);
+ assert.match(html,/Filas: múltiplo elegido · Columnas: fundamental FY\+3/);
+ assert.match(html,/<th scope="col">100,00<\/th>/);
+ assert.match(html,/<th scope="row">1,00×<\/th>/);
+ assert.match(native(mk()),/Filas: fundamental FY\+3 · Columnas: múltiplo elegido/);
+ rec.sensibilidadMultiples.matrices.pop();
+ assert.match(native(rec),/Sensibilidades Base Floyd incompletas/);
+});
+test('Floyd comprueba el centro contra el valor presente del método',()=>{
+ const rec=mkFloyd();
+ rec.descuentoMultiples.metodos[0].base.vp[2]=20;
+ const html=native(rec);
+ assert.match(html,/Matriz ocultada: centro FY\+3/);
+ assert.equal((html.match(/class="jmr-native-matrix-table"/g)||[]).length,4);
+});
