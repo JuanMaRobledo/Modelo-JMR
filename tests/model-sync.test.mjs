@@ -39,6 +39,14 @@ test('native report and calculator share the same DCF base, exclude disruption f
   assert.equal(context.JmrModelSync.calculatorResult(rec).precioConMOS.base,7);assert.equal(api.ticker(' msft '),'MSFT');
 });
 function response(){return {statusCode:200,headers:{},setHeader(k,v){this.headers[k]=v;},status(n){this.statusCode=n;return this;},json(v){this.body=v;return this;},end(){return this;}};}
+test('Floyd dirige los estados a Históricos y DCF a Valoración, sin rutas inventadas',()=>{
+  const uber={perfil_valoracion:'Floyd',hojaGoogle:'https://docs.google.com/spreadsheets/d/valoracion123/edit',
+    libros:{valoracion:'https://docs.google.com/spreadsheets/d/valoracion123/edit',historicos:'https://docs.google.com/spreadsheets/d/historicos123/edit'}};
+  assert.equal(sourceBook(uber,'historicos').id,'historicos123');
+  assert.equal(sourceBook(uber,'valoracion').id,'valoracion123');
+  assert.throws(()=>sourceBook(uber,'otro'),/libro no permitido/);
+  assert.throws(()=>sourceBook({perfil_valoracion:'Floyd',hojaGoogle:uber.hojaGoogle},'historicos'),/Falta registrar/);
+});
 test('API requires a signed app session before contacting a source', async()=>{
   const res=response();await handler({method:'GET',query:{ticker:'AAPL'},headers:{}},res);assert.equal(res.statusCode,401);
 });
