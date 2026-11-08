@@ -1,4 +1,6 @@
 # Modo ChatGPT / Work — Modelo JMR en CINCO fases
+
+> **Perfil Floyd oficial y multiagente:** este documento conserva instrucciones compatibles A-1.2. Para una valoración Floyd ChatGPT/Work aplica íntegramente [`CONTRATO_EJECUCION_FLOYD.md`](../../CONTRATO_EJECUCION_FLOYD.md) y [`ordenes-floyd.md`](../../prompts/ordenes-floyd.md), exactamente igual que Claude Code. No aplicar a Floyd el orden F1 = DCF provisional ni cuatro historias del flujo compatible descrito abajo; Floyd utiliza F1 corte, F2 Históricos→Valoración, F3 tres historias, F4 investigación 14+12/publicación, F5 auditoría independiente.
 **Versión:** 2-nov-2026 · propuesta de proceso en PR. Contrato común: [README de fases](README.md), [reglas v26](../../../modelo/REGLAS_VIGENTES.md) y [proceso único](../../PROCESO_UNICO_JMR.md). La selección oficial del perfil está en REGLAS_VIGENTES §0.
 
 ## Instrucción para el proyecto JMR (copiar una vez)
