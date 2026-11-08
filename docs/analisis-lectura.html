@@ -279,7 +279,7 @@ function scenarioValues(v){
     result.historical=result.historical||isHistoric;
     // El escenario omitido (Disrupción) no bloquea las tres historias ordinarias.
     // En Floyd C sí es Optimista y, por tanto, SÍ cuenta para la completitud.
-    if(key!=='disrupcion')result.incomplete=result.incomplete||active===null;
+    if(key!=='disrupcion')result.incomplete=result.incomplete||active===null||(floyd&&key==='optimista'&&!story);
     result.provenance[key]=isHistoric?'Referencia R4 · pendiente de recalcular en R5':
       active!==null?(id==='A'?'Valor central de la revisión actual':
         key==='disrupcion'?'Revisión actual · fuera del promedio':'Escenario de la revisión actual'):
