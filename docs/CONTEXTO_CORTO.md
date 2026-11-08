@@ -2,6 +2,8 @@
 
 **Versión 1 · 3-nov-2026 · basado en `modelo/REGLAS_VIGENTES.md` v33.** Resumen operativo para que cualquier IA (Claude, ChatGPT, Gemini) cargue lo esencial sin leer ~20.000 palabras. **No crea reglas ni las cambia:** cada punto remite a su sección (§) de `REGLAS_VIGENTES.md`, que prevalece ante cualquier diferencia. Si una regla cambia allí, actualizar este resumen en el mismo PR.
 
+**Ruta Floyd (candidato).** Si la solicitud o revisión identifica Floyd, abre [sus órdenes de ejecución](prompts/ordenes-floyd-candidato.md) antes de aplicar el flujo oficial descrito abajo.
+
 ## 1. Reglas que aplican en todas las fases
 
 1. **Aislamiento.** Una revisión vigente por emisor (ticker · `revision_id` · `sheet_id` · corte). No mezclar empresas, no reutilizar cifras, supuestos ni dictámenes de revisiones archivadas (§10). La vigente de cada emisor y sus sustituidas están en `Modelo-JMR-datos/registro/REVISIONES.md`; una sustituida es evidencia, nunca insumo. Declarar `AISLAMIENTO=OK`.

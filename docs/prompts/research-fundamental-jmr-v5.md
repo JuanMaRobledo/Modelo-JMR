@@ -1,5 +1,7 @@
 # PROMPT MAESTRO 2/3 — ANÁLISIS FUNDAMENTAL JMR · v23 VIGENTE (30-OCT-2026)
 
+**Ruta Floyd (candidato).** Si se solicita Floyd o se continúa una revisión Floyd, abre primero las [órdenes de ejecución Floyd](ordenes-floyd-candidato.md). Ejecuta F4 del expediente candidato. Antes de redactar, exige el cierre material de F2 y F3, usa los dos libros de la misma revisión y aplica el contrato editorial de este prompt a las tres historias. Prepara la validación aislada del expediente. Usa las órdenes Floyd para alcance, dependencias, escenarios y salida de la fase. Si el archivo de órdenes no está disponible, recupera la misma versión antes de ejecutar Floyd.
+
 > Esta ruta se conserva por compatibilidad con lectores, automatizaciones y herramientas que todavía consultan `research-fundamental-jmr-v5.md`. Los prompts de 13 o 18 capítulos del análisis se conservan solo como históricos. **Este contenido de 14 capítulos es el vigente; la auditoría tiene otros 18 apartados propios.**
 
 ## Rol y objetivo
