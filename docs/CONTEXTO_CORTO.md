@@ -1,6 +1,6 @@
 # Contexto corto — Modelo JMR (cinco fases)
 
-**Versión 1 · 3-nov-2026 · basado en `modelo/REGLAS_VIGENTES.md` v33.** Resumen operativo para que cualquier IA (Claude, ChatGPT, Gemini) cargue lo esencial sin leer ~20.000 palabras. **No crea reglas ni las cambia:** cada punto remite a su sección (§) de `REGLAS_VIGENTES.md`, que prevalece ante cualquier diferencia. Si una regla cambia allí, actualizar este resumen en el mismo PR.
+**Versión 1.1 · 8-nov-2026 · basado en `modelo/REGLAS_VIGENTES.md` v34.** Resumen operativo para que cualquier IA (Claude, ChatGPT, Gemini) cargue lo esencial sin leer ~20.000 palabras. **No crea reglas ni las cambia:** cada punto remite a su sección (§) de `REGLAS_VIGENTES.md`, que prevalece ante cualquier diferencia. Si una regla cambia allí, actualizar este resumen en el mismo PR.
 
 ## 1. Reglas que aplican en todas las fases
 
@@ -13,6 +13,8 @@
 7. **Sin sesgo hacia el precio.** Nada se ajusta para acercar el valor a la cotización. La Base es el escenario central defendido como más probable; no equivale automáticamente a mediana o esperanza ni es el caso prudente: la prudencia vive solo en el MOS. Cada riesgo va en un solo lugar: flujos, tasa o probabilidad (§2).
 8. **Materialidad (§4B).** Bloquea solo lo que mueve el valor Base o la decisión, rompe una fórmula/puente o no se puede acotar. `impacto % = 100 × |V_alt − V_base| / |V_base|`. No bloqueante: <2 % individual y <3 % acumulado, sin cruzar la decisión ni defecto estructural.
 9. **Continuidad.** Un dato material ausente bloquea solo la salida dependiente (N/D); el resto avanza como CANDIDATO (Continuidad operativa).
+
+10. **Perfil candidato Atlas v2 (§11A).** Motor principal `Valoración [esc]` (simple Ginzu de Damodaran) con costo de capital común y compuertas económicas. Datos obligatorios nuevos: prima madura `B109`, NOL `B111`, RSU `Puente!B26`, norma de arrendamientos `Puente!B10`, no operativos `B124:B128`. Sigue siendo CANDIDATO hasta la revaloración integral y la F5; el perfil oficial sigue siendo el de 47 pestañas.
 
 ## 2. Núcleo de valoración (§1–§5)
 

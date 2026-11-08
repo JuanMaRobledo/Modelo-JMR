@@ -1,6 +1,6 @@
 # Reglas vigentes del Modelo JMR
 
-**Versión 33 · 4-nov-2026 (Colombia).** Este documento es la única fuente de las reglas de método. Si un prompt
+**Versión 34 · 8-nov-2026 (perfil candidato Atlas v2, §11A).** Este documento es la única fuente de las reglas de método. Si un prompt
 (`docs/prompts/*.md`), `METODOLOGIA.md`, una habilidad o un comentario de código dice otra cosa, prevalece este
 documento. Una regla nueva no se agrega como «regla del día X» en un prompt: se cambia aquí, se sube la versión y se
 anota en el registro de cambios del final.
@@ -335,6 +335,37 @@ Hojas de trabajo conservadas tras el archivo del 24-oct-2026 (identidad document
 
 **Entregables.** El análisis fundamental siempre completo (§9). La auditoría explica el porqué de cada supuesto estimado y la fuente de **todos** los datos de entrada, con un inventario que cubra todas las celdas de entrada (prompt de auditoría v1.3).
 
+## 11A. Perfil candidato JMR Atlas v2 · motor simple Ginzu (8-nov-2026)
+
+**Estado:** perfil CANDIDATO. El perfil oficial sigue siendo el de 47 pestañas (§11). Atlas v2 pasa a oficial cuando cumpla tres condiciones: una revaloración integral desde cero con fuentes primarias (primera: UBER), una auditoría F5 independiente y la actualización de `plantillas.json`, `diff_formulas_plantilla.py` y los prompts de fase. Hasta entonces, una valoración en Atlas v2 es CANDIDATO y no se publica.
+
+- **Plantilla maestra:** `1jHZ2MH9UShckdpxbUqWp5H9CtKBc3RM6G1at3DI_OFs` (60 pestañas). Respaldos y cambios en `JMR-valuation/docs/mantenimiento/ATLAS_MOTOR_SIMPLE_GINZU_2026-11-08.md`.
+- **Motor principal:** `Valoración [escenario]`. Sus filas 1-40 son el `Valuation output` de `fcffsimpleginzu.xlsx` (Damodaran): crecimiento de ingresos año a año, margen con convergencia, reinversión = ΔVentas/Sales-to-Capital (1-5 y 6-10), NOL, fracaso y rezago. `Contraste Ginzu [escenario]` (`fcffginzu`, intacto) es solo contraste.
+- **El valor principal** es `Valoración Base!B33`. Se publica solo si `Supuestos y control!B60` = LISTA PARA CALCULAR. Esa celda exige:
+  - ningún escenario en BLOQUEA (`Valoración [esc]!B106`);
+  - huella de fórmulas sin diferencias (`Huella motor!F2 = 0`).
+- **Costo de capital inicial común** a los cuatro escenarios (= Base). Los ajustes de beta, ERP y Kd por escenario solo se muestran como sensibilidad (`Valoración [esc]!B90`).
+- **Costo de capital terminal** = Rf + prima madura del corte (§4), salvo override justificado.
+- **Datos obligatorios nuevos:**
+  - prima madura del corte, `Supuestos y control!B109`, que alimenta `Country ERP!B1` (ERP país = prima madura + CRP);
+  - NOL, `B111` (0 explícito si no existe);
+  - RSU no consolidadas, `Puente EEFF!B26` (las acciones incluyen RSU);
+  - norma de arrendamientos, `Puente EEFF!B10`: con US GAAP, el pasivo por arrendamiento operativo (`B11`/`C11`) sale de la deuda salvo conversión explícita; con IFRS 16, entra;
+  - desglose de no operativos, `Supuestos y control!B124:B127`, con URL en `B128`.
+- **Supuestos en valor absoluto (opcionales):** `Supuestos y control` filas 117-121 sustituyen al multiplicador. Si se usa un margen absoluto, su base contable (AJUSTADO/GAAP) se declara en `B116` y debe coincidir con los selectores de I+D, leasing y normalización.
+- **Compuertas que bloquean** (`Valoración [esc]` filas 92-105):
+  - entradas faltantes;
+  - g > Rf o g ≥ costo terminal − 1 pp;
+  - ROIC terminal < costo terminal (fuera de Disrupción);
+  - g/ROIC fuera de [0, 1);
+  - S/C ≤ 0;
+  - costo terminal fuera de Rf + 1…12 pp;
+  - fracaso fuera de Disrupción.
+
+  Los avisos no bloquean, pero F3 y F5 deben explicarlos.
+- **Auditoría de integración por capas:** 1 plantilla vacía · 2 huella · 3 carga · 4 compuertas y publicación. El semáforo combina solo las capas del modo. Las filas de texto fijo se marcan como «DECLARACIÓN · NO ES CONTROL AUTOMÁTICO».
+- **Múltiplos:** el margen objetivo se traduce a base GAAP (`Supuestos y control!B72`). La conciliación del FCFF entre motor y múltiplos (`Valoración [esc]!B108:B111`) por encima del 25 % exige explicación. Las anclas siguen en año fiscal.
+
 ## 12. Dos métodos de estimación de supuestos (28-oct-2026)
 
 - **Método A:** nueva calibración por drivers operativos, clases de referencia de crecimiento y rentabilidad, margen y reinversión consistentes, persistencia del ROIC y seguimiento prospectivo. Se especifica en [`METODO_A_JMR.md`](METODO_A_JMR.md). No constituye una metodología de cálculo distinta: las fórmulas, el núcleo de cinco múltiplos aplicables, dos complementarios voluntarios, cuatro historias, MOS, condiciones de publicación y plantillas siguen el mismo motor.
@@ -347,6 +378,7 @@ Hojas de trabajo conservadas tras el archivo del 24-oct-2026 (identidad document
 
 | Versión | Fecha | Cambio |
 |---|---|---|
+| 34 | 8-nov-2026 | §11A: perfil candidato JMR Atlas v2 con motor principal `fcffsimpleginzu` (Valuation output de Damodaran), contraste `fcffginzu`, costo de capital común, terminal Rf + prima madura, compuertas económicas, huella de fórmulas, RSU, norma de arrendamientos, desglose de no operativos y auditoría por capas. El perfil oficial de 47 pestañas no cambia hasta cumplir las condiciones de promoción. |
 | 33 | 4-nov-2026 (Colombia) | §2: calidad económica de supuestos, fichas causales y seguimiento; guía v2 con fuentes originales, motores de ingresos, comisión, margen/inversión conjuntos, ROIC marginal y eficiencia; distingue convenciones JMR y conceptos estadísticos. Sin recalcular valoraciones ni alterar fórmulas, probabilidades o gates. La fecha local difiere de registros anteriores fechados en UTC. |
 | 32 | 5-nov-2026 | §2: los supuestos salen de la historia; guía `docs/HISTORIAS_A_NUMEROS.md` obligatoria en F1/F3/F5; crecimiento derivado de TAM₁₀ × participación objetivo con fila de brecha historia − modelo en cada historia (`build_historias_sheet.py`, aplicada a plantillas y hojas vigentes sin cambio de valores); control de publicación para revisiones nuevas. |
 | 31 | 4-nov-2026 | §2: historias → números según Damodaran (tipo de historia, párrafo, vínculo por palanca, prueba 3P con números frente a TAM e industria, juicio por P y disparadores ruptura/cambio/desplazamiento); costo de capital común y fracaso solo en Disrupción (entrada propia); TAM como dato de F1. Sección nueva en `Escenarios e historias` A104:N238 (`JMR-valuation/scripts/build_historias_sheet.py`), aplicada a Maestra, IA, Manual y 24 hojas vigentes de operativas con valores idénticos antes y después (DUOL, aplicada después de mover su DCF de control a A242:N256, es la primera con las cuatro historias completas; financieras y sustituidas sin la sección, AVISO en `diff_formulas_plantilla.py`). |
