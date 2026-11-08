@@ -393,3 +393,20 @@ test('abrir ficha no usa el lector de auditoría eliminado',()=>{
   assert.doesNotMatch(js,/\breadAuditNotes\s*\(/,'la función eliminada no puede interrumpir la carga del catálogo');
   assert.match(js,/loadAuditRequest\(t,p\)/,'la lectura de auditoría vigente permanece');
 });
+
+test('Floyd pasa el control de catálogo sin habilitar expedientes desconocidos',()=>{
+ const src=get('docs/expediente.js');
+ const from=src.slice(src.indexOf('function fromCatalog(arr,t){'),src.indexOf('function status(s,level){'));
+ const mock={catalog:{valoraciones:['valoraciones/UBER-FLOYD-3T26.json'],controlModeloA:{empresas:{
+  UBER:{rutaValoracion:'valoraciones/UBER-FLOYD-3T26.json',metodo:'Floyd',estado:'INCOMPLETA_EN_REVISION'}
+ }}}};
+ const f=new Function('state',from+';return controlModeloA;')(mock);
+ assert.equal(f('UBER').visible,true);
+ assert.equal(f('UBER').metodo,'Floyd');
+ mock.catalog.controlModeloA.empresas.UBER.metodo='inventado';
+ assert.equal(f('UBER').visible,false);
+ mock.catalog.controlModeloA.empresas.UBER.metodo='A-1.2';
+ assert.equal(f('UBER').visible,true);
+ mock.catalog.controlModeloA.empresas.UBER.rutaValoracion='valoraciones/OTRO.json';
+ assert.equal(f('UBER').visible,false);
+});
