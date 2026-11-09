@@ -1,5 +1,7 @@
 # De la historia a los números — guía para hacer los supuestos (Damodaran)
 
+> **Precedencia Floyd (9-nov-2026).** Esta guía contiene ejemplos de A-1.2 con **cuatro historias**. En el perfil oficial **Floyd** se aplican únicamente **Conservadora, Base y Optimista** con probabilidades que suman 100 %, costo de capital común y fracaso exclusivamente en la Conservadora. Véanse [REGLAS_VIGENTES §0](../modelo/REGLAS_VIGENTES.md), [contrato Floyd](CONTRATO_EJECUCION_FLOYD.md) y [prompt maestro](prompts/PROMPT_MAESTRO_FLOYD_TRES_DOCUMENTOS.md). No copiar la antigua historia `Disrupción` a la hoja Floyd.
+
 **Versión 2 · revisión del 4-nov-2026 (Colombia) · aplica REGLAS_VIGENTES §2 (v33).** Esta guía no crea reglas: explica **cómo** se hacen los
 supuestos de cada historia para que salgan de la historia y no al revés. Se usa en F1 (proponer), F3 (revisar) y F5
 (auditar), y la lee cualquier IA antes de tocar crecimiento, margen, reinversión o riesgo.
