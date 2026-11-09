@@ -240,7 +240,7 @@ function scenarioValues(v){
   const byId=Object.fromEntries(histories.filter(h=>h&&h.id).map(h=>[h.id,h]));
   // Algunos expedientes FCFE identifican historias por nombre, sin id A/B/C/D.
   // Los identificadores explícitos prevalecen; solo se adaptan valores existentes.
-  const floyd=String(v.perfil_valoracion||'').toLowerCase()==='floyd';
+  const floyd=['floyd','reboot'].includes(String(v.perfil_valoracion||'').toLowerCase());
   const optimisticId=floyd?'C':'D';
   const namedIds={base:'A',conservador:'B',conservadora:'B',optimista:optimisticId,disrupcion:floyd?null:'C'};
   for(const h of histories){
