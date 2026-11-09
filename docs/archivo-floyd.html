@@ -35,7 +35,7 @@ input{border:1px solid var(--border,#dbe0db);border-radius:9px;padding:9px;backg
 const base='https://raw.githubusercontent.com/JuanMaRobledo/Modelo-JMR-datos/main/';
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const knownPath=p=>typeof p==='string'&&/^(valoraciones|analisis)\/[A-Za-z0-9._-]+\.json$/.test(p);
+const knownPath=p=>typeof p==='string'&&/^archivo-v1\/(valoraciones|analisis)\/[A-Za-z0-9._-]+\.json$/.test(p);
 const json=async u=>{const r=await fetch(u,{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);return r.json();};
 try{
 const catalog=await json(base+'catalogo.json');
