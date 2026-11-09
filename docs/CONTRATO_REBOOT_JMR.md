@@ -18,8 +18,8 @@ Las plantillas maestras Reboot viven en `Drive → Modelo JMR → Plantillas Mod
 | Plantilla | ID | Estado 9-nov-2026 |
 |---|---|---|
 | 01 LIBRO HISTÓRICOS | `1DWY01fy7Zikb-MTY8ycoCTAVEncqKdjJefQEPWh6n08` | **Lista.** Hojas originales sin referencias externas ni errores. Único cambio: el encabezado A1/D1 de cada hoja apunta a `Guía y empresa` en vez de `Input sheet`. |
-| 02 LIBRO DCF (fcffsimpleginzu original) | `1nh7V0GW-ZWZMRdIbGW_fGtlcAb5qQd6uuNXEUKQ8iOA` | **Motor listo y verificado** contra `fcffsimpleginzu.xlsx` (17 hojas, 1 297 fórmulas, 76 comentarios, 0 diferencias reales). Faltan `Presentación` y `Resumen de valoraciones` (D-B). |
-| 03 LIBRO MÚLTIPLOS | — | Pendiente (etapa 2). |
+| 02 LIBRO DCF (fcffsimpleginzu original) | `1nh7V0GW-ZWZMRdIbGW_fGtlcAb5qQd6uuNXEUKQ8iOA` | **Motor listo y verificado** contra `fcffsimpleginzu.xlsx` (17 hojas, 1 297 fórmulas, 76 comentarios, 0 diferencias reales). Faltan `Presentación` y `Resumen de valoraciones` (D-B), que se diseñan al leer M y los tres D. |
+| 03 LIBRO MÚLTIPLOS | `1J1wpGYvTpMozhCy3YSM-IO3BbXM7B5c0lZtRj6dyZWU` | **Lista.** Versión anterior (Atlas) con cinco múltiplos, sin P/S ni P/BV: 16 hojas, mismas fórmulas que el respaldo (0 errores, 0 referencias rotas). Cambios: hoja nueva `Entradas desde DCF` (reemplaza las referencias a DCF x y CoC x), `Supuestos y control` sin Disrupción, costo de deuda en modo MANUAL y compuerta B60 reducida, `Puente EEFF` sin conversores de I+D/arrendamientos/normalizador. Los estados de M se cargan desde H por etiqueta (la fila «Other Operating Expenses» solo existe en H). |
 | 04 ANÁLISIS | `13TJsT-I5bieP-tgvYYo6N_QG5O-seUHUxYC7KzGEF6A` (Floyd, provisional) | Pendiente de adaptar. |
 
 ## Flujo de datos (sin `IMPORTRANGE`)
