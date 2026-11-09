@@ -1,11 +1,24 @@
 # Reglas vigentes del Modelo JMR
 
-**Versión 35 · 9-nov-2026 (Colombia).** Este documento es la única fuente de las reglas de método. Si un prompt
+**Versión 36 · 9-nov-2026 (Reboot).** Este documento es la única fuente de las reglas de método. Si un prompt
 (`docs/prompts/*.md`), `METODOLOGIA.md`, una habilidad o un comentario de código dice otra cosa, prevalece este
 documento. Una regla nueva no se agrega como «regla del día X» en un prompt: se cambia aquí, se sube la versión y se
 anota en el registro de cambios del final.
 
 **Doble método:** desde esta versión las valoraciones seleccionan `Método A` o `Método B` por revisión. La selección normativa y precedencia se describen en [`METODOS_VALORACION.md`](METODOS_VALORACION.md), con reglas particulares en [`METODO_A_JMR.md`](METODO_A_JMR.md) y copia íntegra del método anterior en [`METODO_B_JMR.md`](METODO_B_JMR.md). El presente documento mantiene las reglas **compartidas** de cálculo, plantilla y publicación. En el flujo compatible A-1.2 se aplica Método A, salvo elección expresa de B por el usuario; registrar y comunicar la selección antes de estimar. La interpretación B sin etiqueta se conserva exclusivamente para leer revisiones históricas, sin reclasificarlas ni recalcularlas.
+
+## 0R. Perfil vigente: Modelo JMR Reboot (versión 36 · 9-nov-2026)
+
+**Decisión del usuario, 9-nov-2026.** Todo el contenido previo se archivó en `Modelo-JMR-datos/archivo-v1/` y no es insumo. Para toda valoración nueva rige el perfil **Reboot**, que **sustituye** a §0, §0C y §0D (Floyd, F1–F5) en lo que se oponga; Floyd solo se mantiene para continuar UBER y CMG hasta reconfigurarlos (CELH está en reconfiguración). Contrato: [`docs/CONTRATO_REBOOT_JMR.md`](../docs/CONTRATO_REBOOT_JMR.md); órdenes R1–R6: [`docs/prompts/ordenes-reboot.md`](../docs/prompts/ordenes-reboot.md); prompt reutilizable: [`PROMPT_MAESTRO_REBOOT.md`](../docs/prompts/PROMPT_MAESTRO_REBOOT.md).
+
+Reglas nuevas:
+1. **Filosofía Damodaran, historias a números.** Los supuestos los elige la IA con criterio, fuente, evidencia y contraevidencia; las fórmulas calculan. Prohibido sustituir fórmulas o selectores por números.
+2. **Cuatro artefactos por empresa:** LIBRO HISTÓRICOS (formato establecido: estados financieros, salud financiera, eficiencia, márgenes, dividendos y por acción), LIBRO DCF (Simple Ginzu íntegro + `Presentación` + `Resumen de valoraciones`), LIBRO MÚLTIPLOS (sistema original JMR) y ANÁLISIS (Doc con Nivel 1 de 14 capítulos y Nivel 2 de 12 apartados).
+3. **Flujo unidireccional H→D, H→M, M→D** por script con huella SHA-256 e integridad posterior, sin `IMPORTRANGE` salvo decisión escrita del usuario. D no escribe en H ni en M.
+4. **Seis fases R1–R6** (corte, históricos, historias y DCF, múltiplos y resumen, análisis y publicación, auditoría independiente). R6 nunca la hace la misma sesión que construyó.
+5. **Se conservan** de las demás secciones: tres historias, probabilidades que suman 100 %, fracaso solo en Conservadora, WACC común, MOS 35 % solo sobre el DCF Base, núcleo de cinco múltiplos (§5A) con P/S y P/BV opcionales, y las reglas de publicación (§6) y análisis (§9). Los «cuatro escenarios» A-1.2 no se usan.
+6. **Contrato de datos:** `perfil_valoracion=Reboot`, `contratoLibros=jmr-reboot-3libros-v1`, `libros.{historicos,dcf,multiplos,analisis}`. La app y los validadores aún no lo reconocen; hasta ajustarlos una revisión Reboot queda como CANDIDATO y no se declara publicada.
+7. Una revisión no puede avanzar de CANDIDATO mientras no existan las plantillas Reboot de Drive. No declarar controles no ejecutados.
 
 ## 0. Perfil oficial Modelo JMR Floyd
 
@@ -393,5 +406,4 @@ Hojas de trabajo conservadas tras el archivo del 24-oct-2026 (identidad document
 | 3 | 21-oct-2026 | Prompts de análisis fundamental (v5 corregido) y auditoría (v1.2) alineados y válidos para cualquier modelo: el análisis copia las cifras de la valoración oficial (no recalcula), MOS solo sobre la Base (el texto anterior decía «sobre el esperado»), promedio de tres historias, probabilidades por previa + indicadores; la auditoría busca sesgo en ambas direcciones (agresividad y prudencia duplicada) y verifica g, ajuste por tasas y ancla C. |
 | 2 | 21-oct-2026 | Prompt de valoración v5 (`docs/prompts/valoracion-modelo-jmr-v5.md`): autocontenido y válido para cualquier modelo de lenguaje, un solo método de múltiplos (el v4 mezclaba λ, ciclo y Toro), etiquetas [Dato]/[Cálculo]/[Juicio] y ficha JSON de salida. Calibración honesta (§2). Topes de Toro retirados (doble prudencia). |
 | 1 | 21-oct-2026 | Consolida las reglas dispersas en los prompts (17, 18 y 21-oct). MOS sobre DCF Base o SOTP Base (antes había código que lo calculaba sobre el esperado). Probabilidades por previa + indicadores. g terminal 4% (antes = tasa libre, 5,29%). Prima por país en la fecha del corte. Ajuste por tasas y tope del ancla C en los múltiplos por ciclo. Controles de razonabilidad y foto de supuestos. |
-
-
+| 36 | 9-nov-2026 | §0R: reboot del modelo. Perfil Reboot con LIBRO HISTÓRICOS, DCF y MÚLTIPLOS más análisis, fases R1–R6, flujo H→D/H→M/M→D con huella; Floyd solo para UBER y CMG. Archivo previo en `archivo-v1/`. Sin cambio de fórmulas ni de MOS 35 % sobre Base. |

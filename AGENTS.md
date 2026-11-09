@@ -1,5 +1,11 @@
 # Instrucciones permanentes — Modelo JMR · contrato multiagente
-**Versión 8-nov-2026 · mismo texto oficial en Modelo-JMR, Modelo-JMR-datos y JMR-valuation.**
+**Versión 9-nov-2026 · mismo texto oficial en Modelo-JMR, Modelo-JMR-datos y JMR-valuation.**
+
+## Perfil vigente: Reboot (9-nov-2026)
+Toda valoración nueva sigue **Modelo JMR Reboot**, igual para ChatGPT, Claude y cualquier ejecutor. Antes de empezar lee, en `JuanMaRobledo/Modelo-JMR` (rama `main`): `modelo/REGLAS_VIGENTES.md` §0R, `docs/CONTRATO_REBOOT_JMR.md` y `docs/prompts/ordenes-reboot.md` (prompt reutilizable: `docs/prompts/PROMPT_MAESTRO_REBOOT.md`). Son cuatro artefactos por empresa —LIBRO HISTÓRICOS, LIBRO DCF, LIBRO MÚLTIPLOS y documento de ANÁLISIS— y seis fases R1–R6. Filosofía Damodaran: historias a números, supuestos por criterio de la IA con fuentes. Lo anterior al 9-nov-2026 está en `Modelo-JMR-datos/archivo-v1/` y no es insumo. Una revisión Reboot no se declara publicada mientras app y validadores no reconozcan `jmr-reboot-3libros-v1`.
+
+## Floyd (heredado)
+Lo que sigue describe Floyd F1–F5 y **solo** se aplica para continuar UBER y CMG hasta reconfigurarlos; CELH está en reconfiguración. Si contradice el perfil Reboot, prevalece Reboot.
 
 ## Instrucción obligatoria para ChatGPT, Claude y cualquier ejecutor
 **Una valoración JMR Floyd sigue exactamente el mismo proceso F1–F5 independientemente de la IA.** Antes de empezar, lee en este orden desde `JuanMaRobledo/Modelo-JMR` (rama oficial `main`):
