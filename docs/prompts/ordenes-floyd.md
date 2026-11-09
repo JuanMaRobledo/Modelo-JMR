@@ -2,6 +2,12 @@
 
 **Paridad obligatoria ChatGPT / Claude (8-nov-2026):** leer antes [`docs/CONTRATO_EJECUCION_FLOYD.md`](../CONTRATO_EJECUCION_FLOYD.md). Este archivo contiene las mismas órdenes F1–F5 para ambos agentes; no hay una versión especial por plataforma. Cada fase deposita su entrega en `Modelo-JMR-datos/candidatos/valoraciones/<REV>/FASE_<N>_ENTREGA.md`; el sucesor lee el mismo expediente y continúa con los controles pendientes. Para toda empresa Floyd, H1 Históricos + H2 Valoración + documento de análisis son fuentes separadas registradas bajo `libros`; versiones previas permanecen en `archivoFloyd`. El estado EN_REVISION requiere los mismos gates cualquiera que sea el ejecutor. F5 independiente no se auto-certifica.
 
+## Ruta oficial de plantillas · tres documentos · 9-nov-2026
+
+Ver también [contrato único actualizado](../CONTRATO_EJECUCION_FLOYD.md) y [prompt maestro reutilizable](PROMPT_MAESTRO_FLOYD_TRES_DOCUMENTOS.md). La carpeta oficial de Drive es [Plantillas Modelo JMR Floyd](https://drive.google.com/drive/folders/16NLCP68hZ6axQPZnf4eYi4Lx4tUH-57u); **copiar** tres plantillas aisladas por revisión: [H1 Históricos](https://docs.google.com/spreadsheets/d/1vYi0o9-jVdKNO27t7MsmwESqCHiXSwZGcDVjgiaytKA/edit), [H2 Valoración con primera hoja Presentación](https://docs.google.com/spreadsheets/d/11KqYtCY9q2sveWmk5qMEhDEoa_mDhuo1LQSc6I1z9gE/edit) y [H3 Análisis N1+N2](https://docs.google.com/document/d/13TJsT-I5bieP-tgvYYo6N_QG5O-seUHUxYC7KzGEF6A/edit). Buscar/reutilizar primero las copias oficiales de una revisión activa bajo `Modelo JMR Floyd/Análisis/<TICKER>`. Los tres URLs reales se registran en `libros.historicos/valoracion/analisis`; el índice activo debe apuntar a H2, no a H1. No crear un cuarto documento de análisis ni copiar varias valoraciones en una misma revisión.
+
+La pestaña **Presentación** de H2 es obligatoria como primera hoja, no tiene imágenes y lee mediante fórmulas el precio fechado, DCF Base, compra MOS35%=0,65×DCF Base, valores Conservadora/Base/Optimista, esperado, múltiplos secundarios y drivers; comprobar identidad con el DCF del motor original y con la salida JSON. No escribir entradas económicas en Presentación. H1→H2 es traspaso de snapshot sin `IMPORTRANGE`, conservando fórmulas y comentarios Damodaran. Solo tres escenarios Floyd; ignorar referencias de cuatro escenarios heredadas de A-1.2.
+
 ## Selecciona el perfil antes de ejecutar
 
 Para una valoración nueva de una empresa operativa cubierta por Simple Ginzu FCFF, usa Floyd por defecto. Si el usuario elige otro perfil o la tarea continúa una revisión ya identificada, respeta ese perfil. Registra `perfil_valoracion=Floyd`, ticker, clase, revisión, corte y fase. Las financieras, holdings y otros emisores cuyo motor requerido no esté cubierto por Floyd siguen el flujo compatible FCFE/SOTP. Distingue el perfil operativo del método de estimación de supuestos. Lee las reglas generales vigentes de fuentes, aislamiento, integridad, materialidad y trazabilidad. Para Floyd, aplica las órdenes de este archivo en lugar de las instrucciones A-1.2 sobre valoración temprana en F1 y cuatro historias. Conserva el formato de entrega de fases.
@@ -12,7 +18,7 @@ Ejecuta la fase pedida. Si te piden varias, ejecútalas en orden y valida las de
 
 1. Identifica ticker, clase, moneda, escala, último FY, corte LTM y fecha de mercado. Registra fuentes primarias, cotización fechada y el mapa de insumos materiales.
 2. Comprueba la idoneidad del motor Simple Ginzu FCFF. Si el emisor exige un motor que Floyd todavía no cubre, registra el bloqueo de valoración y continúa con los datos verificables.
-3. Localiza la revisión Floyd candidata. Si no existe, crea el expediente aislado y una copia de valoración desde la [Maestra Floyd de tres escenarios](https://docs.google.com/spreadsheets/d/157EabbntPVoydBgBZNjp90BBjoliGDOts2E0MxNVKSc/edit). Identifica la versión y huella esperada de la maestra. Entrega el mapa de carga para F2. Calcula el valor en F3.
+3. Localiza la revisión Floyd candidata. Si no existe, crea el expediente aislado y tres copias (Históricos H1, Valoración H2 y Análisis H3) desde la carpeta oficial; el libro H2 se copia desde la [Maestra Floyd con Presentación](https://docs.google.com/spreadsheets/d/11KqYtCY9q2sveWmk5qMEhDEoa_mDhuo1LQSc6I1z9gE/edit). Identifica las tres URLs y la versión y huella esperada del motor H2. Verifica la primera pestaña Presentación. Entrega el mapa de carga para F2. Calcula el valor en F3.
 
 ## F2 · Históricos y traspaso
 
@@ -29,7 +35,7 @@ Ejecuta la fase pedida. Si te piden varias, ejecútalas en orden y valida las de
 
 ## F4 · Análisis y expediente candidato
 
-1. Comprueba que Históricos y Valoración están conciliados y que los supuestos materiales de F3 están cerrados. Usa ambos libros y el corte de esa misma revisión.
+1. Comprueba que Históricos y Valoración están conciliados y que los supuestos materiales de F3 están cerrados. Usa H1, H2 y la plantilla del Google Doc H3 con el corte de esa misma revisión; escribe ambos niveles en el mismo documento.
 2. Aplica el contrato editorial del maestro 2/3. Redacta Nivel 1 y Nivel 2 con tres escenarios. Vincula tesis, ciclo, riesgos y evidencia a los supuestos y las cifras de la hoja. Rehaz borradores anteriores si cambiaron los datos o supuestos que los sustentan.
 3. Prepara el JSON y valida hoja → JSON → visor en un entorno aislado. Si el visor o un validador aún exige el perfil A-1.2, registra el bloqueo de integración y conserva las tres historias. Publica como EN_REVISION solo si se aprobaron los controles técnicos y la conciliación del perfil Floyd con los datos y el visor, bajo §6 y §8A. Hasta entonces conserva el expediente como CANDIDATO.
 

@@ -1,5 +1,23 @@
 # Contrato único de ejecución · Modelo JMR Floyd
-**Versión:** 1.0 · 8-nov-2026 · **aplica idénticamente a ChatGPT (chat/Work), Claude (chat/Code) y cualquier agente conectado.**
+**Versión:** 1.1 · 9-nov-2026 · **aplica idénticamente a ChatGPT (chat/Work), Claude (chat/Code) y cualquier agente conectado.**
+
+## Plantillas oficiales, hoja Presentación y flujo de tres documentos · 9-nov-2026
+
+Las **tres plantillas oficiales** viven en [Plantillas Modelo JMR Floyd](https://drive.google.com/drive/folders/16NLCP68hZ6axQPZnf4eYi4Lx4tUH-57u) dentro de Google Drive → Modelo JMR Floyd; no se escribe sobre los originales:
+
+| Documento | Plantilla maestra inmutable | Propósito |
+|---|---|---|
+| **H1 · Históricos** | [Históricos, diez FY + LTM](https://docs.google.com/spreadsheets/d/1vYi0o9-jVdKNO27t7MsmwESqCHiXSwZGcDVjgiaytKA/edit) | Ingresos, balance, caja, ratios, procedencia y conciliaciones. |
+| **H2 · Valoración** | [Damodaran + JMR con Presentación](https://docs.google.com/spreadsheets/d/11KqYtCY9q2sveWmk5qMEhDEoa_mDhuo1LQSc6I1z9gE/edit) | DCF Simple Ginzu original, hipótesis, tres historias, cinco múltiplos y sensibilidad. |
+| **H3 · Análisis** | [Artículo Nivel 1 + soporte Nivel 2](https://docs.google.com/document/d/13TJsT-I5bieP-tgvYYo6N_QG5O-seUHUxYC7KzGEF6A/edit) | Un solo Google Doc con 14 capítulos N1 y 12 secciones N2. |
+
+**Contrato de ubicación:** por ticker, guardar copias de H1/H2/H3 como tres documentos de trabajo activos bajo `Modelo JMR Floyd/Análisis/<TICKER>`. Todos comparten ticker, revisión, moneda y cortes. Las entregas y JSON son artefactos de soporte en el repositorio; no son un cuarto documento maestro. Si la revisión ya tiene libros, **reutilizarlos**, conservar sus IDs y reconciliarlos; no crear nuevas copias.
+
+**Hoja obligatoria:** la primera pestaña del libro H2 se llama exactamente `Presentación`; no admite imágenes ni importación de valores pegados. Su lectura es solo fórmulas locales y metadatos verificables. Encabezar con precio de mercado fechado, valor intrínseco DCF Base y precio con MOS 35 % = `0,65 × DCF Base`; después Conservadora/Base/Optimista, esperado ponderado, múltiplos secundarios y principales motores económicos. **La Presentación no reemplaza ni modifica el motor `Valuation output` / `Input sheet`**. Comprobar expresamente igualdad de salidas `Presentación` ↔ `Escenarios e historias` ↔ `Valuation output`.
+
+**Secuencia:** F1 identifica/reutiliza o copia **tres plantillas oficiales**; F2 captura y concilia H1, transfiere snapshot unidireccional FY-2/FY-1/FY/LTM a H2 (no `IMPORTRANGE`); F3 determina hipótesis, calcula DCF/múltiplos y verifica Presentación; F4 escribe H3, concilia la terna con JSON/catálogo/app y publica `EN_REVISION` solo si pasan gates; F5 es auditoría independiente. El análisis sigue un solo documento con dos niveles, no dos Google Docs.
+
+**Prompt maestro único:** [PROMPT_MAESTRO_FLOYD_TRES_DOCUMENTOS.md](prompts/PROMPT_MAESTRO_FLOYD_TRES_DOCUMENTOS.md), para ChatGPT, Work y Claude; evita rutas de hojas distintas entre ejecutores. Si aparece una guía heredada A-1.2 de **cuatro escenarios**, para Floyd prevalece la regla de tres (Conservadora, Base, Optimista) de §0 de `REGLAS_VIGENTES`. El libro H1 ofrece renglones y estructura, no avala datos no conciliados; su validez se verifica en la revisión específica.
 
 ## Autoridad y principio de paridad
 Esta es la **única secuencia operativa para el perfil Floyd**, con independencia del proveedor, modelo, ventana, sesión o nivel de razonamiento. Las reglas económicas y de publicación pertenecen a [`modelo/REGLAS_VIGENTES.md`](../modelo/REGLAS_VIGENTES.md) (§0, §0A–0D, §1–§12), que prevalece; el detalle de cada fase corresponde a [`docs/prompts/ordenes-floyd.md`](prompts/ordenes-floyd.md). El análisis sigue [`docs/prompts/research-fundamental-jmr-v5.md`](prompts/research-fundamental-jmr-v5.md) y [`docs/ESTILO_ANALISIS_FUNDAMENTAL_JMR.md`](ESTILO_ANALISIS_FUNDAMENTAL_JMR.md). F5 sigue [`docs/prompts/auditoria-economica-jmr-v1.md`](prompts/auditoria-economica-jmr-v1.md).
@@ -16,10 +34,10 @@ Esta es la **única secuencia operativa para el perfil Floyd**, con independenci
 ## Cinco fases Floyd · orden invariable
 | Fase | Operación obligatoria | Salida |
 |---|---|---|
-| **F1 · Corte y preparación** | Identidad, fuente primaria, fechas, corte, moneda, plantilla **Maestra Floyd**, copia aislada y mapa de insumos; verificar que FCFF cubre el negocio. | `CANDIDATO`, plan H1/H2, F1 entrega |
+| **F1 · Corte y preparación** | Identidad, fuente primaria, fechas, corte, moneda, tres **plantillas oficiales H1/H2/H3**, copias aisladas y mapa de insumos; verificar que FCFF cubre el negocio. | `CANDIDATO`, plan H1/H2, F1 entrega |
 | **F2 · Históricos + traspaso** | **H1:** libro separado de **Históricos**, hasta 10 FY + LTM con fuentes, clasificaciones y conciliación; **H2:** traslado unidireccional FY-2/FY-1/FY/LTM al libro de **Valoración** sin `IMPORTRANGE`, sin alterar fórmulas/selectores y con pruebas de integridad. | `CANDIDATO`, ambos IDs y F2 entrega |
 | **F3 · Supuestos y cálculo** | «Historias → números» Damodaran; **Conservadora, Base, Optimista** (sin cuarto escenario computado como historia Floyd), probabilidad total 100 %, fracaso solo en Conservadora, un costo de capital común, crecimiento/márgenes/ROIC/reinversión/Sales-to-Capital, I+D/leases/opciones; motor original DCF, inverso, cinco múltiplos aplicables y matrices 5×5; **MOS 35 % del DCF Base**, no del esperado. | `CANDIDATO_REVISADO`, fotografía y F3 entrega |
-| **F4 · Investigación y publicación** | **Nivel 1: 14 capítulos narrativos** (incluyendo ciclos de empresa, macro, monetario, crédito/mercado y sentimiento); **Nivel 2: 12 apartados reproducibles**, fuentes, cifras, fórmula, escenarios, múltiplos y sensibilidades **de esta revisión**. Conciliar libros→JSON→app, ejecutar gates y publicar la pareja valoración/análisis como `EN_REVISION` únicamente cuando pase. | Una ficha, siete pestañas, estado `EN_REVISION`, F4 entrega |
+| **F4 · Investigación y publicación** | **Un documento H3: Nivel 1: 14 capítulos narrativos; Nivel 2: 12 apartados reproducibles** (incluyendo ciclos de empresa, macro, monetario, crédito/mercado y sentimiento); **Nivel 2: 12 apartados reproducibles**, fuentes, cifras, fórmula, escenarios, múltiplos y sensibilidades **de esta revisión**. Conciliar libros→JSON→app, ejecutar gates y publicar la pareja valoración/análisis como `EN_REVISION` únicamente cuando pase. | Una ficha, siete pestañas, estado `EN_REVISION`, F4 entrega |
 | **F5 · Auditoría económica independiente** | Sesión/agente revisor distinto del constructor; observaciones del usuario, recálculo de tesis y supuestos, fuentes, matrices, terminal y materialidad. No modificar a escondidas la valoración y no autocertificar. | Dictamen `VERIFICADO`, `CON RESERVA MATERIAL` o `PENDIENTE`; F5 entrega |
 
 ## Contrato de datos idéntico para todos los tickers
