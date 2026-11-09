@@ -1,7 +1,21 @@
-# Claude Code · Modelo JMR Reboot (mismo contrato que ChatGPT)
+# Claude Code · Modelo JMR Reboot (paridad ChatGPT y Gemini)
 
-Lee primero [AGENTS.md](AGENTS.md), que contiene las **mismas instrucciones** utilizadas por ChatGPT/Work. La fuente única para ambos es [Contrato de ejecución Floyd](https://github.com/JuanMaRobledo/Modelo-JMR/blob/main/docs/CONTRATO_EJECUCION_FLOYD.md), junto con [Órdenes Floyd F1–F5](https://github.com/JuanMaRobledo/Modelo-JMR/blob/main/docs/prompts/ordenes-floyd.md) y las reglas económicas de `modelo/REGLAS_VIGENTES.md`.
+Este archivo es **solo la entrada para Claude**, no define un método propio. Lee primero [AGENTS.md](AGENTS.md): el mismo contrato vale sin cambios para **ChatGPT, Claude, Gemini** y otros agentes.
 
-La habilidad local `fase-jmr` debe dirigir el trabajo a ese contrato; **no** ejecutar instrucciones históricas que hablen de cuatro fases, cuatro historias A-1.2 o una sola hoja. Para una empresa Floyd la secuencia es F1→F2 (H1/H2)→F3 (tres historias)→F4 (análisis 14+12, publicación EN_REVISION con CI)→F5 (auditoría independiente). Los datos, documentos y estados son idénticos a los de ChatGPT. No declarar controles realizados sin ejecutarlos.
+## Perfil vigente para valoraciones nuevas: Reboot
 
-**Perfil vigente desde el 9-nov-2026: Reboot.** Para toda valoración nueva lee `modelo/REGLAS_VIGENTES.md` §0R, [Contrato Reboot](https://github.com/JuanMaRobledo/Modelo-JMR/blob/main/docs/CONTRATO_REBOOT_JMR.md) y [Órdenes R1–R6](https://github.com/JuanMaRobledo/Modelo-JMR/blob/main/docs/prompts/ordenes-reboot.md): seis archivos (HISTÓRICOS, tres DCF, MÚLTIPLOS, ANÁLISIS) y seis fases. El párrafo sobre Floyd F1→F5 solo aplica a UBER y CMG mientras se reconfiguran.
+Lee en `JuanMaRobledo/Modelo-JMR`, desde el **mismo ref/commit declarado** por todos los agentes:
+1. `modelo/REGLAS_VIGENTES.md` §0R.
+2. `docs/CONTRATO_REBOOT_JMR.md`.
+3. `docs/prompts/ordenes-reboot.md` y `docs/prompts/PROMPT_MAESTRO_REBOOT.md`.
+4. Fuentes editoriales y `docs/HISTORIAS_A_NUMEROS.md` para la fase correspondiente.
+
+**Transición de rama:** mientras el Reboot esté en PR borrador, usa `claude/jmr-model-reboot-rnj087`. Solo cuando app, datos y motor estén integrados y sus contratos disponibles se usará `main`. No leas Floyd desde `main` como sustituto de un contrato Reboot ausente.
+
+Seis archivos: Históricos, tres DCF (Base, Conservadora y Optimista, con fórmulas y comentarios originales de Damodaran), Múltiplos y un documento de Análisis. Seis fases R1–R6; publicación `EN_REVISION` solo tras controles económicos y técnicos, y R6 independiente. Las fuentes de otros expedientes archivados no reemplazan datos primarios.
+
+## Perfil legado: Floyd
+
+Para **continuar** UBER o CMG antes de su reconfiguración, usa `docs/CONTRATO_EJECUCION_FLOYD.md` y las órdenes F1–F5, no las instrucciones A-1.2. No convertir automáticamente la revisión ni sus fórmulas.
+
+Nunca afirmar que una comprobación, integración, publicación o auditoría se completó si no consta evidencia verificable. Al cambiar de agente, conservar `revisionId`, IDs reales de archivos, fuentes, commits y entregas de fase.
