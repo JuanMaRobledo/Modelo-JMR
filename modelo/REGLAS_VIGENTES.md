@@ -13,12 +13,12 @@ anota en el registro de cambios del final.
 
 Reglas nuevas:
 1. **Filosofía Damodaran, historias a números.** Los supuestos los elige la IA con criterio, fuente, evidencia y contraevidencia; las fórmulas calculan. Prohibido sustituir fórmulas o selectores por números.
-2. **Cuatro artefactos por empresa:** LIBRO HISTÓRICOS (formato establecido: estados financieros, salud financiera, eficiencia, márgenes, dividendos y por acción), LIBRO DCF (Simple Ginzu íntegro + `Presentación` + `Resumen de valoraciones`), LIBRO MÚLTIPLOS (sistema original JMR) y ANÁLISIS (Doc con Nivel 1 de 14 capítulos y Nivel 2 de 12 apartados).
-3. **Flujo unidireccional H→D, H→M, M→D** por script con huella SHA-256 e integridad posterior, sin `IMPORTRANGE` salvo decisión escrita del usuario. D no escribe en H ni en M.
+2. **Seis archivos por empresa:** LIBRO HISTÓRICOS (formato original; solo los tres estados y auxiliares son entradas, el resto son fórmulas), **tres LIBROS DCF** (Conservadora, Base y Optimista, cada uno el fcffsimpleginzu original **sin cambiar fórmulas ni comentarios**; `Presentación` y `Resumen de valoraciones` solo en el Base), LIBRO MÚLTIPLOS (versión anterior de JMR, alimentada con los supuestos de la Base y `Financials Multiples`) y ANÁLISIS (Doc con Nivel 1 de 14 capítulos y Nivel 2 de 12 apartados).
+3. **Flujo unidireccional H→D, H→M, D-B→M y M/D-C/D-O→D-B** por script con huella SHA-256 e integridad posterior, sin `IMPORTRANGE` salvo decisión escrita del usuario. D no escribe en H ni en M.
 4. **Seis fases R1–R6** (corte, históricos, historias y DCF, múltiplos y resumen, análisis y publicación, auditoría independiente). R6 nunca la hace la misma sesión que construyó.
-5. **Se conservan** de las demás secciones: tres historias, probabilidades que suman 100 %, fracaso solo en Conservadora, WACC común, MOS 35 % solo sobre el DCF Base, núcleo de cinco múltiplos (§5A) con P/S y P/BV opcionales, y las reglas de publicación (§6) y análisis (§9). Los «cuatro escenarios» A-1.2 no se usan.
-6. **Contrato de datos:** `perfil_valoracion=Reboot`, `contratoLibros=jmr-reboot-3libros-v1`, `libros.{historicos,dcf,multiplos,analisis}`. La app y los validadores aún no lo reconocen; hasta ajustarlos una revisión Reboot queda como CANDIDATO y no se declara publicada.
-7. Una revisión no puede avanzar de CANDIDATO mientras no existan las plantillas Reboot de Drive. No declarar controles no ejecutados.
+5. **Se conservan** de las demás secciones: tres historias, probabilidades que suman 100 %, fracaso solo en Conservadora, WACC común, MOS 35 % solo sobre el DCF Base, núcleo de cinco múltiplos (§5A); **P/S y P/BV se eliminan** en Reboot, y las reglas de publicación (§6) y análisis (§9). Los «cuatro escenarios» A-1.2 no se usan.
+6. **Contrato de datos:** `perfil_valoracion=Reboot`, `contratoLibros=jmr-reboot-3libros-v1`, `libros.{historicos,dcf{base,conservadora,optimista},multiplos,analisis}`. La app y los validadores aún no lo reconocen; hasta ajustarlos una revisión Reboot queda como CANDIDATO y no se declara publicada.
+7. Plantillas Reboot (Drive, carpeta `Plantillas Modelo JMR Reboot`): HISTÓRICOS y motor DCF listos; faltan `Presentación`/`Resumen de valoraciones` y MÚLTIPLOS. Una revisión no puede avanzar de CANDIDATO hasta completarlas. No declarar controles no ejecutados.
 
 ## 0. Perfil oficial Modelo JMR Floyd
 
