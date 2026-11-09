@@ -1,6 +1,6 @@
 # Reglas vigentes del Modelo JMR
 
-**Versión 34 · 8-nov-2026 (Colombia).** Este documento es la única fuente de las reglas de método. Si un prompt
+**Versión 35 · 9-nov-2026 (Colombia).** Este documento es la única fuente de las reglas de método. Si un prompt
 (`docs/prompts/*.md`), `METODOLOGIA.md`, una habilidad o un comentario de código dice otra cosa, prevalece este
 documento. Una regla nueva no se agrega como «regla del día X» en un prompt: se cambia aquí, se sube la versión y se
 anota en el registro de cambios del final.
@@ -12,6 +12,9 @@ anota en el registro de cambios del final.
 **Decisión del 8-nov-2026.** Floyd es el perfil oficial por defecto para nuevas valoraciones de empresas operativas cubiertas por Simple Ginzu FCFF. Aplica el perfil elegido expresamente por el usuario y respeta el perfil de toda revisión que se continúe. Para financieras, holdings y otros casos que requieren motores que Floyd todavía no cubre, usa el flujo compatible con FCFE/SOTP según corresponda. Los expedientes previos conservan método, cifras, hoja y estado hasta que se apruebe una revisión que los sustituya.
 
 **Órdenes obligatorias:** [F1–F5 de Floyd](../docs/prompts/ordenes-floyd.md). En Floyd, F1 prepara corte y alcance. F2 concilia el libro de Históricos y traspasa FY-2, FY-1, FY y LTM al libro de Valoración. F3 valora tres escenarios (Conservadora, Base y Optimista), con costo de capital común, fracaso solo en Conservadora y módulo de segmentos cuando aplique. F4 redacta el análisis tras cerrar los insumos materiales y comprueba hoja, JSON y visor. F5 es independiente. Se conserva el MOS 35 % sobre el DCF Base.
+
+**Contrato documental Floyd · 9-nov-2026:** exactamente **tres archivos maestros activos por revisión**: (H1) libro de Históricos de diez FY + LTM y fuentes, (H2) libro de Valoración preservando íntegramente el motor Damodaran Simple Ginzu y sus notas, y (H3) **un** documento de Análisis con Nivel 1 y Nivel 2. Las **tres plantillas oficiales** están en [Plantillas Modelo JMR Floyd](https://drive.google.com/drive/folders/16NLCP68hZ6axQPZnf4eYi4Lx4tUH-57u); [H1](https://docs.google.com/spreadsheets/d/1vYi0o9-jVdKNO27t7MsmwESqCHiXSwZGcDVjgiaytKA/edit), [H2](https://docs.google.com/spreadsheets/d/11KqYtCY9q2sveWmk5qMEhDEoa_mDhuo1LQSc6I1z9gE/edit) y [H3](https://docs.google.com/document/d/13TJsT-I5bieP-tgvYYo6N_QG5O-seUHUxYC7KzGEF6A/edit). Las copias vigentes van a `Modelo JMR Floyd/Análisis/<TICKER>`; una revisión activa por ticker, sin libros duplicados. **H2 debe empezar con la pestaña `Presentación`**, sin imágenes, de solo lectura, enlazada por fórmula al valor intrínseco DCF Base, cotización fechada, MOS35%=0,65×Base, escenarios, esperado y drivers; no sustituye `Valuation output`. El flujo F1–F5, los gates y la compatibilidad de app se rigen por [CONTRATO_EJECUCION_FLOYD](../docs/CONTRATO_EJECUCION_FLOYD.md) y [prompt maestro](../docs/prompts/PROMPT_MAESTRO_FLOYD_TRES_DOCUMENTOS.md). Las entregas y JSON de GitHub son soportes técnicos, no un cuarto documento maestro. No alterar revisiones preexistentes sin instrucción expresa.
+
 
 Para Floyd prevalecen estas instrucciones sobre las cláusulas específicas de A-1.2 acerca de valoración inicial en F1, cuatro historias, probabilidad de Disrupción y formato de 47 pestañas. Conserva los controles comunes de fuentes, integridad, materialidad, cálculo y publicación. El estado oficial del **perfil** es distinto del estado de un **expediente**: para publicar una revisión Floyd en la app exige validadores compatibles con tres escenarios, conciliación y controles de §6 y §8A. Si falta evidencia técnica o financiera, la revisión sigue como CANDIDATO.
 
@@ -355,6 +358,7 @@ Hojas de trabajo conservadas tras el archivo del 24-oct-2026 (identidad document
 
 | Versión | Fecha | Cambio |
 |---|---|---|
+| 35 | 9-nov-2026 | §0: tres plantillas Floyd oficiales (H1 Históricos, H2 Valoración con Presentación, H3 análisis N1+N2), carpeta y prompt maestro; no cambia motor, supuestos ni expedientes existentes. |
 | 34 | 8-nov-2026 | §0: Floyd es el perfil oficial para nuevas operativas FCFF. Órdenes F1–F5 de Floyd, tres escenarios y controles de publicación por revisión. |
 | 33 | 4-nov-2026 (Colombia) | §2: calidad económica de supuestos, fichas causales y seguimiento; guía v2 con fuentes originales, motores de ingresos, comisión, margen/inversión conjuntos, ROIC marginal y eficiencia; distingue convenciones JMR y conceptos estadísticos. Sin recalcular valoraciones ni alterar fórmulas, probabilidades o gates. La fecha local difiere de registros anteriores fechados en UTC. |
 | 32 | 5-nov-2026 | §2: los supuestos salen de la historia; guía `docs/HISTORIAS_A_NUMEROS.md` obligatoria en F1/F3/F5; crecimiento derivado de TAM₁₀ × participación objetivo con fila de brecha historia − modelo en cada historia (`build_historias_sheet.py`, aplicada a plantillas y hojas vigentes sin cambio de valores); control de publicación para revisiones nuevas. |
