@@ -18,7 +18,7 @@ Reglas nuevas:
 4. **Seis fases R1–R6** (corte, históricos, historias y DCF, múltiplos y resumen, análisis y publicación, auditoría independiente). R6 nunca la hace la misma sesión que construyó.
 5. **Se conservan** de las demás secciones: tres historias, probabilidades que suman 100 %, fracaso solo en Conservadora, WACC común, MOS 35 % solo sobre el DCF Base, núcleo de cinco múltiplos (§5A); **P/S y P/BV se eliminan** en Reboot, y las reglas de publicación (§6) y análisis (§9). Los «cuatro escenarios» A-1.2 no se usan.
 6. **Contrato de datos:** `perfil_valoracion=Reboot`, `contratoLibros=jmr-reboot-3libros-v1`, `libros.{historicos,dcf{base,conservadora,optimista},multiplos,analisis}`. La app y los validadores aún no lo reconocen; hasta ajustarlos una revisión Reboot queda como CANDIDATO y no se declara publicada.
-7. Plantillas Reboot (Drive, carpeta `Plantillas Modelo JMR Reboot`): HISTÓRICOS, motor DCF y MÚLTIPLOS listos; falta `Presentación`/`Resumen de valoraciones` en el DCF Base. Una revisión no puede avanzar de CANDIDATO hasta completarlas. No declarar controles no ejecutados.
+7. Plantillas Reboot (Drive, carpeta `Plantillas Modelo JMR Reboot`): HISTÓRICOS, DCF (02 y 02b Base con `Presentación` y `Resumen de valoraciones`) y MÚLTIPLOS listos; falta adaptar la plantilla de ANÁLISIS. Una revisión no puede avanzar de CANDIDATO hasta completarlas. No declarar controles no ejecutados.
 
 ## 0. Perfil oficial Modelo JMR Floyd
 
