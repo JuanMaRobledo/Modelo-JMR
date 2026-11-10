@@ -1,6 +1,6 @@
 # Reglas vigentes del Modelo JMR
 
-**Versión 37 · 10-nov-2026 (Floyd R1–R6, evolución del Reboot).** Este documento es la única fuente de las reglas de método. Si un prompt
+**Versión 38 · 10-nov-2026 (Floyd R1–R6, separación IA/cálculo).** Este documento es la única fuente de las reglas de método. Si un prompt
 (`docs/prompts/*.md`), `METODOLOGIA.md`, una habilidad o un comentario de código dice otra cosa, prevalece este
 documento. Una regla nueva no se agrega como «regla del día X» en un prompt: se cambia aquí, se sube la versión y se
 anota en el registro de cambios del final.
@@ -20,6 +20,20 @@ anota en el registro de cambios del final.
 **Identificación técnica sin romper histórico:** nuevas valoraciones deben usar `perfil_valoracion=Floyd` y `contratoLibros=jmr-reboot-3libros-v1` (nombre del contrato creado durante Reboot; **conservar como identificador estable**). Los JSON anteriores con `perfil_valoracion=Reboot` y el mismo contrato se leen como alias del Floyd vigente y pueden migrarse sin cambiar `revisionId`. El Floyd F1–F5 usa `floyd-h1-h2-separados-v1` y no tiene tres DCF separados. La app resuelve según el contrato, no por el texto «Floyd».
 
 **Prohibición de publicación prematura:** sin seis IDs y fuentes, integridad del motor, análisis R5, revisión económica y pruebas hoja→JSON→catálogo→app, mantener `CANDIDATO`; no mezclar datos del legado. El archivo histórico es de consulta únicamente.
+
+
+### 0R.1. Reparto inmutable: la IA solo tiene tres funciones analíticas
+
+**Toda valoración Floyd, en cualquier proveedor, reserva a la IA exactamente tres funciones:**
+1. **Recopilar, verificar, clasificar y cargar los datos históricos primarios** de **10 ejercicios fiscales completos consecutivos siempre que existan**, más LTM si es posible. Registrar fuente, fecha, moneda, unidad, escala, nota, correspondencia contable y conciliación. No inventar años ausentes ni imputar ceros por falta de fuente.
+2. **Proponer y justificar supuestos económicos** para los escenarios en entradas autorizadas, con historia → números, evidencia y contraevidencia, fuente, rango, efecto y fecha. Incluye crecimiento, márgenes, ROIC, reinversión, ventas/capital, WACC, terminal, probabilidades y pesos aplicables.
+3. **Redactar el análisis cualitativo fundamental**, explicando tesis y supuestos. El Nivel 2 extrae y explica resultados automáticos de la misma revisión, sin calcular ni pegar cifras derivadas.
+
+**El motor calcula, no la IA:** todos los ratios, indicadores, DCF, múltiplos, sensibilidades, escenarios, resúmenes y presentaciones derivan de fórmulas y vínculos internos ya establecidos. Las transferencias entre libros H→D, H→M, D-B→M y M/D-C/D-O→D-B utilizan las **automatizaciones predefinidas con huella y prueba de conciliación** del contrato Floyd: son infraestructura mecánica, no una cuarta función analítica. En la arquitectura actual los vínculos entre libros son sincronizaciones por script, **no necesariamente referencias en tiempo real**; una entrada cambiada exige propagar, recalcular y comprobar que el destino esté actualizado. Prohibido pegar manualmente salidas calculadas.
+
+**El agente valorador no puede modificar la configuración:** durante una valoración no debe crear, eliminar, reordenar, renombrar ni modificar libros, tablas, hojas, fórmulas, vínculos, validaciones, selectores, rangos, comentarios, diseños, scripts o motores. Solo se escriben **datos primarios y supuestos en celdas de entrada expresamente permitidas de las copias de la revisión**, y texto del análisis. R1 permite copiar una plantilla oficial intacta, no rediseñarla. La generación mecánica de entregas, JSON, pruebas y publicación no amplía las tres funciones analíticas.
+
+**Ante una rotura:** registrar celda/dependencia, evidencia, impacto y bloqueo; no corregir fórmulas ni arquitectura improvisadamente. Un cambio estructural requiere mantenimiento **separado y explícitamente autorizado**, con respaldo y pruebas de regresión. La publicación queda bloqueada si falla integridad de fórmulas, traspaso o vigencia de las dependencias.
 
 ## 0. PERFIL ARCHIVADO — Floyd F1–F5 (solo consulta)
 
@@ -374,6 +388,7 @@ Hojas de trabajo conservadas tras el archivo del 24-oct-2026 (identidad document
 
 | Versión | Fecha | Cambio |
 |---|---|---|
+| 38 | 10-nov-2026 | §0R.1: la IA ejecutora solo captura históricos 10 FY + LTM, propone supuestos justificados y redacta análisis; resultados por fórmulas/vínculos y sincronización aprobada; prohibido reconfigurar plantillas durante valoración. Cambio documental, sin modificar libros ni motores. |
 | 35 | 9-nov-2026 | §0: tres plantillas Floyd oficiales (H1 Históricos, H2 Valoración con Presentación, H3 análisis N1+N2), carpeta y prompt maestro; no cambia motor, supuestos ni expedientes existentes. |
 | 34 | 8-nov-2026 | §0: Floyd es el perfil oficial para nuevas operativas FCFF. Órdenes F1–F5 de Floyd, tres escenarios y controles de publicación por revisión. |
 | 33 | 4-nov-2026 (Colombia) | §2: calidad económica de supuestos, fichas causales y seguimiento; guía v2 con fuentes originales, motores de ingresos, comisión, margen/inversión conjuntos, ROIC marginal y eficiencia; distingue convenciones JMR y conceptos estadísticos. Sin recalcular valoraciones ni alterar fórmulas, probabilidades o gates. La fecha local difiere de registros anteriores fechados en UTC. |

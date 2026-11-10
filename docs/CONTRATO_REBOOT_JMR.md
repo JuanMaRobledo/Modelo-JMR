@@ -5,11 +5,19 @@
 ## Filosofía
 Método Damodaran: **historias → números**. Cada supuesto material nace de una historia sobre el negocio (mercado, ventaja competitiva, reinversión, riesgo), se justifica con evidencia y contraevidencia, y se traduce a una celda de entrada. Los supuestos los elige la IA con criterio propio y fuentes; las fórmulas calculan. Nunca se sustituye una fórmula por un número.
 
+## División inviolable del trabajo: tres tareas de IA
+
+Esta regla aplica en R1–R5 para ChatGPT, Claude y cualquier agente y desarrolla REGLAS_VIGENTES §0R.1. **La IA solo tiene tres funciones analíticas:** (1) reunir, verificar, clasificar y registrar **10 FY consecutivos siempre que existan y LTM disponible**, con fuente/corte/escala y tratamiento explícito de faltantes; (2) elegir y justificar supuestos exclusivamente en entradas previstas; (3) redactar el análisis fundamental cualitativo y explicar las salidas de la hoja. Nunca inventa un año ni sustituye una ausencia por cero. Los indicadores, DCF, múltiplos, sensibilidades y presentación son **cálculos de fórmulas y vínculos preexistentes**, no resultados escritos por la IA.
+
+**Protección estructural:** durante una valoración, editar solo datos primarios y supuestos en celdas de entrada autorizadas de las copias oficiales y el documento de análisis. No alterar libros, hojas, nombres, tablas, formatos, rangos, vínculos, fórmulas, selectores, validaciones, comentarios, scripts ni motores. En R1 está permitida únicamente la copia intacta de las plantillas. Un defecto estructural se documenta y bloquea lo afectado; requiere mantenimiento separado, autorizado y con pruebas.
+
+**Propagación automática:** las referencias por fórmula dentro de H, D y M permanecen intactas. Entre libros, esta arquitectura usa scripts de sincronización ya definidos con huella y verificación, sin IMPORTRANGE; **no afirmar que la vinculación entre archivos es en tiempo real**. Tras cambiar un dato primario o supuesto, ejecutar el traspaso autorizado, comprobar recálculo y conciliar destinos. Si la automatización no funciona, declarar bloqueo: nunca pegar manualmente cifras derivadas. Entregas, controles, JSON y publicación son operaciones mecánicas del flujo, no una cuarta tarea analítica.
+
 ## Los artefactos por empresa (seis archivos)
 | Artefacto | Qué contiene | Quién escribe |
 |---|---|---|
 | **LIBRO HISTÓRICOS** (H) | Formato original de Income Statement, Balance Sheet, Cash Flow Statement, Trailing Valuation, Dividendos, Márgenes, Eficiencia de capital, Salud Financiera y Por acción (diez FY + LTM), más Entradas históricas auxiliares, `Fuentes y clasificación` y `Guía y empresa`. Solo los tres estados y las auxiliares son entradas; **todo lo demás se calcula por fórmulas** del libro. | IA (datos primarios) |
-| **LIBRO DCF Base / Conservadora / Optimista** (D-B, D-C, D-O) | Tres copias del **fcffsimpleginzu original de Damodaran, sin cambiar fórmulas, comentarios ni disposición**. Cada libro es una historia, 100 % viva. La IA escribe solo celdas de entrada de `Input sheet`, ya sea con valores tomados de H o directamente. D-B suma `Presentación` y `Resumen de valoraciones`, hojas nuevas que no alteran el motor. | IA solo en entradas |
+| **LIBRO DCF Base / Conservadora / Optimista** (D-B, D-C, D-O) | Tres copias del **fcffsimpleginzu original de Damodaran, sin cambiar fórmulas, comentarios ni disposición**. Cada libro es una historia, 100 % viva. La IA escribe solo celdas de entrada previstas, con históricos trasladados desde H o fuentes externas primarias registradas y supuestos motivados; no escribe resultados calculados. D-B suma `Presentación` y `Resumen de valoraciones`, hojas nuevas que no alteran el motor. | IA solo en entradas |
 | **LIBRO MÚLTIPLOS** (M) | Sistema de múltiplos JMR de la versión anterior (Atlas): EV/EBITDA, EV/FCFF, P/E, P/FCFE, P/OCF, `Financials Multiples`, `Descuento de múltiplos` y sensibilidad por múltiplo. **Sin P/S ni P/BV.** Se alimenta de los mismos supuestos de la Base de DCF y de los estados de H. | IA solo en entradas |
 | **ANÁLISIS** (A) | Un Google Doc: Nivel 1 (14 capítulos) + Nivel 2 (12 apartados), con cifras de H, D y M de la misma revisión. | IA |
 
@@ -24,7 +32,7 @@ Las plantillas maestras oficiales de Floyd R1–R6 viven en `Drive → Modelo JM
 | 04 ANÁLISIS | `13TJsT-I5bieP-tgvYYo6N_QG5O-seUHUxYC7KzGEF6A` (Floyd, provisional) | Pendiente de adaptar. |
 
 ## Flujo de datos (sin `IMPORTRANGE`)
-`H → D-B/D-C/D-O`: entradas del `Input sheet` desde H (FY, LTM, deuda, caja, acciones…) o escritas directamente. `H → M`: estados de los que `Financials Multiples` proyecta. `D-B → M`: supuestos de la Base (crecimiento, márgenes, tasa, costo de capital, acciones). `M, D-C, D-O → D-B`: resultados finales hacia `Resumen de valoraciones`. Cada traspaso es una carga por script con huella SHA-256 y control posterior. Los libros D no se modifican entre sí; las tres historias comparten WACC y se concilian en el resumen.
+`H → D-B/D-C/D-O`: entradas del `Input sheet` desde H (FY, LTM, deuda, caja, acciones…) o escritas directamente. `H → M`: estados de los que `Financials Multiples` proyecta. `D-B → M`: supuestos de la Base (crecimiento, márgenes, tasa, costo de capital, acciones). `M, D-C, D-O → D-B`: resultados finales hacia `Resumen de valoraciones`. Cada traspaso es una sincronización automatizada aprobada por script con huella SHA-256, control posterior de vigencia y conciliación, nunca un pegado manual de resultados derivados. Los libros D no se modifican entre sí; las tres historias comparten WACC y se concilian en el resumen.
 
 ## Seis fases · orden invariable
 | Fase | Operación | Salida |

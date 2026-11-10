@@ -2,6 +2,9 @@
 
 Lee antes `modelo/REGLAS_VIGENTES.md` §0R y `docs/CONTRATO_REBOOT_JMR.md`. Las mismas órdenes valen para ChatGPT y Claude. Cada fase termina con `FASE_<N>_ENTREGA.md` en `Modelo-JMR-datos/candidatos/valoraciones/<REV>/`.
 
+## Mandato de tres funciones y cero cambios estructurales
+La IA ejecutora (1) captura/verifica **10 FY consecutivos cuando existan + LTM disponible** y documenta ausencias; (2) propone supuestos con justificación en entradas autorizadas; (3) elabora análisis fundamental cualitativo. **Solo las fórmulas y vínculos predefinidos calculan** ratios, DCF, múltiplos, escenarios, sensibilidades y presentación. Traspasos entre libros por automatización existente con huella, recálculo y conciliación; no copiar manualmente salidas ni declarar actualizados destinos obsoletos. No cambiar configuración de libros, hojas, tablas, vínculos, fórmulas, rangos, validaciones, selectores, comentarios ni scripts. Averías de arquitectura → bloqueo documentado y mantenimiento separado/autorizado. JSON, controles y publicación son tareas mecánicas, no funciones analíticas adicionales.
+
 ## Antes de empezar
 Resuelve ticker, clase, mercado, moneda, FY/LTM, cotización fechada y etapa. Consulta `catalogo.json` y `registro/REVISIONES.md`: una revisión activa por ticker; lo de `archivo-v1/` es antecedente, nunca insumo. Declara modelo/herramienta/esfuerzo y el acceso realmente disponible. Si el emisor es financiero u holding sin motor equivalente, declara la excepción FCFE/SOTP; no inventes un FCFF industrial.
 
@@ -12,7 +15,7 @@ Resuelve ticker, clase, mercado, moneda, FY/LTM, cotización fechada y etapa. Co
 4. Verifica que los tres libros D conserven el motor original (hojas, fórmulas y comentarios sin cambios) y que D-B tenga `Presentación` y `Resumen de valoraciones`.
 
 ## R2 · Históricos
-1. Llena solo los tres estados y las entradas auxiliares de H con hasta diez FY + LTM, **en el formato original**; salud financiera, eficiencia, márgenes, dividendos, por acción y Trailing Valuation se calculan por fórmulas. Registra fuente, período, moneda, escala y clasificación por partida material; cero solo si está sustentado.
+1. Llena solo los tres estados y las entradas auxiliares de H con **diez FY consecutivos cuando existan + LTM disponible, en el formato original**, sin inventar años ausentes; salud financiera, eficiencia, márgenes, dividendos, por acción y Trailing Valuation se calculan por fórmulas. Registra fuente, período, moneda, escala y clasificación por partida material; cero solo si está sustentado.
 2. Flujos LTM = FY anterior + acumulado actual − acumulado comparable; balance al corte.
 3. Concilia balance, EBIT, variación de caja y LTM; reproduce ratios materiales en dos períodos.
 
@@ -25,7 +28,7 @@ Resuelve ticker, clase, mercado, moneda, FY/LTM, cotización fechada y etapa. Co
 ## R4 · Múltiplos y resumen
 1. Traspasa a M los estados de H y los supuestos de D-B (crecimiento, márgenes, tasa, acciones, costo de capital) por script con huella.
 2. Elige y justifica los múltiplos de salida por historia y los pesos por tipo de empresa (rentabilidad, intensidad de capital, ciclicidad, apalancamiento). Cinco múltiplos: EV/EBITDA, EV/FCFF, P/E, P/FCFE, P/OCF. **No se usan P/S ni P/BV.** N/A con causa, N/D con efecto; nunca ceros para fingir.
-3. Completa `Presentación` y `Resumen de valoraciones` en D-B con precio fechado, DCF Base, MOS 35 %, Conservadora, Optimista, esperado y múltiplos con sus pesos, y concilia M con la Base.
+3. Verifica que `Presentación` y `Resumen de valoraciones` en D-B se actualicen mediante fórmulas y la sincronización ya definida, incluyendo precio fechado, DCF Base, MOS 35 %, Conservadora, Optimista, esperado y múltiplos con pesos. Concilia M con la Base. **No pegar ni recalcular manualmente salidas.**
 
 ## R5 · Análisis y publicación
 1. Escribe A: Nivel 1 de 14 capítulos y Nivel 2 de 12 apartados reproducibles, con las cifras de H, D y M de esta revisión; rehaz cualquier borrador cuyos supuestos hayan cambiado.
