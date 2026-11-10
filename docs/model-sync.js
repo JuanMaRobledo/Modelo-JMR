@@ -18,12 +18,16 @@
     return selected ? {file:selected,official:!!official&&selected.path===official} : null;
   }
   function bookUrl(rec,book){
-    if(book!=='valoracion'&&book!=='historicos')throw new Error('Libro desconocido.');
+    if(book!=='valoracion'&&book!=='historicos'&&book!=='multiplos')throw new Error('Libro desconocido.');
+    var L=rec.libros||{},reboot=rec.contratoLibros==='jmr-reboot-3libros-v1'||(rec.perfil_valoracion==='Reboot'&&Boolean(rec.libros&&rec.libros.dcf)),
+        dcfBase=typeof L.dcf==='string'?L.dcf:(L.dcf&&L.dcf.base);
     var url=book==='historicos'
-      ? ((rec.libros&&rec.libros.historicos)||(rec.perfil_valoracion==='Floyd'?'':rec.hojaGoogle))
-      : ((rec.libros&&rec.libros.valoracion)||rec.hojaGoogle);
+      ? (L.historicos||(rec.perfil_valoracion==='Floyd'||reboot?'':rec.hojaGoogle))
+      : book==='multiplos'
+        ? (reboot?L.multiplos:'')
+        : (reboot?(dcfBase||rec.hojaGoogle):(L.valoracion||rec.hojaGoogle));
     if(!/^https:\/\/docs\.google\.com\/spreadsheets\/d\/[\w-]+(?:\/|$)/.test(String(url||'')))
-      throw new Error(book==='historicos'?'Falta el libro Históricos de esta revisión.':'La valoración no tiene hoja de Google vinculada.');
+      throw new Error(book==='historicos'?'Falta el libro Históricos de esta revisión.':book==='multiplos'?'Falta el libro Múltiplos de esta revisión.':'La valoración no tiene hoja de Google vinculada.');
     return url;
   }
   function findCompany(key){

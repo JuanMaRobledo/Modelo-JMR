@@ -22,7 +22,16 @@ const SHEETS_BY_VIEW={
     'Cost of capital worksheet','Descuento de múltiplos','Sensibilidad DCF']
 };
 const displayFromUrl=params.get('modo')==='edicion'?'edicion':'visor';
-const sourceBookForView=view=>view==='financieros'||view==='indicadores'?'historicos':'valoracion';
+const isReboot=()=>state.valuationRecord?.contratoLibros==='jmr-reboot-3libros-v1'||(state.valuationRecord?.perfil_valoracion==='Reboot'&&Boolean(state.valuationRecord?.libros?.dcf));
+const sourceBookForView=view=>view==='financieros'||view==='indicadores'?'historicos':
+  (isReboot()&&view==='valoracion'&&state.valuationMode==='multiplos')?'multiplos':'valoracion';
+// Reboot reparte las pestañas en libros distintos: Históricos, DCF Base y Múltiplos.
+const REBOOT_SHEETS={
+  financieros:['Income Statement','Balance Sheet','Cash Flow Statement','Por acción','Dividendos'],
+  indicadores:['Trailing Valuation','Márgenes','Eficiencia de capital','Salud Financiera'],
+  modelo:['Presentación','Resumen de valoraciones','Input sheet','Valuation output','Cost of capital worksheet','Sensibilidades DCF']
+};
+const viewSheets=view=>isReboot()&&REBOOT_SHEETS[view]?REBOOT_SHEETS[view]:SHEETS_BY_VIEW[view];
 const state={displayMode:displayFromUrl,workbookDisplayMode:'',workbookBook:'',catalog:{valoraciones:[],analisis:[],auditorias:[]},files:[],ticker:'',view:initialView,ready:false,loc:null,reviewSha:null,reviewLoading:false,mosRequest:0,valuationRecord:null,frameMode:'',sheet:'',sheetByView:{},sensitivityMode:'sensibilidades',valuationMode:params.get('metodo')==='multiplos'?'multiplos':'dcf'};
 const TICKER=/^[A-Z0-9._-]{1,24}$/;
 function valid(x){x=String(x||'').trim().toUpperCase();if(x==='GOOG')x='GOOGL';return TICKER.test(x)?x:'';}
@@ -43,7 +52,7 @@ function controlModeloA(t){
   const item=control.empresas[t];
   if(!item || !path || item.rutaValoracion!==path)
     return {visible:false,estado:'SIN_CLASIFICAR',detalle:'Revisión nueva o sin clasificación metodológica; verificar antes de publicar.'};
-  if(!['A-1.2','Floyd'].includes(item.metodo) || item.estado==='EXCLUIDA_HASTA_REHACER_A')
+  if(!['A-1.2','Floyd','Reboot'].includes(item.metodo) || item.estado==='EXCLUIDA_HASTA_REHACER_A')
     return {visible:false,estado:'EXCLUIDA_HASTA_REHACER_A',detalle:'Versión anterior al Modelo A. Rehacer y conservar la revisión previa en el histórico.'};
   return {visible:true,metodo:item.metodo,estado:item.estado,detalle:item.diagnostico||'Revisión pendiente.',multiplos:item.multiplos};
 }
@@ -131,7 +140,7 @@ function renderCatalogCards(){
     const chip=(text,ok)=>{const li=document.createElement('li');li.textContent=text;li.className=ok?'ok':'pending';return li;};
     supports.append(
       chip(controlModeloA(t).estado==='INCOMPLETA_EN_REVISION'?
-        ((controlModeloA(t).metodo==='Floyd'?'Floyd':'Modelo A')+' · EN_REVISIÓN'):
+        ((controlModeloA(t).metodo==='Reboot'?'Floyd R1–R6':controlModeloA(t).metodo==='Floyd'?'Floyd':'Modelo A')+' · EN_REVISIÓN'):
         'Metodología por verificar',false),
       chip(p.analysisPath?'Análisis':'Análisis pendiente',!!p.analysisPath),
       chip(p.auditPath?'Auditoría':'Auditoría pendiente',!!p.auditPath));
@@ -333,7 +342,7 @@ function openCompany(input){
 function updateDossierLocation(view,sheet){
   const url=new URL(location.href);
   url.searchParams.set('seccion',view);
-  if(sheet && SHEETS_BY_VIEW[view])url.searchParams.set('sheet',sheet);
+  if(sheet && viewSheets(view))url.searchParams.set('sheet',sheet);
   else url.searchParams.delete('sheet');
   if(state.displayMode==='edicion')url.searchParams.set('modo','edicion');
   else url.searchParams.delete('modo');
@@ -343,13 +352,13 @@ function updateDossierLocation(view,sheet){
 }
 function safeSheetTitle(value){return String(value||'').replace(/[<>]/g,'');}
 function currentSheet(view){
-  const options=SHEETS_BY_VIEW[view]||[];
+  const options=viewSheets(view)||[];
   const requested=state.sheetByView[view]||(!state.sheet&&view===state.view?params.get('sheet'):'');
   return requested&&typeof requested==='string'&&requested.length<=140?requested:options[0];
 }
 function renderSheetSubtabs(view){
   const host=el('sheetSubtabs'),info=el('sheetGroupInfo');
-  const names=SHEETS_BY_VIEW[view];
+  const names=viewSheets(view);
   host.replaceChildren();
   host.hidden=!names;
   info.hidden=!names;
@@ -405,7 +414,7 @@ function normalizeDcfMatrices(s){
 // interpreta N/A como cero; INTEGRADO_EN_REVISION NO es auditoría económica.
 function nativeMultiplesHtml(rec){
   const s=rec?.sensibilidadMultiples;
-  const floyd=rec?.perfil_valoracion==='Floyd';
+  const floyd=['Floyd','Reboot'].includes(rec?.perfil_valoracion);
   const bank=s?.contrato==='review-relative-v1'&&s.tipo==='MULTIPLOS_BANCARIOS';
   if(!s||(!bank&&s.contrato!=='base-native-five-priority-v1'))return '';
   const esc=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -546,7 +555,10 @@ function paintSensitivity(root,ref){
 function sourceUrl(){
   const rec=state.valuationRecord;
   const book=sourceBookForView(state.view);
-  const url=String(book==='historicos'&&rec?.perfil_valoracion==='Floyd'?rec?.libros?.historicos||'':rec?.libros?.valoracion||rec?.hojaGoogle||'');
+  const reboot=rec?.contratoLibros==='jmr-reboot-3libros-v1'||(rec?.perfil_valoracion==='Reboot'&&Boolean(rec?.libros?.dcf)),dcfBase=typeof rec?.libros?.dcf==='string'?rec.libros.dcf:rec?.libros?.dcf?.base;
+  const url=String(reboot
+    ?(book==='historicos'?rec?.libros?.historicos:book==='multiplos'?rec?.libros?.multiplos:(dcfBase||rec?.hojaGoogle))||''
+    :(book==='historicos'&&rec?.perfil_valoracion==='Floyd'?rec?.libros?.historicos||'':rec?.libros?.valoracion||rec?.hojaGoogle||''));
   return /^https:\/\/docs\.google\.com\/spreadsheets\/d\/[A-Za-z0-9_-]+(?:\/|$)/.test(url)?url:'';
 }
 function updateNativeLink(){
@@ -564,7 +576,7 @@ function syncReviewMode(){
 }
 function selectWorkbookSheet(view,name){
   const frame=el('viewFrame');
-  if(!['valoracion','sensibilidades'].includes(view)&&(!SHEETS_BY_VIEW[view]||typeof name!=='string'||!name.trim()||name.length>140))return;
+  if(!['valoracion','sensibilidades'].includes(view)&&(!viewSheets(view)||typeof name!=='string'||!name.trim()||name.length>140))return;
   state.sheet=name;state.sheetByView[view]=name;
   const mode=state.displayMode;
   const book=sourceBookForView(view);
@@ -623,7 +635,7 @@ function showView(view){
   review.hidden=view!=='revision'||!state.loc;
   if(view==='revision')syncReviewMode();
   help.textContent=(p[view]||{}).help||'Información de la revisión activa de la empresa.';
-  const isWorkbook=!!SHEETS_BY_VIEW[view];
+  const isWorkbook=!!viewSheets(view);
   const isSensitivity=view==='sensibilidades';
   const isRevision=view==='revision';
   const isMultiples=view==='valoracion'&&state.valuationMode==='multiplos';
@@ -636,7 +648,8 @@ function showView(view){
     updateDossierLocation(view,sheet);
   }else if(state.displayMode==='edicion'&&(view==='sensibilidades'||view==='valoracion')){
     frame.hidden=false;inline.hidden=true;
-    const sheet=view==='sensibilidades'?'Sensibilidad DCF':state.valuationMode==='multiplos'?'Descuento de múltiplos':'Input sheet';
+    let sheet=view==='sensibilidades'?'Sensibilidad DCF':state.valuationMode==='multiplos'?'Descuento de múltiplos':'Input sheet';
+    if(isReboot()&&view==='sensibilidades')sheet='Sensibilidades DCF';
     selectWorkbookSheet(view,sheet);
     help.textContent='Edición vinculada a la hoja original. Para modificar fórmulas o celdas protegidas, abre Google Sheets con tu cuenta autorizada.';
     updateDossierLocation(view);
@@ -856,7 +869,7 @@ window.addEventListener('message',event=>{
   const frame=el('viewFrame'),data=event.data||{};
   if(event.origin!==location.origin||event.source!==frame.contentWindow)return;
   if(data.type!=='jmr-sheet-selected'||data.ticker!==state.ticker||typeof data.sheet!=='string')return;
-  if(!SHEETS_BY_VIEW[state.view])return;
+  if(!viewSheets(state.view))return;
   // Un cambio del selector de las 46 hojas se refleja en la ruta del expediente.
   state.sheet=data.sheet;
   state.sheetByView[state.view]=data.sheet;

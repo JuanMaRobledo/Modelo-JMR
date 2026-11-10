@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Archivo de valoraciones · Modelo JMR Floyd</title>
+<title>Archivo histórico · Modelo JMR Floyd legado</title>
 <link rel="icon" href="favicon.ico"><link rel="stylesheet" href="jmr-theme.css"><link rel="stylesheet" href="jmr-fullwidth.css">
 <style>
 main{max-width:1120px;margin:auto;padding:25px 18px 60px}
@@ -21,9 +21,9 @@ input{border:1px solid var(--border,#dbe0db);border-radius:9px;padding:9px;backg
 </head>
 <body>
 <script src="auth.js"></script>
-<nav class="appnav" aria-label="Navegación principal"><a href="expediente.html">Empresas activas</a><a href="archivo-floyd.html" aria-current="page">Archivo Floyd</a></nav>
+<nav class="appnav" aria-label="Navegación principal"><a href="expediente.html">Empresas activas</a><a href="archivo-floyd.html" aria-current="page">Archivo histórico</a></nav>
 <main>
-<header class="archive-head"><div><h1>Archivo de valoraciones anteriores</h1><p class="archive-note">Solo consulta. Estas revisiones A-1.2 se retiraron del catálogo activo al migrar a Floyd. No son fuentes para nuevas valoraciones ni tienen auditoría vigente implícita.</p></div><a href="expediente.html?ticker=UBER">Abrir UBER Floyd</a></header>
+<header class="archive-head"><div><h1>Archivo de valoraciones anteriores</h1><p class="archive-note">Solo consulta. Estas revisiones A-1.2 y Floyd F1–F5 pertenecen al archivo del modelo anterior. El Floyd oficial actual es R1–R6 (evolución del Reboot). No son fuentes para nuevas valoraciones ni tienen auditoría vigente implícita.</p></div><a href="expediente.html?ticker=UBER">Abrir UBER vigente</a></header>
 <label for="search">Buscar por ticker</label> <input id="search" type="search" placeholder="CMG, ADBE, NU…" autocomplete="off">
 <p id="count" role="status">Leyendo inventario archivado…</p>
 <div style="overflow-x:auto"><table class="archive-table"><thead><tr><th>Empresa</th><th>Revisión archivada</th><th>Estado</th><th>Fuentes</th></tr></thead><tbody id="archive-rows"></tbody></table></div>
@@ -35,7 +35,7 @@ input{border:1px solid var(--border,#dbe0db);border-radius:9px;padding:9px;backg
 const base='https://raw.githubusercontent.com/JuanMaRobledo/Modelo-JMR-datos/main/';
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const knownPath=p=>typeof p==='string'&&/^(valoraciones|analisis)\/[A-Za-z0-9._-]+\.json$/.test(p);
+const knownPath=p=>typeof p==='string'&&/^archivo-v1\/(valoraciones|analisis)\/[A-Za-z0-9._-]+\.json$/.test(p);
 const json=async u=>{const r=await fetch(u,{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);return r.json();};
 try{
 const catalog=await json(base+'catalogo.json');

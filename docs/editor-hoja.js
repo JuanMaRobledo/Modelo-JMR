@@ -2,7 +2,7 @@
 (function(global){
   'use strict';
   const pageParams=global.location?new URLSearchParams(global.location.search):{get:()=>null};
-  const sourceBook=pageParams.get('libro')==='historicos'?'historicos':'valoracion';
+  const sourceBook=pageParams.get('libro')==='historicos'?'historicos':pageParams.get('libro')==='multiplos'?'multiplos':'valoracion';
   const forceViewer=pageParams.get('modo')==='visor'||sourceBook==='historicos';
   if(forceViewer&&typeof document!=='undefined')document.documentElement.classList.add('jmr-view-only');
   function byId(id){return document.getElementById(id);}
@@ -338,7 +338,7 @@
     }).join('');
     byId('workbook').hidden=false;
     byId('companyName').textContent=(result.record?.company||result.record?.empresa||ticker)+
-      ' · '+ticker+' · '+(sourceBook==='historicos'?'Históricos H1':'Valoración Floyd')+' · '+list.length+' pestañas';
+      ' · '+ticker+' · '+(sourceBook==='historicos'?'Libro Históricos':sourceBook==='multiplos'?'Libro Múltiplos':'Libro DCF')+' · '+list.length+' pestañas';
     byId('sourceDate').textContent='Lectura: '+new Date(result.fetchedAt||Date.now()).toLocaleString('es-CO');
     // La pestaña de Drive se resuelve después de seleccionar la hoja.
     updateNativeSheetLink();

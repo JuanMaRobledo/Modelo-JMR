@@ -1,13 +1,29 @@
 # Reglas vigentes del Modelo JMR
 
-**Versión 35 · 9-nov-2026 (Colombia).** Este documento es la única fuente de las reglas de método. Si un prompt
+**Versión 37 · 10-nov-2026 (Floyd R1–R6, evolución del Reboot).** Este documento es la única fuente de las reglas de método. Si un prompt
 (`docs/prompts/*.md`), `METODOLOGIA.md`, una habilidad o un comentario de código dice otra cosa, prevalece este
 documento. Una regla nueva no se agrega como «regla del día X» en un prompt: se cambia aquí, se sube la versión y se
 anota en el registro de cambios del final.
 
 **Doble método:** desde esta versión las valoraciones seleccionan `Método A` o `Método B` por revisión. La selección normativa y precedencia se describen en [`METODOS_VALORACION.md`](METODOS_VALORACION.md), con reglas particulares en [`METODO_A_JMR.md`](METODO_A_JMR.md) y copia íntegra del método anterior en [`METODO_B_JMR.md`](METODO_B_JMR.md). El presente documento mantiene las reglas **compartidas** de cálculo, plantilla y publicación. En el flujo compatible A-1.2 se aplica Método A, salvo elección expresa de B por el usuario; registrar y comunicar la selección antes de estimar. La interpretación B sin etiqueta se conserva exclusivamente para leer revisiones históricas, sin reclasificarlas ni recalcularlas.
 
-## 0. Perfil oficial Modelo JMR Floyd
+## 0R. Perfil oficial: Modelo JMR Floyd R1–R6 (versión 37 · 10-nov-2026)
+
+**Decisión expresa del usuario, 10-nov-2026:** el modelo desarrollado como «Reboot» se convierte en el **único Floyd oficial**. El Floyd F1–F5 anterior queda **LEGADO/ARCHIVADO** en `archivo-v1/` y sus tres plantillas anteriores quedan en carpeta marcada archivo-v1. La decisión no altera ninguna fórmula ni número histórico ni convierte revisiones no aprobadas en publicadas.
+
+**Fuente de verdad:** `docs/CONTRATO_REBOOT_JMR.md` y `docs/prompts/ordenes-reboot.md` son los nombres técnicos históricos de los **contratos actuales Floyd R1–R6**. El prompt `docs/prompts/PROMPT_MAESTRO_REBOOT.md` funciona con la misma identidad oficial y todos los proveedores. §0, §0C y §0D describen métodos archivados y quedan subordinados en caso de conflicto.
+
+**Seis archivos:** Históricos H, DCF Base D-B, Conservadora D-C y Optimista D-O (Simple Ginsu original de Damodaran), Múltiplos M (EV/EBITDA, EV/FCFF, P/E, P/FCFE y P/OCF; sin P/S ni P/BV), Análisis A (14 capítulos y 12 apartados). Copiar las plantillas oficiales desde la carpeta Drive `Plantillas Modelo JMR Floyd (R1–R6)`, ID `1fFlAbKsdMKfjPB_nPcc6Y-9hQ7tQj14t`.
+
+**Seis fases:** R1 identidad/corte; R2 históricos; R3 historias y DCF con DCF inverso y sensibilidades 5×5; R4 múltiplos/presentación; R5 análisis/JSON/app y eventual `EN_REVISION` tras controles; R6 auditoría económica por agente o sesión independiente. Los supuestos nacen de historias → números, con ROIC, reinversión, ventas/capital, crecimiento, márgenes y WACC documentados. Tres escenarios, MOS 35% exclusivamente sobre DCF Base, WACC común, sin fórmulas alteradas; todos los traspasos con huella reproducible.
+
+**Identificación técnica sin romper histórico:** nuevas valoraciones deben usar `perfil_valoracion=Floyd` y `contratoLibros=jmr-reboot-3libros-v1` (nombre del contrato creado durante Reboot; **conservar como identificador estable**). Los JSON anteriores con `perfil_valoracion=Reboot` y el mismo contrato se leen como alias del Floyd vigente y pueden migrarse sin cambiar `revisionId`. El Floyd F1–F5 usa `floyd-h1-h2-separados-v1` y no tiene tres DCF separados. La app resuelve según el contrato, no por el texto «Floyd».
+
+**Prohibición de publicación prematura:** sin seis IDs y fuentes, integridad del motor, análisis R5, revisión económica y pruebas hoja→JSON→catálogo→app, mantener `CANDIDATO`; no mezclar datos del legado. El archivo histórico es de consulta únicamente.
+
+## 0. PERFIL ARCHIVADO — Floyd F1–F5 (solo consulta)
+
+**Advertencia:** todo este §0 y sus referencias F1–F5 son históricos. Para nuevas valoraciones y continuación de UBER rige §0R (Floyd R1–R6).
 
 **Decisión del 8-nov-2026.** Floyd es el perfil oficial por defecto para nuevas valoraciones de empresas operativas cubiertas por Simple Ginzu FCFF. Aplica el perfil elegido expresamente por el usuario y respeta el perfil de toda revisión que se continúe. Para financieras, holdings y otros casos que requieren motores que Floyd todavía no cubre, usa el flujo compatible con FCFE/SOTP según corresponda. Los expedientes previos conservan método, cifras, hoja y estado hasta que se apruebe una revisión que los sustituya.
 
@@ -393,5 +409,4 @@ Hojas de trabajo conservadas tras el archivo del 24-oct-2026 (identidad document
 | 3 | 21-oct-2026 | Prompts de análisis fundamental (v5 corregido) y auditoría (v1.2) alineados y válidos para cualquier modelo: el análisis copia las cifras de la valoración oficial (no recalcula), MOS solo sobre la Base (el texto anterior decía «sobre el esperado»), promedio de tres historias, probabilidades por previa + indicadores; la auditoría busca sesgo en ambas direcciones (agresividad y prudencia duplicada) y verifica g, ajuste por tasas y ancla C. |
 | 2 | 21-oct-2026 | Prompt de valoración v5 (`docs/prompts/valoracion-modelo-jmr-v5.md`): autocontenido y válido para cualquier modelo de lenguaje, un solo método de múltiplos (el v4 mezclaba λ, ciclo y Toro), etiquetas [Dato]/[Cálculo]/[Juicio] y ficha JSON de salida. Calibración honesta (§2). Topes de Toro retirados (doble prudencia). |
 | 1 | 21-oct-2026 | Consolida las reglas dispersas en los prompts (17, 18 y 21-oct). MOS sobre DCF Base o SOTP Base (antes había código que lo calculaba sobre el esperado). Probabilidades por previa + indicadores. g terminal 4% (antes = tasa libre, 5,29%). Prima por país en la fecha del corte. Ajuste por tasas y tope del ancla C en los múltiplos por ciclo. Controles de razonabilidad y foto de supuestos. |
-
-
+| 36 | 9-nov-2026 | §0R: reboot del modelo. Perfil Reboot con LIBRO HISTÓRICOS, DCF y MÚLTIPLOS más análisis, fases R1–R6, flujo H→D/H→M/M→D con huella; Floyd solo para UBER y CMG. Archivo previo en `archivo-v1/`. Sin cambio de fórmulas ni de MOS 35 % sobre Base. |

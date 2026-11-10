@@ -17,8 +17,8 @@ export default async function handler(req, res) {
     const book=String(req.query.libro||'valoracion');
     const company = await resolveCompany(ticker,book);
     // H2 es una copia unidireccional: los históricos no se editan desde el visor del DCF.
-    if(req.method==='PATCH' && book==='historicos')
-      return res.status(409).json({error:'Históricos Floyd: solo lectura desde la app. Actualiza H1 en Google Sheets y ejecuta H2 para traspasar la información.'});
+    if(req.method==='PATCH' && (book==='historicos'||book==='multiplos'))
+      return res.status(409).json({error:'Históricos: solo lectura desde la app. Actualiza el libro de Históricos en Google Sheets y traspasa la información a los libros de valoración.'});
     // Las versiones fuera del catálogo pueden consultarse, pero no sobrescribir
     // una hoja histórica desde el editor. Primero deben conciliarse.
     if(req.method==='PATCH' && company.catalogAvailable && !company.official)

@@ -70,7 +70,7 @@
     if (!Array.isArray(stories) || !stories.length) return '';
     // Floyd usa A=Base, B=Conservadora, C=Optimista. El perfil
     // anterior usa D=Optimista y C=Disrupción. Nunca confundir ambos.
-    var floyd = String(rec.perfil_valoracion || '').toLowerCase() === 'floyd';
+    var floyd = ['floyd','reboot'].indexOf(String(rec.perfil_valoracion || '').toLowerCase()) >= 0;
     var names = floyd ?
       {B:'Conservador', A:'Base', C:'Optimista'} :
       {B:'Conservador', A:'Base', D:'Optimista', C:'Disrupción'};
@@ -93,7 +93,7 @@
     return '<div class="jmr-mos-scenarios"><div class="jmr-mos-scenarios-head">' +
       '<strong>Escenarios de valoración</strong><span>'+ (includesHistoric ?
         'Referencias de revisiones diferentes; no son comparables ni promediables todavía' :
-        (floyd ? 'DCF por escenario · Floyd (tres escenarios)' : 'DCF por escenario · Disrupción por separado')) +'</span></div>' +
+        (floyd ? (rec.contratoLibros === 'jmr-reboot-3libros-v1' || rec.perfil_valoracion === 'Reboot' ? 'DCF por escenario · Floyd R1–R6' : 'DCF por escenario · Floyd legado') : 'DCF por escenario · Disrupción por separado')) +'</span></div>' +
       '<div class="jmr-mos-story-grid">'+rows+'</div></div>';
   }
   function render(container, rec, market) {

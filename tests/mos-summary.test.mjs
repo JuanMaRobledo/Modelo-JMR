@@ -92,7 +92,7 @@ test('Floyd rotula C como Optimista sin crear Disrupción; esquema A-1.2 permane
     ]}
   });
   f.render(host,mk('Floyd'),{price:68.59});
-  assert.match(host.innerHTML,/Floyd \(tres escenarios\)/);
+  assert.match(host.innerHTML,/Floyd legado/);
   assert.match(host.innerHTML,/Optimista/);
   assert.doesNotMatch(host.innerHTML,/Disrupción/);
   assert.doesNotMatch(host.innerHTML,/fuera del promedio/);
