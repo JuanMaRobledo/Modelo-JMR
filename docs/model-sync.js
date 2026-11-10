@@ -52,7 +52,7 @@
   }
   function load(key,book){
     key=ticker(key);book=book||'valoracion';
-    if(book!=='valoracion'&&book!=='historicos')return Promise.reject(new Error('Libro desconocido.'));
+    if(book!=='valoracion'&&book!=='historicos'&&book!=='multiplos')return Promise.reject(new Error('Libro desconocido.'));
     return request('/api/model?ticker='+encodeURIComponent(key)+'&libro='+encodeURIComponent(book)).then(function(s){
       if(s.publicWorkbook){var bytes=Uint8Array.from(atob(s.publicWorkbook),function(c){return c.charCodeAt(0);});s.sheets=fromWorkbook(XLSX.read(bytes,{type:'array'}));delete s.publicWorkbook;}
       s.sourceBook=s.sourceBook||book;s.sourceUrl=s.sourceUrl||bookUrl(s.record,book);

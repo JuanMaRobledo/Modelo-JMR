@@ -27,3 +27,10 @@ test('Floyd F1–F5 archivado mantiene sus libros antiguos sin confusión',()=>{
 test('libro desconocido se rechaza',()=>{
   assert.throws(()=>sourceBook(nuevo,'otro'),{status:400});
 });
+
+test('Visor web Floyd R1-R6 permite leer Múltiplos sin habilitar escritura',async()=>{
+ const {readFileSync}=await import('node:fs');
+ const src=readFileSync(new URL('../docs/model-sync.js',import.meta.url),'utf8');
+ assert.match(src,/if\(book!=='valoracion'&&book!=='historicos'&&book!=='multiplos'\)return Promise.reject/);
+ assert.match(src,/s\.writable=book==='valoracion'&&s\.writable!==false/);
+});

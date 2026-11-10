@@ -416,7 +416,8 @@ function nativeMultiplesHtml(rec){
   const s=rec?.sensibilidadMultiples;
   const floyd=['Floyd','Reboot'].includes(rec?.perfil_valoracion);
   const bank=s?.contrato==='review-relative-v1'&&s.tipo==='MULTIPLOS_BANCARIOS';
-  if(!s||(!bank&&s.contrato!=='base-native-five-priority-v1'))return '';
+  const reboot=floyd && rec?.contratoLibros==='jmr-reboot-3libros-v1' && s?.contrato==='reboot-atlas-cinco-v1';
+  if(!s||(!bank&&!reboot&&s.contrato!=='base-native-five-priority-v1'))return '';
   const esc=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const fmt=x=>typeof x==='number'&&Number.isFinite(x)?
     x.toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2}):'N/D';
@@ -441,7 +442,12 @@ function nativeMultiplesHtml(rec){
   const multipleRows=bank||floyd;
   for(const m of s.matrices){
     result+='<section class="jmr-native-matrix sens-card"><h4>'+esc(m.metodo)+'</h4>';
-    if(m.estado==='N/A'){
+    if(m.estado==='N/D'&&reboot){
+      const detail=rec.descuentoMultiples?.metodos?.find(x=>x.nombre===m.metodo);
+      if(m.peso===0&&detail?.peso===0&&m.matriz===null&&m.centro===null&&typeof m.motivo==='string'&&m.motivo.length>=25)
+        result+='<p>N/D · sin ancla fiable · peso 0 %. '+esc(m.motivo)+'</p>';
+      else result+='<p class="status-note">N/D sin causa o peso cero verificables: matriz no mostrada.</p>';
+    }else if(m.estado==='N/A'){
       const detail=rec.descuentoMultiples?.metodos?.find(x=>x.nombre===m.metodo);
       if(detail?.peso===0&&m.estadoFuente==='N/D'&&m.motivo)
         result+='<p> N/A · fuente N/D · peso 0 %. '+esc(m.motivo)+'</p>';
