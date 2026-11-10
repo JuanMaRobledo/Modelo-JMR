@@ -93,7 +93,7 @@
     return '<div class="jmr-mos-scenarios"><div class="jmr-mos-scenarios-head">' +
       '<strong>Escenarios de valoración</strong><span>'+ (includesHistoric ?
         'Referencias de revisiones diferentes; no son comparables ni promediables todavía' :
-        (floyd ? (rec.perfil_valoracion === 'Reboot' ? 'DCF por escenario · tres historias' : 'DCF por escenario · Floyd (tres escenarios)') : 'DCF por escenario · Disrupción por separado')) +'</span></div>' +
+        (floyd ? (rec.contratoLibros === 'jmr-reboot-3libros-v1' || rec.perfil_valoracion === 'Reboot' ? 'DCF por escenario · Floyd R1–R6' : 'DCF por escenario · Floyd legado') : 'DCF por escenario · Disrupción por separado')) +'</span></div>' +
       '<div class="jmr-mos-story-grid">'+rows+'</div></div>';
   }
   function render(container, rec, market) {

@@ -1,4 +1,4 @@
-# Contrato único · Modelo JMR Reboot
+# Contrato único · Modelo JMR Floyd R1–R6 (desarrollado como Reboot)
 
 **Versión 1.0 · 9-nov-2026 · aplica idénticamente a ChatGPT, Claude y cualquier agente.** Sustituye a Floyd para toda valoración nueva. Floyd (`CONTRATO_EJECUCION_FLOYD.md`) solo rige mientras se mantienen UBER y CMG hasta reconfigurarlos, y CELH queda en reconfiguración. Todo lo anterior al 9-nov-2026 está en `Modelo-JMR-datos/archivo-v1/` y **no es insumo** de ninguna revisión nueva.
 
@@ -13,7 +13,7 @@ Método Damodaran: **historias → números**. Cada supuesto material nace de un
 | **LIBRO MÚLTIPLOS** (M) | Sistema de múltiplos JMR de la versión anterior (Atlas): EV/EBITDA, EV/FCFF, P/E, P/FCFE, P/OCF, `Financials Multiples`, `Descuento de múltiplos` y sensibilidad por múltiplo. **Sin P/S ni P/BV.** Se alimenta de los mismos supuestos de la Base de DCF y de los estados de H. | IA solo en entradas |
 | **ANÁLISIS** (A) | Un Google Doc: Nivel 1 (14 capítulos) + Nivel 2 (12 apartados), con cifras de H, D y M de la misma revisión. | IA |
 
-Las plantillas maestras Reboot viven en `Drive → Modelo JMR → Plantillas Modelo JMR Reboot` (carpeta `1fFlAbKsdMKfjPB_nPcc6Y-9hQ7tQj14t`). Se **copian** por revisión a `Modelo JMR/Análisis/<TICKER>`; nunca se escribe sobre una plantilla.
+Las plantillas maestras oficiales de Floyd R1–R6 viven en `Drive → Modelo JMR → Plantillas Modelo JMR Floyd (R1–R6)` (carpeta `1fFlAbKsdMKfjPB_nPcc6Y-9hQ7tQj14t`). Se **copian** por revisión a `Modelo JMR/Análisis/<TICKER>`; nunca se escribe sobre una plantilla.
 
 | Plantilla | ID | Estado 9-nov-2026 |
 |---|---|---|
@@ -29,7 +29,7 @@ Las plantillas maestras Reboot viven en `Drive → Modelo JMR → Plantillas Mod
 ## Seis fases · orden invariable
 | Fase | Operación | Salida |
 |---|---|---|
-| **R1 · Corte e identidad** | Ticker, clase, moneda, escala, último FY, LTM, cotización fechada; idoneidad FCFF (financieras/holdings → excepción FCFE/SOTP); tasa libre y ERP vigentes; copiar las plantillas Reboot (H, tres D, M, A). | CANDIDATO, URLs de los seis archivos |
+| **R1 · Corte e identidad** | Ticker, clase, moneda, escala, último FY, LTM, cotización fechada; idoneidad FCFF (financieras/holdings → excepción FCFE/SOTP); tasa libre y ERP vigentes; copiar las plantillas Floyd R1–R6 (H, tres D, M, A). | CANDIDATO, URLs de los seis archivos |
 | **R2 · Históricos** | Llenar H con fuentes primarias, clasificar partidas, conciliar balance, EBIT, caja y LTM; ratios por fórmulas. | CANDIDATO, H conciliado |
 | **R3 · Historias y DCF** | Tres historias con probabilidades, WACC común y fracaso solo en Conservadora; una copia del fcffsimpleginzu original por historia; entradas desde H o directas; **MOS 35 % solo sobre Base**. DCF inverso y sensibilidades 5×5 por corridas del motor original. | CANDIDATO, tres D calculados |
 | **R4 · Múltiplos y resumen** | Cargar H→M y los supuestos de D-B→M; múltiplos de salida y pesos justificados (cinco múltiplos, sin P/S ni P/BV); `Presentación` y `Resumen de valoraciones` en D-B con los resultados de M, D-C y D-O. | CANDIDATO, M y Resumen |
@@ -43,7 +43,7 @@ Las plantillas maestras Reboot viven en `Drive → Modelo JMR → Plantillas Mod
 ```json
 {
   "ticker": "<TICKER>", "revisionId": "<REV>",
-  "perfil_valoracion": "Reboot", "contratoLibros": "jmr-reboot-3libros-v1",
+  "perfil_valoracion": "Floyd", "contratoLibros": "jmr-reboot-3libros-v1",
   "libros": {
     "historicos": "https://docs.google.com/spreadsheets/d/<ID_H>/edit",
     "dcf": {
@@ -59,7 +59,7 @@ Las plantillas maestras Reboot viven en `Drive → Modelo JMR → Plantillas Mod
 ```
 Los seis IDs son distintos; `hojaGoogle` y `sheet_id` apuntan al **LIBRO DCF Base**. Una ficha tiene siete pestañas y lee: estados y ratios históricos de H, valoración y sensibilidad de D, múltiplos de M y análisis de A. Sin un libro no se sustituye silenciosamente por otro.
 
-**Integración pendiente de código:** la app, `lib/model-sheet.js` y los validadores aún conocen `floyd-h1-h2-separados-v1`. Hasta ajustarlos (etapa 3), una revisión Reboot no puede declararse publicada en la app; se deja como CANDIDATO con ese bloqueo registrado.
+**Compuerta de integración:** la app debe identificar esta arquitectura por `contratoLibros=jmr-reboot-3libros-v1`, y admitir el alias `perfil_valoracion=Floyd (o alias histórico Reboot)` de las revisiones ya creadas. El viejo Floyd usa `floyd-h1-h2-separados-v1`. La integración en ramas candidatas/preview no equivale a publicación: se exige CI, JSON↔catálogo↔app y pruebas económicas para cambiar CANDIDATO a EN_REVISION.
 
 ## Entregas y continuidad
 Cada fase escribe `Modelo-JMR-datos/candidatos/valoraciones/<REV>/FASE_<N>_ENTREGA.md` (R1–R6) con: ticker, revisión, corte, fecha, agente/modelo/esfuerzo reales, IDs de los seis archivos, fuente/celda de cada material, `PASOS n/n`, `AISLAMIENTO=OK` solo verificado, controles `APROBADO/PARCIAL/NO_EJECUTADO`, commits/PR, faltantes y siguiente paso exacto. El sucesor lee catálogo, expediente y entregas antes de editar; no recrea libros.

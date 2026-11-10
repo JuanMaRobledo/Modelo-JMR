@@ -1,26 +1,29 @@
 # Reglas vigentes del Modelo JMR
 
-**Versión 36 · 9-nov-2026 (Reboot).** Este documento es la única fuente de las reglas de método. Si un prompt
+**Versión 37 · 10-nov-2026 (Floyd R1–R6, evolución del Reboot).** Este documento es la única fuente de las reglas de método. Si un prompt
 (`docs/prompts/*.md`), `METODOLOGIA.md`, una habilidad o un comentario de código dice otra cosa, prevalece este
 documento. Una regla nueva no se agrega como «regla del día X» en un prompt: se cambia aquí, se sube la versión y se
 anota en el registro de cambios del final.
 
 **Doble método:** desde esta versión las valoraciones seleccionan `Método A` o `Método B` por revisión. La selección normativa y precedencia se describen en [`METODOS_VALORACION.md`](METODOS_VALORACION.md), con reglas particulares en [`METODO_A_JMR.md`](METODO_A_JMR.md) y copia íntegra del método anterior en [`METODO_B_JMR.md`](METODO_B_JMR.md). El presente documento mantiene las reglas **compartidas** de cálculo, plantilla y publicación. En el flujo compatible A-1.2 se aplica Método A, salvo elección expresa de B por el usuario; registrar y comunicar la selección antes de estimar. La interpretación B sin etiqueta se conserva exclusivamente para leer revisiones históricas, sin reclasificarlas ni recalcularlas.
 
-## 0R. Perfil vigente: Modelo JMR Reboot (versión 36 · 9-nov-2026)
+## 0R. Perfil oficial: Modelo JMR Floyd R1–R6 (versión 37 · 10-nov-2026)
 
-**Decisión del usuario, 9-nov-2026.** Todo el contenido previo se archivó en `Modelo-JMR-datos/archivo-v1/` y no es insumo. Para toda valoración nueva rige el perfil **Reboot**, que **sustituye** a §0, §0C y §0D (Floyd, F1–F5) en lo que se oponga; Floyd solo se mantiene para continuar UBER y CMG hasta reconfigurarlos (CELH está en reconfiguración). Contrato: [`docs/CONTRATO_REBOOT_JMR.md`](../docs/CONTRATO_REBOOT_JMR.md); órdenes R1–R6: [`docs/prompts/ordenes-reboot.md`](../docs/prompts/ordenes-reboot.md); prompt reutilizable: [`PROMPT_MAESTRO_REBOOT.md`](../docs/prompts/PROMPT_MAESTRO_REBOOT.md).
+**Decisión expresa del usuario, 10-nov-2026:** el modelo desarrollado como «Reboot» se convierte en el **único Floyd oficial**. El Floyd F1–F5 anterior queda **LEGADO/ARCHIVADO** en `archivo-v1/` y sus tres plantillas anteriores quedan en carpeta marcada archivo-v1. La decisión no altera ninguna fórmula ni número histórico ni convierte revisiones no aprobadas en publicadas.
 
-Reglas nuevas:
-1. **Filosofía Damodaran, historias a números.** Los supuestos los elige la IA con criterio, fuente, evidencia y contraevidencia; las fórmulas calculan. Prohibido sustituir fórmulas o selectores por números.
-2. **Seis archivos por empresa:** LIBRO HISTÓRICOS (formato original; solo los tres estados y auxiliares son entradas, el resto son fórmulas), **tres LIBROS DCF** (Conservadora, Base y Optimista, cada uno el fcffsimpleginzu original **sin cambiar fórmulas ni comentarios**; `Presentación` y `Resumen de valoraciones` solo en el Base), LIBRO MÚLTIPLOS (versión anterior de JMR, alimentada con los supuestos de la Base y `Financials Multiples`) y ANÁLISIS (Doc con Nivel 1 de 14 capítulos y Nivel 2 de 12 apartados).
-3. **Flujo unidireccional H→D, H→M, D-B→M y M/D-C/D-O→D-B** por script con huella SHA-256 e integridad posterior, sin `IMPORTRANGE` salvo decisión escrita del usuario. D no escribe en H ni en M.
-4. **Seis fases R1–R6** (corte, históricos, historias y DCF, múltiplos y resumen, análisis y publicación, auditoría independiente). R6 nunca la hace la misma sesión que construyó.
-5. **Se conservan** de las demás secciones: tres historias, probabilidades que suman 100 %, fracaso solo en Conservadora, WACC común, MOS 35 % solo sobre el DCF Base, núcleo de cinco múltiplos (§5A); **P/S y P/BV se eliminan** en Reboot, y las reglas de publicación (§6) y análisis (§9). Los «cuatro escenarios» A-1.2 no se usan.
-6. **Contrato de datos:** `perfil_valoracion=Reboot`, `contratoLibros=jmr-reboot-3libros-v1`, `libros.{historicos,dcf{base,conservadora,optimista},multiplos,analisis}`. La app y los validadores aún no lo reconocen; hasta ajustarlos una revisión Reboot queda como CANDIDATO y no se declara publicada.
-7. Plantillas Reboot (Drive, carpeta `Plantillas Modelo JMR Reboot`): HISTÓRICOS, DCF (02 y 02b Base con `Presentación` y `Resumen de valoraciones`) y MÚLTIPLOS listos; falta adaptar la plantilla de ANÁLISIS. Una revisión no puede avanzar de CANDIDATO hasta completarlas. No declarar controles no ejecutados.
+**Fuente de verdad:** `docs/CONTRATO_REBOOT_JMR.md` y `docs/prompts/ordenes-reboot.md` son los nombres técnicos históricos de los **contratos actuales Floyd R1–R6**. El prompt `docs/prompts/PROMPT_MAESTRO_REBOOT.md` funciona con la misma identidad oficial y todos los proveedores. §0, §0C y §0D describen métodos archivados y quedan subordinados en caso de conflicto.
 
-## 0. Perfil oficial Modelo JMR Floyd
+**Seis archivos:** Históricos H, DCF Base D-B, Conservadora D-C y Optimista D-O (Simple Ginsu original de Damodaran), Múltiplos M (EV/EBITDA, EV/FCFF, P/E, P/FCFE y P/OCF; sin P/S ni P/BV), Análisis A (14 capítulos y 12 apartados). Copiar las plantillas oficiales desde la carpeta Drive `Plantillas Modelo JMR Floyd (R1–R6)`, ID `1fFlAbKsdMKfjPB_nPcc6Y-9hQ7tQj14t`.
+
+**Seis fases:** R1 identidad/corte; R2 históricos; R3 historias y DCF con DCF inverso y sensibilidades 5×5; R4 múltiplos/presentación; R5 análisis/JSON/app y eventual `EN_REVISION` tras controles; R6 auditoría económica por agente o sesión independiente. Los supuestos nacen de historias → números, con ROIC, reinversión, ventas/capital, crecimiento, márgenes y WACC documentados. Tres escenarios, MOS 35% exclusivamente sobre DCF Base, WACC común, sin fórmulas alteradas; todos los traspasos con huella reproducible.
+
+**Identificación técnica sin romper histórico:** nuevas valoraciones deben usar `perfil_valoracion=Floyd` y `contratoLibros=jmr-reboot-3libros-v1` (nombre del contrato creado durante Reboot; **conservar como identificador estable**). Los JSON anteriores con `perfil_valoracion=Reboot` y el mismo contrato se leen como alias del Floyd vigente y pueden migrarse sin cambiar `revisionId`. El Floyd F1–F5 usa `floyd-h1-h2-separados-v1` y no tiene tres DCF separados. La app resuelve según el contrato, no por el texto «Floyd».
+
+**Prohibición de publicación prematura:** sin seis IDs y fuentes, integridad del motor, análisis R5, revisión económica y pruebas hoja→JSON→catálogo→app, mantener `CANDIDATO`; no mezclar datos del legado. El archivo histórico es de consulta únicamente.
+
+## 0. PERFIL ARCHIVADO — Floyd F1–F5 (solo consulta)
+
+**Advertencia:** todo este §0 y sus referencias F1–F5 son históricos. Para nuevas valoraciones y continuación de UBER rige §0R (Floyd R1–R6).
 
 **Decisión del 8-nov-2026.** Floyd es el perfil oficial por defecto para nuevas valoraciones de empresas operativas cubiertas por Simple Ginzu FCFF. Aplica el perfil elegido expresamente por el usuario y respeta el perfil de toda revisión que se continúe. Para financieras, holdings y otros casos que requieren motores que Floyd todavía no cubre, usa el flujo compatible con FCFE/SOTP según corresponda. Los expedientes previos conservan método, cifras, hoja y estado hasta que se apruebe una revisión que los sustituya.
 

@@ -1,21 +1,17 @@
-# Claude Code · Modelo JMR Reboot (paridad ChatGPT y Gemini)
+# Claude Code · Modelo JMR Floyd oficial (R1–R6)
+Este archivo es la entrada de Claude, no un método alternativo. Leer primero [AGENTS.md](AGENTS.md). Mismas reglas para ChatGPT, Claude y Gemini.
 
-Este archivo es **solo la entrada para Claude**, no define un método propio. Lee primero [AGENTS.md](AGENTS.md): el mismo contrato vale sin cambios para **ChatGPT, Claude, Gemini** y otros agentes.
+## Ruta canónica
+1. Leer `modelo/REGLAS_VIGENTES.md` §0R.
+2. Leer `docs/CONTRATO_REBOOT_JMR.md` (**Floyd actual**, nombre técnico histórico de Reboot).
+3. Leer `docs/prompts/ordenes-reboot.md` y `docs/prompts/PROMPT_MAESTRO_REBOOT.md`.
+4. Leer `docs/HISTORIAS_A_NUMEROS.md` para R3/R6 y las fuentes editoriales pertinentes para R5.
 
-## Perfil vigente para valoraciones nuevas: Reboot
+Usar ref `claude/jmr-model-reboot-rnj087` mientras los PR de app, motor y datos no estén fusionados y validados; después `main`. Antes de ejecutar, comprobar que el ref contiene contrato y reglas. **No usar el Floyd antiguo** como reemplazo del modelo actual. No ejecutar las cuatro fases A-1.2 ni las cinco fases Floyd legado.
 
-Lee en `JuanMaRobledo/Modelo-JMR`, desde el **mismo ref/commit declarado** por todos los agentes:
-1. `modelo/REGLAS_VIGENTES.md` §0R.
-2. `docs/CONTRATO_REBOOT_JMR.md`.
-3. `docs/prompts/ordenes-reboot.md` y `docs/prompts/PROMPT_MAESTRO_REBOOT.md`.
-4. Fuentes editoriales y `docs/HISTORIAS_A_NUMEROS.md` para la fase correspondiente.
+**Nombre oficial:** Floyd R1–R6. **Seis archivos:** H, tres DCF Damodaran con motor intacto, M, A. **Contrato técnico:** `jmr-reboot-3libros-v1`, `perfil_valoracion=Floyd`. Conservar IDs/revisiones `-REBOOT-` existentes como trazabilidad histórica, no duplicar libros.
 
-**Transición de rama:** mientras el Reboot esté en PR borrador, usa `claude/jmr-model-reboot-rnj087`. Solo cuando app, datos y motor estén integrados y sus contratos disponibles se usará `main`. No leas Floyd desde `main` como sustituto de un contrato Reboot ausente.
+### Archivo histórico
+El antiguo Floyd F1–F5 está en `archivo-v1/` y sus contratos `CONTRATO_EJECUCION_FLOYD.md` y `ordenes-floyd.md` son solo documentos de consulta. No usarlo para seguir UBER: la candidata activa es `UBER-REBOOT-3T26-R1`. No publicar sin controles, ni autocertificar la auditoría R6.
 
-Seis archivos: Históricos, tres DCF (Base, Conservadora y Optimista, con fórmulas y comentarios originales de Damodaran), Múltiplos y un documento de Análisis. Seis fases R1–R6; publicación `EN_REVISION` solo tras controles económicos y técnicos, y R6 independiente. Las fuentes de otros expedientes archivados no reemplazan datos primarios.
-
-## Perfil legado: Floyd
-
-Para **continuar** UBER o CMG antes de su reconfiguración, usa `docs/CONTRATO_EJECUCION_FLOYD.md` y las órdenes F1–F5, no las instrucciones A-1.2. No convertir automáticamente la revisión ni sus fórmulas.
-
-Nunca afirmar que una comprobación, integración, publicación o auditoría se completó si no consta evidencia verificable. Al cambiar de agente, conservar `revisionId`, IDs reales de archivos, fuentes, commits y entregas de fase.
+**No afirmar integración, despliegue ni auditoría sin evidencia.**

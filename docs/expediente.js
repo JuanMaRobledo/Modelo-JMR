@@ -22,7 +22,7 @@ const SHEETS_BY_VIEW={
     'Cost of capital worksheet','Descuento de múltiplos','Sensibilidad DCF']
 };
 const displayFromUrl=params.get('modo')==='edicion'?'edicion':'visor';
-const isReboot=()=>state.valuationRecord?.perfil_valoracion==='Reboot';
+const isReboot=()=>state.valuationRecord?.contratoLibros==='jmr-reboot-3libros-v1'||(state.valuationRecord?.perfil_valoracion==='Reboot'&&Boolean(state.valuationRecord?.libros?.dcf));
 const sourceBookForView=view=>view==='financieros'||view==='indicadores'?'historicos':
   (isReboot()&&view==='valoracion'&&state.valuationMode==='multiplos')?'multiplos':'valoracion';
 // Reboot reparte las pestañas en libros distintos: Históricos, DCF Base y Múltiplos.
@@ -140,7 +140,7 @@ function renderCatalogCards(){
     const chip=(text,ok)=>{const li=document.createElement('li');li.textContent=text;li.className=ok?'ok':'pending';return li;};
     supports.append(
       chip(controlModeloA(t).estado==='INCOMPLETA_EN_REVISION'?
-        ((controlModeloA(t).metodo==='Reboot'?'Reboot':controlModeloA(t).metodo==='Floyd'?'Floyd':'Modelo A')+' · EN_REVISIÓN'):
+        ((controlModeloA(t).metodo==='Reboot'?'Floyd R1–R6':controlModeloA(t).metodo==='Floyd'?'Floyd':'Modelo A')+' · EN_REVISIÓN'):
         'Metodología por verificar',false),
       chip(p.analysisPath?'Análisis':'Análisis pendiente',!!p.analysisPath),
       chip(p.auditPath?'Auditoría':'Auditoría pendiente',!!p.auditPath));
@@ -555,7 +555,7 @@ function paintSensitivity(root,ref){
 function sourceUrl(){
   const rec=state.valuationRecord;
   const book=sourceBookForView(state.view);
-  const reboot=rec?.perfil_valoracion==='Reboot',dcfBase=typeof rec?.libros?.dcf==='string'?rec.libros.dcf:rec?.libros?.dcf?.base;
+  const reboot=rec?.contratoLibros==='jmr-reboot-3libros-v1'||(rec?.perfil_valoracion==='Reboot'&&Boolean(rec?.libros?.dcf)),dcfBase=typeof rec?.libros?.dcf==='string'?rec.libros.dcf:rec?.libros?.dcf?.base;
   const url=String(reboot
     ?(book==='historicos'?rec?.libros?.historicos:book==='multiplos'?rec?.libros?.multiplos:(dcfBase||rec?.hojaGoogle))||''
     :(book==='historicos'&&rec?.perfil_valoracion==='Floyd'?rec?.libros?.historicos||'':rec?.libros?.valoracion||rec?.hojaGoogle||''));

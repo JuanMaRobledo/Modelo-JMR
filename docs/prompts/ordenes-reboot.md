@@ -1,4 +1,4 @@
-# Órdenes de ejecución · Modelo JMR Reboot (R1–R6)
+# Órdenes de ejecución · Modelo JMR Floyd oficial (R1–R6, ex-Reboot)
 
 Lee antes `modelo/REGLAS_VIGENTES.md` §0R y `docs/CONTRATO_REBOOT_JMR.md`. Las mismas órdenes valen para ChatGPT y Claude. Cada fase termina con `FASE_<N>_ENTREGA.md` en `Modelo-JMR-datos/candidatos/valoraciones/<REV>/`.
 
@@ -8,7 +8,7 @@ Resuelve ticker, clase, mercado, moneda, FY/LTM, cotización fechada y etapa. Co
 ## R1 · Corte e identidad
 1. Identifica fuentes primarias (10-K/10-Q/8-K o equivalentes), fecha de corte y precio fechado.
 2. Fija tasa libre y prima de riesgo vigentes con su fuente y fecha.
-3. Copia las plantillas Reboot a `Modelo JMR/Análisis/<TICKER>`: H, tres copias del LIBRO DCF (Base, Conservadora, Optimista), M y A. Registra los seis IDs.
+3. Copia las plantillas Floyd R1–R6 a `Modelo JMR/Análisis/<TICKER>`: H, tres copias del LIBRO DCF (Base, Conservadora, Optimista), M y A. Registra los seis IDs.
 4. Verifica que los tres libros D conserven el motor original (hojas, fórmulas y comentarios sin cambios) y que D-B tenga `Presentación` y `Resumen de valoraciones`.
 
 ## R2 · Históricos
@@ -30,7 +30,7 @@ Resuelve ticker, clase, mercado, moneda, FY/LTM, cotización fechada y etapa. Co
 ## R5 · Análisis y publicación
 1. Escribe A: Nivel 1 de 14 capítulos y Nivel 2 de 12 apartados reproducibles, con las cifras de H, D y M de esta revisión; rehaz cualquier borrador cuyos supuestos hayan cambiado.
 2. Genera los JSON de valoración y análisis con el contrato `jmr-reboot-3libros-v1`.
-3. Valida hoja → JSON → catálogo → app. Si la app o un validador aún no conoce el contrato Reboot, registra el bloqueo y conserva CANDIDATO.
+3. Valida hoja → JSON → catálogo → app. Si la app o un validador aún no conoce el contrato Floyd R1–R6, registra el bloqueo y conserva CANDIDATO.
 4. Publica `EN_REVISION` solo con la puerta del contrato aprobada.
 
 ## R6 · Auditoría independiente
