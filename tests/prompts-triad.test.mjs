@@ -98,7 +98,7 @@ test('las referencias activas y la interfaz usan el mismo contrato editorial',()
   const sections=[...styleSection.matchAll(/^(\d{1,2})\. \*\*/gm)].map(m=>Number(m[1]));
   assert.deepEqual(sections,Array.from({length:14},(_,i)=>i+1));
   assert.match(styleSection,/5\. \*\*Ciclos de la empresa, del mercado y de la macroeconomía/);
-  assert.match(rules,/\*\*Versión 37 · 10-nov-2026 \(Floyd R1–R6/);
+  assert.match(rules,/\*\*Versión 38 · 10-nov-2026 \(Floyd R1–R6/);
   assert.match(rules,/Estilo JMR de 14 capítulos/);
   assert.match(process,/cinco fases/i);
   assert.match(process,/tres prompts maestros activos/i);
@@ -178,4 +178,21 @@ test('Floyd es la ruta por defecto de operativas FCFF y conserva los gates de ex
   assert.deepEqual([...orders.matchAll(/^## F([1-5]) ·/gm)].map(match => match[1]), ['1', '2', '3', '4', '5']);
   assert.match(orders, /Conservadora ≤ Base ≤ Optimista/);
   assert.match(orders, /Publica como EN_REVISION solo si/);
+});
+
+
+test('Floyd R1–R6: la IA solo hace tres tareas y no altera motor o libros',()=>{
+  const read=p=>fs.readFileSync(new URL(p,import.meta.url),'utf8');
+  const rules=read('../modelo/REGLAS_VIGENTES.md');
+  const contract=read('../docs/CONTRATO_REBOOT_JMR.md');
+  const orders=read('../docs/prompts/ordenes-reboot.md');
+  const prompt=read('../docs/prompts/PROMPT_MAESTRO_REBOOT.md');
+  assert.match(rules,/exactamente tres funciones/);
+  assert.match(rules,/10 ejercicios fiscales completos consecutivos/);
+  assert.match(rules,/no puede modificar la configuración/);
+  assert.match(contract,/tres funciones analíticas/);
+  assert.match(contract,/fórmulas y vínculos preexistentes/);
+  assert.match(orders,/No cambiar configuración de libros/);
+  assert.match(prompt,/solo hace tres tareas analíticas/);
+  assert.match(prompt,/Ante defectos, dejar bloqueo/);
 });
