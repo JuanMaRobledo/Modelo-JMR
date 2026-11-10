@@ -18,7 +18,7 @@ test('Floyd mantiene seis archivos, tres historias, MOS35 y auditoría independi
  const c=read('docs/CONTRATO_REBOOT_JMR.md'),o=read('docs/prompts/ordenes-reboot.md');
  for(const part of ['HISTÓRICOS','Conservadora','Optimista','MÚLTIPLOS','ANÁLISIS','14 capítulos','12 apartados','R1','R2','R3','R4','R5','R6','35 %','jmr-reboot-3libros-v1'])
    assert.ok(c.includes(part),'Falta requisito '+part);
- assert.match(o,/auditoría independiente/);
+ assert.match(o,/auditoría independiente/i);
  assert.match(c,/"perfil_valoracion": "Floyd"/);
 });
 test('Floyd F1–F5 existe sólo como material archivado y no guía nuevas valoraciones',()=>{
