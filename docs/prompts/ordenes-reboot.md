@@ -5,6 +5,9 @@ Lee antes `modelo/REGLAS_VIGENTES.md` §0R y `docs/CONTRATO_REBOOT_JMR.md`. Las 
 ## Antes de empezar
 Resuelve ticker, clase, mercado, moneda, FY/LTM, cotización fechada y etapa. Consulta `catalogo.json` y `registro/REVISIONES.md`: una revisión activa por ticker; lo de `archivo-v1/` es antecedente, nunca insumo. Declara modelo/herramienta/esfuerzo y el acceso realmente disponible. Si el emisor es financiero u holding sin motor equivalente, declara la excepción FCFE/SOTP; no inventes un FCFF industrial.
 
+## Decisiones de método
+Aplica el criterio propio del contrato (sección «Criterio propio y decisiones de método»): corrige con fuente primaria lo que lleve a un error económico y declara qué cambió, por qué, cuánto mueve el valor y que R6 lo audita, en `FASE_<N>_ENTREGA.md` y en `salvedades`. Igual para ChatGPT, Claude y Gemini.
+
 ## R1 · Corte e identidad
 1. Identifica fuentes primarias (10-K/10-Q/8-K o equivalentes), fecha de corte y precio fechado.
 2. Fija tasa libre y prima de riesgo vigentes con su fuente y fecha.
