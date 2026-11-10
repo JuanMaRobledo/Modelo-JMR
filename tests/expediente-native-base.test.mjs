@@ -95,3 +95,27 @@ test('expediente Floyd separa estados y valoración y conserva la navegación de
  assert.match(src,/workbookBook===book/);
  assert.match(src,/rec\?\.libros\?\.historicos/);
 });
+
+test('Floyd R5 Reboot muestra cuatro matrices y declara EV/FCFF N/D sin inventar cero',()=>{
+ const rec=mkFloyd();
+ rec.contratoLibros='jmr-reboot-3libros-v1';
+ rec.sensibilidadMultiples.contrato='reboot-atlas-cinco-v1';
+ const nd=rec.sensibilidadMultiples.matrices[1];
+ nd.estado='N/D';nd.peso=0;nd.matriz=null;nd.centro=null;
+ nd.motivo='Sin ancla histórica positiva y comparable de EV/FCFF, no se estima este método.';
+ const html=native(rec);
+ assert.equal((html.match(/class="jmr-native-matrix-table"/g)||[]).length,4);
+ assert.match(html,/N\/D · sin ancla fiable · peso 0 %/);
+ assert.match(html,/Sin ancla histórica positiva/);
+ assert.doesNotMatch(html,/N\/D sin causa o peso cero verificables/);
+});
+test('Floyd Reboot rechaza N/D con peso positivo o matriz simulada',()=>{
+ const rec=mkFloyd();rec.contratoLibros='jmr-reboot-3libros-v1';
+ rec.sensibilidadMultiples.contrato='reboot-atlas-cinco-v1';
+ const nd=rec.sensibilidadMultiples.matrices[1];
+ nd.estado='N/D';nd.matriz=null;nd.centro=null;nd.peso=0.1;
+ nd.motivo='No se dispone de ancla de EV/FCFF para esta empresa.';
+ const html=native(rec);
+ assert.match(html,/N\/D sin causa o peso cero verificables/);
+ assert.equal((html.match(/class="jmr-native-matrix-table"/g)||[]).length,4);
+});
