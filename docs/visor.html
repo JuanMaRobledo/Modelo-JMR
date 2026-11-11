@@ -1316,7 +1316,7 @@ try{if(window.self!==window.top&&new URLSearchParams(location.search).get('embed
     if (key === 'sotp') return r.valoracionHolding && r.valoracionHolding.nav || null;
     var map = { ponderadoHoy: dm.ponderadoHoy || r.valorPresentePonderado, dcfHoy: dm.dcfHoy, multHoy: dm.multiplesHoy, fy3: r.objetivoPonderado };
     var unified = r.valorEsperado && r.valorEsperado.escenariosUnificados;
-    if (key === 'dcfHoy' && unified) { var hs=r.valorEsperado.historias; return {conservador:((hs.find(function(x){return x.id==='B';})||{}).valor),base:((hs.find(function(x){return x.id===(r.valorEsperado.historiaCentralId||'A');})||{}).valor),optimista:((hs.find(function(x){return x.id==='D';})||{}).valor)}; }
+    if (key === 'dcfHoy' && unified) { var hs=r.valorEsperado.historias; return {conservador:((hs.find(function(x){return x.id==='B';})||{}).valor),base:((hs.find(function(x){return x.id===(r.valorEsperado.historiaCentralId||'A');})||{}).valor),optimista:((hs.find(function(x){return x.id===(/^(floyd|reboot)$/i.test(String(r.perfil_valoracion||''))?'C':'D');})||{}).valor)}; }
     var t = map[key];
     return (t && typeof t.base === 'number' && isFinite(t.base)) ? t : null;
   }
