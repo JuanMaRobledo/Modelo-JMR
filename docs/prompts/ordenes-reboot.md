@@ -4,6 +4,14 @@
 
 Lee antes `modelo/REGLAS_VIGENTES.md` §0R y `docs/CONTRATO_REBOOT_JMR.md`. Las mismas órdenes valen para ChatGPT y Claude. Cada fase termina con `FASE_<N>_ENTREGA.md` en `Modelo-JMR-datos/candidatos/valoraciones/<REV>/`.
 
+## Mandato adicional · cobertura exhaustiva por fórmulas (regla vigente §0R.2)
+
+**OBLIGATORIO ANTES DE R3:** no abandonar R2 por encontrar celdas vacías. Buscar primero en todos los 10-K/10-Q y notas, comparar etiquetas, completar los saldos del año previo al primer FY desde el 10-K más antiguo y el saldo del mismo trimestre previo al LTM. La IA busca además el precio histórico de cierre (último día bursátil) de cada FY con fecha+fuente. Llenar los datos de Balance, Resultados, Caja, auxiliares y precio; **NO** llenar manualmente Márgenes, Eficiencia, Salud, Dividendos, Por acción ni Trailing, pues se calculan solos mediante fórmulas simples. En estos paneles cada salida debe tener fórmula que devuelva valor, `N/D`, `N/M` o `N/A` respaldado, nunca espacio sin fórmula ni cero inventado.
+
+**Escaneo obligatorio:** verificar los seis paneles B:L, documentar todos los `N/D` materiales hasta resolverlos o dejar bloqueo explícito, identificar `N/M` y justificar `N/A`. Revisar `Entradas históricas auxiliares` B64:B67 y balance/caja con FX. Las filas 26–32 y 42–48 son comparativas, 34–39 son *solo* entradas del emisor y 53–61 son puentes por fórmula; no cruzarlas indebidamente. No marcar `CONCILIADO` ni publicar con controles fallidos.
+
+Esta reparación de la plantilla es **mantenimiento previamente autorizado**; NO cambia el reparto de la IA ni habilita editar el motor Damodaran durante valoraciones.
+
 ## Mandato de tres funciones y cero cambios estructurales
 La IA ejecutora (1) captura/verifica **10 FY consecutivos cuando existan + LTM disponible** y documenta ausencias; (2) propone supuestos con justificación en entradas autorizadas; (3) elabora análisis fundamental cualitativo. **Solo las fórmulas y vínculos predefinidos calculan** ratios, DCF, múltiplos, escenarios, sensibilidades y presentación. Traspasos entre libros por automatización existente con huella, recálculo y conciliación; no copiar manualmente salidas ni declarar actualizados destinos obsoletos. No cambiar configuración de libros, hojas, tablas, vínculos, fórmulas, rangos, validaciones, selectores, comentarios ni scripts. Averías de arquitectura → bloqueo documentado y mantenimiento separado/autorizado. JSON, controles y publicación son tareas mecánicas, no funciones analíticas adicionales.
 
