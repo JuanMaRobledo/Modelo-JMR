@@ -3,7 +3,7 @@
 | # | Paso | Dónde | Estado |
 |---|---|---|---|
 | 1 | Prototipos verificados (UBER, CMG) y `Input sheet` alimentado desde H | `JMR-valuation/scripts/floyd_libro_unico`, `Modelo-JMR-datos/mantenimiento/.../etapa2b` | hecho |
-| 2 | Plantilla candidata «libro único» + validación con datos de UBER | Drive `02 Pruebas y desarrollo` | ver `etapa2b/PLANTILLA_UNICA.md` |
+| 2 | Plantilla candidata «libro único» + validación con datos de UBER (`1T1Cs2HG…`); `Input sheet` 100 % desde H | Drive `02 Pruebas y desarrollo` | **hecho**: DCF y 5 múltiplos × 3 escenarios idénticos a UBER; ver `Modelo-JMR-datos/mantenimiento/.../etapa2b/PLANTILLA_UNICA.md` |
 | 3 | Cambio de la app (contrato `floyd-libro-unico-v1`; `libros.unico` para los tres tipos de libro) | `lib/model-sheet.js`, `docs/model-sync.js`, `docs/expediente.js`, `docs/jmr-mos-summary.js` + 4 pruebas | **hecho en la rama** (214/214); sin QA visual (acceso con contraseña) |
 | 4 | Contrato, órdenes, prompt maestro, `AGENTS.md`/`CLAUDE.md`, habilidades `fase-jmr`/`analisis-nuevo`, `REGLAS_VIGENTES §0R` | `docs/CONTRATO_FLOYD_LIBRO_UNICO_BORRADOR.md` (este PR) | borrador; aplicar **junto** al paso 6 |
 | 5 | Validadores (`validar_catalogo.cjs`, `validar_entregas_floyd.py`) con el nuevo contrato: dos URL en lugar de seis | `Modelo-JMR-datos/scripts` | pendiente |

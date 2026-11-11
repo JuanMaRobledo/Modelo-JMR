@@ -7,10 +7,10 @@
 |---|---|---|
 | **LIBRO ÚNICO** | 83 pestañas: Presentación · Guía del libro · Resumen de valoraciones · Sensibilidades DCF; **Históricos (H)** 12 pestañas; **Motor Base** 17 (fcffsimpleginzu, nombres originales); **Motor Conservadora** 17 (`… · C`); **Motor Optimista** 17 (`… · O`); **Múltiplos (M)** 16 (`M · …` en las 5 que chocan con H) | IA solo en entradas (ver §3) |
 | **ANÁLISIS** | Google Doc: Nivel 1 (14 capítulos) + Nivel 2 (12 apartados) | IA |
-Plantilla oficial: `Plantillas Modelo JMR Floyd (R1–R6)` → «PLANTILLA · JMR Floyd · LIBRO ÚNICO» (ID: pendiente de publicar). Se **copia** por revisión; nunca se escribe sobre ella.
+Plantilla oficial: `Plantillas Modelo JMR Floyd (R1–R6)` → «PLANTILLA · JMR Floyd · LIBRO ÚNICO» (candidata validada: `1T1Cs2HGlVSe5_5OwqGGQvsN1k1KJaweXZEUM3HGttKk`; se publica al aprobar este contrato). Requiere cálculo iterativo activado (100 iteraciones, 1e‑6) y sin IMPORTRANGE. Se **copia** por revisión; nunca se escribe sobre ella.
 
 ## 2 · Flujo de datos (todo por fórmulas entre pestañas; sin scripts ni IMPORTRANGE)
-H → `Input sheet` de los tres motores (ingresos, EBIT, intereses, patrimonio total, deuda, caja, precio, I+D, **tasa efectiva, acciones, minoritarios, activos no operativos, opciones**) · H → estados de M (por etiqueta) · motores → `Entradas desde DCF` de M · motores y M → `Resumen` → `Presentación`. Un cambio en H se propaga solo; no existen vínculos «obsoletos» entre archivos.
+H → `Input sheet` de los tres motores —**todas** las cifras de la empresa— (ingresos, EBIT, intereses, patrimonio total, deuda, caja, precio, I+D, **tasa efectiva, acciones, minoritarios, activos no operativos, opciones**) · H → estados de M (por etiqueta) · motores → `Entradas desde DCF` de M · motores y M → `Resumen` → `Presentación`. Un cambio en H se propaga solo; no existen vínculos «obsoletos» entre archivos.
 
 ## 3 · Reparto del trabajo de la IA (sin cambios de fondo)
 1. **Históricos:** tres estados (10 FY + LTM), auxiliares y el bloque «Datos del emisor para la valoración» de `Entradas históricas auxiliares` (filas 34–39: minoritarios redimibles, acciones por RSU/PSU, activos no operativos, opciones). Cada cifra con fuente en `Fuentes y clasificación`.
