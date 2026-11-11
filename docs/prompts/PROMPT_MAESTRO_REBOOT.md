@@ -1,3 +1,10 @@
+## Regla operativa previa a R3: cobertura automática de indicadores
+
+**Floyd libro único — obligatorio en todas las empresas (§0R.2 y contrato v1.1).** La IA busca y carga datos primarios de diez FY + LTM, incluyendo comparativos del primer FY desde el 10-K más antiguo y el balance del mismo trimestre anterior para LTM; extrae los precios nominales de cierre de cada FY del último día hábil bursátil, documentando fuente y fecha. Busca los detalles de cuentas por cobrar, inventarios, deuda, leases, intangibles, minoritarios, preferentes, emisión de acciones, recompras, gastos, impuestos y FX; no pide al usuario descargar datos que pueda obtener.
+
+Las hojas `Márgenes`, `Eficiencia de capital`, `Salud Financiera`, `Dividendos`, `Por acción` y `Trailing Valuation` calculan **todas sus salidas** por fórmulas simples a partir de históricos, con `N/D` para faltantes verificables, `N/M` para múltiplos sin significado y `N/A` solo con soporte. Nunca dejar una salida sin fórmula, rellenar ceros artificiales ni escribir resultados a mano. Antes de R3 comprobar `Entradas históricas auxiliares!B64:B67`, evaluar materialidad y corregir cada ausencia de datos que sí pueda buscarse. Respetar separación de comparativos (26–32, 42–48), inputs del emisor (34–39), puentes (53–61) y FX (62). No modificar los tres motores de Damodaran.
+
+
 # Prompt maestro · Modelo JMR Floyd R1–R6
 
 > **Revisiones nuevas: libro único.** Sustituye los puntos 3 y 4 por: «Dos artefactos por empresa: el LIBRO ÚNICO (copia de la plantilla `04 LIBRO ÚNICO`: H + tres motores Damodaran + M + Presentación) y el Doc A. Todo dato entre pestañas va por fórmula; edita solo celdas de entrada (H, `Input sheet` de cada motor que no vienen de H, multiplicadores y pesos de M). Lee `docs/CONTRATO_FLOYD_LIBRO_UNICO.md`.» El resto del prompt se mantiene.
