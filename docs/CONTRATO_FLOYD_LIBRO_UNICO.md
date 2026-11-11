@@ -1,6 +1,6 @@
 # Contrato Floyd R1–R6 · libro único (`floyd-libro-unico-v1`)
 
-**Versión 1.0 · 11-nov-2026 · VIGENTE para toda revisión nueva; aplica idénticamente a ChatGPT, Claude, Gemini y cualquier agente.** Decisión expresa del usuario (11-nov-2026). `CONTRATO_REBOOT_JMR.md` (`jmr-reboot-3libros-v1`) rige **solo** las revisiones heredadas ya creadas (UBER, CMG, MELI, MSFT, AAPL) hasta que se migren.
+**Versión 1.1 · 11-nov-2026 · VIGENTE para toda revisión nueva; aplica idénticamente a ChatGPT, Claude, Gemini y cualquier agente.** Decisión expresa del usuario (11-nov-2026). `CONTRATO_REBOOT_JMR.md` (`jmr-reboot-3libros-v1`) rige **solo** las revisiones heredadas ya creadas (UBER, CMG, MELI, MSFT, AAPL) hasta que se migren.
 
 ## 1 · Artefactos (dos por revisión)
 | Artefacto | Contenido | Quién escribe |
@@ -41,3 +41,14 @@ No declarar controles no ejecutados. Un defecto estructural del libro se documen
 
 ## 8 · Migración de revisiones existentes
 UBER, CMG, MELI, MSFT y AAPL **no se migran automáticamente**: siguen en `jmr-reboot-3libros-v1`. UBER y CMG tienen prototipos de libro único verificados (0 diferencias en motores, M y H); su adopción es una decisión por revisión. MELI (SOTP/fintech) queda fuera de las reglas por etiqueta actuales.
+
+## 9 · Cobertura completa de indicadores e históricos (obligatoria)
+
+Rige la regla **§0R.2** de `modelo/REGLAS_VIGENTES.md` (precedencia normativa). El libro único debe entregar, **por fórmulas y sin intervención de la IA en outputs**, todos los indicadores de `Márgenes`, `Eficiencia de capital`, `Salud Financiera`, `Dividendos`, `Por acción`, `Trailing Valuation` y las salidas correspondientes de múltiplos/DCF. La IA solo carga entradas históricas, precios por FY, saldos iniciales/LTM y supuestos documentados, nunca los resultados de esos paneles.
+
+El extractor trabaja a partir de los **10-K/10-Q completos, notas y precios históricos**. Es obligatorio consultar el balance anterior al primer FY (por ejemplo, FY2016 en el 10-K FY2017) y el balance del **mismo trimestre del año previo** al LTM; registrar cierres de cotización del último día hábil bursátil del FY, sin dividend-adjusted close. Buscar información adicional ante partidas ausentes (inventarios, alquileres, pasivos minoritarios, preferentes, intangibles, deuda, recompras) hasta agotar fuentes oficiales razonables. Todo valor informado se registra en `Fuentes y clasificación`.
+
+La plantilla **no debe contener celdas de salida sin fórmula**. Representar faltantes como `N/D` (debe investigarse), múltiplos sin significado como `N/M`, y partidas realmente no aplicables como `N/A` justificado; no usar 0 por omisión. Cada hoja de indicadores se recalcula sin tocar el motor original Damodaran. La hoja `Entradas históricas auxiliares` separa los saldos comparativos (26–32, 42–48), los datos del emisor (34–39), el puente contable descriptivo (53–61) y el efecto FX (62). Las comprobaciones B64:B67 vigilan `N/D`, `N/M` y R2; `CONCILIADO` requiere comprobar la caja con FX.
+
+**Puerta:** si las dependencias materiales de indicadores/DCF/EV están sin verificar o hay errores en celdas, R2/R5 quedan sin aprobar. La plantilla maestra se modifica únicamente en mantenimiento autorizado con respaldo y pruebas, nunca durante una valoración individual. El precio de cierre y otros históricos son entradas IA autorizadas: exigir que sean automáticas por extracción **no** significa que la celda de entrada deba tener una fórmula de mercado externa.
+
