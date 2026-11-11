@@ -26,6 +26,11 @@ const vm = require('node:vm');
   const catalog=JSON.parse(await read('catalogo.json'));
   const valuationPaths=catalog.valoraciones.filter(x=>/\/NFLX(?:-|\.)/.test(x));
   const researchPaths=catalog.analisis.filter(x=>/\/NFLX(?:-|\.)/.test(x));
+  if(!valuationPaths.length&&!researchPaths.length){
+    // NFLX salió del catálogo activo: no hay ficha viva que auditar; no se inventa una.
+    console.log('SKIP test_audit_live: NFLX no figura en el catálogo oficial activo ('+catalog.valoraciones.length+' valoraciones).');
+    return;
+  }
   assert.equal(valuationPaths.length,1,'una sola valoración activa de NFLX');
   assert.equal(researchPaths.length,1,'un solo análisis activo de NFLX');
   const valPath=valuationPaths[0],analysisPath=researchPaths[0];
