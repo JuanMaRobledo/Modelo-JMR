@@ -1,5 +1,7 @@
 # Contrato único · Modelo JMR Floyd R1–R6 (desarrollado como Reboot)
 
+> **Desde el 11-nov-2026 las revisiones NUEVAS se crean con [`CONTRATO_FLOYD_LIBRO_UNICO.md`](CONTRATO_FLOYD_LIBRO_UNICO.md) (`contratoLibros=floyd-libro-unico-v1`: un libro + el documento A).** Este contrato de seis archivos (`jmr-reboot-3libros-v1`) rige solo las revisiones heredadas ya creadas hasta que se migren, y la app lo sigue leyendo.
+
 **Versión 1.0 · 9-nov-2026 · aplica idénticamente a ChatGPT, Claude y cualquier agente.** Sustituye a Floyd para toda valoración nueva. Floyd (`CONTRATO_EJECUCION_FLOYD.md`) solo rige mientras se mantienen UBER y CMG hasta reconfigurarlos, y CELH queda en reconfiguración. Todo lo anterior al 9-nov-2026 está en `Modelo-JMR-datos/archivo-v1/` y **no es insumo** de ninguna revisión nueva.
 
 ## Filosofía

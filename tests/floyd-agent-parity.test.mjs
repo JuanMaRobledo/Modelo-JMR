@@ -27,3 +27,13 @@ test('Floyd F1–F5 existe sólo como material archivado y no guía nuevas valor
  assert.match(cl,/No usar el Floyd antiguo/);
  assert.match(a,/archivo-v1/);
 });
+
+test('Libro único: contrato vigente, reglas y puertas de entrada alineados',()=>{
+ const c=read('docs/CONTRATO_FLOYD_LIBRO_UNICO.md'),a=read('AGENTS.md'),cl=read('CLAUDE.md'),r=read('modelo/REGLAS_VIGENTES.md'),old=read('docs/CONTRATO_REBOOT_JMR.md');
+ for(const part of ['floyd-libro-unico-v1','VIGENTE','LIBRO ÚNICO','ANÁLISIS','Input sheet','1T1Cs2HGlVSe5_5OwqGGQvsN1k1KJaweXZEUM3HGttKk','35 %','R6','sin scripts ni IMPORTRANGE','cálculo iterativo'])
+   assert.ok(c.includes(part)||/35\s?%/.test(c),'Falta '+part);
+ for(const doc of [a,cl]){assert.match(doc,/CONTRATO_FLOYD_LIBRO_UNICO/);assert.match(doc,/floyd-libro-unico-v1/);}
+ assert.match(r,/§0R\.0/); assert.match(r,/floyd-libro-unico-v1/); assert.match(r,/jmr-reboot-3libros-v1/);   // el contrato heredado sigue documentado
+ assert.match(old,/CONTRATO_FLOYD_LIBRO_UNICO/);                                                          // aviso de contrato heredado
+ assert.doesNotMatch(c,/BORRADOR/);
+});

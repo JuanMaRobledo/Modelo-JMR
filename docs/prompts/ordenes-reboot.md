@@ -1,5 +1,7 @@
 # Órdenes de ejecución · Modelo JMR Floyd oficial (R1–R6, ex-Reboot)
 
+> **Revisiones nuevas (desde 11-nov-2026): libro único.** Rigen `docs/CONTRATO_FLOYD_LIBRO_UNICO.md` y estas mismas fases R1–R6 con dos artefactos: (R1) copiar la plantilla `04 LIBRO ÚNICO` y el Doc A y registrar los dos IDs; (R2) llenar H, incluido el bloque «Datos del emisor» (`Entradas históricas auxiliares` filas 33–40), sin tocar fórmulas; (R3) supuestos solo en las celdas de entrada del `Input sheet` de cada motor que no vienen de H; sensibilidades en una copia; (R4) multiplicadores y pesos de M (el `Resumen` y la `Presentación` se concilian solos); (R5/R6) igual. No hay traspasos entre libros ni scripts de sincronización. Lo que sigue describe las revisiones heredadas de seis archivos.
+
 Lee antes `modelo/REGLAS_VIGENTES.md` §0R y `docs/CONTRATO_REBOOT_JMR.md`. Las mismas órdenes valen para ChatGPT y Claude. Cada fase termina con `FASE_<N>_ENTREGA.md` en `Modelo-JMR-datos/candidatos/valoraciones/<REV>/`.
 
 ## Mandato de tres funciones y cero cambios estructurales
