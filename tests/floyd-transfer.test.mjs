@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { validateManifest, planStage, verifyApplied, CONTRACT } from '../lib/floyd-transfer.js';
 
 const ids=Object.fromEntries(['H','D-B','D-C','D-O','M'].map((b,i)=>[b,('book'+i).padEnd(30,'Z')]));
-function manifest(){return {revisionId:'CELH-REBOOT-3T26-R1',contratoLibros:CONTRACT,books:ids,transfers:[
+function manifest(){return {revisionId:'CELH-REBOOT-3T26-R1',contratoLibros:CONTRACT,books:{...ids},transfers:[
 {stage:'H_TO_D',to:{book:'D-B',sheet:'Input sheet',cell:'B11'},terms:[{book:'H',sheet:'Income Statement',cell:'L3'}]},
 {stage:'H_TO_D',to:{book:'D-B',sheet:'Input sheet',cell:'B14'},terms:[
  {book:'H',sheet:'Balance Sheet',cell:'L34'}, {book:'H',sheet:'Entradas históricas auxiliares',cell:'L5'}]}
