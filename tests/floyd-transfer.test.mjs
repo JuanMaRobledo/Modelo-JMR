@@ -1,4 +1,5 @@
 import test from 'node:test';
+import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import { validateManifest, planStage, verifyApplied, CONTRACT } from '../lib/floyd-transfer.js';
 
@@ -45,4 +46,15 @@ test('Verifica lecturas posteriores y rechaza transferencia parcial',()=>{
  const p=planStage(manifest(),snapshots(),'H_TO_D');
  const b=snapshots();b['D-B'].sheets['Input sheet'].B14.v=99;
  assert.throws(()=>verifyApplied(p,b),/cambio no confirmado/);
+});
+
+test('Manifiesto real CELH usa sólo entradas autorizadas y nunca copia precio DCF pre-Pepsi',()=>{
+ const raw=readFileSync(new URL('../docs/floyd-sync-manifests/CELH-REBOOT-3T26-R1.json',import.meta.url),'utf8');
+ const m=JSON.parse(raw);
+ assert.equal(validateManifest(m),true);
+ assert.equal(m.transfers.length,650);
+ assert.deepEqual([...new Set(m.transfers.map(t=>t.stage))],['H_TO_D','H_TO_M','D_TO_M','RESULTS_TO_DB']);
+ assert.equal(m.transfers.some(t=>t.stage==='D_TO_M'&&t.to.cell.endsWith('5')),false);
+ assert.equal(m.transfers.some(t=>t.stage==='RESULTS_TO_DB'&&['C5','E5','D5'].includes(t.to.cell)),false);
+ assert.equal(m.transfers.some(t=>t.to.book==='H'),false);
 });
