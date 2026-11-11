@@ -22,7 +22,7 @@ const SHEETS_BY_VIEW={
     'Cost of capital worksheet','Descuento de múltiplos','Sensibilidad DCF']
 };
 const displayFromUrl=params.get('modo')==='edicion'?'edicion':'visor';
-const isReboot=()=>state.valuationRecord?.contratoLibros==='jmr-reboot-3libros-v1'||(state.valuationRecord?.perfil_valoracion==='Reboot'&&Boolean(state.valuationRecord?.libros?.dcf));
+const isReboot=()=>['jmr-reboot-3libros-v1','floyd-libro-unico-v1'].includes(state.valuationRecord?.contratoLibros)||(state.valuationRecord?.perfil_valoracion==='Reboot'&&Boolean(state.valuationRecord?.libros?.dcf));
 const sourceBookForView=view=>view==='financieros'||view==='indicadores'?'historicos':
   (isReboot()&&view==='valoracion'&&state.valuationMode==='multiplos')?'multiplos':'valoracion';
 // Reboot reparte las pestañas en libros distintos: Históricos, DCF Base y Múltiplos.
@@ -416,7 +416,7 @@ function nativeMultiplesHtml(rec){
   const s=rec?.sensibilidadMultiples;
   const floyd=['Floyd','Reboot'].includes(rec?.perfil_valoracion);
   const bank=s?.contrato==='review-relative-v1'&&s.tipo==='MULTIPLOS_BANCARIOS';
-  const reboot=floyd && rec?.contratoLibros==='jmr-reboot-3libros-v1' && s?.contrato==='reboot-atlas-cinco-v1';
+  const reboot=floyd && ['jmr-reboot-3libros-v1','floyd-libro-unico-v1'].includes(rec?.contratoLibros) && s?.contrato==='reboot-atlas-cinco-v1';
   if(!s||(!bank&&!reboot&&s.contrato!=='base-native-five-priority-v1'))return '';
   const esc=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const fmt=x=>typeof x==='number'&&Number.isFinite(x)?
@@ -561,8 +561,9 @@ function paintSensitivity(root,ref){
 function sourceUrl(){
   const rec=state.valuationRecord;
   const book=sourceBookForView(state.view);
-  const reboot=rec?.contratoLibros==='jmr-reboot-3libros-v1'||(rec?.perfil_valoracion==='Reboot'&&Boolean(rec?.libros?.dcf)),dcfBase=typeof rec?.libros?.dcf==='string'?rec.libros.dcf:rec?.libros?.dcf?.base;
-  const url=String(reboot
+  const unico=rec?.contratoLibros==='floyd-libro-unico-v1',reboot=unico||rec?.contratoLibros==='jmr-reboot-3libros-v1'||(rec?.perfil_valoracion==='Reboot'&&Boolean(rec?.libros?.dcf)),dcfBase=typeof rec?.libros?.dcf==='string'?rec.libros.dcf:rec?.libros?.dcf?.base;
+  const url=String(unico?(rec?.libros?.unico||rec?.hojaGoogle||'')
+    :reboot
     ?(book==='historicos'?rec?.libros?.historicos:book==='multiplos'?rec?.libros?.multiplos:(dcfBase||rec?.hojaGoogle))||''
     :(book==='historicos'&&rec?.perfil_valoracion==='Floyd'?rec?.libros?.historicos||'':rec?.libros?.valoracion||rec?.hojaGoogle||''));
   return /^https:\/\/docs\.google\.com\/spreadsheets\/d\/[A-Za-z0-9_-]+(?:\/|$)/.test(url)?url:'';

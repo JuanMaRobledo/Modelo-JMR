@@ -19,9 +19,11 @@
   }
   function bookUrl(rec,book){
     if(book!=='valoracion'&&book!=='historicos'&&book!=='multiplos')throw new Error('Libro desconocido.');
-    var L=rec.libros||{},reboot=rec.contratoLibros==='jmr-reboot-3libros-v1'||(rec.perfil_valoracion==='Reboot'&&Boolean(rec.libros&&rec.libros.dcf)),
+    var L=rec.libros||{},unico=rec.contratoLibros==='floyd-libro-unico-v1',reboot=unico||rec.contratoLibros==='jmr-reboot-3libros-v1'||(rec.perfil_valoracion==='Reboot'&&Boolean(rec.libros&&rec.libros.dcf)),
         dcfBase=typeof L.dcf==='string'?L.dcf:(L.dcf&&L.dcf.base);
-    var url=book==='historicos'
+    var url=unico
+      ? (L.unico||rec.hojaGoogle)
+      : book==='historicos'
       ? (L.historicos||(rec.perfil_valoracion==='Floyd'||reboot?'':rec.hojaGoogle))
       : book==='multiplos'
         ? (reboot?L.multiplos:'')

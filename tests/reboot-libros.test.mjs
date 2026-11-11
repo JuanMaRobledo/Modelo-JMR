@@ -34,3 +34,28 @@ test('Visor web Floyd R1-R6 permite leer Múltiplos sin habilitar escritura',asy
  assert.match(src,/if\(book!=='valoracion'&&book!=='historicos'&&book!=='multiplos'\)return Promise.reject/);
  assert.match(src,/s\.writable=book==='valoracion'&&s\.writable!==false/);
 });
+
+// ---- Libro único (floyd-libro-unico-v1) ----
+import { FLOYD_UNICO_CONTRACT, isFloydUnico } from '../lib/model-sheet.js';
+const unico = {perfil_valoracion:'Floyd',contratoLibros:FLOYD_UNICO_CONTRACT,libros:{unico:u('u'),analisis:'https://docs.google.com/document/d/'+'D'.repeat(30)+'/edit'},hojaGoogle:u('u')};
+test('Libro único: los tres tipos de libro son el mismo archivo y se reconoce como Floyd R1–R6',()=>{
+  assert.equal(FLOYD_UNICO_CONTRACT,'floyd-libro-unico-v1');
+  assert.equal(isFloydUnico(unico),true); assert.equal(isFloydR1R6(unico),true);
+  for(const b of ['valoracion','historicos','multiplos']) assert.ok(sourceBook(unico,b).id.startsWith('u'),b);
+  assert.equal(sourceBook(unico,'historicos').id,sourceBook(unico,'multiplos').id);
+});
+test('Libro único: sin libros.unico usa hojaGoogle y, si no hay ninguno, rechaza con 409',()=>{
+  assert.ok(sourceBook({...unico,libros:{}},'valoracion').id.startsWith('u'));
+  assert.throws(()=>sourceBook({...unico,libros:{},hojaGoogle:undefined},'historicos'),{status:409,message:/libro único/});
+  assert.throws(()=>sourceBook(unico,'otro'),{status:400});
+});
+test('Los contratos de seis libros y el legado no cambian',()=>{
+  assert.equal(isFloydUnico(nuevo),false); assert.equal(isFloydUnico(legado),false);
+  assert.ok(sourceBook(nuevo,'valoracion').id.startsWith('b')); assert.ok(sourceBook(legado,'valoracion').id.startsWith('v'));
+});
+test('Cliente web y expediente reconocen el contrato del libro único',async()=>{
+ const {readFileSync}=await import('node:fs');
+ for(const f of ['docs/model-sync.js','docs/expediente.js','docs/jmr-mos-summary.js'])
+   assert.match(readFileSync(new URL('../'+f,import.meta.url),'utf8'),/floyd-libro-unico-v1/,f);
+ assert.match(readFileSync(new URL('../docs/model-sync.js',import.meta.url),'utf8'),/unico\?\(L\.unico\|\|rec\.hojaGoogle\)|\(L\.unico\|\|rec\.hojaGoogle\)/);
+});

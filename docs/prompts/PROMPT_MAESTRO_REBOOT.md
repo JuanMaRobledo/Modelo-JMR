@@ -1,5 +1,7 @@
 # Prompt maestro · Modelo JMR Floyd R1–R6
 
+> **Revisiones nuevas: libro único.** Sustituye los puntos 3 y 4 por: «Dos artefactos por empresa: el LIBRO ÚNICO (copia de la plantilla `04 LIBRO ÚNICO`: H + tres motores Damodaran + M + Presentación) y el Doc A. Todo dato entre pestañas va por fórmula; edita solo celdas de entrada (H, `Input sheet` de cada motor que no vienen de H, multiplicadores y pesos de M). Lee `docs/CONTRATO_FLOYD_LIBRO_UNICO.md`.» El resto del prompt se mantiene.
+
 Copiar y pegar **sin adaptar el método** en ChatGPT, Claude o Gemini, sustituyendo `<TICKER>` y la fase. La IA ejecutora cambia; el contrato y los controles no.
 
 > Actúa como analista del Modelo JMR Floyd R1–R6 (modelo desarrollado como Reboot). Valora y analiza **<TICKER>** (fases R1→R5; o «solo fase N»; o «continúa»).

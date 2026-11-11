@@ -7,7 +7,9 @@ anota en el registro de cambios del final.
 
 **Doble método:** desde esta versión las valoraciones seleccionan `Método A` o `Método B` por revisión. La selección normativa y precedencia se describen en [`METODOS_VALORACION.md`](METODOS_VALORACION.md), con reglas particulares en [`METODO_A_JMR.md`](METODO_A_JMR.md) y copia íntegra del método anterior en [`METODO_B_JMR.md`](METODO_B_JMR.md). El presente documento mantiene las reglas **compartidas** de cálculo, plantilla y publicación. En el flujo compatible A-1.2 se aplica Método A, salvo elección expresa de B por el usuario; registrar y comunicar la selección antes de estimar. La interpretación B sin etiqueta se conserva exclusivamente para leer revisiones históricas, sin reclasificarlas ni recalcularlas.
 
-## 0R. Perfil oficial: Modelo JMR Floyd R1–R6 (versión 37 · 10-nov-2026)
+## 0R. Perfil oficial: Modelo JMR Floyd R1–R6 (versión 39 · 11-nov-2026)
+
+**§0R.0 · Libro único (11-nov-2026).** Por decisión expresa del usuario, las revisiones NUEVAS usan `contratoLibros=floyd-libro-unico-v1` (`docs/CONTRATO_FLOYD_LIBRO_UNICO.md`): un solo libro (Históricos, tres motores Damodaran, Múltiplos, Resumen y Presentación, con fórmulas entre pestañas) más el Doc A. Las reglas de abajo sobre seis archivos y `jmr-reboot-3libros-v1` rigen las revisiones heredadas hasta migrarlas. La IA conserva sus tres funciones; el `Input sheet` toma las cifras de la empresa de H por fórmula.
 
 **Decisión expresa del usuario, 10-nov-2026:** el modelo desarrollado como «Reboot» se convierte en el **único Floyd oficial**. El Floyd F1–F5 anterior queda **LEGADO/ARCHIVADO** en `archivo-v1/` y sus tres plantillas anteriores quedan en carpeta marcada archivo-v1. La decisión no altera ninguna fórmula ni número histórico ni convierte revisiones no aprobadas en publicadas.
 
@@ -389,6 +391,7 @@ Hojas de trabajo conservadas tras el archivo del 24-oct-2026 (identidad document
 | Versión | Fecha | Cambio |
 |---|---|---|
 | 38 | 10-nov-2026 | §0R.1: la IA ejecutora solo captura históricos 10 FY + LTM, propone supuestos justificados y redacta análisis; resultados por fórmulas/vínculos y sincronización aprobada; prohibido reconfigurar plantillas durante valoración. Cambio documental, sin modificar libros ni motores. |
+| 39 | 11-nov-2026 | §0R.0: libro único (`floyd-libro-unico-v1`) vigente para revisiones nuevas; plantilla `04 LIBRO ÚNICO`; plantillas 01/02b/03 archivadas; `Input sheet` alimentado desde H; app lee `libros.unico`. Revisiones heredadas siguen en `jmr-reboot-3libros-v1`. Sin cambio de fórmulas del motor ni de MOS 35 % sobre Base. |
 | 35 | 9-nov-2026 | §0: tres plantillas Floyd oficiales (H1 Históricos, H2 Valoración con Presentación, H3 análisis N1+N2), carpeta y prompt maestro; no cambia motor, supuestos ni expedientes existentes. |
 | 34 | 8-nov-2026 | §0: Floyd es el perfil oficial para nuevas operativas FCFF. Órdenes F1–F5 de Floyd, tres escenarios y controles de publicación por revisión. |
 | 33 | 4-nov-2026 (Colombia) | §2: calidad económica de supuestos, fichas causales y seguimiento; guía v2 con fuentes originales, motores de ingresos, comisión, margen/inversión conjuntos, ROIC marginal y eficiencia; distingue convenciones JMR y conceptos estadísticos. Sin recalcular valoraciones ni alterar fórmulas, probabilidades o gates. La fecha local difiere de registros anteriores fechados en UTC. |
