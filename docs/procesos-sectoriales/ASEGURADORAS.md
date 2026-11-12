@@ -83,3 +83,5 @@ R6 contrasta el ciclo asegurador, calidad de reservas y distribución real del c
 
 [Fuentes y controles comunes](README.md). Plantilla de arranque:
 `Modelo-JMR-datos/reference/procesos-sectoriales/aseguradora.json`.
+
+Referencias contables/regulatorias adicionales: [IFRS 17, IFRS Foundation](https://www.ifrs.org/issued-standards/list-of-standards/ifrs-17-insurance-contracts/) para separar resultado del servicio, financiación y beneficio no devengado; [IAIS, ICPs y ComFrame](https://www.iais.org/activities-topics/standard-setting/icps-and-comframe/) como marco supervisor. Ninguna sustituye las reglas y umbrales vigentes del regulador del emisor.
