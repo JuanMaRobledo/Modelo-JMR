@@ -227,6 +227,21 @@ El registro de fuente y estado por celda y el algoritmo de cobertura se establec
 - **Revisión material:** impacto igual o mayor a 2 % individual o 3 % acumulado, cruce de decisión, o efecto plausible sin límite verificable: no declarar completamente verificado; recalcular o corregir. Una incertidumbre cuantificada y material puede figurar como «VERIFICADO CON RESERVA MATERIAL», nunca como validado sin reserva. Un error estructural o de fuente crítica es **PENDIENTE**, aunque la estimación puntual dé impacto pequeño.
 - Estados por empresa y versión: **VERIFICADO**, **VERIFICADO CON RESERVA MATERIAL** o **PENDIENTE**. Las salvedades inmateriales son hallazgos *dentro* de VERIFICADO (no un estado eterno). Cada auditoría registra ID, causa, evidencia, `V_base`, alternativa, impacto individual y acumulado, decisión, si bloquea, motivo, responsable y prueba ejecutada/no ejecutada. No se marca «NO APLICA» algo que aplica, ni «VALIDADO» un candado cuyos requisitos técnicos sigan fallando. El dictamen distingue certificación aritmética, fuentes y juicio económico.
 
+### 4B-bis. Excepción de dato no reportado por el emisor (12-nov-2026)
+
+Un indicador puede quedar `N/D` sin bloquear el cierre de R2 ni la publicación **solo si se cumplen las seis condiciones a la vez**:
+
+1. **El emisor no reporta el dato.** Se consultaron las fuentes primarias del período (10-K/10-Q o equivalentes, notas y XBRL) y el saldo no existe en ellas. «No lo encontré» no basta: se citan los documentos revisados con su identificador y el último período en que sí se reportó.
+2. **No es un insumo de la valoración.** El dato no alimenta ningún cálculo del DCF, de los múltiplos ni de los puentes (ingresos, EBIT, impuestos, deuda, caja, acciones, precio, capital de trabajo agregado, reinversión). Los tres estados financieros, la deuda, la caja y las acciones nunca admiten esta excepción.
+3. **Impacto acotado y demostrado.** Se cuantifica el peor caso razonable con los umbrales del §4B (individual <2 % y acumulado <3 % del valor Base, sin cruzar la decisión con MOS) y se deja el cálculo escrito.
+4. **El indicador sigue `N/D`.** No se sustituye por cero, por otra partida ni por una estimación.
+5. **Queda registrado y aprobado.** En el libro: `Entradas históricas auxiliares!D64` (número de `N/D` exceptuados) y `E64` (ID del asunto, fuentes y fecha de aprobación del usuario; sin ese texto la excepción no cuenta), más una fila en `Asuntos por resolver`. La aprobación es del usuario, no del agente que valora.
+6. **Caduca en cada corte.** En cada revisión nueva se vuelve a comprobar si el emisor reporta el dato; si aparece, se carga y la excepción se retira.
+
+Mecanismo: `D65 = B64 − D64` son los `N/D` sin excepción; `B66` y el gate `B67` cierran con `D65 = 0`. Un `N/D` nuevo no cubierto vuelve a abrir R2 porque `D64` es un número fijo. La excepción no modifica `ESTADO PARA PUBLICAR` ni sustituye la regla de publicación: **no se publica una valoración con algún asunto crítico abierto ni incompleta**; un `N/D` exceptuado conforme a este apartado no cuenta como dato faltante.
+
+Primer uso: ORCL-FLOYD-FY26Q1FY27-R1, ocho indicadores dependientes de inventarios FY2026 y LTM (último saldo reportado: US$303 M al 31-may-2025; impacto en DCF y múltiplos: cero).
+
 ### 4C. Calidad de la reinversión y compatibilidad financiera (versión 17)
 
 - El panel diagnóstico de `Supuestos Recomendados` se mantiene **dentro** de las 46 hojas oficiales Maestra, IA y Manual. Muestra relación promedio `Ventas/Capital`, S/C futuro, lag, reinversión año 1, `Reinversión/NOPAT`, reinversión indicativa lag 0, ROIC año 10/terminal y tasa terminal `g/ROIC`. Es un **control**, no modifica automáticamente las entradas ni el DCF. En plantillas en blanco las fórmulas deben quedar vacías hasta cargar una compañía, sin inyectar datos de MELI.
