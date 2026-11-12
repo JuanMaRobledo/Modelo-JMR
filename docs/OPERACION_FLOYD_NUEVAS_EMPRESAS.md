@@ -10,6 +10,8 @@ tras prueba en copia, respaldo y aprobación expresa del usuario. La maestra tie
 La plantilla FCFF es para empresas operativas con estados consolidados compatibles.
 Antes de copiar, determinar si el negocio necesita FCFE bancario, SOTP o segmentos;
 no forzar bancos, aseguradoras o holdings dentro de una plantilla industrial.
+Usar los [tres procesos sectoriales](procesos-sectoriales/README.md), registrar
+`perfilEmpresa` y ejecutar su preflight antes de seleccionar/copiar el motor.
 No heredar supuestos, pesos, excepciones o aprobaciones de ORCL u otra empresa.
 
 ## Una ruta R1–R6

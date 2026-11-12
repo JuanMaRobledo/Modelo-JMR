@@ -18,3 +18,6 @@ El antiguo Floyd F1–F5 está en `archivo-v1/` y sus contratos `CONTRATO_EJECUC
 
 ## Operación reutilizable de nuevas empresas
 Leer `docs/OPERACION_FLOYD_NUEVAS_EMPRESAS.md` junto al contrato 1.5. Ejecutar el preflight con URLs reales y por contrato; no usar IDs sintéticos. Coeficientes M B30:D39 son fórmulas. Los controles adicionales están instalados en la maestra (85 pestañas, 12-nov-2026, aprobación expresa); cada copia nueva comienza sin empresa, sellos ni excepciones.
+
+## Bancos, aseguradoras y holdings
+Antes de copiar una plantilla, clasificar por actividad y leer `docs/procesos-sectoriales/README.md` y la guía del perfil. Bancos: FCFE/capital a Ke; aseguradoras: equity distribuible/solvencia a Ke; holdings: SOTP atribuible por participadas. Registrar `perfilEmpresa`; ejecutar `Modelo-JMR-datos/scripts/preflight_sectorial.cjs`. No usar Ginsu industrial ni sus múltiplos por defecto. Un proceso definido no certifica plantilla, adaptador de app ni R6; mantener candidato mientras falten controles.
