@@ -17,4 +17,4 @@ El antiguo Floyd F1–F5 está en `archivo-v1/` y sus contratos `CONTRATO_EJECUC
 **No afirmar integración, despliegue ni auditoría sin evidencia.**
 
 ## Operación reutilizable de nuevas empresas
-Leer `docs/OPERACION_FLOYD_NUEVAS_EMPRESAS.md` junto al contrato 1.5. Ejecutar el preflight con URLs reales y por contrato; no usar IDs sintéticos. Coeficientes M B30:D39 son fórmulas. Los controles adicionales de plantilla se adoptan solo tras validar la copia y registrar su instalación.
+Leer `docs/OPERACION_FLOYD_NUEVAS_EMPRESAS.md` junto al contrato 1.5. Ejecutar el preflight con URLs reales y por contrato; no usar IDs sintéticos. Coeficientes M B30:D39 son fórmulas. Los controles adicionales están instalados en la maestra (85 pestañas, 12-nov-2026, aprobación expresa); cada copia nueva comienza sin empresa, sellos ni excepciones.

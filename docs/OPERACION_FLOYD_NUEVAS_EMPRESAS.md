@@ -1,9 +1,9 @@
 # Valorar una nueva empresa con Floyd libro único
 
 Mantenimiento técnico preparado el 12-nov-2026 sobre el contrato económico 1.5.
-No cambia las fórmulas de Damodaran ni los valores existentes. La instalación de
-los controles nuevos en la maestra requiere adopción explícita después de probar
-la copia. Hasta entonces la maestra conserva sus controles 1.5.
+No cambia las fórmulas de Damodaran ni los valores existentes. Los controles nuevos fueron instalados en la maestra oficial el 12-nov-2026,
+tras prueba en copia, respaldo y aprobación expresa del usuario. La maestra tiene
+85 pestañas; los motores Ginsu no cambian.
 
 ## Alcance
 
@@ -57,7 +57,7 @@ ESTRUCTURA_OK acredita JSON y vínculos; no acredita gates vivos, QA de app ni R
 Los validadores resuelven por contrato: libro único y seis archivos heredados usan
 las mismas comprobaciones numéricas; no simular IDs para hacer pasar el nuevo formato.
 
-## Controles del libro propuestos y probados en copia
+## Controles del libro instalados
 
 `JMR-valuation/scripts/floyd_libro_unico/controles_revision.py` genera un batch Sheets
 con una pestaña externa a los motores. Rechaza reinstalación y layout desconocido;
@@ -86,4 +86,5 @@ resolver la celda la lleva a 0; sellar firmas de prueba y modificar un input inv
 matrices e inverso. Después se restauraron input/fórmula y se retiraron todos los sellos
 y datos sintéticos. Estos sellos de prueba no son corridas económicas ni una valoración.
 Las escrituras del instalador se limitan a controles, auxiliares y guía, fuera de Ginsu.
-La maestra permanece sin modificar hasta aprobar la instalación concreta.
+Instalación en la maestra aprobada expresamente y ejecutada el 12-nov-2026.
+Comprobación de salida: sin empresa, sin excepciones/sellos, B63 PENDIENTE y B64 NO PUBLICAR.
