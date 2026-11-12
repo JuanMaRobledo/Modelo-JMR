@@ -1,13 +1,13 @@
 # Reglas vigentes del Modelo JMR
 
-**Versión 40 · 11-nov-2026 (Floyd R1–R6, separación IA/cálculo).** Este documento es la única fuente de las reglas de método. Si un prompt
+**Versión 41 · 12-nov-2026 (Floyd R1–R6, procesos sectoriales).** Este documento es la única fuente de las reglas de método. Si un prompt
 (`docs/prompts/*.md`), `METODOLOGIA.md`, una habilidad o un comentario de código dice otra cosa, prevalece este
 documento. Una regla nueva no se agrega como «regla del día X» en un prompt: se cambia aquí, se sube la versión y se
 anota en el registro de cambios del final.
 
 **Doble método:** desde esta versión las valoraciones seleccionan `Método A` o `Método B` por revisión. La selección normativa y precedencia se describen en [`METODOS_VALORACION.md`](METODOS_VALORACION.md), con reglas particulares en [`METODO_A_JMR.md`](METODO_A_JMR.md) y copia íntegra del método anterior en [`METODO_B_JMR.md`](METODO_B_JMR.md). El presente documento mantiene las reglas **compartidas** de cálculo, plantilla y publicación. En el flujo compatible A-1.2 se aplica Método A, salvo elección expresa de B por el usuario; registrar y comunicar la selección antes de estimar. La interpretación B sin etiqueta se conserva exclusivamente para leer revisiones históricas, sin reclasificarlas ni recalcularlas.
 
-## 0R. Perfil oficial: Modelo JMR Floyd R1–R6 (versión 40 · 11-nov-2026)
+## 0R. Perfil oficial: Modelo JMR Floyd R1–R6 (versión 41 · 12-nov-2026)
 
 **§0R.0 · Libro único (11-nov-2026).** Por decisión expresa del usuario, las revisiones NUEVAS usan `contratoLibros=floyd-libro-unico-v1` (`docs/CONTRATO_FLOYD_LIBRO_UNICO.md`): un solo libro (Históricos, tres motores Damodaran, Múltiplos, Resumen y Presentación, con fórmulas entre pestañas) más el Doc A. Las reglas de abajo sobre seis archivos y `jmr-reboot-3libros-v1` rigen las revisiones heredadas hasta migrarlas. La IA conserva sus tres funciones; el `Input sheet` toma las cifras de la empresa de H por fórmula.
 
@@ -50,6 +50,26 @@ anota en el registro de cambios del final.
 **Puerta de calidad:** Antes de cerrar R2, inspeccionar todas las celdas de salida y el control de cobertura en `Entradas históricas auxiliares`; resolver todo `N/D` material, errores `#REF!`, `#DIV/0!`, `#VALUE!` y contradicciones, y registrar la justificación de cada `N/A`. Comprobar diez FY + LTM, balance, resultados, CFO/CFI/CFF/FX, fuentes, precios y saldos comparativos. La marca `CONCILIADO` sin los controles completos **no permite avanzar**. Si un indicador no puede calcularse porque el dato realmente no se divulga, el agente documenta búsqueda, materialidad y un estado explícito; nunca lo hace pasar por un número. No se declara `EN_REVISION` hasta superar las puertas materiales.
 
 **Mantenimiento de plantilla:** La plantilla oficial de 83 pestañas incorpora esta arquitectura. Cualquier reparación de fórmulas/auxiliares se hace como mantenimiento separado, autorizado, con respaldo y prueba; **no** otorga al agente valorador permiso para editar tablas, motores Damodaran, validaciones ni fórmulas. El motor Base/Conservador/Optimista original debe permanecer inalterado.
+
+### 0R.3. Procesos sectoriales Damodaran (12-nov-2026)
+
+Para nuevas revisiones, registrar `perfilEmpresa`: `operativa`, `banco`,
+`aseguradora` o `holding`, según actividad y perímetro, no el nombre del emisor.
+Los procesos vinculantes están en [`docs/procesos-sectoriales/README.md`](../docs/procesos-sectoriales/README.md)
+y sus tres guías. Bancos: FCFE de capital común/dividendos potenciales a Ke;
+aseguradoras: flujos distribuibles al común con reservas/solvencia y Ke;
+holdings: SOTP atribuible con método y tasa propios por parte. Exceso de retorno
+es contraste de equity en financieras; NAV de mercado se separa del SOTP intrínseco.
+No aplicar FCFF/WACC ni la lista de múltiplos industriales a financieras, ni
+simular tres Ginsu para cumplir formalmente R3 de un holding. Tres historias,
+MOS 35% sobre principal Base y R6 independiente siguen siendo convenciones JMR.
+
+Usar libro sectorial, fuentes y fórmulas nativas verificadas, no una copia de
+Ginsu cambiando títulos. Los scripts NU/PAGS históricos son referencias de
+revisión, no plantillas genéricas certificadas. El preflight sectorial controla
+preparación y trazabilidad; no atribuye publicación. Sin adaptador/contrato de
+app y validador sectorial verificados mantener CANDIDATO. Los contratos de libros
+y estados de expedientes anteriores no se modifican por crear estos procesos.
 
 ## 0. PERFIL ARCHIVADO — Floyd F1–F5 (solo consulta)
 
@@ -419,6 +439,7 @@ Hojas de trabajo conservadas tras el archivo del 24-oct-2026 (identidad document
 
 | Versión | Fecha | Cambio |
 |---|---|---|
+| 41 | 12-nov-2026 | §0R.3: procesos de bancos, aseguradoras y holdings basados en Damodaran; clasificación previa, capital/solvencia/SOTP y preparación por fases. Sin migrar expedientes ni alterar el motor industrial. |
 | 38 | 10-nov-2026 | §0R.1: la IA ejecutora solo captura históricos 10 FY + LTM, propone supuestos justificados y redacta análisis; resultados por fórmulas/vínculos y sincronización aprobada; prohibido reconfigurar plantillas durante valoración. Cambio documental, sin modificar libros ni motores. |
 | 39 | 11-nov-2026 | §0R.0: libro único (`floyd-libro-unico-v1`) vigente para revisiones nuevas; plantilla `04 LIBRO ÚNICO`; plantillas 01/02b/03 archivadas; `Input sheet` alimentado desde H; app lee `libros.unico`. Revisiones heredadas siguen en `jmr-reboot-3libros-v1`. Sin cambio de fórmulas del motor ni de MOS 35 % sobre Base. |
 | 35 | 9-nov-2026 | §0: tres plantillas Floyd oficiales (H1 Históricos, H2 Valoración con Presentación, H3 análisis N1+N2), carpeta y prompt maestro; no cambia motor, supuestos ni expedientes existentes. |

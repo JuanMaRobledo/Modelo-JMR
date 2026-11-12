@@ -4,6 +4,8 @@
 
 Operación para nuevas empresas: [`OPERACION_FLOYD_NUEVAS_EMPRESAS.md`](OPERACION_FLOYD_NUEVAS_EMPRESAS.md). El mantenimiento técnico adicional fue probado en copia e instalado en la maestra con aprobación expresa del usuario el 12-nov-2026; añade la pestaña 85 «Control de revisión», fuera de los motores. Las reglas operativas de vigencia y excepciones por celda de esa guía sustituyen el contador manual D64 para toda copia nueva.
 
+**Alcance sectorial:** este contrato de Ginsu es para operativas FCFF. Para bancos, aseguradoras y holdings rige [el proceso sectorial](procesos-sectoriales/README.md) de REGLAS §0R.3, con motor y contrato de publicación compatibles; no etiquetar su libro como Ginsu industrial.
+
 ## 1 · Artefactos (dos por revisión)
 | Artefacto | Contenido | Quién escribe |
 |---|---|---|
