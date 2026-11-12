@@ -48,3 +48,5 @@ Resuelve ticker, clase, mercado, moneda, FY/LTM, cotización fechada y etapa. Co
 
 ## R6 · Auditoría independiente
 Sesión distinta de la que construyó. Prioriza observaciones del usuario; recalcula tesis, supuestos, fuentes, matrices, terminal y materialidad. Dictamen `VERIFICADO`, `CON RESERVA MATERIAL` o `PENDIENTE`. No modifica la valoración a escondidas.
+
+Para revisiones nuevas, seguir también `docs/OPERACION_FLOYD_NUEVAS_EMPRESAS.md`: preflight con URLs reales, clasificación de catálogo exacta y controles de vigencia/ausencias por celda. No heredar excepciones ni aprobaciones de otra empresa.

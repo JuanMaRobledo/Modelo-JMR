@@ -23,3 +23,5 @@ Copiar y pegar **sin adaptar el método** en ChatGPT, Claude o Gemini, sustituye
 > 7. Cada fase deja `FASE_<N>_ENTREGA.md` en `Modelo-JMR-datos/candidatos/valoraciones/<REV>/` con modelo/herramienta reales, fuentes/celdas, `PASOS n/n` y controles `APROBADO/PARCIAL/NO_EJECUTADO`. No declares un control que no ejecutaste.
 > 8. R6 (auditoría) nunca la hace la misma sesión que construyó.
 > Si falta un dato económico material, registra `CANDIDATO` con impacto y siguiente prueba exacta; no inventes cifras ni bloques aprobados. Pregunta solo si una decisión del usuario es imprescindible.
+
+Para revisiones nuevas, seguir también `docs/OPERACION_FLOYD_NUEVAS_EMPRESAS.md`: preflight con URLs reales, clasificación de catálogo exacta y controles de vigencia/ausencias por celda. No heredar excepciones ni aprobaciones de otra empresa.
