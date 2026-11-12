@@ -210,8 +210,19 @@ footer a{color:inherit}
 .review-readonly p{white-space:pre-wrap;overflow-wrap:anywhere}
 @media(max-width:700px){.display-modes{padding:10px}.display-modes button{flex:1 0 90px}}
 /* Navegación descubrible: ningún panel queda fuera de la pantalla por scroll horizontal. */
-.dossier-tabs{position:static;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));overflow:visible;gap:8px;box-shadow:none}
+.dossier-tabs{position:static;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));overflow:visible;gap:8px;box-shadow:none}
 .dossier-tabs button{white-space:normal;line-height:1.35;text-align:center;min-width:0;min-height:46px}
+.tab-badge{display:inline-block;min-width:18px;padding:1px 6px;margin-left:4px;border-radius:999px;background:var(--warn-soft,#f4e3c1);color:var(--warn-ink,#7a4b00);font-size:11px;font-weight:800;line-height:1.4}
+.tab-badge.crit{background:#f3d0cc;color:#8a1c12}
+.asuntos-lead{margin:0 0 10px;font-size:13.5px;line-height:1.5}
+.asuntos-table{width:100%;border-collapse:collapse;font-size:12.5px}
+.asuntos-table th,.asuntos-table td{text-align:left!important}
+.asuntos-table th{font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-faint,#6c7a72);text-align:left;padding:6px;border-bottom:1px solid var(--border,#ddd)}
+.asuntos-table td{padding:8px 6px;border-bottom:1px solid var(--border-soft,#e8ebe6);vertical-align:top;line-height:1.4}
+.asuntos-table td.sev{font-weight:800;white-space:nowrap}
+.asuntos-table td.sev.crit{color:#8a1c12}.asuntos-table td.sev.mat{color:#7a4b00}.asuntos-table td.sev.men{color:#43584b}
+.asuntos-table tr.cerrado td{opacity:.6}
+.asuntos-wrap{overflow-x:auto}
 .sheet-subtabs{display:flex;flex-wrap:wrap;overflow:visible;max-height:none;gap:7px}
 .sheet-subtabs button{white-space:normal;flex:0 1 auto}
 .panelbar{align-items:flex-start}
@@ -247,6 +258,7 @@ footer a{color:inherit}
 <button type="button" data-view="indicadores" role="tab" aria-selected="false">Indicadores</button>
 <button type="button" data-view="modelo" role="tab" aria-selected="false">Modelo y supuestos</button>
 <button type="button" data-view="sensibilidades" role="tab" aria-selected="false">Sensibilidades</button>
+<button type="button" data-view="asuntos" role="tab" aria-selected="false">Asuntos por revisar <span id="asuntosBadge" class="tab-badge" hidden></span></button>
 <button type="button" data-view="revision" role="tab" aria-selected="false">Revisión y auditoría</button>
 </div>
 <nav id="displayModes" class="display-modes" aria-label="Modo de trabajo de la ficha"><strong>Modo de trabajo</strong><button type="button" data-display-mode="visor" class="active" aria-pressed="true">Visor</button><button type="button" data-display-mode="edicion" aria-pressed="false">Edición</button><span id="displayModeNote" class="display-mode-note">Consulta sin modificar datos ni publicar valoraciones.</span></nav>

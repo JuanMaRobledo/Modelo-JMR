@@ -5,7 +5,7 @@ const ROOT='JuanMaRobledo/Modelo-JMR-datos';
 const RAW='https://raw.githubusercontent.com/'+ROOT+'/main/';
 const CONTENTS='https://api.github.com/repos/'+ROOT+'/contents/';
 const el=id=>document.getElementById(id);
-const DOSSIER_VIEWS=['analisis','valoracion','financieros','indicadores','modelo','sensibilidades','revision'];
+const DOSSIER_VIEWS=['analisis','valoracion','financieros','indicadores','modelo','sensibilidades','asuntos','revision'];
 // Candidatas A-1.2 en revisión visual, aún fuera del catálogo. Vacío desde 3-nov-2026: META y NVDA
 // fueron sustituidas por sus revisiones 20261101 y XP-20261031-A12-R1 ya es la vigente del catálogo.
 // Las copias de docs/revisiones-a12/ se conservan como evidencia (Modelo-JMR-datos/registro/REVISIONES.md).
@@ -237,6 +237,7 @@ function pages(t){
     financieros:{href:'editor-hoja.html?ticker='+encodeURIComponent(t)+'&libro=historicos',help:'Estados financieros originales: resultados, balance, flujos de caja y series por acción.'},
     indicadores:{href:'editor-hoja.html?ticker='+encodeURIComponent(t)+'&libro=historicos',help:'Rentabilidad, ratios de mercado, eficiencia y salud financiera/deuda.'},
     modelo:{href:'editor-hoja.html?ticker='+encodeURIComponent(t),help:'Supuestos, DCF, costo de capital y todas las pestañas originales de la hoja de Google.'},
+    asuntos:{href:'',help:'Salvedades y asuntos por revisar de esta revisión. La valoración se publica completa (históricos, múltiplos, los tres DCF y el análisis); todo lo pendiente o con reserva figura aquí.'},
     revision:{href:'',help:'Observaciones y estado de revisión visual de esta empresa, sin iniciar automáticamente auditorías.'},
     auditoria:{href:'auditorias.html?ticker='+encodeURIComponent(t),help:auditPath?'Auditoría narrativa incluida en el catálogo oficial; cotejar dictamen y revisión con la valoración. Auditoría integral disponible desde la página de auditorías.':'No hay auditoría narrativa oficial para esta empresa. La página indica el estado real, sin sustituirla por otra empresa.'},
     auditoriaIntegral:{href:'auditoria-integral.html?ticker='+encodeURIComponent(t),help:'Auditoría integral DCF, supuestos, materialidad y dictamen técnico, filtrada por empresa. No sustituye la auditoría narrativa del expediente.'},
@@ -256,6 +257,8 @@ async function loadMosSummary(t,p,requestId){
     if(state.ticker!==t||state.mosRequest!==requestId)return;
     if(rec.ticker&&String(rec.ticker).toUpperCase()!==t)throw new Error('Ticker diferente del catálogo');
     state.valuationRecord=rec;
+    updateAsuntosBadge(rec);
+    if(state.view==='asuntos')el('inlinePanel').innerHTML=asuntosHtml(rec);
     updateNativeLink();
     if(typeof JmrMultiplesPanel!=='undefined'){
       el('valuationSummary').innerHTML=JmrMultiplesPanel.summary(rec);
@@ -300,7 +303,7 @@ function openCompany(input){
   if(changedCompany)state.valuationMode='dcf';
   state.ticker=t;state.loc=null;state.reviewSha=null;const mosRequest=++state.mosRequest;el('ticker').value=t;
   el('mosSummary').hidden=true;
-  state.valuationRecord=null;state.sheet='';state.frameMode='';state.workbookDisplayMode='';state.workbookBook='';state.sheetByView={};
+  state.valuationRecord=null;updateAsuntosBadge(null);state.sheet='';state.frameMode='';state.workbookDisplayMode='';state.workbookBook='';state.sheetByView={};
   // Respetar ?modo=edicion al abrir un vínculo directo. Al cambiar de
   // empresa, volver a Visor para evitar entrar editando otra hoja.
   if(changedCompany)state.displayMode='visor';
@@ -479,6 +482,39 @@ function nativeMultiplesHtml(rec){
   }
   return result;
 }
+// Asuntos por revisar: lee el registro estructurado de la valoración oficial (asuntosPorRevisar);
+// si una revisión antigua solo tiene salvedades de texto, las muestra como tales. Nunca inventa asuntos.
+function asuntosList(rec){
+  if(!rec)return null;
+  if(Array.isArray(rec.asuntosPorRevisar)&&rec.asuntosPorRevisar.length)return rec.asuntosPorRevisar.map(a=>({id:a.id||'',asunto:a.asunto||'',severidad:String(a.severidad||'').toUpperCase(),evidencia:a.evidencia||'',impacto:a.impacto||'',accion:a.accion||'',dependeDe:a.dependeDe||'',estado:String(a.estado||'ABIERTO').toUpperCase()}));
+  if(Array.isArray(rec.salvedades)&&rec.salvedades.length)return rec.salvedades.map((s,i)=>({id:'S-'+String(i+1).padStart(2,'0'),asunto:String(s),severidad:'',evidencia:'',impacto:'',accion:'',dependeDe:'',estado:'ABIERTO'}));
+  return [];
+}
+function asuntosCounts(list){
+  const abiertos=(list||[]).filter(a=>a.estado!=='CERRADO');
+  return {abiertos:abiertos.length,criticos:abiertos.filter(a=>/CR[IÍ]TICO/.test(a.severidad)).length};
+}
+function updateAsuntosBadge(rec){
+  const badge=el('asuntosBadge');if(!badge)return;
+  const list=asuntosList(rec),c=asuntosCounts(list);
+  badge.hidden=!list||!c.abiertos;
+  badge.textContent=String(c.abiertos);
+  badge.classList.toggle('crit',c.criticos>0);
+}
+function asuntosHtml(rec){
+  const esc=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  if(!rec)return '<p class="status-note">Cargando los asuntos por revisar de la revisión oficial…</p>';
+  const list=asuntosList(rec),c=asuntosCounts(list);
+  if(!list||!list.length)return '<p class="status-note">Esta revisión no registra asuntos por revisar. Eso no sustituye la auditoría económica independiente, que se indica por separado en «Revisión y auditoría».</p>';
+  const structured=Array.isArray(rec.asuntosPorRevisar)&&rec.asuntosPorRevisar.length;
+  const rank=s=>/CR[IÍ]TICO/.test(s)?0:/MATERIAL/.test(s)?1:/MENOR/.test(s)?2:3;
+  const sorted=list.slice().sort((a,b)=>(a.estado==='CERRADO')-(b.estado==='CERRADO')||rank(a.severidad)-rank(b.severidad));
+  const cls=s=>/CR[IÍ]TICO/.test(s)?'crit':/MATERIAL/.test(s)?'mat':'men';
+  const lead='<p class="asuntos-lead"><b>'+c.abiertos+' asunto'+(c.abiertos===1?'':'s')+' por revisar</b>'+(c.criticos?' · '+c.criticos+' crítico'+(c.criticos===1?'':'s'):'')+'. Según el contrato de publicación, una valoración se publica con históricos, múltiplos aplicables, los tres DCF y el análisis; lo que figura aquí son salvedades, reservas o pasos pendientes y no se ocultan.'+(structured?'':' Esta revisión solo declara salvedades de texto, sin severidad ni acción registradas.')+'</p>';
+  const head='<thead><tr><th>ID</th><th>Asunto</th>'+(structured?'<th>Severidad</th><th>Impacto en el valor</th><th>Acción necesaria</th><th>Depende de</th>':'')+'<th>Estado</th></tr></thead>';
+  const rows=sorted.map(a=>'<tr class="'+(a.estado==='CERRADO'?'cerrado':'')+'"><td>'+esc(a.id)+'</td><td>'+esc(a.asunto)+(structured&&a.evidencia?'<br><small>'+esc(a.evidencia)+'</small>':'')+'</td>'+(structured?'<td class="sev '+cls(a.severidad)+'">'+esc(a.severidad||'—')+'</td><td>'+esc(a.impacto||'—')+'</td><td>'+esc(a.accion||'—')+'</td><td>'+esc(a.dependeDe||'—')+'</td>':'')+'<td>'+esc(a.estado)+'</td></tr>').join('');
+  return lead+'<div class="asuntos-wrap"><table class="asuntos-table">'+head+'<tbody>'+rows+'</tbody></table></div>';
+}
 function sensitivityHtml(rec){
   const esc=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   if(!rec)return '<p class="status-note">Cargando sensibilidades de la valoración oficial…</p>';
@@ -644,11 +680,12 @@ function showView(view){
   help.textContent=(p[view]||{}).help||'Información de la revisión activa de la empresa.';
   const isWorkbook=!!viewSheets(view);
   const isSensitivity=view==='sensibilidades';
+  const isAsuntos=view==='asuntos';
   const isRevision=view==='revision';
   const isMultiples=view==='valoracion'&&state.valuationMode==='multiplos';
-  frame.hidden=isSensitivity||isRevision||isMultiples;
-  inline.hidden=!isSensitivity&&!isRevision&&!isMultiples;
-  open.hidden=isSensitivity||isRevision;
+  frame.hidden=isSensitivity||isRevision||isMultiples||isAsuntos;
+  inline.hidden=!isSensitivity&&!isRevision&&!isMultiples&&!isAsuntos;
+  open.hidden=isSensitivity||isRevision||isAsuntos;
   if(isWorkbook){
     const sheet=currentSheet(view);
     selectWorkbookSheet(view,sheet);
@@ -663,6 +700,9 @@ function showView(view){
   }else if(isSensitivity){
     inline.innerHTML=sensitivityHtml(state.valuationRecord);
     paintSensitivity(inline,state.sensitivityRef);
+    updateDossierLocation(view);
+  }else if(isAsuntos){
+    inline.innerHTML=asuntosHtml(state.valuationRecord);
     updateDossierLocation(view);
   }else if(isMultiples){
     inline.innerHTML=typeof JmrMultiplesPanel==='undefined'?

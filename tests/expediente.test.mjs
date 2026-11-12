@@ -13,11 +13,11 @@ test('index redirige al análisis, sin borrar la bitácora de terceros', () => {
   assert.match(third, /var DATA = \[\{/);
 });
 
-test('ficha central contiene siete pestañas, estados e indicadores con origen único',()=>{
+test('ficha central contiene ocho pestañas, estados e indicadores con origen único',()=>{
   const html=get('docs/expediente.html'),js=get('docs/expediente.js');
-  const sections=['analisis','valoracion','financieros','indicadores','modelo','sensibilidades','revision'];
+  const sections=['analisis','valoracion','financieros','indicadores','modelo','sensibilidades','asuntos','revision'];
   for(const view of sections)assert.match(html,new RegExp('data-view="'+view+'"'));
-  assert.equal((html.match(/data-view="/g)||[]).length,7);
+  assert.equal((html.match(/data-view="/g)||[]).length,8);
   for(const id of ['sheetSubtabs','inlinePanel','viewFrame','reviewPanel','auditReviewNotes'])assert.match(html,new RegExp('id="'+id+'"'));
   new Script(js);
   for(const name of ['Income Statement','Balance Sheet','Cash Flow Statement','Trailing Valuation',
