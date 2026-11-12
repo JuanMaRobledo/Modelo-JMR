@@ -332,7 +332,7 @@ function openCompany(input){
   el('revisionNotice').textContent=p.analysisPath
     ? 'Ficha vigente · Análisis y valoración asociados al catálogo. Auditoría: '+(p.auditPath?'disponible para consulta':'pendiente')+'.'
     : 'Valoración en catálogo; análisis fundamental pendiente de publicación. No se muestra un documento anterior como vigente.';
-  if(metodo.estado==='INCOMPLETA_EN_REVISION')el('revisionNotice').textContent+=' · MODELO A INCOMPLETO / EN_REVISIÓN: faltan conciliaciones, múltiplos o controles independientes.';
+  if(metodo.estado==='INCOMPLETA_EN_REVISION')el('revisionNotice').textContent+=' · MODELO A INCOMPLETO / EN_REVISIÓN: ver «Asuntos por revisar»; la auditoría económica independiente está pendiente.';
   if(isA12Review(t))el('revisionNotice').textContent='ANÁLISIS A-1.2 CANDIDATO EN_REVISIÓN, no incorporado al catálogo oficial. La pestaña de análisis muestra el nuevo informe; valoración, hojas y demás pestañas conservan la versión vigente. Auditoría económica pendiente.';
   el('dossier').hidden=false;el('empty').hidden=true;
   el('catalogSection').hidden=true; // Al abrir una empresa, el artículo es lo primero después del buscador.
@@ -398,7 +398,8 @@ function normalizeDcfMatrices(s){
     return {nombre:title,ejeFilas:m.ejeFilas||m.rows,ejeColumnas:m.ejeColumnas||m.columns,valores:m.valores||m.values,
       etiquetaFilas:m.rowsLabel||lab[1]||(parts.length===2?parts[0]:''),
       etiquetaColumnas:m.columnsLabel||lab[2]||(parts.length===2?parts[1]:''),
-      centroConciliado:flag(m.centroConciliado)??flag(s.centroConciliado)};
+      centroConciliado:flag(m.centroConciliado)??flag(s.centroConciliado),
+      noAdmisibles:Array.isArray(m.columnasNoAdmisibles)?m.columnasNoAdmisibles.filter(x=>typeof x==='number'&&isFinite(x)):[]};
   };
   const result=[];
   if(Array.isArray(s.matrices))s.matrices.forEach((m,i)=>{if(m&&typeof m==='object')result.push(named(m,'Matriz DCF '+(i+1)));});
@@ -551,12 +552,12 @@ function sensitivityHtml(rec){
     if(m.etiquetaFilas||m.etiquetaColumnas)
       parts.push('<p class="sens-axes">Filas: '+esc(m.etiquetaFilas||'supuesto')+' · Columnas: '+esc(m.etiquetaColumnas||'supuesto')+'</p>');
     parts.push('<div class="sensitivity-table-scroll"><table class="sens-grid"><thead><tr><th scope="col">'+
-      esc(m.etiquetaFilas&&m.etiquetaColumnas?'↓ · →':'Supuesto ↓ / →')+'</th>'+cc.map(v=>'<th scope="col">'+esc(fc(v))+'</th>').join('')+'</tr></thead><tbody>');
+      esc(m.etiquetaFilas&&m.etiquetaColumnas?'↓ · →':'Supuesto ↓ / →')+'</th>'+cc.map(v=>{const bad=(m.noAdmisibles||[]).some(x=>Math.abs(x-v)<1e-9);return '<th scope="col"'+(bad?' class="sens-warn" title="Crecimiento perpetuo mayor que la tasa libre de riesgo: no admisible para decidir"':'')+'>'+esc(fc(v))+(bad?' ⚠':'')+'</th>';}).join('')+'</tr></thead><tbody>');
     rows.forEach((row,ri)=>{
       parts.push('<tr><th scope="row">'+esc(fr(rr[ri]))+'</th>'+
         row.map((v,ci)=>'<td data-v="'+v+'"'+(ri===2&&ci===2?' class="base-matrix"':'')+'>'+esc(fmt(v))+'</td>').join('')+'</tr>');
     });
-    parts.push('</tbody></table></div><p class="sens-foot">Centro Base: '+esc(currencySymbol)+esc(fmt(base))+'.</p></article>');
+    parts.push('</tbody></table></div>'+((m.noAdmisibles||[]).length?'<p class="status-note">⚠ Columnas con crecimiento perpetuo mayor que la tasa libre de riesgo ('+esc(m.noAdmisibles.map(fc).join(', '))+'): son corridas reales del modelo, pero no son admisibles para decidir.</p>':'')+'<p class="sens-foot">Centro Base: '+esc(currencySymbol)+esc(fmt(base))+'.</p></article>');
   });
   if(mats.length)parts.push('</div>');
   const mult=rec.sensibilidadMultiples;

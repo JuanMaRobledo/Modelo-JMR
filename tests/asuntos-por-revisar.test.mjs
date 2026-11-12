@@ -74,3 +74,32 @@ test('el contador cuenta solo abiertos y marca críticos', () => {
   updateAsuntosBadge(null);
   assert.equal(badge.hidden, true);
 });
+
+// --- Revisión de la ficha de Oracle (12-nov-2026) ---
+import { Script } from 'node:vm';
+test('el panel de múltiplos distingue «No aplica · justificado» de «Pendiente»', () => {
+  const sandbox = { window: {} };
+  new Script(readFileSync(new URL('../docs/jmr-multiples-panel.js', import.meta.url), 'utf8')).runInNewContext(sandbox);
+  const api = sandbox.window.JmrMultiplesPanel;
+  const rec = { ticker: 'XYZ', revisionId: 'XYZ-R1', currency: 'USD', valorPrincipal: 100,
+    metodos: [{ nombre: 'EV/EBITDA', peso: 0.5, base: 120 },
+      { nombre: 'EV/FCFF', peso: 0, conservador: null, base: null, optimista: null, estado: 'N/A: flujo negativo', motivo: 'FCFF negativo por CAPEX' },
+      { nombre: 'P/E', peso: 0.5, base: 110 }],
+    descuentoMultiples: { dcfHoy: { base: 100 }, multiplesHoy: { base: 115 }, ponderadoHoy: { base: 105 } } };
+  const out = api.render(rec);
+  assert.match(out, /No aplica · justificado/);
+  const pendiente = api.render({ ...rec, metodos: [...rec.metodos.slice(0, 1), { nombre: 'EV/FCFF', peso: 0.1, base: null, estado: 'N/D' }, rec.metodos[2]] });
+  assert.match(pendiente, /Pendiente/, 'un N/D sin justificar sigue como Pendiente');
+});
+
+test('las matrices DCF marcan las columnas de crecimiento perpetuo no admisibles', () => {
+  assert.match(js, /columnasNoAdmisibles/);
+  assert.match(js, /class=\\"sens-warn\\"|class="sens-warn"|sens-warn/);
+  assert.match(js, /no son admisibles para decidir/);
+  assert.match(html, /\.sens-grid th\.sens-warn/);
+});
+
+test('el aviso de cabecera ya no afirma que falten múltiplos y remite a los asuntos por revisar', () => {
+  assert.doesNotMatch(js, /faltan conciliaciones, múltiplos o controles independientes/);
+  assert.match(js, /Asuntos por revisar/);
+});
