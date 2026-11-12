@@ -112,7 +112,8 @@
       [['Conservador',a.multiplesConservador],['Base',a.multiplesBase],['Optimista',a.multiplesOptimista]]
         .map(([t,n])=>'<div><span>'+t+'</span><strong>'+esc(money(n,unit))+'</strong></div>').join('')+'</div>';
     const tr=rr.map(r=>{
-      const status=/^PENDIENTE|^N\/D/i.test(r.estado)||(r.base===null&&r.vp===null)?'Pendiente':
+      const noAplica=/^N\/A/i.test(r.estado)&&r.base===null&&r.vp===null&&r.peso===0;
+      const status=noAplica?'No aplica · justificado':/^PENDIENTE|^N\/D/i.test(r.estado)||(r.base===null&&r.vp===null)?'Pendiente':
         /^PROVISIONAL/i.test(r.estado)?'Provisional · no certificado':
         r.peso===0?'Referencia · peso 0 %':
         r.estado==='EN_REVISION'?'En revisión':'Dato disponible';
