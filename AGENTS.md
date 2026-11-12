@@ -16,3 +16,6 @@
 
 ## Contratos archivados (solo lectura)
 `docs/CONTRATO_EJECUCION_FLOYD.md`, `docs/prompts/ordenes-floyd.md` y `docs/prompts/PROMPT_MAESTRO_FLOYD_TRES_DOCUMENTOS.md` documentan el **Floyd legado F1–F5**; ya no son rutas de ejecución para nuevas valoraciones. La instrucción actual del usuario y §0R prevalecen.
+
+## Operación reutilizable de nuevas empresas
+Leer `docs/OPERACION_FLOYD_NUEVAS_EMPRESAS.md` junto al contrato 1.5. Ejecutar el preflight con URLs reales y por contrato; no usar IDs sintéticos. Coeficientes M B30:D39 son fórmulas. Los controles adicionales de plantilla se adoptan solo tras validar la copia y registrar su instalación.

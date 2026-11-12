@@ -15,3 +15,6 @@ Usar `main` (la rama `claude/jmr-model-reboot-rnj087` quedó integrada). Antes d
 El antiguo Floyd F1–F5 está en `archivo-v1/` y sus contratos `CONTRATO_EJECUCION_FLOYD.md` y `ordenes-floyd.md` son solo documentos de consulta. No usarlo para seguir UBER: la candidata activa es `UBER-REBOOT-3T26-R1`. No publicar sin controles, ni autocertificar la auditoría R6.
 
 **No afirmar integración, despliegue ni auditoría sin evidencia.**
+
+## Operación reutilizable de nuevas empresas
+Leer `docs/OPERACION_FLOYD_NUEVAS_EMPRESAS.md` junto al contrato 1.5. Ejecutar el preflight con URLs reales y por contrato; no usar IDs sintéticos. Coeficientes M B30:D39 son fórmulas. Los controles adicionales de plantilla se adoptan solo tras validar la copia y registrar su instalación.

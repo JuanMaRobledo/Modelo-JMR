@@ -2,6 +2,8 @@
 
 **Versión 1.5 · 12-nov-2026 · VIGENTE para toda revisión nueva; aplica idénticamente a ChatGPT, Claude, Gemini y cualquier agente.** Decisión expresa del usuario (11-nov-2026). `CONTRATO_REBOOT_JMR.md` (`jmr-reboot-3libros-v1`) rige **solo** las revisiones heredadas ya creadas (UBER, CMG, MELI, MSFT, AAPL) hasta que se migren.
 
+Operación para nuevas empresas: [`OPERACION_FLOYD_NUEVAS_EMPRESAS.md`](OPERACION_FLOYD_NUEVAS_EMPRESAS.md). El mantenimiento adicional de controles está probado en copia y pendiente de adopción en la maestra; no se declara instalado.
+
 ## 1 · Artefactos (dos por revisión)
 | Artefacto | Contenido | Quién escribe |
 |---|---|---|
