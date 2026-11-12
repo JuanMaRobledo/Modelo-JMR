@@ -238,7 +238,7 @@ Un indicador puede quedar `N/D` sin bloquear el cierre de R2 ni la publicación 
 5. **Queda registrado y aprobado.** En el libro: `Entradas históricas auxiliares!D64` (número de `N/D` exceptuados) y `E64` (ID del asunto, fuentes y fecha de aprobación del usuario; sin ese texto la excepción no cuenta), más una fila en `Asuntos por resolver`. La aprobación es del usuario, no del agente que valora.
 6. **Caduca en cada corte.** En cada revisión nueva se vuelve a comprobar si el emisor reporta el dato; si aparece, se carga y la excepción se retira.
 
-Mecanismo: `D65 = B64 − D64` son los `N/D` sin excepción; `B66` y el gate `B67` cierran con `D65 = 0`. Un `N/D` nuevo no cubierto vuelve a abrir R2 porque `D64` es un número fijo. La excepción no modifica `ESTADO PARA PUBLICAR` ni sustituye la regla de publicación: **no se publica una valoración con algún asunto crítico abierto ni incompleta**; un `N/D` exceptuado conforme a este apartado no cuenta como dato faltante.
+Mecanismo: `D65 = B64 − D64` son los `N/D` sin excepción; `B66` y el gate `B67` cierran con `D65 = 0`. Un `N/D` nuevo no cubierto vuelve a abrir R2 porque `D64` es un número fijo. La excepción no modifica `ESTADO PARA PUBLICAR` ni sustituye la regla de publicación: la valoración se publica `EN_REVISION` cuando está completa (históricos, múltiplos aplicables, tres DCF y análisis) y toda salvedad queda registrada como «asunto por revisar»; un `N/D` exceptuado conforme a este apartado no cuenta como dato faltante.
 
 Primer uso: ORCL-FLOYD-FY26Q1FY27-R1, ocho indicadores dependientes de inventarios FY2026 y LTM (último saldo reportado: US$303 M al 31-may-2025; impacto en DCF y múltiplos: cero).
 
