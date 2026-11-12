@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Vista previa · Modelo JMR V2.0 · Valoración FCFF</title>
+<meta name="description" content="Modelo JMR V2.0: Simple Ginsu FCFF, indicadores y análisis fundamental. Tres escenarios, un motor.">
+<style>:root{color-scheme:light;--bg:#f6f8fa;--surface:#fff;--ink:#183045;--ink-light:#526679;--soft:#e6ebf0;--border:#dfe6ed;--teal:#0a746d;--navy:#142c43;--s2:#f1f6f7;--ok:#147962;--warn:#8a5f20}
+@media(prefers-color-scheme:dark){:root{color-scheme:dark;--bg:#091421;--surface:#101f2e;--ink:#ecf5fa;--ink-light:#afc0cc;--soft:#263748;--border:#344759;--teal:#64c9bf;--navy:#263f54;--s2:#1b2d3d;--ok:#71d2a9;--warn:#f0b65e}}
+*{box-sizing:border-box}html{font-size:15px}body{margin:0;background:var(--bg);color:var(--ink);font:1rem/1.55 ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif}a{color:var(--teal)}button,select,input{font:inherit}button,select{cursor:pointer}
+.appnav{background:var(--surface);border-bottom:1px solid var(--border);display:flex;gap:14px;padding:12px max(16px,calc((100vw - 1380px)/2));align-items:center}.appnav a{padding:6px 10px;text-decoration:none;color:var(--ink);border-radius:8px;font-size:.88rem;font-weight:650}.appnav a[aria-current=page]{background:var(--s2);color:var(--teal)}
+.shell{max-width:1440px;padding:20px clamp(15px,3vw,42px) 52px;margin:auto}.hero{padding:clamp(28px,5vw,58px) clamp(20px,4vw,58px);background:linear-gradient(118deg,#173850,#235965 58%,#297e75);border-radius:22px;color:#faffff;position:relative;overflow:hidden}.hero:after{content:'V2';font-weight:900;font-size:clamp(180px,23vw,330px);opacity:.055;position:absolute;right:-25px;bottom:-135px;line-height:1;pointer-events:none}.eyebrow{display:flex;align-items:center;gap:10px;font-size:.73rem;letter-spacing:.115em;font-weight:800;text-transform:uppercase}.mark{background:#e7f8f5;color:#20534d;letter-spacing:.035em;padding:5px 8px;border-radius:6px}.hero h1{font:clamp(30px,4vw,56px)/1.08 Georgia,'Times New Roman',serif;font-weight:650;letter-spacing:-.022em;margin:24px 0 18px}.hero h1 em{font-weight:400;color:#baf1df}.hero p{max-width:670px;font-size:1.05rem;line-height:1.65;color:#d6eff1;margin:0}.hero-note{font-size:.8rem;color:#e4f5f4;border:1px solid rgba(230,255,255,.25);width:max-content;max-width:100%;padding:8px 12px;border-radius:999px;margin-top:30px}
+.toolbar{display:flex;flex-wrap:wrap;align-items:end;gap:12px;margin:20px 0 26px;padding:20px;background:var(--surface);border:1px solid var(--border);border-radius:15px}.toolbar-title{display:grid;gap:2px;margin-right:auto}.toolbar-title span{font-size:.85rem;color:var(--ink-light)}.toolbar .field{font-size:.75rem;font-weight:750;color:var(--ink-light);display:grid;gap:4px}.toolbar select{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:11px;min-width:180px;color:var(--ink)}button,.filebutton{border:1px solid #0a746d;border-radius:10px;background:var(--teal);color:#fff;padding:11px 15px;text-decoration:none;white-space:nowrap;font-size:.87rem;font-weight:700;display:inline-flex;justify-content:center;align-items:center;min-height:45px;cursor:pointer}.secondary{color:var(--ink);background:var(--surface);border:1px solid var(--border)}button:hover,.filebutton:hover{filter:brightness(.95)}:focus-visible{outline:3px solid #dfb15a;outline-offset:2px}
+.empty{text-align:center;padding:60px 20px;border:1px dashed var(--border);border-radius:18px;background:var(--surface)}.empty-symbol{font-family:Georgia,serif;font-size:64px;color:var(--teal)}.empty h2{font:normal 30px Georgia,serif;margin:4px 0 12px}.empty p{margin:0 auto;max-width:590px;color:var(--ink-light)}.mini-features{margin:28px auto 0;display:flex;gap:8px;flex-wrap:wrap;justify-content:center}.mini-features span{background:var(--s2);padding:7px 12px;border-radius:20px;font-size:.78rem;font-weight:650;color:var(--ink-light)}
+.company-head{display:flex;justify-content:space-between;gap:20px;align-items:center;margin:32px 0 18px}.company-head h2{font:normal clamp(25px,3vw,38px) Georgia,serif;margin:4px 0}.company-head p{margin:0;color:var(--ink-light);font-size:.88rem}.muted{color:var(--ink-light)}.state{border:1px solid var(--border);background:var(--surface);padding:8px 12px;border-radius:9px;font-size:.76rem;font-weight:800;letter-spacing:.03em;white-space:nowrap}.warning{border:1px solid #e6ca88;background:#fff7dd;color:#655022;border-radius:12px;padding:12px 16px;margin:0 0 18px;font-size:.85rem}.warning strong{display:block;margin-bottom:4px}@media(prefers-color-scheme:dark){.warning{background:#403824;color:#ffeab3;border-color:#786b4d}}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;margin-bottom:22px}.kpi{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:4px;min-width:0}.kpi span{font-size:.8rem;color:var(--ink-light);font-weight:650}.kpi strong{font-size:clamp(23px,2.7vw,32px);font-weight:760;letter-spacing:-.03em;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}.kpi small{font-size:.73rem;color:var(--ink-light)}.kpi.primary{background:var(--s2);border-color:#90b8b4}.kpi.primary strong{color:var(--teal)}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px 22px;margin-bottom:20px;box-shadow:0 4px 20px rgba(0,35,50,.025)}.sectionhead{display:flex;justify-content:space-between;align-items:end;gap:22px;flex-wrap:wrap;margin-bottom:19px}.sectionhead h3{font:normal 25px Georgia,serif;margin:4px 0}.sectionhead p,.panel-hint{font-size:.79rem;margin:0;color:var(--ink-light)}.scenario-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.scenario{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:18px;min-width:0}.scenario.base{border-color:#6aaea7;background:var(--s2)}.scenario .top{display:flex;justify-content:space-between;align-items:center;gap:10px}.scenario h4{margin:0;font-size:.92rem}.scenario .status{color:var(--ink-light);font-size:.68rem;letter-spacing:.04em}.scenario .price{font-size:clamp(25px,2.5vw,36px);font-weight:780;letter-spacing:-.03em;margin:11px 0 3px;font-variant-numeric:tabular-nums}.scenario .sub{font-size:.73rem;color:var(--ink-light)}.scenario dl{display:grid;grid-template-columns:1fr auto;gap:5px;margin:18px 0 0;border-top:1px solid var(--border);padding-top:12px;font-size:.77rem}.scenario dt{color:var(--ink-light)}.scenario dd{margin:0;font-weight:700;font-variant-numeric:tabular-nums}
+.table-scroll{overflow-x:auto;width:100%;border:1px solid var(--border);border-radius:10px}table{border-collapse:collapse;width:100%;min-width:610px;font-variant-numeric:tabular-nums;font-size:.78rem}th,td{padding:10px 10px;border-bottom:1px solid var(--border);text-align:right;white-space:nowrap}th{background:var(--s2);color:var(--ink-light);font-weight:750}td:first-child,th:first-child{text-align:left;position:sticky;left:0;background:var(--surface);z-index:1;font-weight:650;min-width:165px}tr:last-child td{border-bottom:0}td.positive{color:var(--ok)}td.negative{color:#cc5555}td.center{background:#dcf2e9!important;color:#185c55;font-weight:850}@media(prefers-color-scheme:dark){td.center{background:#21493f!important;color:#a1e4c8}}
+.two-panels{display:grid;grid-template-columns:1.2fr .8fr;gap:20px}.two-panels .panel{min-width:0}.two-panels .sectionhead h3{font-size:21px}.analysis-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.analysis-block{border-top:1px solid var(--border);padding:14px 2px}.analysis-block h4{font-size:.85rem;margin:0 0 7px}.analysis-block p{font-size:.86rem;color:var(--ink-light);margin:0;line-height:1.7;white-space:pre-wrap}.source-list{list-style:none;margin:0;padding:0}.source-list li{padding:10px 0;border-top:1px solid var(--border);font-size:.85rem}.source-list a{word-break:break-word}.error-state{color:#a44}.source-list .note{color:var(--ink-light)}footer{padding:14px 6px;text-align:center;color:var(--ink-light);font-size:.75rem}footer span{font-weight:700;color:var(--teal)}
+@media(max-width:1000px){.two-panels{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:700px){.scenario-grid{grid-template-columns:1fr}.analysis-grid{grid-template-columns:1fr}.company-head{align-items:start}.hero-note{border-radius:12px}.toolbar-title{width:100%}.toolbar select{max-width:180px}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.kpi{padding:14px}.panel{padding:15px}.sectionhead h3{font-size:21px}}@media(max-width:460px){.kpis{grid-template-columns:1fr 1fr;gap:8px}.kpi strong{font-size:22px}.filebutton,.toolbar button{flex:1 1 100%}.toolbar select{min-width:190px;max-width:100%}}
+@media print{body{background:#fff}.hero{padding:20px;background:#fff;color:#111;border:1px solid #999}.hero h1,.hero p{color:#111}.toolbar,.appnav{display:none}.kpis,.scenario-grid,.two-panels{break-inside:avoid}.panel{box-shadow:none}}
+</style>
+<script src="mercado.js" defer></script>
+</head>
+<body>
+<nav class="appnav" aria-label="Navegación JMR"><a href="jmr-v2.html" aria-current="page">JMR V2.0</a><a href="expediente.html?seccion=analisis">Volver a Floyd</a></nav>
+<main class="shell">
+<header class="hero">
+ <div class="eyebrow"><span class="mark">JMR</span><span>MODELO FUNDAMENTAL · V2.0</span></div>
+ <h1>Valoración sencilla.<br><em>Rigor sin complejidad.</em></h1>
+ <p>FCFF con la metodología de Damodaran, históricos financieros e interpretación fundamental en un único expediente.</p>
+ <div class="hero-note">Vista previa integrada de JMR V2.0 · Sin valoraciones reales publicadas · Motor pendiente de paridad con Ginsu original</div>
+</header>
+<section class="toolbar" aria-label="Abrir expediente">
+ <div class="toolbar-title"><strong>Explorar modelo</strong><span>Elige una empresa validada o carga un JSON local.</span></div>
+ <label class="field">Empresa publicada
+  <select id="tickerList" aria-label="Empresa publicada"><option value="">Sin fichas publicadas</option></select>
+ </label>
+ <label class="filebutton">Importar expediente JSON<input type="file" id="uploadFile" accept=".json,application/json" hidden></label>
+ <button type="button" class="secondary" id="loadDemo">Cargar ejemplo ficticio</button>
+ <button type="button" class="secondary" id="reset">Limpiar vista</button>
+</section>
+<section id="noData" class="empty" aria-live="polite">
+ <div class="empty-symbol">∑</div><h2>Un solo motor. Tres escenarios.</h2>
+ <p>Esta vista previa es local y no contiene empresas reales. Puedes cargar un expediente JSON o probar el funcionamiento con datos totalmente ficticios.</p>
+ <div class="mini-features"><span>10 años de históricos</span><span>FCFF a 10 años</span><span>Conservador / Base / Optimista</span><span>Indicadores y narrativa</span></div>
+</section>
+<div id="appContent" hidden>
+ <section class="company-head">
+  <div><div class="eyebrow muted">EXPEDIENTE JMR V2.0 <span id="dataTag"></span></div><h2 id="companyName"></h2><p id="meta"></p></div>
+  <div class="state" id="stateLabel">NO AUDITADO</div>
+ </section>
+ <div class="warning" id="warnings" hidden role="status"></div>
+ <section class="kpis" aria-label="Resumen valoración">
+  <article class="kpi"><span>Precio de mercado</span><strong id="marketPrice">—</strong><small>Fuente del expediente, no cotización en vivo</small></article>
+  <article class="kpi primary"><span>DCF intrínseco · Base</span><strong id="basePrice">—</strong><small>FCFF · proyección de diez años</small></article>
+  <article class="kpi"><span>Precio con MOS 35 %</span><strong id="mosPrice">—</strong><small>Solo sobre escenario Base</small></article>
+  <article class="kpi"><span>Brecha frente al mercado</span><strong id="upside">—</strong><small>Valor Base / mercado − 1</small></article>
+ </section>
+ <section class="panel" aria-labelledby="scenariosTitle">
+  <div class="sectionhead"><div><div class="eyebrow muted">STORIES TO NUMBERS</div><h3 id="scenariosTitle">Tres escenarios, una lógica FCFF</h3></div><p>Sin promediar múltiplos con el DCF</p></div>
+  <div id="scenarioGrid" class="scenario-grid"></div>
+ </section>
+ <section class="panel" aria-labelledby="financeTitle">
+  <div class="sectionhead"><div><div class="eyebrow muted">EVOLUCIÓN FINANCIERA</div><h3 id="financeTitle">Márgenes, eficiencia y salud</h3></div><p>Ratios calculados · Los vacíos se muestran como N/D</p></div>
+  <div class="table-scroll"><table id="financeTable"><thead></thead><tbody></tbody></table></div>
+ </section>
+ <section class="two-panels">
+  <section class="panel" aria-labelledby="cashflowsTitle"><div class="sectionhead"><div><div class="eyebrow muted">FLUJOS DE CAJA</div><h3 id="cashflowsTitle">Proyección del escenario Base</h3></div></div>
+    <div class="table-scroll"><table id="projectionTable"><thead></thead><tbody></tbody></table></div>
+  </section>
+  <section class="panel" aria-labelledby="sensitivityTitle"><div class="sectionhead"><div><div class="eyebrow muted">CONTROL ECONÓMICO</div><h3 id="sensitivityTitle">Sensibilidad terminal 5×5</h3></div></div>
+    <p class="panel-hint">WACC terminal por crecimiento perpetuo. Los años explícitos se mantienen fijos.</p>
+    <div class="table-scroll"><table id="sensitivityTable"><thead></thead><tbody></tbody></table></div>
+  </section>
+ </section>
+ <section class="panel" aria-labelledby="fundTitle">
+  <div class="sectionhead"><div><div class="eyebrow muted">ANÁLISIS CUALITATIVO</div><h3 id="fundTitle">La historia detrás del valor</h3></div><p>Sin sustituir datos por relatos</p></div>
+  <div id="analysisView" class="analysis-grid"></div>
+ </section>
+ <section class="panel" aria-labelledby="sourcesTitle">
+  <div class="sectionhead"><div><div class="eyebrow muted">TRAZABILIDAD</div><h3 id="sourcesTitle">Fuentes y limitaciones</h3></div></div>
+  <div id="sourcesView"></div>
+ </section>
+</div>
+<footer>JMR V2.0 · Los resultados son calculados, no auditados. Comparar con el workbook original Simple Ginsu antes de tomar decisiones de inversión. <span>Floyd permanece independiente.</span></footer>
+</main>
+<script type="module">
+// JMR V2.0 portable: all calculations run locally in your browser.
+const JMR_DCF=(()=>{
+/**
+ * JMR V2.0 — FCFF scenario runner.
+ * Analytical implementation of Damodaran-style FCFF, NOT a replacement for
+ * the original copyrighted fcffsimpleginzu.xls(x) spreadsheet.
+ * The original workbook is preserved unmodified in original/.
+ * Publishing must await numeric parity audit for material R&D, leases, NOL,
+ * option value, discount rates, terminal ROIC and failure assumptions.
+ */
+const finite = x => typeof x === 'number' && Number.isFinite(x);
+const requiredF = ['revenue','cash','debt','minority','nonoperatingAssets','optionsValue','shares'];
+const requiredA = ['growth1','growth2to5','margin1','marginTarget','marginConvergenceYear',
+  'salesToCapital1to5','salesToCapital6to10','waccInitial','waccTerminal',
+  'roicTerminal','gTerminal','marginalTax','mos','failureProbability','recoveryRate'];
+const SCENARIOS = ['conservador','base','optimista'];
+const EMPTY_REASON = 'Faltan datos históricos o supuestos verificados; no se genera valoración.';
+const okNumber = x => finite(x);
+const round = (n,dec=6) => Number(n.toFixed(dec));
+
+function validateInputs(financials, assumptions, profile='operativa') {
+  const issues = [];
+  if (profile !== 'operativa') issues.push('Este FCFF no cubre bancos, aseguradoras ni holdings financieros.');
+  for (const f of requiredF) if (!okNumber(financials?.[f])) issues.push(`Falta dato histórico: ${f}`);
+  for (const f of requiredA) if (!okNumber(assumptions?.[f])) issues.push(`Falta supuesto: ${f}`);
+  if (issues.length) return issues;
+  const a = assumptions, f = financials;
+  if (f.revenue <= 0 || f.shares <= 0) issues.push('Ingresos y acciones diluidas deben ser positivos.');
+  if (f.debt < 0 || f.cash < 0 || f.minority < 0 || f.optionsValue < 0) issues.push('Deuda, efectivo y reclamos deben ser no negativos.');
+  if (!(a.growth1 > -1 && a.growth2to5 > -1 && a.gTerminal > -1)) issues.push('Crecimiento anual no puede ser <= -100 %.');
+  if (!(a.waccInitial > 0 && a.waccTerminal > a.gTerminal)) issues.push('Debe cumplirse WACC inicial > 0 y WACC terminal > crecimiento terminal.');
+  if (!(a.roicTerminal > 0 && a.salesToCapital1to5 > 0 && a.salesToCapital6to10 > 0)) issues.push('ROIC terminal y eficiencia de capital deben ser positivos.');
+  if (!(Number.isInteger(a.marginConvergenceYear) && a.marginConvergenceYear >= 1 && a.marginConvergenceYear <= 10)) issues.push('El año de convergencia del margen debe ser entero entre 1 y 10.');
+  if ([a.margin1,a.marginTarget].some(x=>x < -1 || x > 1)) issues.push('El margen operativo debe estar entre -100 % y 100 %.');
+  if (!(a.marginalTax >= 0 && a.marginalTax <= 1)) issues.push('La tasa marginal debe estar entre 0 y 100 %.');
+  if (!(a.mos >= 0 && a.mos < 1)) issues.push('Margen de seguridad fuera de rango.');
+  if (!(a.failureProbability >= 0 && a.failureProbability <= 1 && a.recoveryRate >= 0 && a.recoveryRate <= 1)) issues.push('Parámetros de probabilidad de fracaso o recuperación fuera de rango.');
+  if (finite(f.effectiveTaxRate) && (f.effectiveTaxRate < 0 || f.effectiveTaxRate > 1)) issues.push('Tasa efectiva inicial inválida.');
+  return issues;
+}
+
+function calculateInternal(financials, a) {
+  const years = [];
+  const startTax = finite(financials.effectiveTaxRate) ? financials.effectiveTaxRate : a.marginalTax;
+  let rev = financials.revenue;
+  let df = 1;
+  for (let year=1; year<=10; year++) {
+    const growth = year === 1 ? a.growth1 : year <= 5 ? a.growth2to5 :
+      a.growth2to5 + (a.gTerminal-a.growth2to5) * (year-5)/5;
+    rev *= 1+growth;
+    const margin = year>=a.marginConvergenceYear ? a.marginTarget :
+      a.margin1 + (a.marginTarget-a.margin1)*(year-1)/Math.max(1,a.marginConvergenceYear-1);
+    const ebit = rev*margin;
+    const taxRate = startTax + (a.marginalTax-startTax)*(year-1)/9;
+    const nopat = ebit>0 ? ebit*(1-taxRate) : ebit;
+    const capitalEfficiency = year<=5 ? a.salesToCapital1to5 : a.salesToCapital6to10;
+    const wacc = year<=5 ? a.waccInitial : a.waccInitial+(a.waccTerminal-a.waccInitial)*(year-5)/5;
+    df /= 1+wacc;
+    years.push({year,growth,revenue:rev,margin,ebit,taxRate,nopat,capitalEfficiency,wacc,discountFactor:df});
+  }
+  for (let i=0;i<10;i++) {
+    const y=years[i];
+    const nextRev=i===9 ? y.revenue*(1+a.gTerminal) : years[i+1].revenue;
+    y.reinvestment=(nextRev-y.revenue)/y.capitalEfficiency;
+    y.fcff=y.nopat-y.reinvestment;
+    y.pvFcff=y.fcff*y.discountFactor;
+  }
+  const sumPV=years.reduce((sum,y)=>sum+y.pvFcff,0);
+  const t=years[9];
+  const ebitTerminal=t.ebit*(1+a.gTerminal);
+  const nopatTerminal=ebitTerminal>0 ? ebitTerminal*(1-a.marginalTax) : ebitTerminal;
+  const reinvestmentTerminal=nopatTerminal*a.gTerminal/a.roicTerminal;
+  const fcffTerminal=nopatTerminal-reinvestmentTerminal;
+  const terminalValue=fcffTerminal/(a.waccTerminal-a.gTerminal);
+  const pvTerminal=terminalValue*t.discountFactor;
+  const evBeforeRisk=sumPV+pvTerminal;
+  const ev=evBeforeRisk*(1-a.failureProbability+a.failureProbability*a.recoveryRate);
+  const equity=ev-financials.debt-financials.minority+financials.cash+
+    financials.nonoperatingAssets-financials.optionsValue;
+  const perShare=equity/financials.shares;
+  const mosPrice=perShare*(1-a.mos);
+  return {
+    years, sumPV, ebitTerminal, nopatTerminal, reinvestmentTerminal,
+    fcffTerminal, terminalValue, pvTerminal, evBeforeRisk, ev, equity, perShare, mosPrice,
+    terminalDiscountFactor:t.discountFactor
+  };
+}
+
+function evaluateDCF(financials, assumptions, options={}) {
+  const issues=validateInputs(financials,assumptions,options.profile||'operativa');
+  if (issues.length) return {status:'INCOMPLETO',issues};
+  const result=calculateInternal(financials,assumptions);
+  if (Object.values(result).some(v=>typeof v==='number'&&!Number.isFinite(v)))
+    return {status:'ERROR',issues:['La valoración produjo una cifra no finita.']};
+  const warnings=[];
+  if (result.nopatTerminal <= 0) warnings.push('NOPAT terminal no positivo: perpetuidad no sostenible.');
+  if (result.terminalValue < 0) warnings.push('Valor terminal negativo: revisar historia y continuidad del negocio.');
+  if (result.perShare < 0) warnings.push('Patrimonio negativo: el precio por acción no es un precio objetivo válido.');
+  if (assumptions.gTerminal > assumptions.waccTerminal-0.01) warnings.push('Perpetuidad cercana al WACC: sensibilidad de valor elevada.');
+  return {status: warnings.length?'REVISAR':'CANDIDATO',issues:[],warnings,...result};
+}
+
+function calculateAll(model){
+  if (!model || !model.financials || !model.assumptions) return {status:'INCOMPLETO',issues:[EMPTY_REASON],scenarios:{}};
+  const scenarios={};
+  for (const name of SCENARIOS) scenarios[name]=evaluateDCF(model.financials,model.assumptions[name],{profile:model.profile||'operativa'});
+  const statuses=Object.values(scenarios).map(v=>v.status);
+  return {status:statuses.every(s=>s==='CANDIDATO')?'CANDIDATO':'INCOMPLETO',scenarios,
+    meta:{ticker:model.ticker||'',company:model.company||'',units:model.units||'',currency:model.currency||''}};
+}
+
+/** Terminal-only sensitivity: years 1..10 and their PV stay fixed. */
+function terminalSensitivity(financials,a,size=5){
+  const base=evaluateDCF(financials,a);
+  if (!['CANDIDATO','REVISAR'].includes(base.status)) return {status:base.status,issues:base.issues};
+  const center=Math.floor(size/2),waccStep=0.01,gStep=0.005,values=[];
+  for(let i=0;i<size;i++){
+    const wacc=a.waccTerminal+(i-center)*waccStep;
+    const cells=[];
+    for(let j=0;j<size;j++){
+      const g=a.gTerminal+(j-center)*gStep;
+      if(wacc<=g || g<=-1){cells.push(null);continue;}
+      const ebit=base.years[9].ebit*(1+g);
+      const nopat=ebit>0?ebit*(1-a.marginalTax):ebit;
+      const terminalCF=nopat*(1-g/a.roicTerminal);
+      const ev0=base.sumPV+terminalCF/(wacc-g)*base.terminalDiscountFactor;
+      const ev=ev0*(1-a.failureProbability+a.failureProbability*a.recoveryRate);
+      cells.push((ev-financials.debt-financials.minority+financials.cash+financials.nonoperatingAssets-financials.optionsValue)/financials.shares);
+    }
+    values.push({wacc,cells});
+  }
+  const growths=Array.from({length:size},(_,j)=>a.gTerminal+(j-center)*gStep);
+  return {status:'CANDIDATO',growths,rows:values,centerValue:values[center].cells[center]};
+}
+
+return {calculateAll, SCENARIOS, terminalSensitivity};})();
+const JMR_IND=(()=>{
+/** Descriptive indicators are never substituted for forecast assumptions. */
+const n=x=>typeof x==='number'&&Number.isFinite(x);
+const divide=(a,b)=>n(a)&&n(b)&&b!==0?a/b:null;
+const difference=(a,b)=>n(a)&&n(b)?a-b:null;
+function indicatorsForYear(h, prior){
+  const rev=h.revenue,ebit=h.ebit,net=h.netIncome,assets=h.assets,debt=h.debt,cash=h.cash;
+  const invested=n(debt)&&n(h.equity)&&n(cash)?debt+h.equity-cash:null;
+  const effectiveTax=divide(h.taxExpense,h.pretaxIncome);
+  const nopat=n(ebit)?(ebit>0&&n(effectiveTax)?ebit*(1-effectiveTax):ebit):null;
+  const reinvestment=n(h.capex)&&n(h.da)&&n(h.changeNWC)?h.capex-h.da+h.changeNWC:null;
+  const fcff=n(nopat)&&n(reinvestment)?nopat-reinvestment:null;
+  const fcf=difference(h.operatingCF,h.capex);
+  const EBITDA=n(ebit)&&n(h.da)?ebit+h.da:null;
+  const ev=n(h.sharePrice)&&n(h.shares)&&n(debt)&&n(cash)&&n(h.minority)?h.sharePrice*h.shares+debt-cash+h.minority:null;
+  const marketCap=n(h.sharePrice)&&n(h.shares)?h.sharePrice*h.shares:null;
+  return {
+    year:h.year,growth:prior?divide(difference(rev,prior.revenue),prior.revenue):null,
+    grossMargin:n(h.cogs)&&n(rev)?divide(rev-h.cogs,rev):null,
+    ebitMargin:divide(ebit,rev),netMargin:divide(net,rev),operatingCFMargin:divide(h.operatingCF,rev),
+    fcfMargin:divide(fcf,rev),roic:divide(nopat,invested),roe:divide(net,h.equity),roa:divide(net,assets),
+    assetTurnover:divide(rev,assets),currentRatio:divide(h.currentAssets,h.currentLiabilities),
+    quickRatio:n(h.currentAssets)&&n(h.inventory)?divide(h.currentAssets-h.inventory,h.currentLiabilities):null,
+    debtToEquity:divide(debt,h.equity),interestCoverage:divide(ebit,h.interestExpense),
+    netDebtToEBITDA:n(debt)&&n(cash)?divide(debt-cash,EBITDA):null,
+    evToEBITDA:divide(ev,EBITDA),evToFCFF:divide(ev,fcff),
+    pe:divide(marketCap,net),ps:divide(marketCap,rev),pToFcf:divide(marketCap,fcf),
+    fcfYield:divide(fcf,marketCap),fcff,fcf,ebitda:EBITDA,investedCapital:invested,
+    reinvestment,reinvestmentRate:divide(reinvestment,nopat),effectiveTax
+  };
+}
+function indicatorsForHistory(history){
+  if(!Array.isArray(history))return [];
+  const sorted=[...history].sort((a,b)=>Number(a.year)-Number(b.year));
+  return sorted.map((h,i)=>indicatorsForYear(h, i?sorted[i-1]:null));
+}
+
+return {indicatorsForHistory};})();
+const {calculateAll, SCENARIOS, terminalSensitivity}=JMR_DCF;
+const {indicatorsForHistory}=JMR_IND;
+const JMR_DEMO={"schemaVersion": "jmr-v2-0.1", "ticker": "DEMO", "company": "Compañía Sintética — DEMOSTRACIÓN", "profile": "operativa", "currency": "USD", "units": "millones, excepto valor/acción", "asOf": "2026-11-12", "fictional": true, "status": "SOLO PRUEBA", "financials": {"revenue": 1016.136, "debt": 250, "cash": 116, "minority": 20, "nonoperatingAssets": 30, "optionsValue": 10, "shares": 100, "sharePrice": 20, "effectiveTaxRate": 0.25}, "history": [{"year": 2016, "revenue": 530, "cogs": 286.2, "ebit": 95.4, "interestExpense": 20, "pretaxIncome": 75.4, "taxExpense": 18.85, "netIncome": 56.55, "operatingCF": 111.3, "capex": 37.1, "da": 21.2, "changeNWC": 5.3, "cash": 80, "currentAssets": 196.1, "currentLiabilities": 116.6, "inventory": 37.1, "assets": 901.0, "liabilities": 318.0, "debt": 250, "equity": 583.0, "minority": 20, "nonoperatingAssets": 30, "shares": 100, "sharePrice": 20}, {"year": 2017, "revenue": 569.75, "cogs": 307.665, "ebit": 102.555, "interestExpense": 20, "pretaxIncome": 82.555, "taxExpense": 20.639, "netIncome": 61.916, "operatingCF": 119.647, "capex": 39.883, "da": 22.79, "changeNWC": 5.697, "cash": 84, "currentAssets": 210.808, "currentLiabilities": 125.345, "inventory": 39.883, "assets": 968.575, "liabilities": 341.85, "debt": 250, "equity": 626.725, "minority": 20, "nonoperatingAssets": 30, "shares": 100, "sharePrice": 20}, {"year": 2018, "revenue": 612.481, "cogs": 330.74, "ebit": 110.247, "interestExpense": 20, "pretaxIncome": 90.247, "taxExpense": 22.562, "netIncome": 67.685, "operatingCF": 128.621, "capex": 42.874, "da": 24.499, "changeNWC": 6.125, "cash": 88, "currentAssets": 226.618, "currentLiabilities": 134.746, "inventory": 42.874, "assets": 1041.218, "liabilities": 367.489, "debt": 250, "equity": 673.729, "minority": 20, "nonoperatingAssets": 30, "shares": 100, "sharePrice": 20}, {"year": 2019, "revenue": 658.417, "cogs": 355.545, "ebit": 118.515, "interestExpense": 20, "pretaxIncome": 98.515, "taxExpense": 24.629, "netIncome": 73.886, "operatingCF": 138.268, "capex": 46.089, "da": 26.337, "changeNWC": 6.584, "cash": 92, "currentAssets": 243.614, "currentLiabilities": 144.852, "inventory": 46.089, "assets": 1119.309, "liabilities": 395.05, "debt": 250, "equity": 724.259, "minority": 20, "nonoperatingAssets": 30, "shares": 100, "sharePrice": 20}, {"year": 2020, "revenue": 707.799, "cogs": 382.211, "ebit": 127.404, "interestExpense": 20, "pretaxIncome": 107.404, "taxExpense": 26.851, "netIncome": 80.553, "operatingCF": 148.638, "capex": 49.546, "da": 28.312, "changeNWC": 7.078, "cash": 96, "currentAssets": 261.886, "currentLiabilities": 155.716, "inventory": 49.546, "assets": 1203.258, "liabilities": 424.679, "debt": 250, "equity": 778.579, "minority": 20, "nonoperatingAssets": 30, "shares": 100, "sharePrice": 20}, {"year": 2021, "revenue": 760.884, "cogs": 410.877, "ebit": 136.959, "interestExpense": 20, "pretaxIncome": 116.959, "taxExpense": 29.24, "netIncome": 87.719, "operatingCF": 159.786, "capex": 53.262, "da": 30.435, "changeNWC": 7.609, "cash": 100, "currentAssets": 281.527, "currentLiabilities": 167.394, "inventory": 53.262, "assets": 1293.503, "liabilities": 456.53, "debt": 250, "equity": 836.972, "minority": 20, "nonoperatingAssets": 30, "shares": 100, "sharePrice": 20}, {"year": 2022, "revenue": 817.95, "cogs": 441.693, "ebit": 147.231, "interestExpense": 20, "pretaxIncome": 127.231, "taxExpense": 31.808, "netIncome": 95.423, "operatingCF": 171.769, "capex": 57.257, "da": 32.718, "changeNWC": 8.18, "cash": 104, "currentAssets": 302.642, "currentLiabilities": 179.949, "inventory": 57.257, "assets": 1390.515, "liabilities": 490.77, "debt": 250, "equity": 899.745, "minority": 20, "nonoperatingAssets": 30, "shares": 100, "sharePrice": 20}, {"year": 2023, "revenue": 879.296, "cogs": 474.82, "ebit": 158.273, "interestExpense": 20, "pretaxIncome": 138.273, "taxExpense": 34.568, "netIncome": 103.705, "operatingCF": 184.652, "capex": 61.551, "da": 35.172, "changeNWC": 8.793, "cash": 108, "currentAssets": 325.34, "currentLiabilities": 193.445, "inventory": 61.551, "assets": 1494.803, "liabilities": 527.578, "debt": 250, "equity": 967.226, "minority": 20, "nonoperatingAssets": 30, "shares": 100, "sharePrice": 20}, {"year": 2024, "revenue": 945.243, "cogs": 510.431, "ebit": 170.144, "interestExpense": 20, "pretaxIncome": 150.144, "taxExpense": 37.536, "netIncome": 112.608, "operatingCF": 198.501, "capex": 66.167, "da": 37.81, "changeNWC": 9.452, "cash": 112, "currentAssets": 349.74, "currentLiabilities": 207.953, "inventory": 66.167, "assets": 1606.913, "liabilities": 567.146, "debt": 250, "equity": 1039.767, "minority": 20, "nonoperatingAssets": 30, "shares": 100, "sharePrice": 20}, {"year": 2025, "revenue": 1016.136, "cogs": 548.713, "ebit": 182.904, "interestExpense": 20, "pretaxIncome": 162.904, "taxExpense": 40.726, "netIncome": 122.178, "operatingCF": 213.389, "capex": 71.13, "da": 40.645, "changeNWC": 10.161, "cash": 116, "currentAssets": 375.97, "currentLiabilities": 223.55, "inventory": 71.13, "assets": 1727.431, "liabilities": 609.682, "debt": 250, "equity": 1117.75, "minority": 20, "nonoperatingAssets": 30, "shares": 100, "sharePrice": 20}], "assumptions": {"conservador": {"marginConvergenceYear": 10, "waccInitial": 0.1, "waccTerminal": 0.095, "marginalTax": 0.25, "mos": 0.35, "failureProbability": 0.0, "recoveryRate": 0.5, "growth1": 0.04, "growth2to5": 0.05, "margin1": 0.15, "marginTarget": 0.17, "salesToCapital1to5": 1.4, "salesToCapital6to10": 1.7, "roicTerminal": 0.12, "gTerminal": 0.025}, "base": {"marginConvergenceYear": 10, "waccInitial": 0.1, "waccTerminal": 0.095, "marginalTax": 0.25, "mos": 0.35, "failureProbability": 0.0, "recoveryRate": 0.5, "growth1": 0.08, "growth2to5": 0.09, "margin1": 0.18, "marginTarget": 0.22, "salesToCapital1to5": 1.8, "salesToCapital6to10": 2.0, "roicTerminal": 0.14, "gTerminal": 0.03}, "optimista": {"marginConvergenceYear": 10, "waccInitial": 0.1, "waccTerminal": 0.095, "marginalTax": 0.25, "mos": 0.35, "failureProbability": 0.0, "recoveryRate": 0.5, "growth1": 0.12, "growth2to5": 0.13, "margin1": 0.2, "marginTarget": 0.26, "salesToCapital1to5": 2.1, "salesToCapital6to10": 2.5, "roicTerminal": 0.18, "gTerminal": 0.035}}, "analysis": {"business": "Caso hipotético de entrenamiento. No representa una empresa cotizada.", "moat": "No evaluado: se necesita investigación de competidores, poder de precios y retorno del capital.", "story": "Tres historias económicas hipotéticas de crecimiento, rentabilidad y eficiencia del capital.", "risks": "Ejemplo: competencia, costos, tasa de descuento y crecimiento terminal.", "conclusion": "Este ejemplo prueba el motor y la interfaz; no constituye valoración, recomendación ni auditoría."}, "sources": [{"label": "DATOS FICTICIOS — no hay informe anual", "url": null}], "warnings": ["Ejemplo enteramente sintético. No representa datos financieros, estimaciones ni precios de mercado reales."]};
+const $=id=>document.getElementById(id);
+const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const finite=n=>typeof n==='number'&&Number.isFinite(n);
+const money=(n,c='USD')=>finite(n)?new Intl.NumberFormat('es-CO',{style:'currency',currency:c,maximumFractionDigits:2}).format(n):'N/D';
+const number=(n,d=1)=>finite(n)?new Intl.NumberFormat('es-CO',{maximumFractionDigits:d,minimumFractionDigits:d}).format(n):'N/D';
+const percent=(n,d=1)=>finite(n)?`${number(100*n,d)} %`:'N/D';
+const safeUrl=u=>{try{const x=new URL(u,location.href);return ['https:','http:'].includes(x.protocol)?x.href:null;}catch{return null;}};
+const prettyCase={conservador:'Conservador',base:'Base',optimista:'Optimista'};
+function showNoData(text){$('noData').hidden=false;$('appContent').hidden=true;
+  if(text){$('noData').querySelector('p').textContent=text;}}
+function metricRow(name,history,key,fmt=percent){return `<tr><td>${escape(name)}</td>${history.map(x=>`<td>${fmt(x[key])}</td>`).join('')}</tr>`;}
+function renderHistory(history){const target=$('financeTable'),rows=indicatorsForHistory(history);
+ if(!rows.length){target.innerHTML='<tbody><tr><td>Sin históricos vinculados</td></tr></tbody>';return;}
+ const recent=rows.slice(-10);
+ target.querySelector('thead').innerHTML=`<tr><th>Indicador</th>${recent.map(x=>`<th>${escape(x.year)}</th>`).join('')}</tr>`;
+ target.querySelector('tbody').innerHTML=[
+  metricRow('Crecimiento ingresos',recent,'growth'),metricRow('Margen operativo',recent,'ebitMargin'),
+  metricRow('Margen bruto',recent,'grossMargin'),metricRow('Margen neto',recent,'netMargin'),
+  metricRow('Margen FCF',recent,'fcfMargin'),metricRow('ROIC',recent,'roic'),
+  metricRow('ROE',recent,'roe'),metricRow('ROA',recent,'roa'),
+  metricRow('Rotación activos',recent,'assetTurnover',x=>number(x,2)+'×'),
+  metricRow('Deuda / patrimonio',recent,'debtToEquity',x=>number(x,2)+'×'),
+  metricRow('Ratio corriente',recent,'currentRatio',x=>number(x,2)+'×'),
+  metricRow('Deuda neta / EBITDA',recent,'netDebtToEBITDA',x=>number(x,2)+'×'),
+  metricRow('Cobertura intereses',recent,'interestCoverage',x=>number(x,2)+'×'),
+  metricRow('EV / EBITDA',recent,'evToEBITDA',x=>number(x,2)+'×'),
+  metricRow('EV / FCFF',recent,'evToFCFF',x=>number(x,2)+'×'),
+  metricRow('P/E',recent,'pe',x=>number(x,2)+'×'),
+  metricRow('P/S',recent,'ps',x=>number(x,2)+'×'),
+  metricRow('FCF yield',recent,'fcfYield')
+ ].join('');
+}
+function renderScenarios(calc,model){
+ $('scenarioGrid').innerHTML=SCENARIOS.map(name=>{
+  const a=model.assumptions?.[name]||{},v=calc.scenarios?.[name]||{};
+  return `<article class="scenario ${name==='base'?'base':''}"><div class="top"><h4>${prettyCase[name]}</h4><span class="status">${escape(v.status||'INCOMPLETO')}</span></div>
+    <div class="price">${money(v.perShare,model.currency)}</div><div class="sub">Valor intrínseco por acción · no auditado</div>
+    <dl><dt>Crecimiento años 2–5</dt><dd>${percent(a.growth2to5)}</dd><dt>Margen EBIT objetivo</dt><dd>${percent(a.marginTarget)}</dd>
+    <dt>ROIC terminal</dt><dd>${percent(a.roicTerminal)}</dd><dt>WACC inicial / terminal</dt><dd>${percent(a.waccInitial)} / ${percent(a.waccTerminal)}</dd>
+    <dt>Sales-to-capital 1–5</dt><dd>${number(a.salesToCapital1to5,2)}×</dd><dt>Crecer a perpetuidad</dt><dd>${percent(a.gTerminal)}</dd></dl>
+    ${v.issues?.length?`<p class="error-state">${escape(v.issues.join('; '))}</p>`:''}</article>`;}).join('');
+}
+function renderProjection(base){const table=$('projectionTable');
+ if(!base?.years){table.innerHTML='<tbody><tr><td>Datos insuficientes</td></tr></tbody>';return;}
+ const a=base.years;
+ table.querySelector('thead').innerHTML=`<tr><th>Métrica</th>${a.map(y=>`<th>Año ${y.year}</th>`).join('')}</tr>`;
+ const row=(label,key,fmt=number)=>`<tr><td>${label}</td>${a.map(y=>`<td>${fmt(y[key])}</td>`).join('')}</tr>`;
+ table.querySelector('tbody').innerHTML=[row('Ingresos','revenue'),row('EBIT','ebit'),row('Margen EBIT','margin',percent),
+    row('NOPAT','nopat'),row('Reinversión','reinvestment'),row('FCFF','fcff'),row('PV(FCFF)','pvFcff'),row('WACC','wacc',percent)].join('');
+}
+function renderSensitivity(model){const tbl=$('sensitivityTable'),s=terminalSensitivity(model.financials,model.assumptions.base);
+ if(!s.rows){tbl.innerHTML='<tbody><tr><td>Datos insuficientes</td></tr></tbody>';return;}
+ tbl.querySelector('thead').innerHTML=`<tr><th>WACC / g</th>${s.growths.map(x=>`<th>${percent(x,1)}</th>`).join('')}</tr>`;
+ tbl.querySelector('tbody').innerHTML=s.rows.map((r,i)=>`<tr><td>${percent(r.wacc,1)}</td>${r.cells.map((x,j)=>`<td class="${i===2&&j===2?'center':''}">${money(x,model.currency)}</td>`).join('')}</tr>`).join('');
+}
+function renderAnalysis(model){const sections=[['business','Negocio y modelo económico'],['moat','Ventaja competitiva'],
+ ['story','Historias → números'],['risks','Riesgos y contraevidencia'],['conclusion','Conclusión fundamental']];
+ $('analysisView').innerHTML=sections.map(([k,title])=>`<div class="analysis-block"><h4>${title}</h4><p>${escape(model.analysis?.[k]||'Pendiente de análisis cualitativo con evidencia primaria.')}</p></div>`).join('');
+ const sources=model.sources||[];
+ $('sourcesView').innerHTML=sources.length?`<ul class="source-list">${sources.map(s=>{const href=safeUrl(s.url);
+  return `<li>${href?`<a href="${escape(href)}" target="_blank" rel="noopener noreferrer">${escape(s.label||href)}</a>`:`<span class="note">${escape(s.label||'Fuente no documentada')}</span>`}</li>`;}).join('')}</ul>`:'<p>Faltan fuentes primarias documentadas.</p>';
+}
+function render(model){
+ if(!model||typeof model!=='object')return showNoData('JSON inválido: se requiere un objeto de empresa.');
+ const calc=calculateAll(model),base=calc.scenarios?.base,notice=[];
+ if(model.fictional)notice.push('SIMULACIÓN: todos los datos son ficticios y NO corresponden a un valor negociable.');
+ notice.push('El motor analítico aún no ha completado la auditoría de paridad con todas las funciones del Ginsu original.');
+ if(Array.isArray(model.warnings))notice.push(...model.warnings);
+ if(calc.status!=='CANDIDATO')notice.push('El expediente tiene entradas incompletas o escenarios que requieren revisión.');
+ $('noData').hidden=true;$('appContent').hidden=false;
+ $('companyName').textContent=model.company||model.ticker||'Empresa sin identificar';
+ $('meta').textContent=[model.ticker,model.asOf?`Corte ${model.asOf}`:null,model.currency,model.units].filter(Boolean).join(' · ');
+ $('dataTag').textContent=model.fictional?'· EJEMPLO FICTICIO':'· NO AUDITADO';
+ $('stateLabel').textContent=model.fictional?'SIMULACIÓN · NO PUBLICAR':calc.status==='CANDIDATO'?'CANDIDATO · NO AUDITADO':'INCOMPLETO';
+ $('marketPrice').textContent=money(model.financials?.sharePrice,model.currency);
+ $('basePrice').textContent=money(base?.perShare,model.currency);
+ $('mosPrice').textContent=money(base?.mosPrice,model.currency);
+ $('upside').textContent=percent(base?.perShare>0&&model.financials?.sharePrice>0?base.perShare/model.financials.sharePrice-1:null);
+ $('warnings').innerHTML=`<strong>Control de publicación</strong>${notice.map(escape).join(' ')}`;
+ $('warnings').hidden=false;
+ renderScenarios(calc,model);renderHistory(model.history);renderProjection(base);renderSensitivity(model);renderAnalysis(model);
+ document.title=`${model.ticker||'Expediente'} · JMR V2.0`;
+}
+async function loadJSON(url){const response=await fetch(url,{cache:'no-store'});if(!response.ok)throw new Error(`No se pudo cargar (${response.status})`);return response.json();}
+$('loadDemo').addEventListener('click',async()=>{try{render(JMR_DEMO);}catch(e){showNoData(`Error en ejemplo: ${e.message}`)}});
+$('reset').addEventListener('click',()=>{showNoData();$('uploadFile').value='';});
+$('uploadFile').addEventListener('change',async e=>{const f=e.target.files?.[0];if(!f)return;
+ try{if(f.size>2_000_000)throw new Error('El expediente supera 2 MB');render(JSON.parse(await f.text()));}
+ catch(err){showNoData(`No se pudo leer el archivo JSON: ${err.message}`);}});
+const catalog={empresas:[]};
+const options=Array.isArray(catalog.empresas)?catalog.empresas:[];
+if(options.length){$('tickerList').innerHTML='<option value="">Elige una empresa</option>'+options.map(x=>`<option value="${escape(x.ticker)}">${escape(x.ticker)} — ${escape(x.company)}</option>`).join('');}
+$('tickerList').addEventListener('change',async e=>{const ticker=e.target.value;
+ if(!/^[A-Z0-9.-]{1,18}$/.test(ticker))return;
+ try{render(await loadJSON(`./v2/empresas/${encodeURIComponent(ticker)}.json`));}
+ catch(err){showNoData(`No se pudo abrir ${ticker}: ${err.message}`);}});
+const q=new URLSearchParams(location.search).get('ticker')?.toUpperCase();
+if(q&&options.some(x=>x.ticker===q)){$('tickerList').value=q;$('tickerList').dispatchEvent(new Event('change'));}
+
+</script>
+</body></html>
