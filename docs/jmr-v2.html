@@ -124,27 +124,31 @@ function validateInputs(financials, assumptions, profile='operativa') {
   if (!(a.mos >= 0 && a.mos < 1)) issues.push('Margen de seguridad fuera de rango.');
   if (!(a.failureProbability >= 0 && a.failureProbability <= 1 && a.recoveryRate >= 0 && a.recoveryRate <= 1)) issues.push('Parámetros de probabilidad de fracaso o recuperación fuera de rango.');
   if (finite(f.effectiveTaxRate) && (f.effectiveTaxRate < 0 || f.effectiveTaxRate > 1)) issues.push('Tasa efectiva inicial inválida.');
+  if (f.nol != null && (!finite(f.nol) || f.nol<0)) issues.push('NOL no puede ser negativo.');
   return issues;
 }
 
 function calculateInternal(financials, a) {
   const years = [];
   const startTax = finite(financials.effectiveTaxRate) ? financials.effectiveTaxRate : a.marginalTax;
+  let nol = finite(financials.nol) ? Math.max(0,financials.nol) : 0;
   let rev = financials.revenue;
   let df = 1;
   for (let year=1; year<=10; year++) {
     const growth = year === 1 ? a.growth1 : year <= 5 ? a.growth2to5 :
       a.growth2to5 + (a.gTerminal-a.growth2to5) * (year-5)/5;
     rev *= 1+growth;
-    const margin = year>=a.marginConvergenceYear ? a.marginTarget :
-      a.margin1 + (a.marginTarget-a.margin1)*(year-1)/Math.max(1,a.marginConvergenceYear-1);
+    const margin = year===1 ? a.margin1 : year>a.marginConvergenceYear ? a.marginTarget :
+      a.margin1+(a.marginTarget-a.margin1)*year/a.marginConvergenceYear;
     const ebit = rev*margin;
-    const taxRate = startTax + (a.marginalTax-startTax)*(year-1)/9;
-    const nopat = ebit>0 ? ebit*(1-taxRate) : ebit;
+    const taxRate = year<=5 ? startTax : startTax+(a.marginalTax-startTax)*(year-5)/5;
+    const nopat = ebit>0 ? ebit-Math.max(0,ebit-nol)*taxRate : ebit;
+    const priorNol=nol;
+    nol=ebit<0 ? nol-ebit : Math.max(0,nol-ebit);
     const capitalEfficiency = year<=5 ? a.salesToCapital1to5 : a.salesToCapital6to10;
     const wacc = year<=5 ? a.waccInitial : a.waccInitial+(a.waccTerminal-a.waccInitial)*(year-5)/5;
     df /= 1+wacc;
-    years.push({year,growth,revenue:rev,margin,ebit,taxRate,nopat,capitalEfficiency,wacc,discountFactor:df});
+    years.push({year,growth,revenue:rev,margin,ebit,taxRate,nopat,nolStart:priorNol,nolEnd:nol,capitalEfficiency,wacc,discountFactor:df});
   }
   for (let i=0;i<10;i++) {
     const y=years[i];
@@ -157,7 +161,7 @@ function calculateInternal(financials, a) {
   const t=years[9];
   const ebitTerminal=t.ebit*(1+a.gTerminal);
   const nopatTerminal=ebitTerminal>0 ? ebitTerminal*(1-a.marginalTax) : ebitTerminal;
-  const reinvestmentTerminal=nopatTerminal*a.gTerminal/a.roicTerminal;
+  const reinvestmentTerminal=a.gTerminal>0 ? nopatTerminal*a.gTerminal/a.roicTerminal : 0;
   const fcffTerminal=nopatTerminal-reinvestmentTerminal;
   const terminalValue=fcffTerminal/(a.waccTerminal-a.gTerminal);
   const pvTerminal=terminalValue*t.discountFactor;
