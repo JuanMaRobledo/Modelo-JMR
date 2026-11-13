@@ -156,7 +156,7 @@ export async function montarEditorAnalisis(model,root){
    body.setAttribute('aria-label',label);card.append(body);sections.append(card);
   }
   $('analysisEdit').textContent=editando?'Terminar edición':'Editar análisis';
-  $('editorOrigin').textContent=saved===official?'Análisis publicado · lectura':'Borrador local o de edición · sin publicar';
+  $('editorOrigin').textContent=saved===official?'Análisis del expediente · revisión':'Borrador local o de edición · sin publicar';
   for(const id of ['analysisBold','analysisItalic','analysisBullet','analysisImageLabel','analysisSaveLocal','analysisSaveGitHub','analysisExport','analysisCancel'])$(id).hidden=!editando;
   $('analysisConnect').hidden=!editando||!!githubToken();
  }
