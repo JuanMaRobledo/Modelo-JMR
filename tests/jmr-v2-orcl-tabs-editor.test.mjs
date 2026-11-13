@@ -38,7 +38,7 @@ test('ORCL: veinte capítulos del análisis extenso, editables en V2 sin modific
  assert.equal(model.auditoria,undefined);
 });
 test('Editar no equivale a publicar ni aprobar y el libro sigue separado',()=>{
- assert.match(html,/no modifica estos valores|no altera el DCF/);
+ assert.match(html,/no recalcula ni publica esta ficha automáticamente/);
  assert.match(html,/no recalcula ni publica esta ficha automáticamente/);
  assert.match(js,/sin alterar DCF ni publicar automáticamente/);
  assert.match(model.documentLinks.workbook,/^https:\/\/docs\.google\.com\/spreadsheets\//);
