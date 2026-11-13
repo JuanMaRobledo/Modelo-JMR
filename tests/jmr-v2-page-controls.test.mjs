@@ -17,7 +17,7 @@ test('la página despacha por perfil y no muestra valores con un bloqueo activo'
 test('las fuentes sin URL no generan enlaces y los indicadores sin datos no se muestran como filas vacías', () => {
   assert.match(html, /const safeUrl=u=>\{if\(typeof u!=='string'\|\|!u\.trim\(\)\)return null;/);
   assert.match(html, /function metricRow\([^)]*\)\{if\(!history\.some\(x=>finite\(x\[key\]\)\)\)return '';/);
-  assert.match(html, /s\.label\|\|s\.documento/);
+  assert.match(html, /(?:s|so)\.label\|\|(?:s|so)\.documento/);
 });
 test('la página presenta el perfil de alto crecimiento con su propio motor y sensibilidad', () => {
   assert.match(html, /esAlto=m=>m\?\.profile==='alto-crecimiento'/);
