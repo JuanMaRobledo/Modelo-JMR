@@ -32,7 +32,7 @@ El análisis narrativo se apoya en históricos y tres estados financieros, indic
 - El editor puede guardar borradores localmente o en la rama editorial. **Guardar no equivale a aprobar**.
 - Migrar textos anteriores por contenido, no por número; no perder información ni transformar un N/D en cero. Registrar capítulos incompletos.
 - Los informes de financieras y holdings conservan el índice, usando FCFE/Ke o SOTP según corresponda; no aplicar FCFF industrial indebidamente.
-- El expediente (hoja de históricos, libro de valoración y análisis) se entrega en su carpeta para **revisión personal previa**. No integrar, fusionar ni publicar automáticamente en la app tras valorar; solo hacerlo con autorización expresa y tras conciliar revisiones.
+- El expediente (históricos, valoración y análisis) se conserva en su carpeta. **Tras pasar controles técnicos puede publicarse en la app como EN_PROCESO o EN_REVISION, visible solo en «Pendientes de mi auditoría»**, sin esperar la auditoría personal. No confundir esta publicación con aprobación. Las revisiones de supuestos deben mantener trazabilidad entre libro, cálculo y JSON; no sustituir sin conciliación.
 - Estado inicial: `EN_REVISION` o borrador no auditado. Aprobación personal y auditoría económica se distinguen de los controles técnicos.
 
 ## Oracle · migración piloto
