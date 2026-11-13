@@ -136,9 +136,11 @@ export async function montarEditorAnalisis(model,root){
  '<button id="analysisExport" type="button" class="secondary" hidden>Exportar JSON</button>'+
  '<button id="analysisCancel" type="button" class="secondary" hidden>Cancelar</button>'+
  '</div><p id="editorStatus" class="v2-editor-note" role="status" aria-live="polite"></p>'+
+ '<nav id="analysisToc" class="analysis-toc" aria-label="Índice del análisis fundamental"></nav>'+ 
  '<div id="analysisSections" class="analysis-grid"></div>';
  const $=id=>root.querySelector('#'+id);
  const sections=$('analysisSections');
+ let lastEditorSection=null;
  function obtener(){
   const blocks={};
   for(const [name] of SECCIONES_ANALISIS_V2){blocks[name]=cleanHtml(sections.querySelector('[data-editor-section="'+name+'"]').innerHTML);}
@@ -155,13 +157,26 @@ export async function montarEditorAnalisis(model,root){
    body.contentEditable=editando?'true':'false';
    body.setAttribute('aria-label',label);card.append(body);sections.append(card);
   }
+  const toc=$('analysisToc');toc.replaceChildren();
+  const title=document.createElement('strong');title.textContent='Índice del análisis fundamental';toc.append(title);
+  const list=document.createElement('ol');list.className='analysis-toc-list';
+  let chapter=0;
+  for(const heading of sections.querySelectorAll('.v2-rich-editor h3')){
+   const id='v2-ch-'+ticker+'-'+(++chapter);heading.id=id;
+   const li=document.createElement('li'),link=document.createElement('a');
+   link.href='#'+id;link.textContent=heading.textContent;li.append(link);list.append(li);
+  }
+  toc.append(list);toc.hidden=chapter===0;
   $('analysisEdit').textContent=editando?'Terminar edición':'Editar análisis';
   $('editorOrigin').textContent=saved===official?'Análisis del expediente · revisión':'Borrador local o de edición · sin publicar';
   for(const id of ['analysisBold','analysisItalic','analysisBullet','analysisImageLabel','analysisSaveLocal','analysisSaveGitHub','analysisExport','analysisCancel'])$(id).hidden=!editando;
   $('analysisConnect').hidden=!editando||!!githubToken();
  }
  function notice(message,isError=false){$('editorStatus').textContent=message;$('editorStatus').dataset.level=isError?'error':'info';}
- function active(){return document.activeElement?.closest?.('[data-editor-section]')||sections.querySelector('[data-editor-section]');}
+ sections.addEventListener('focusin',event=>{
+  const el=event.target.closest?.('[data-editor-section]');if(el)lastEditorSection=el;
+ });
+ function active(){return document.activeElement?.closest?.('[data-editor-section]')||lastEditorSection||sections.querySelector('[data-editor-section]');}
  function command(cmd){const el=active();if(!el||!editando)return;el.focus();document.execCommand(cmd,false,null);}
  $('analysisEdit').addEventListener('click',async()=>{
   if(editando){saved=obtener();editando=false;dibujar(saved);notice('Cambios en pantalla: usa Guardar antes de cerrar para conservarlos.');return;}
