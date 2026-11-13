@@ -19,3 +19,8 @@ test('las fuentes sin URL no generan enlaces y los indicadores sin datos no se m
   assert.match(html, /function metricRow\([^)]*\)\{if\(!history\.some\(x=>finite\(x\[key\]\)\)\)return '';/);
   assert.match(html, /s\.label\|\|s\.documento/);
 });
+test('la página presenta el perfil de alto crecimiento con su propio motor y sensibilidad', () => {
+  assert.match(html, /esAlto=m=>m\?\.profile==='alto-crecimiento'/);
+  assert.match(html, /Δ margen \/ S2C/);
+  assert.ok(fs.existsSync(new URL('../docs/v2/motores/alto-crecimiento.mjs', import.meta.url)));
+});

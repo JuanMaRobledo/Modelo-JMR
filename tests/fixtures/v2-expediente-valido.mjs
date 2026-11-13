@@ -82,3 +82,31 @@ export function validoHolding(ticker = 'HLD') {
   m.analysis = Object.fromEntries(['business', 'moat', 'story', 'risks', 'conclusion'].map(k => [k, t]));
   return m;
 }
+
+/** Expediente SINTÉTICO de alto crecimiento (pérdidas operativas en transición). Solo para pruebas. */
+export function validoAlto(ticker = 'GRW') {
+  const mar = [0.10, 0.17, 0.12, 0.06, 0.02, -0.03, -0.08, -0.10, -0.09, -0.075];
+  const rev = [150, 210, 290, 390, 500, 590, 660, 720, 760, 800];
+  const history = rev.map((r, k) => { const equity = 400 + 20 * k, assets = equity * 2;
+    return { year: 2016 + k, revenue: r, ebit: +(r * mar[k]).toFixed(2), cash: 200, shares: 100, equity, assets, liabilities: assets - equity }; });
+  history.at(-1).ebit = -60;
+  const financials = { revenue0: 800, ebit0: -60, nol: 400, taxRate: 0.25, marketDebt: 300, shares: 100, sharePrice: 20, cash: 200, nonOperatingAssets: 0, optionsValue: 0 };
+  const comun = { riskFree: 0.04, erp: 0.05, beta: 1.3, costOfDebt: 0.06, stableGrowth: 0.03, stableDebtRatio: 0.2, stableBeta: 1.0, stableCostOfDebt: 0.055, stableRoc: 0.12, speed: 6, mos: 0.35 };
+  const m = {
+    schemaVersion: 'jmr-v2-0.2', ticker, company: `Empresa de alto crecimiento de prueba ${ticker}`, profile: 'alto-crecimiento', currency: 'USD', units: 'millones, excepto valor/acción',
+    asOf: '2026-11-13', estado: 'PUBLICADO', financials, history,
+    condicionesAltoCrecimiento: ['perdidas-operativas', 'margenes-negativos-transicion'],
+    justificaciones: { altoCrecimiento: 'EBIT negativo con margen en transición: el Ginsu simple no modela la convergencia gradual ni el NOL al mismo tiempo.' },
+    assumptions: {
+      conservador: { ...comun, growth: [0.25, 0.22, 0.20, 0.17, 0.15, 0.12, 0.10, 0.08, 0.06, 0.05], stableMargin: 0.15, salesToCapital: 1.8 },
+      base: { ...comun, growth: [0.35, 0.30, 0.25, 0.20, 0.17, 0.14, 0.11, 0.09, 0.07, 0.05], stableMargin: 0.20, salesToCapital: 2.2 },
+      optimista: { ...comun, growth: [0.45, 0.38, 0.30, 0.24, 0.20, 0.16, 0.13, 0.10, 0.08, 0.06], stableMargin: 0.25, salesToCapital: 2.6 },
+    },
+    provenance: ['revenue0', 'ebit0', 'nol', 'cash', 'nonOperatingAssets', 'marketDebt', 'shares'].map(k => ({ destino: `financials.${k}`, documento: 'Informe anual (prueba)', periodo: 2025, pagina: 90, moneda: 'USD', unidades: 'millones', valorReportado: financials[k], ajuste: 0 })),
+    sources: [{ documento: 'Informe anual (prueba)', url: null }], libro: { id: 'LIBRO-PRUEBA', sha256: 'd'.repeat(64) },
+    auditoria: { aprobadaPor: 'Auditor independiente', fecha: '2026-11-13', evidencia: 'acta-prueba' },
+  };
+  const t = 'Texto de análisis con evidencia suficiente para superar el mínimo exigido por el control.';
+  m.analysis = Object.fromEntries(['business', 'moat', 'story', 'risks', 'conclusion'].map(k => [k, t]));
+  return m;
+}
