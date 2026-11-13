@@ -25,6 +25,19 @@ test('catálogo deriva valor base, MOS y estado del motor y de los controles', (
   assert.ok(Math.abs(e.precioMOS - e.valorBase * 0.65) < 1e-9);
   assert.equal(e.archivo, 'empresas/TEST.json');
 });
+test('una empresa sin auditoría permanece visible para revisión cuando no tiene bloqueos', () => {
+  const m = valido('TEST'); delete m.auditoria;
+  const item = construirCatalogo(carpeta({ 'TEST.json': m })).catalogo.empresas[0];
+  assert.equal(item.estadoPermitido, 'EN_REVISION');
+  assert.equal(item.visibilidadApp, 'PUBLICADA_PARA_REVISION');
+});
+test('un expediente con bloqueos conserva ficha explicativa sin mostrar valor intrínseco', () => {
+  const m = valido('TEST'); m.profile = 'banco'; m.estado = 'BLOQUEADO';
+  const item = construirCatalogo(carpeta({ 'TEST.json': m })).catalogo.empresas[0];
+  assert.equal(item.visibilidadApp, 'BLOQUEADA');
+  assert.equal(item.valorBase, null);
+  assert.equal(item.precioMOS, null);
+});
 test('un estado declarado por encima de lo permitido se degrada en el catálogo', () => {
   const m = valido('TEST'); delete m.auditoria;
   const e = construirCatalogo(carpeta({ 'TEST.json': m })).catalogo.empresas[0];
