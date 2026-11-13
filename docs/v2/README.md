@@ -35,3 +35,6 @@ libro diligenciado → `exportar` → `docs/v2/empresas/TICKER.json` → `script
 
 ## Estado de los cuatro perfiles
 Los cuatro tienen motor con paridad, libro con fórmulas, exportación de expediente y control P07. Lo que sigue pendiente no es de ingeniería: informes reales en `ANALISIS`, auditoría independiente, abrir las plantillas en Excel, y despliegue/QA con autenticación.
+
+## Primera valoración real: ORCL (Oracle Corporation)
+`docs/v2/empresas/ORCL.json`, estado **EN_REVISION**: base US$ 55,66 · conservador 5,07 · optimista 143,71 frente a un precio de 127,11 (12-nov-2026). Datos de los Forms 10-K FY2017–FY2026 (la carpeta `ANALISIS/ORCL` de Drive trae también el libro y el análisis fundamental). Único control pendiente: la auditoría independiente. Límites principales: libro anual (el 10-Q de agosto de 2026 se calculó aparte, base US$ 61,61), arrendamientos operativos fuera de la deuda, activos no operativos en 0, calificación BBB supuesta por JMR. Detalle en el análisis y en `tests/jmr-v2-orcl.test.mjs`.

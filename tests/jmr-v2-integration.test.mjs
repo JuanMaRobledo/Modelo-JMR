@@ -8,7 +8,7 @@ test('JMR V2 stays independent of Floyd datasets and points to one own page',()=
  assert.match(html,/<title>Vista previa · Modelo JMR V2\.0/);
  assert.match(html,/const JMR_DEMO=/);
  assert.match(html,/SIMULACIÓN|SIMULACI[ÓO]N/);
- assert.match(html,/pendiente de paridad|paridad con Ginsu original/i);
+ assert.match(html,/paridad con (?:el )?Ginsu original/i);
  assert.doesNotMatch(html,/Modelo-JMR-datos\/catalogo\.json/);
  assert.doesNotMatch(html,/\/api\/model[?']/);
 });
