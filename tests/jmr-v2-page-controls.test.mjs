@@ -1,0 +1,10 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const html = fs.readFileSync(new URL('../docs/jmr-v2.html', import.meta.url), 'utf8');
+test('la página conecta el módulo de controles sin depender de él para cargar', () => {
+  assert.match(html, /await import\('\.\/v2\/expediente-v2\.mjs'\)/);
+  assert.match(html, /catch\(e\)\{console\.warn\('Controles de expediente no disponibles'/);
+  assert.match(html, /id="controlsView"/);
+  assert.ok(fs.existsSync(new URL('../docs/v2/expediente-v2.mjs', import.meta.url)));
+});
