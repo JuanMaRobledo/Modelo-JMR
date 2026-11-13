@@ -450,6 +450,36 @@
     {
       "documento": "EPAM Systems · Form 10-K FY2025 y Form 10-Q 3T2026",
       "label": "Informes regulatorios citados en Floyd; cotejo y paginación primaria pendientes"
+    },
+    {
+      "documento": "EPAM Systems · Form 10-K FY2020 · copia independiente en JMR V2.0",
+      "label": "Formulario anual oficial 10-K · FY2020 (pendiente cotejo de cifras V2)",
+      "url": "https://drive.google.com/file/d/1B_0YsRJBMaclohv6FBlXHzzv8-_L9RP-/view"
+    },
+    {
+      "documento": "EPAM Systems · Form 10-K FY2021 · copia independiente en JMR V2.0",
+      "label": "Formulario anual oficial 10-K · FY2021 (pendiente cotejo de cifras V2)",
+      "url": "https://drive.google.com/file/d/1QoexsL0QmdPGkdxERtg9tgdHsjfGS1Iz/view"
+    },
+    {
+      "documento": "EPAM Systems · Form 10-K FY2022 · copia independiente en JMR V2.0",
+      "label": "Formulario anual oficial 10-K · FY2022 (pendiente cotejo de cifras V2)",
+      "url": "https://drive.google.com/file/d/1w9kKyVOt6kJoluSQ5IXKwJXM1wqygc6Q/view"
+    },
+    {
+      "documento": "EPAM Systems · Form 10-K FY2023 · copia independiente en JMR V2.0",
+      "label": "Formulario anual oficial 10-K · FY2023 (pendiente cotejo de cifras V2)",
+      "url": "https://drive.google.com/file/d/1E2TNx4WQeZfiTAHMYGSKp-iEOaT5e_tG/view"
+    },
+    {
+      "documento": "EPAM Systems · Form 10-K FY2024 · copia independiente en JMR V2.0",
+      "label": "Formulario anual oficial 10-K · FY2024 (pendiente cotejo de cifras V2)",
+      "url": "https://drive.google.com/file/d/1VtMdNvmCGnIBA_I8o58-hWrz6UAw4U1S/view"
+    },
+    {
+      "documento": "EPAM Systems · Form 10-K FY2025 · copia independiente en JMR V2.0",
+      "label": "Formulario anual oficial 10-K · FY2025 (pendiente cotejo de cifras V2)",
+      "url": "https://drive.google.com/file/d/1YR5VkPTz-sCCZa-OZjXmEuble-Up-71z/view"
     }
   ],
   "warnings": [
@@ -457,6 +487,53 @@
     "Serie incluye diez ejercicios fiscales 2016–2025 más LTM al 30-sep-2026, identificado con year=2026 solo para continuidad de la tabla (NO es FY2026).",
     "Los supuestos son una traslación preliminar desde Floyd, NO calibración independiente del modelo V2.",
     "El valor de opciones (29,824 M), 2,292 M de RSU, tratamiento de arrendamientos operativos, NOL y WACC requieren revisión documental independiente.",
-    "Los múltiplos históricos deben revisarse antes de publicación: los cálculos emplean deuda financiera sin arrendamientos y distintas bases de acciones."
-  ]
+    "Los múltiplos históricos deben revisarse antes de publicación: los cálculos emplean deuda financiera sin arrendamientos y distintas bases de acciones.",
+    "Documentos V2: 10-K FY2020–FY2025 copiados a su carpeta propia; faltan 10-K individuales FY2016–FY2019 y cotejo contra originales para certificar la década."
+  ],
+  "driveV2": {
+    "carpetaExpediente": "https://drive.google.com/drive/folders/1SEsfnjrdTD8CQB8Hs7DsF1L5wweMRxp1",
+    "carpetaReportesAnuales": "https://drive.google.com/drive/folders/1v2IR_BTQ2SfDk24PGTYtojOu6Yq7eskj",
+    "carpetaValoracion": "https://drive.google.com/drive/folders/1uPSO5wOYkQ-qnSQZiwa0fa2LU3st1bkC",
+    "carpetaAuditoria": "https://drive.google.com/drive/folders/1QnWZCI-_beNxIKs0EoBvrwQpVP2KqnVk",
+    "plantillaCopiaSinCargar": "https://docs.google.com/spreadsheets/d/1Egh34D4SuUsaKPBNfuUz3V77Fuv2ntd0/edit",
+    "reportesPresentes": [
+      {
+        "ejercicio": 2020,
+        "tipo": "10-K",
+        "url": "https://drive.google.com/file/d/1B_0YsRJBMaclohv6FBlXHzzv8-_L9RP-/view"
+      },
+      {
+        "ejercicio": 2021,
+        "tipo": "10-K",
+        "url": "https://drive.google.com/file/d/1QoexsL0QmdPGkdxERtg9tgdHsjfGS1Iz/view"
+      },
+      {
+        "ejercicio": 2022,
+        "tipo": "10-K",
+        "url": "https://drive.google.com/file/d/1w9kKyVOt6kJoluSQ5IXKwJXM1wqygc6Q/view"
+      },
+      {
+        "ejercicio": 2023,
+        "tipo": "10-K",
+        "url": "https://drive.google.com/file/d/1E2TNx4WQeZfiTAHMYGSKp-iEOaT5e_tG/view"
+      },
+      {
+        "ejercicio": 2024,
+        "tipo": "10-K",
+        "url": "https://drive.google.com/file/d/1VtMdNvmCGnIBA_I8o58-hWrz6UAw4U1S/view"
+      },
+      {
+        "ejercicio": 2025,
+        "tipo": "10-K",
+        "url": "https://drive.google.com/file/d/1YR5VkPTz-sCCZa-OZjXmEuble-Up-71z/view"
+      }
+    ],
+    "reportesPorIncorporar": [
+      2016,
+      2017,
+      2018,
+      2019
+    ],
+    "estadoDocumental": "INCOMPLETO · fuentes secundarias Floyd pendientes de contraste primario V2"
+  }
 }
