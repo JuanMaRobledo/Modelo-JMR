@@ -44,6 +44,36 @@
 .catalog{text-align:left;margin:26px auto 0;max-width:980px}.catalog input{background:var(--surface);color:var(--ink);border:1px solid var(--border);border-radius:9px;padding:11px;width:min(340px,100%);margin-bottom:12px}.catalog tr[data-ticker]{cursor:pointer}.catalog tr[data-ticker]:hover td{background:var(--s2)}.badge{font-size:.7rem;font-weight:800;letter-spacing:.03em}.badge.PUBLICADO{color:var(--ok)}.badge.BLOQUEADO{color:#cc5555}.badge.EN_PROCESO,.badge.EN_REVISION{color:var(--warn)}
 .ctl-sum{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}.ctl-sum span{background:var(--s2);border:1px solid var(--border);border-radius:999px;padding:4px 11px;font-size:.76rem;font-weight:750}.ctl-list{list-style:none;margin:0;padding:0}.ctl-list li{display:grid;grid-template-columns:auto auto 1fr;gap:10px;padding:9px 0;border-top:1px solid var(--border);font-size:.82rem}.ctl-list b{font-variant-numeric:tabular-nums}.ctl-list .g-bloqueo{color:#cc5555}.ctl-list .g-error{color:var(--warn)}.ctl-list .g-aviso{color:var(--ink-light)}
 @media print{body{background:#fff}.hero{padding:20px;background:#fff;color:#111;border:1px solid #999}.hero h1,.hero p{color:#111}.toolbar,.appnav{display:none}.kpis,.scenario-grid,.two-panels{break-inside:avoid}.panel{box-shadow:none}}
+
+.analysis-toc{padding:14px 19px;margin:14px 0 22px;background:var(--s2);border:1px solid var(--border);border-radius:12px}
+.analysis-toc-list{columns:2;column-gap:32px;font-size:.86rem;padding-left:20px}
+.analysis-toc-list li{break-inside:avoid;margin:0 0 6px}
+#analysisView .analysis-grid{display:block}
+#analysisView .analysis-block{padding:20px 0;border-top:1px solid var(--border)}
+#analysisView .analysis-block h4{font-size:1.03rem;margin:0 0 9px}
+.statement-block{margin:16px 0 28px}.statement-block h4{font:600 1.15rem Georgia,serif;margin:0 0 12px}
+.full-financial-table th,.full-financial-table td{white-space:nowrap;text-align:right}
+.full-financial-table th:first-child,.full-financial-table td:first-child{text-align:left;min-width:200px}
+.v2-audit-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:14px 0}
+.v2-audit-form label{display:flex;flex-direction:column;gap:5px;font-size:.83rem;font-weight:650}
+.v2-audit-form input,.v2-audit-form textarea,.v2-audit-form select{font:inherit;padding:10px;border-radius:7px;border:1px solid var(--border);color:var(--ink);background:var(--surface);width:100%}
+.v2-audit-wide{grid-column:1/-1}.v2-audit-form button{justify-self:start}.v2-audit-actions{display:flex;gap:9px;flex-wrap:wrap;margin:16px 0}
+.v2-audit-entry{padding:12px 0;border-top:1px solid var(--border)}.v2-audit-entry p{white-space:pre-wrap;margin:3px 0 8px}
+.v2-audit-entry p:first-child{font-weight:700}.v2-audit-entry small{display:block;color:var(--ink-light)}
+.v2-audit-close{margin-top:7px}
+@media(max-width:740px){.analysis-toc-list{columns:1}.v2-audit-form{grid-template-columns:1fr}.full-financial-table th:first-child{min-width:165px}}
+@media print{
+ body{background:white!important;color:black!important}
+ .appnav,.toolbar,.v2-tabs,.v2-editor-bar,.v2-editor-note,.v2-audit-actions,.v2-audit-form,.v2-audit-close,#printFull{display:none!important}
+ #appContent:not([hidden]) [data-v2-tab],#appContent:not([hidden]) [data-v2-tab][hidden]{display:block!important}
+ #appContent:not([hidden]) .panel{box-shadow:none;border:0;break-inside:auto;margin:18px 0}
+ .statement-block{break-before:page}
+ .table-scroll{overflow:visible!important}
+ .full-financial-table{font-size:9pt;width:100%}.full-financial-table th,.full-financial-table td{white-space:normal}
+ .analysis-toc a{color:black;text-decoration:none}
+ .v2-audit-entry{break-inside:avoid}
+ a:after{content:""}
+}
 </style>
 <script src="mercado.js" defer></script>
 <script src="gh_oauth.js" defer></script>
@@ -81,6 +111,7 @@
 </section>
 <div id="appContent" hidden>
  <section class="company-head">
+  <button type="button" class="secondary" id="printFull">Imprimir análisis completo / Guardar PDF</button>
   <div><div class="eyebrow muted">EXPEDIENTE JMR V2.0 <span id="dataTag"></span></div><h2 id="companyName"></h2><p id="meta"></p></div>
   <div class="state" id="stateLabel">NO AUDITADO</div>
  </section>
@@ -105,10 +136,15 @@
   <div class="sectionhead"><div><div class="eyebrow muted">STORIES TO NUMBERS</div><h3 id="scenariosTitle">Tres escenarios, una lógica FCFF</h3></div><p>Sin promediar múltiplos con el DCF</p></div>
   <div id="scenarioGrid" class="scenario-grid"></div>
  </section>
- <section class="panel" data-v2-tab="financieros" aria-label="Estados financieros históricos">
-  <div class="sectionhead"><div><div class="eyebrow muted">DATOS REPORTADOS</div><h3>Estados financieros históricos</h3></div><p>Sin inventar cifras ausentes · LTM separado de FY</p></div>
-  <div class="table-scroll"><table id="statementsTable" class="v2-history-table"><thead></thead><tbody></tbody></table></div>
-  <p class="panel-hint" id="statementsNote"></p>
+ <section class="panel" data-v2-tab="financieros" aria-label="Tres estados financieros por separado">
+ <div class="sectionhead"><div><div class="eyebrow muted">ESTADOS FINANCIEROS</div><h3>Resultados, situación financiera y flujos de efectivo</h3></div><p>Históricos FY y LTM sin confundir periodos</p></div>
+ <article class="statement-block"><h4>Estado de resultados</h4><div class="table-scroll"><table id="incomeTable" class="v2-history-table full-financial-table"><thead></thead><tbody></tbody></table></div></article>
+ <article class="statement-block"><h4>Estado de situación financiera</h4><div class="table-scroll"><table id="balanceTable" class="v2-history-table full-financial-table"><thead></thead><tbody></tbody></table></div></article>
+ <article class="statement-block"><h4>Estado de flujos de efectivo</h4><div class="table-scroll"><table id="cashflowTable" class="v2-history-table full-financial-table"><thead></thead><tbody></tbody></table></div></article>
+ <p id="statementsNote" class="panel-hint"></p>
+ <p class="panel-hint">Los conceptos ausentes en el expediente normalizado aparecen como N/D. No equivalen a cero: para acreditar estados financieros íntegros hay que conciliar cada renglón con los informes oficiales.</p>
+ <a id="originalReportsFinancial" target="_blank" rel="noopener noreferrer" hidden>Consultar los reportes anuales originales ↗</a>
+ <div id="annualReportList" class="panel-hint" aria-label="Informes 10-K y 10-Q por periodo"></div>
  </section>
  <section class="panel" data-v2-tab="indicadores" aria-labelledby="financeTitle">
   <div class="sectionhead"><div><div class="eyebrow muted">EVOLUCIÓN FINANCIERA</div><h3 id="financeTitle">Márgenes, eficiencia y salud</h3></div><p>Ratios calculados · Los vacíos se muestran como N/D</p></div>
@@ -120,6 +156,7 @@
   <div id="scenarioReasons" class="scenario-grid reason-grid" aria-label="Justificación económica de cada escenario"></div>
   <div id="otherReasons"></div>
   <p id="modelSources" class="panel-hint"></p>
+  <a id="workbookEditLink" target="_blank" rel="noopener noreferrer" hidden>Abrir libro de valoración y supuestos ↗</a>
  </section>
  <section class="two-panels" data-v2-tab="sensibilidades">
   <section class="panel" aria-labelledby="cashflowsTitle"><div class="sectionhead"><div><div class="eyebrow muted">FLUJOS DE CAJA</div><h3 id="cashflowsTitle">Proyección del escenario Base</h3></div></div>
@@ -137,10 +174,12 @@
  <section class="panel" data-v2-tab="revision" aria-labelledby="ctlTitle">
   <div class="sectionhead"><div><div class="eyebrow muted">CONTROLES DE PUBLICACIÓN</div><h3 id="ctlTitle">Estado del expediente</h3></div><p>El estado declarado no puede superar al permitido por los controles</p></div>
   <div id="controlsView"><p class="muted">Módulo de controles no disponible.</p></div>
+  <div id="auditNotesHost" class="v2-audit-host"></div>
  </section>
  <section class="panel" data-v2-tab="analisis" aria-labelledby="fundTitle">
   <div class="sectionhead"><div><div class="eyebrow muted">ANÁLISIS CUALITATIVO</div><h3 id="fundTitle">La historia detrás del valor</h3></div><p>Sin sustituir datos por relatos</p></div>
   <div id="analysisView"></div>
+  <a id="analysisSourceLink" target="_blank" rel="noopener noreferrer" hidden>Consultar el análisis fundamental original ↗</a>
  </section>
  <section class="panel" data-v2-tab="revision" aria-labelledby="sourcesTitle">
   <div class="sectionhead"><div><div class="eyebrow muted">TRAZABILIDAD</div><h3 id="sourcesTitle">Fuentes y limitaciones</h3></div></div>
@@ -331,6 +370,8 @@ return {indicatorsForHistory};})();
 const {calculateAll, SCENARIOS, terminalSensitivity}=JMR_DCF;
 let montarEditorAnalisis=null;
 try{({montarEditorAnalisis}=await import('./v2/editor-analisis.mjs'));}catch(e){console.warn('Editor del análisis no disponible',e);}
+let montarCuadernoAuditoria=null;
+try{({montarCuadernoAuditoria}=await import('./v2/auditoria-notas.mjs'));}catch(e){console.warn('Cuaderno de auditoría no disponible',e);}
 let evaluarExpediente=null;
 let motor={SCENARIOS,soporta:p=>p==='operativa',calculateAll,sensibilidad:(m,n='base')=>terminalSensitivity(m.financials,m.assumptions[n])};
 try{({evaluarExpediente}=await import('./v2/expediente-v2.mjs'));}catch(e){console.warn('Controles de expediente no disponibles',e);}
@@ -416,8 +457,6 @@ function renderRegulatorio(model){const g=model.regulatorio;if(!g||!esFin(model)
  return `<p><strong>Capital regulatorio</strong> · ${l.map(([k,v])=>`${escape(k)}: ${finite(v)?(model.profile==='banco'?percent(v):number(v*100,0)+' %'):'N/D'}`).join(' · ')} · ${escape(g.fecha||'sin fecha')} · ${escape(g.fuente||'sin fuente')}</p>`;}
 function renderStatements(model){
  const periods=(model.history||[]).slice(-11);
- const table=$('statementsTable');
- if(!periods.length){table.innerHTML='<tbody><tr><td>No hay estados financieros vinculados.</td></tr></tbody>';return;}
  const grupos=[
   ['Estado de resultados',[
    ['Ingresos','revenue'],['Costo de ventas','cogs'],['Utilidad bruta (calculada)','grossProfit'],
@@ -443,15 +482,20 @@ function renderStatements(model){
   if(key==='calculatedFCF' && finite(h.operatingCF)&&finite(h.capex))return h.operatingCF-h.capex;
   return h[key];
  };
- table.querySelector('thead').innerHTML='<tr><th>Concepto</th>'+periods.map(h=>'<th>'+escape(h.periodo||String(h.year))+'</th>').join('')+'</tr>';
- table.querySelector('tbody').innerHTML=grupos.map(([grupo,fields])=>
-  '<tr><th colspan="'+(periods.length+1)+'" scope="colgroup" style="text-align:left;background:var(--s2);position:static">'+escape(grupo)+'</th></tr>'+
-  fields.map(([label,key])=>'<tr><th scope="row">'+escape(label)+'</th>'+
-   periods.map(h=>'<td>'+number(value(h,key),2)+'</td>').join('')+'</tr>').join('')
- ).join('');
- const missing=grupos.flatMap(x=>x[1]).reduce((sum,x)=>sum+periods.filter(h=>!finite(value(h,x[1]))).length,0);
- $('statementsNote').textContent='N/D indica una partida no documentada en el expediente, no cero. '+missing+
-  ' celdas sin datos. Los importes calculados se identifican expresamente y LTM no representa un año fiscal completo.';
+ const ids=['incomeTable','balanceTable','cashflowTable'];
+ let missing=0;
+ grupos.forEach(([title,fields],index)=>{
+  const table=$(ids[index]);
+  table.querySelector('thead').innerHTML='<tr><th>Concepto</th>'+periods.map(h=>'<th>'+escape(h.periodo||('FY '+h.year))+'</th>').join('')+'</tr>';
+  table.querySelector('tbody').innerHTML=fields.map(([label,key])=>'<tr><th scope="row">'+escape(label)+'</th>'+
+   periods.map(h=>{const x=value(h,key);if(!finite(x)){missing++;return '<td>N/D</td>';}return '<td>'+number(x,2)+'</td>';}).join('')+'</tr>').join('');
+ });
+ $('statementsNote').textContent=periods.length+' periodos · '+missing+' celdas sin datos reportados. Se identifican los cálculos derivados y se distingue el periodo LTM de un año fiscal completo.';
+ const report=safeUrl(model.documentLinks?.annualReportsFolder),link=$('originalReportsFinancial');
+ link.hidden=!report;if(report)link.href=report;else link.removeAttribute('href');
+ const reports=[...(model.annualReportDocuments||[]),...(model.quarterlyReportDocuments||[])].filter(x=>x&&safeUrl(x.url)&&Number.isInteger(x.fy));
+ $('annualReportList').innerHTML=reports.length?'<p><strong>Informes originales para cotejo contable:</strong></p><p>'+
+  reports.map(x=>'<a href="'+escape(safeUrl(x.url))+'" target="_blank" rel="noopener noreferrer">'+escape(x.kind||'Reporte')+' '+escape('FY '+x.fy)+(x.periodEnd?' ('+escape(x.periodEnd)+')':'')+'</a>').join(' · ')+'</p>':'';
 }
 function renderAssumptions(model){
  const params=[['Crecimiento año 1','growth1','p'],['Crecimiento años 2–5','growth2to5','p'],['Margen inicial','margin1','p'],['Margen objetivo','marginTarget','p'],['Ventas / capital años 1–5','salesToCapital1to5','n'],['Ventas / capital años 6–10','salesToCapital6to10','n'],['WACC inicial','waccInitial','p'],['WACC terminal','waccTerminal','p'],['ROIC terminal','roicTerminal','p'],['Crecimiento perpetuo','gTerminal','p'],['Impuesto marginal','marginalTax','p'],['MOS','mos','p']];
@@ -471,6 +515,8 @@ function renderAssumptions(model){
  $('otherReasons').innerHTML=extras.length?'<h4>Justificaciones transversales y limitaciones</h4>'+
   extras.map(([key,txt])=>'<p><strong>'+escape(key)+':</strong> '+escape(txt)+'</p>').join(''):'';
  $('modelSources').textContent='Escenarios = hipótesis de negocio, no resultados confirmados. Fuente: expediente V2 y fuentes documentadas; las cifras preliminares conservan las salvedades de revisión.';
+ const book=safeUrl(model.documentLinks?.workbook),bookLink=$('workbookEditLink');
+ bookLink.hidden=!book;if(book)bookLink.href=book;else bookLink.removeAttribute('href');
 }
 function renderConcerns(model,ev){
  const pending=[...(model.warnings||[])];
@@ -483,6 +529,7 @@ function selectV2Tab(name){
  for(const button of tabs){const selected=button.dataset.v2View===name;button.setAttribute('aria-selected',String(selected));button.tabIndex=selected?0:-1;}
  for(const panel of document.querySelectorAll('[data-v2-tab]'))panel.hidden=panel.dataset.v2Tab!==name;
 }
+$('printFull').addEventListener('click',()=>window.print());
 document.querySelector('#v2Tabs').addEventListener('click',event=>{const button=event.target.closest('[data-v2-view]');if(button)selectV2Tab(button.dataset.v2View);});
 document.querySelector('#v2Tabs').addEventListener('keydown',event=>{
  if(!['ArrowRight','ArrowLeft','Home','End'].includes(event.key))return;
@@ -502,7 +549,8 @@ function renderAnalysis(model){const sections=[['business','Negocio y modelo eco
  }
  const sources=model.sources||[];
  $('sourcesView').innerHTML=renderRegulatorio(model)+(sources.length?`<ul class="source-list">${sources.map(s=>{const href=safeUrl(s.url);
-  return `<li>${href?`<a href="${escape(href)}" target="_blank" rel="noopener noreferrer">${escape(s.label||s.documento||href)}</a>`:`<span class="note">${escape(s.label||s.documento||'Fuente no documentada')}</span>`}</li>`;}).join('')}</ul>`:'<p>Faltan fuentes primarias documentadas.</p>');
+  return `<li>${href?`<a href="${escape(href)}" target="_blank" rel="noopener noreferrer">${escape(s.label||s.documento||href)}</a>`:`<span class="note">${escape(s.label||s.documento||'Fuente no documentada')}</span>`}</li>`;}).join('')}</ul>`:'<p>Faltan fuentes primarias documentadas.</p>'); const original=safeUrl(model.documentLinks?.originalFundamentalAnalysis),originalLink=$('analysisSourceLink');
+ originalLink.hidden=!original;if(original)originalLink.href=original;else originalLink.removeAttribute('href');
 }
 function renderControls(model){
  const box=$('controlsView');if(!evaluarExpediente){return null;}
@@ -542,7 +590,7 @@ function render(model){
  $('upside').textContent=percent(base?.perShare>0&&model.financials?.sharePrice>0?base.perShare/model.financials.sharePrice-1:null);
  $('warnings').innerHTML=`<strong>Control de publicación</strong>${notice.map(escape).join(' ')}`;
  $('warnings').hidden=false;
- renderScenarios(calc,model);renderHistory(model.history,esFin(model));renderStatements(model);renderAssumptions(model);renderProjection(base,esFin(model),esHold(model));renderSensitivity(model,bloqueado);renderConcerns(model,ev);renderAnalysis(model);selectV2Tab("analisis");
+ renderScenarios(calc,model);renderHistory(model.history,esFin(model));renderStatements(model);renderAssumptions(model);renderProjection(base,esFin(model),esHold(model));renderSensitivity(model,bloqueado);renderConcerns(model,ev);if(montarCuadernoAuditoria)montarCuadernoAuditoria(model,$('auditNotesHost'));renderAnalysis(model);selectV2Tab("analisis");
  document.title=`${model.ticker||'Expediente'} · JMR V2.0`;
 }
 async function loadJSON(url){const response=await fetch(url,{cache:'no-store'});if(!response.ok)throw new Error(`No se pudo cargar (${response.status})`);return response.json();}
