@@ -18,7 +18,8 @@
     "errores": 1,
     "avisos": 0
    },
-   "archivo": "empresas/ORCL.json"
+   "archivo": "empresas/ORCL.json",
+   "visibilidadApp": "PUBLICADA_PARA_REVISION"
   }
  ]
 }
