@@ -336,6 +336,8 @@ function indicatorsForHistory(history){
 
 return {indicatorsForHistory};})();
 const {calculateAll, SCENARIOS, terminalSensitivity}=JMR_DCF;
+let montarEditorAnalisis=null;
+try{({montarEditorAnalisis}=await import('./v2/editor-analisis.mjs'));}catch(err){console.warn('Editor V2 no disponible',err);}
 let evaluarExpediente=null;
 let motor={SCENARIOS,soporta:p=>p==='operativa',calculateAll,sensibilidad:(m,n='base')=>terminalSensitivity(m.financials,m.assumptions[n])};
 try{({evaluarExpediente}=await import('./v2/expediente-v2.mjs'));}catch(e){console.warn('Controles de expediente no disponibles',e);}
@@ -419,13 +421,118 @@ function renderSensitivity(model,bloqueado=false){const tbl=$('sensitivityTable'
 function renderRegulatorio(model){const g=model.regulatorio;if(!g||!esFin(model))return '';
  const l=model.profile==='banco'?[['CET1',g.cet1],['Mínimo exigido',g.cet1Minimo]]:[['Ratio de solvencia',g.solvencyRatio],['Mínimo exigido',g.solvencyMinimo]];
  return `<p><strong>Capital regulatorio</strong> · ${l.map(([k,v])=>`${escape(k)}: ${finite(v)?(model.profile==='banco'?percent(v):number(v*100,0)+' %'):'N/D'}`).join(' · ')} · ${escape(g.fecha||'sin fecha')} · ${escape(g.fuente||'sin fuente')}</p>`;}
-function renderAnalysis(model){const sections=[['business','Negocio y modelo económico'],['moat','Ventaja competitiva'],
- ['story','Historias → números'],['risks','Riesgos y contraevidencia'],['conclusion','Conclusión fundamental']];
- $('analysisView').innerHTML=sections.map(([k,title])=>`<div class="analysis-block"><h4>${title}</h4><p>${escape(model.analysis?.[k]||'Pendiente de análisis cualitativo con evidencia primaria.')}</p></div>`).join('');
- const sources=model.sources||[];
- $('sourcesView').innerHTML=renderRegulatorio(model)+(sources.length?`<ul class="source-list">${sources.map(s=>{const href=safeUrl(s.url);
-  return `<li>${href?`<a href="${escape(href)}" target="_blank" rel="noopener noreferrer">${escape(s.label||s.documento||href)}</a>`:`<span class="note">${escape(s.label||s.documento||'Fuente no documentada')}</span>`}</li>`;}).join('')}</ul>`:'<p>Faltan fuentes primarias documentadas.</p>');
+function renderStatements(model){
+ const h=Array.isArray(model.history)?model.history:[];
+ const rows={
+  incomeTable:[
+   ['Ingresos','revenue'],['Costo de ventas','cogs'],
+   ['Beneficio bruto (derivado: ingresos − costo)','grossComputed'],
+   ['Investigación y desarrollo','rd'],['EBIT (resultado operativo)','ebit'],
+   ['Gasto de intereses','interestExpense'],['Ingresos/gastos no operativos, netos','nonOperatingIncome'],
+   ['Resultado antes de impuestos','pretaxIncome'],['Gasto por impuestos','taxExpense'],
+   ['Resultado neto','netIncome']
+  ],
+  balanceTable:[
+   ['Efectivo y valores negociables','cash'],['Activos corrientes','currentAssets'],
+   ['Inventarios','inventory'],['Activos no corrientes (derivados)','noncurrentAssets'],
+   ['Activos totales','assets'],['Pasivos corrientes','currentLiabilities'],
+   ['Pasivos no corrientes (derivados)','noncurrentLiabilities'],
+   ['Pasivos totales','liabilities'],['Deuda financiera (incluida en pasivos)','debt'],
+   ['Patrimonio reportado','equity'],
+   ['Participaciones / preferentes ajustadas para valoración (no sumar al balance)','minority'],
+   ['Activos no operativos para valoración','nonoperatingAssets']
+  ],
+  cashflowTable:[
+   ['Flujo de efectivo operativo','operatingCF'],
+   ['Depreciación y amortización','da'],['Remuneración basada en acciones','sbc'],
+   ['Variación de capital de trabajo (según libro)','changeNWC'],
+   ['Inversión en capital (CAPEX)','capex'],['Adquisiciones (si reportadas)','acquisitions'],
+   ['Flujo de inversión reportado','investingCF'],
+   ['Flujo de financiación','financingCF'],
+   ['Dividendos y recompras (total)','dividendsBuybacks'],
+   ['Flujo libre (derivado: FCO − CAPEX)','freeCashFlow']
+  ]
+ };
+ function val(x,k){
+  if(k==='grossComputed')return typeof x.revenue==='number'&&typeof x.cogs==='number'?x.revenue-x.cogs:null;
+  if(k==='noncurrentAssets')return typeof x.assets==='number'&&typeof x.currentAssets==='number'?x.assets-x.currentAssets:null;
+  if(k==='noncurrentLiabilities')return typeof x.liabilities==='number'&&typeof x.currentLiabilities==='number'?x.liabilities-x.currentLiabilities:null;
+  if(k==='freeCashFlow')return typeof x.operatingCF==='number'&&typeof x.capex==='number'?x.operatingCF-x.capex:null;
+  return x[k]??null;
+ }
+ const formatted=x=>typeof x==='number'&&Number.isFinite(x)?number(x,2):'N/D';
+ for(const [id,fields] of Object.entries(rows)){
+  const t=$(id);t.querySelector('thead').innerHTML='<tr><th>Concepto</th>'+h.map(y=>'<th scope="col">'+escape(y.periodo||('FY '+y.year))+'</th>').join('')+'</tr>';
+  t.querySelector('tbody').innerHTML=fields.map(([label,key])=>'<tr><th scope="row">'+escape(label)+'</th>'+h.map(y=>'<td>'+formatted(val(y,key))+'</td>').join('')+'</tr>').join('');
+ }
+ $('financialDisclosure').textContent='Cifras de '+(model.units||'las unidades del expediente')+' · '+h.length+' ejercicios. Se muestran todos los campos normalizados disponibles; algunos renglones necesarios para reproducir íntegramente el 10-K aún no están desagregados y se indican N/D.';
+ const url=safeUrl(model.documentLinks?.annualReportsFolder);
+ const link=$('originalReportsFinancial');
+ link.hidden=!url;if(url)link.href=url;else link.removeAttribute('href');
 }
+
+function renderAssumptions(model){
+ const names={growth1:'Crecimiento año 1',growth2to5:'Crecimiento compuesto años 2–5',margin1:'Margen EBIT año 1',marginTarget:'Margen objetivo',marginConvergenceYear:'Año de convergencia de margen',salesToCapital1to5:'Ventas / capital años 1–5',salesToCapital6to10:'Ventas / capital años 6–10',waccInitial:'WACC inicial',waccTerminal:'WACC terminal',roicTerminal:'ROIC terminal',gTerminal:'Crecimiento perpetuo',marginalTax:'Tasa marginal de impuestos',mos:'Margen de seguridad',failureProbability:'Probabilidad de fracaso',recoveryRate:'Tasa de recuperación',growthHigh:'Crecimiento extraordinario',payout:'Payout',roe:'ROE',costOfEquity:'Costo del patrimonio'};
+ const sc=motor.SCENARIOS;
+ const preferred=Object.keys(names);
+ const extras=[...new Set(sc.flatMap(n=>Object.keys(model.assumptions?.[n]||{})))].filter(k=>!preferred.includes(k));
+ const keys=[...preferred.filter(k=>sc.some(n=>Object.prototype.hasOwnProperty.call(model.assumptions?.[n]||{},k))),...extras];
+ const percentKeys=/growth|margin|wacc|roic|terminal|tax|mos|probability|recovery|payout|roe|costofequity/i;
+ const output=x=>typeof x==='number'&&Number.isFinite(x)?(Number.isInteger(x)&&x>=1&&x<=10?number(x,0):number(x,3)):(typeof x==='string'?escape(x):'N/D');
+ const format=(v,k)=>typeof v==='number'&&Number.isFinite(v)&&percentKeys.test(k)&&!/year$/i.test(k)?percent(v,2):output(v);
+ const t=$('assumptionsTable');
+ t.querySelector('thead').innerHTML='<tr><th>Supuesto</th>'+sc.map(n=>'<th>'+escape(n)+'</th>').join('')+'</tr>';
+ t.querySelector('tbody').innerHTML=keys.map(k=>'<tr><th scope="row">'+escape(names[k]||k)+'</th>'+sc.map(n=>'<td>'+format(model.assumptions?.[n]?.[k],k)+'</td>').join('')+'</tr>').join('');
+ const reasons=Object.entries(model.justificaciones||{}).map(([key,value])=>'<p><strong>'+escape(key)+':</strong> '+escape(value)+'</p>').join('');
+ const story=typeof model.analysis?.story==='string'?'<h4>Historia económica de los escenarios</h4><p>'+escape(model.analysis.story)+'</p>':'';
+ $('assumptionsReasons').innerHTML=story+reasons||'<p>Justificaciones pendientes; revisar fuentes del expediente.</p>';
+ $('modelSources').textContent='Los parámetros son de la valoración V2 vigente. Editar el libro no recalcula ni publica esta ficha automáticamente: la revisión deberá exportarse, conciliarse y aprobarse antes de incorporarse a la app.';
+ const url=safeUrl(model.documentLinks?.workbook);
+ const link=$('workbookEditLink');link.hidden=!url;if(url)link.href=url;else link.removeAttribute('href');
+}
+
+function renderConcerns(model,ev){
+ const issues=[];
+ if(ev&&Array.isArray(ev.controles))for(const c of ev.controles)issues.push(c.id+' · '+c.gravedad.toUpperCase()+' · '+c.msg);
+ for(const w of model.warnings||[])issues.push('Advertencia · '+w);
+ if(model.ticker==='ORCL'){
+  issues.push('Para declarar completos los tres estados financieros en el visor hay que incorporar los desgloses contables que todavía no están presentes en el expediente normalizado (señalados N/D). Consultar los Forms 10-K originales.');
+  issues.push('Los arrendamientos operativos, el valor de opciones y RSU y los activos no operativos requieren validación económica independiente antes de aprobar la valoración.');
+ }
+ $('concernsView').innerHTML=issues.length?issues.map(x=>'<li>'+escape(x)+'</li>').join(''):'<li>No hay asuntos pendientes registrados.</li>';
+}
+
+function selectV2Tab(name){
+ const buttons=[...document.querySelectorAll('[data-v2-view]')];
+ if(!buttons.some(b=>b.dataset.v2View===name))name='analisis';
+ for(const button of buttons){const current=button.dataset.v2View===name;button.setAttribute('aria-selected',String(current));button.tabIndex=current?0:-1;}
+ for(const panel of document.querySelectorAll('[data-v2-tab]'))panel.hidden=panel.dataset.v2Tab!==name;
+}
+
+function handleTabs(event){
+ const button=event.target.closest('[data-v2-view]');if(button)selectV2Tab(button.dataset.v2View);
+}
+
+function handleTabArrows(event){
+ if(!['ArrowRight','ArrowLeft','Home','End'].includes(event.key))return;
+ const buttons=[...document.querySelectorAll('[data-v2-view]')],ix=buttons.findIndex(b=>b.getAttribute('aria-selected')==='true');
+ const n=event.key==='Home'?0:event.key==='End'?buttons.length-1:(ix+(event.key==='ArrowRight'?1:-1)+buttons.length)%buttons.length;
+ event.preventDefault();selectV2Tab(buttons[n].dataset.v2View);buttons[n].focus();
+}
+
+function renderAnalysisV2(model){
+ const root=$('analysisView');
+ const sections=[['business','Negocio y modelo económico'],['moat','Ventaja competitiva'],['story','Historias → números'],['risks','Riesgos y contraevidencia'],['conclusion','Conclusión fundamental']];
+ root.innerHTML='<div class="analysis-grid">'+sections.map(([k,title])=>'<div class="analysis-block"><h4>'+escape(title)+'</h4><p>'+escape(model.analysis?.[k]||'Pendiente de análisis cualitativo con evidencia primaria.')+'</p></div>').join('')+'</div>';
+ if(montarEditorAnalisis&&!model.fictional&&/^[A-Z0-9.-]{1,18}$/.test(model.ticker||'')){
+  montarEditorAnalisis(model,root).catch(err=>{root.insertAdjacentHTML('beforeend','<p class="v2-editor-note" data-level="error">'+escape(err.message)+'</p>');});
+ }
+ const sources=model.sources||[];
+ $('sourcesView').innerHTML=renderRegulatorio(model)+(sources.length?'<ul class="source-list">'+sources.map(so=>{const href=safeUrl(so.url);return '<li>'+(href?'<a href="'+escape(href)+'" target="_blank" rel="noopener noreferrer">'+escape(so.label||so.documento||href)+'</a>':'<span class="note">'+escape(so.label||so.documento||'Fuente no documentada')+'</span>')+'</li>';}).join('')+'</ul>':'<p>Faltan fuentes documentadas.</p>');
+ const u=safeUrl(model.documentLinks?.originalFundamentalAnalysis);
+ const link=$('analysisSourceLink');link.hidden=!u;if(u)link.href=u;else link.removeAttribute('href');
+}
+
 function renderControls(model){
  const box=$('controlsView');if(!evaluarExpediente){return null;}
  const r=evaluarExpediente(model,motor);
@@ -462,7 +569,7 @@ function render(model){
  $('upside').textContent=percent(base?.perShare>0&&model.financials?.sharePrice>0?base.perShare/model.financials.sharePrice-1:null);
  $('warnings').innerHTML=`<strong>Control de publicación</strong>${notice.map(escape).join(' ')}`;
  $('warnings').hidden=false;
- renderScenarios(calc,model);renderHistory(model.history,esFin(model));renderProjection(base,esFin(model),esHold(model));renderSensitivity(model,bloqueado);renderAnalysis(model);
+ renderScenarios(calc,model);renderHistory(model.history,esFin(model));renderProjection(base,esFin(model),esHold(model));renderSensitivity(model,bloqueado);renderStatements(model);renderAssumptions(model);renderConcerns(model,ev);renderAnalysisV2(model);selectV2Tab("analisis");
  document.title=`${model.ticker||'Expediente'} · JMR V2.0`;
 }
 async function loadJSON(url){const response=await fetch(url,{cache:'no-store'});if(!response.ok)throw new Error(`No se pudo cargar (${response.status})`);return response.json();}
@@ -471,6 +578,8 @@ $('reset').addEventListener('click',()=>{showNoData();$('uploadFile').value='';}
 $('uploadFile').addEventListener('change',async e=>{const f=e.target.files?.[0];if(!f)return;
  try{if(f.size>2_000_000)throw new Error('El expediente supera 2 MB');const m=JSON.parse(await f.text());render(m);$('dataTag').textContent='· LOCAL · NO PUBLICADO';$('stateLabel').textContent='LOCAL · '+$('stateLabel').textContent;}
  catch(err){showNoData(`No se pudo leer el archivo JSON: ${err.message}`);}});
+document.getElementById('v2Tabs').addEventListener('click',handleTabs);
+document.getElementById('v2Tabs').addEventListener('keydown',handleTabArrows);
 let options=[];
 async function loadCatalog(){
  try{const c=await loadJSON('./v2/catalogo.json');options=c&&c.schemaVersion==='jmr-v2-catalogo-1'&&Array.isArray(c.empresas)?c.empresas.filter(x=>/^[A-Z0-9.-]{1,18}$/.test(x.ticker)):[];}
