@@ -99,7 +99,7 @@ def build_estados(base, datos):
                  patrimonio='equity', minoritarios='minority', noop='nonoperatingAssets', cfo='operatingCF', capex='capex', dwc='changeNWC', adq=None, fin=None, divrec=None,
                  acciones='shares', sbc=None, id=None, nol=None)[key]
         if key == 'opex': return h['revenue'] - h['cogs'] - h['ebit']
-        if key in ('arrend', 'adq', 'fin', 'divrec', 'sbc', 'id', 'nol'): return 0.0
+        if key in ('arrend', 'adq', 'fin', 'divrec', 'sbc', 'id', 'nol'): return h.get({'arrend': 'leases', 'adq': 'acquisitions', 'fin': 'financingCF', 'divrec': 'dividendsBuybacks', 'sbc': 'sbc', 'id': 'rd', 'nol': 'nol'}[key], 0.0)
         return h[m]
     for key, label, stl in ROWS_IN:
         r = R[key]; sh.put(ref('A', r), label); sh.put(ref('B', r), 'Reportado', st='note')

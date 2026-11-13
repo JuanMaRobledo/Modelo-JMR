@@ -28,4 +28,10 @@ Un motor por perfil económico (`motores/despacho.mjs`); nunca se ejecutan todos
 ## Circuito completo (operativas, bancos, aseguradoras)
 libro diligenciado → `exportar` → `docs/v2/empresas/TICKER.json` → `scripts/v2-catalogo.mjs` → página. P07 exige que el valor del libro concilie con el motor (±0,5 %).
 
-- Pendiente: libro para **holdings** y **alto crecimiento** (sus expedientes no pueden llegar a `PUBLICADO` sin él, por P07), informes reales, despliegue en Vercel y QA con autenticación.
+## Libros de alto crecimiento y holdings
+- `scripts/v2-libro-alto.py`: inyecta las hojas JMR en `higrowth` (convertido de `.xls`). Los tres escenarios del libro coinciden con el motor JS (datos sintéticos con EBIT negativo y NOL). La deuda se reporta a valor en libros y el ajuste a valor de mercado queda documentado en «JMR Fuentes».
+- `scripts/v2-libro-holding.py`: no hay libro original que inyectar (`illGE` está atado a los siete segmentos de GE), así que la suma de partes usa **fórmulas propias de Excel** («JMR Negocios», hasta 8 negocios): fórmula de dos etapas por negocio, participación económica, valores externos para negocios financieros, descuento solo con justificación. Es una implementación independiente del motor JS y ambas dan el mismo valor en los tres escenarios (con opciones y descuento incluidos).
+- Las mutaciones de los tres constructores se detectan; se añadieron opciones y descuento a la semilla del holding porque una mutación sobre ellos no se detectaba.
+
+## Estado de los cuatro perfiles
+Los cuatro tienen motor con paridad, libro con fórmulas, exportación de expediente y control P07. Lo que sigue pendiente no es de ingeniería: informes reales en `ANALISIS`, auditoría independiente, abrir las plantillas en Excel, y despliegue/QA con autenticación.
