@@ -1,5 +1,7 @@
 # JMR V2.0 · estado de los motores
 
+Documentos: `DECISIONES.md` · `metodologia/CRITERIOS_DE_PUBLICACION.md` · `metodologia/PROCEDIMIENTO_EXPEDIENTE.md` · `metodologia/FUENTES_DAMODARAN.md`
+
 Un motor por perfil económico (`motores/despacho.mjs`); nunca se ejecutan todos sobre la misma empresa. Tres escenarios con el mismo motor; MOS 35 % sobre el escenario base.
 
 | Perfil | Motor | Referencia (Damodaran) | Paridad verificada | No replicado / rechazado |
@@ -18,4 +20,18 @@ Un motor por perfil económico (`motores/despacho.mjs`); nunca se ejecutan todos
 - Verificación (`verify`, LibreOffice + `tests/jmr-v2-libro.test.mjs`): los tres escenarios coinciden con el motor JS, los indicadores del libro coinciden con los del navegador en los 10 ejercicios, y un enlace roto en el constructor hace fallar las pruebas.
 - Plantilla en blanco en Drive (`PLANTILLAS`). **No verificada abriéndola en Excel** (solo LibreOffice y openpyxl); las tres cifras de los escenarios se guardan como instantánea con control «VIGENTE/DESACTUALIZADO» porque un solo motor calcula un escenario a la vez.
 
-- Pendiente: libro para los otros tres perfiles, informes reales, despliegue en Vercel y QA con autenticación.
+## Libro financiero (bancos y aseguradoras)
+`scripts/v2-libro-financiero.py` aplica la misma técnica a `divginzu.xlsx` (método `ddm`) y a `eqexret` (método `exceso`; el original `.xls` se convierte a `.xlsx` con LibreOffice, así que esa plantilla parte de una copia convertida). Hojas nuevas: Estados (resultados, balance con minoritarias y preferentes, datos regulatorios con controles), Indicadores (ROE, ROA, payout, capital, P/E, P/BV; sin indicadores industriales), Escenarios y Fuentes.
+- `exportar` genera el expediente desde el libro recalculado. Los valores del libro coinciden con el motor JS en los tres escenarios (banco DDM 20,21 / 21,15 / 22,13; aseguradora exceso 18,65 / 20,20 / 21,83, datos sintéticos) y el expediente exportado solo queda pendiente de la auditoría independiente.
+- Mutaciones del constructor detectadas; plantillas en blanco en `PLANTILLAS` (no abiertas en Excel).
+
+## Circuito completo (operativas, bancos, aseguradoras)
+libro diligenciado → `exportar` → `docs/v2/empresas/TICKER.json` → `scripts/v2-catalogo.mjs` → página. P07 exige que el valor del libro concilie con el motor (±0,5 %).
+
+## Libros de alto crecimiento y holdings
+- `scripts/v2-libro-alto.py`: inyecta las hojas JMR en `higrowth` (convertido de `.xls`). Los tres escenarios del libro coinciden con el motor JS (datos sintéticos con EBIT negativo y NOL). La deuda se reporta a valor en libros y el ajuste a valor de mercado queda documentado en «JMR Fuentes».
+- `scripts/v2-libro-holding.py`: no hay libro original que inyectar (`illGE` está atado a los siete segmentos de GE), así que la suma de partes usa **fórmulas propias de Excel** («JMR Negocios», hasta 8 negocios): fórmula de dos etapas por negocio, participación económica, valores externos para negocios financieros, descuento solo con justificación. Es una implementación independiente del motor JS y ambas dan el mismo valor en los tres escenarios (con opciones y descuento incluidos).
+- Las mutaciones de los tres constructores se detectan; se añadieron opciones y descuento a la semilla del holding porque una mutación sobre ellos no se detectaba.
+
+## Estado de los cuatro perfiles
+Los cuatro tienen motor con paridad, libro con fórmulas, exportación de expediente y control P07. Lo que sigue pendiente no es de ingeniería: informes reales en `ANALISIS`, auditoría independiente, abrir las plantillas en Excel, y despliegue/QA con autenticación.

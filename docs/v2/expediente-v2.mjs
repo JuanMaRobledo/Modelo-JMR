@@ -28,8 +28,10 @@ export function controlesDatos(m) {
   add('D04', 'error', ord.every((y, i) => i === 0 || y === ord[i - 1] + 1), 'Los ejercicios históricos no son consecutivos (faltan años).');
   add('D05', 'bloqueo', !!m.currency && !!m.units, 'Falta moneda o unidades del expediente.');
   for (const x of h) {
-    if ([x.assets, x.liabilities, x.equity].every(num))
-      add('D06', 'error', rel(x.assets, x.liabilities + x.equity, 0.005), `${x.year}: activos ≠ pasivos + patrimonio (tolerancia 0,5 %).`);
+    if ([x.assets, x.liabilities, x.equity].every(num)) {
+      const nci = FINANCIEROS.includes(m.profile) && num(x.minority) ? x.minority : 0;   // entidades financieras: minoritarias y preferentes fuera del patrimonio común
+      add('D06', 'error', rel(x.assets, x.liabilities + x.equity + nci, 0.005), `${x.year}: activos ≠ pasivos + patrimonio${nci ? ' + minoritarias/preferentes' : ''} (tolerancia 0,5 %).`);
+    }
     if ([x.ebit, x.interestExpense, x.pretaxIncome].every(num))
       add('D07', 'error', rel(x.pretaxIncome, x.ebit - x.interestExpense, 0.005), `${x.year}: utilidad antes de impuestos ≠ EBIT − intereses.`);
     if ([x.pretaxIncome, x.taxExpense, x.netIncome].every(num))
@@ -88,6 +90,10 @@ export function controlesValoracion(m, engine) {
   const a = m.assumptions;
   add('V05', 'error', engine.SCENARIOS.every(n => a[n].mos === MOS_ESTANDAR), `El MOS debe ser ${MOS_ESTANDAR * 100} % en los tres escenarios.`);
   add('V06', 'error', rel(s.base.mosPrice, s.base.perShare * (1 - MOS_ESTANDAR), 1e-9), 'Precio con MOS ≠ valor base × 0,65.');
+  // El expediente no es otro motor: su valor debe conciliar con el libro oficial (±0,5 %).
+  const lv = m.libro?.valores;
+  add('P07', 'error', !!lv && engine.SCENARIOS.every(n => num(lv[n]) && rel(s[n].perShare, lv[n], 0.005)),
+    'El valor por acción del libro oficial (libro.valores) falta o no concilia con el motor del expediente (±0,5 %) en alguno de los tres escenarios.');
   if (alto) {
     const tasa = n => JSON.stringify(['beta', 'riskFree', 'erp', 'costOfDebt', 'stableGrowth', 'stableDebtRatio', 'stableBeta', 'stableCostOfDebt', 'stableRoc', 'speed'].map(k => a[n][k]));
     add('V07', 'error', engine.SCENARIOS.every(n => tasa(n) === tasa('base')) || !!(m.justificaciones && m.justificaciones.tasas), 'Costo de capital, convergencia o supuestos estables difieren entre escenarios sin justificación (justificaciones.tasas).');
@@ -129,7 +135,7 @@ export function controlesValoracion(m, engine) {
   for (const n of engine.SCENARIOS) {
     const y = s[n].years, y10 = y[9], roic = a[n].roicTerminal;
     add('V09', 'error', a[n].gTerminal < a[n].waccTerminal, `${n}: crecimiento terminal ≥ WACC terminal.`);
-    add('V10', 'error', roic <= a[n].waccTerminal + 0.10, `${n}: ROIC terminal supera el WACC en más de 10 pp; justificar ventaja competitiva permanente.`);
+    add('V10', 'error', roic <= a[n].waccTerminal + 0.10 || String(m.justificaciones?.roicTerminal || '').trim().length >= 40, `${n}: ROIC terminal supera el WACC en más de 10 pp; justificar la ventaja competitiva permanente (justificaciones.roicTerminal).`);
     // Más crecimiento debe exigir reinversión: el crecimiento sin reinversión es incoherente.
     add('V11', 'error', y.slice(0, 9).every(x => x.growth <= 0 || x.reinvestment > 0 || x.ebit <= 0), `${n}: crecimiento positivo sin reinversión.`);
     add('V12', 'error', y10.revenue > 0, `${n}: ingresos no positivos al año 10.`);
@@ -206,7 +212,7 @@ export function controlesPublicacion(m) {
   add('P04', 'error', SECCIONES_ANALISIS.every(k => typeof an[k] === 'string' && an[k].trim().length >= 40), 'Análisis fundamental incompleto (secciones vacías o triviales).');
   const src = Array.isArray(m.sources) ? m.sources : [];
   add('P05', 'error', src.length > 0 && src.every(s => s.documento || s.url), 'Fuentes primarias no documentadas.');
-  add('P06', 'error', m.libro && m.libro.id && m.libro.sha256, 'Falta referencia al libro oficial (id y huella sha256): el JSON no es un motor independiente.');
+  add('P06', 'error', !!(m.libro && m.libro.id && /^[0-9a-f]{64}$/.test(String(m.libro.sha256 || ''))), 'Falta referencia al libro oficial (id y huella sha256): el JSON no es un motor independiente.');
   return r;
 }
 

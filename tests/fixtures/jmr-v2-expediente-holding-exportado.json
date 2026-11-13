@@ -1,0 +1,534 @@
+{
+ "schemaVersion": "jmr-v2-0.2",
+ "ticker": "HLD",
+ "company": "HLD",
+ "profile": "holding",
+ "currency": "USD",
+ "units": "millones, excepto valor/acción",
+ "asOf": "2026-11-13",
+ "estado": "EN_REVISION",
+ "financials": {
+  "corporateExpenses": 300,
+  "debt": 4000,
+  "minority": 500,
+  "cash": 1500,
+  "options": 200,
+  "shares": 1000,
+  "sharePrice": 12,
+  "eliminaciones": -200
+ },
+ "history": [
+  {
+   "year": 2016,
+   "revenue": 6400,
+   "cogs": 3840,
+   "ebit": 768,
+   "interestExpense": 120,
+   "pretaxIncome": 648,
+   "taxExpense": 162,
+   "netIncome": 486,
+   "operatingCF": 640,
+   "capex": 320,
+   "da": 256,
+   "changeNWC": 64,
+   "cash": 1500,
+   "currentAssets": 3000,
+   "currentLiabilities": 1800,
+   "inventory": 500,
+   "assets": 12672,
+   "liabilities": 6912,
+   "debt": 4000,
+   "leases": 0,
+   "equity": 5760,
+   "minority": 500,
+   "nonoperatingAssets": 0,
+   "shares": 1000
+  },
+  {
+   "year": 2017,
+   "revenue": 6800,
+   "cogs": 4080,
+   "ebit": 816,
+   "interestExpense": 120,
+   "pretaxIncome": 696,
+   "taxExpense": 174,
+   "netIncome": 522,
+   "operatingCF": 680,
+   "capex": 340,
+   "da": 272,
+   "changeNWC": 68,
+   "cash": 1500,
+   "currentAssets": 3000,
+   "currentLiabilities": 1800,
+   "inventory": 500,
+   "assets": 13464,
+   "liabilities": 7344,
+   "debt": 4000,
+   "leases": 0,
+   "equity": 6120,
+   "minority": 500,
+   "nonoperatingAssets": 0,
+   "shares": 1000
+  },
+  {
+   "year": 2018,
+   "revenue": 7200,
+   "cogs": 4320,
+   "ebit": 864,
+   "interestExpense": 120,
+   "pretaxIncome": 744,
+   "taxExpense": 186,
+   "netIncome": 558,
+   "operatingCF": 720,
+   "capex": 360,
+   "da": 288,
+   "changeNWC": 72,
+   "cash": 1500,
+   "currentAssets": 3000,
+   "currentLiabilities": 1800,
+   "inventory": 500,
+   "assets": 14256,
+   "liabilities": 7776,
+   "debt": 4000,
+   "leases": 0,
+   "equity": 6480,
+   "minority": 500,
+   "nonoperatingAssets": 0,
+   "shares": 1000
+  },
+  {
+   "year": 2019,
+   "revenue": 7600,
+   "cogs": 4560,
+   "ebit": 912,
+   "interestExpense": 120,
+   "pretaxIncome": 792,
+   "taxExpense": 198,
+   "netIncome": 594,
+   "operatingCF": 760,
+   "capex": 380,
+   "da": 304,
+   "changeNWC": 76,
+   "cash": 1500,
+   "currentAssets": 3000,
+   "currentLiabilities": 1800,
+   "inventory": 500,
+   "assets": 15048,
+   "liabilities": 8208,
+   "debt": 4000,
+   "leases": 0,
+   "equity": 6840,
+   "minority": 500,
+   "nonoperatingAssets": 0,
+   "shares": 1000
+  },
+  {
+   "year": 2020,
+   "revenue": 8000,
+   "cogs": 4800,
+   "ebit": 960,
+   "interestExpense": 120,
+   "pretaxIncome": 840,
+   "taxExpense": 210,
+   "netIncome": 630,
+   "operatingCF": 800,
+   "capex": 400,
+   "da": 320,
+   "changeNWC": 80,
+   "cash": 1500,
+   "currentAssets": 3000,
+   "currentLiabilities": 1800,
+   "inventory": 500,
+   "assets": 15840,
+   "liabilities": 8640,
+   "debt": 4000,
+   "leases": 0,
+   "equity": 7200,
+   "minority": 500,
+   "nonoperatingAssets": 0,
+   "shares": 1000
+  },
+  {
+   "year": 2021,
+   "revenue": 8400,
+   "cogs": 5040,
+   "ebit": 1008,
+   "interestExpense": 120,
+   "pretaxIncome": 888,
+   "taxExpense": 222,
+   "netIncome": 666,
+   "operatingCF": 840,
+   "capex": 420,
+   "da": 336,
+   "changeNWC": 84,
+   "cash": 1500,
+   "currentAssets": 3000,
+   "currentLiabilities": 1800,
+   "inventory": 500,
+   "assets": 16632,
+   "liabilities": 9072,
+   "debt": 4000,
+   "leases": 0,
+   "equity": 7560,
+   "minority": 500,
+   "nonoperatingAssets": 0,
+   "shares": 1000
+  },
+  {
+   "year": 2022,
+   "revenue": 8800,
+   "cogs": 5280,
+   "ebit": 1056,
+   "interestExpense": 120,
+   "pretaxIncome": 936,
+   "taxExpense": 234,
+   "netIncome": 702,
+   "operatingCF": 880,
+   "capex": 440,
+   "da": 352,
+   "changeNWC": 88,
+   "cash": 1500,
+   "currentAssets": 3000,
+   "currentLiabilities": 1800,
+   "inventory": 500,
+   "assets": 17424,
+   "liabilities": 9504,
+   "debt": 4000,
+   "leases": 0,
+   "equity": 7920,
+   "minority": 500,
+   "nonoperatingAssets": 0,
+   "shares": 1000
+  },
+  {
+   "year": 2023,
+   "revenue": 9200,
+   "cogs": 5520,
+   "ebit": 1104,
+   "interestExpense": 120,
+   "pretaxIncome": 984,
+   "taxExpense": 246,
+   "netIncome": 738,
+   "operatingCF": 920,
+   "capex": 460,
+   "da": 368,
+   "changeNWC": 92,
+   "cash": 1500,
+   "currentAssets": 3000,
+   "currentLiabilities": 1800,
+   "inventory": 500,
+   "assets": 18216,
+   "liabilities": 9936,
+   "debt": 4000,
+   "leases": 0,
+   "equity": 8280,
+   "minority": 500,
+   "nonoperatingAssets": 0,
+   "shares": 1000
+  },
+  {
+   "year": 2024,
+   "revenue": 9600,
+   "cogs": 5760,
+   "ebit": 1152,
+   "interestExpense": 120,
+   "pretaxIncome": 1032,
+   "taxExpense": 258,
+   "netIncome": 774,
+   "operatingCF": 960,
+   "capex": 480,
+   "da": 384,
+   "changeNWC": 96,
+   "cash": 1500,
+   "currentAssets": 3000,
+   "currentLiabilities": 1800,
+   "inventory": 500,
+   "assets": 19008,
+   "liabilities": 10368,
+   "debt": 4000,
+   "leases": 0,
+   "equity": 8640,
+   "minority": 500,
+   "nonoperatingAssets": 0,
+   "shares": 1000
+  },
+  {
+   "year": 2025,
+   "revenue": 10000,
+   "cogs": 6000,
+   "ebit": 1200,
+   "interestExpense": 120,
+   "pretaxIncome": 1080,
+   "taxExpense": 270,
+   "netIncome": 810,
+   "operatingCF": 1000,
+   "capex": 500,
+   "da": 400,
+   "changeNWC": 100,
+   "cash": 1500,
+   "currentAssets": 3000,
+   "currentLiabilities": 1800,
+   "inventory": 500,
+   "assets": 19800,
+   "liabilities": 10800,
+   "debt": 4000,
+   "leases": 0,
+   "equity": 9000,
+   "minority": 500,
+   "nonoperatingAssets": 0,
+   "shares": 1000,
+   "sharePrice": 12
+  }
+ ],
+ "segmentos": [
+  {
+   "id": "IND_A",
+   "nombre": "Industrial A",
+   "perfil": "operativa",
+   "revenue": 6000,
+   "ownership": 1,
+   "capital": 5000,
+   "escenarios": {
+    "conservador": {
+     "margin": 0.15,
+     "growth5": 0.035,
+     "costOfCapital": 0.08
+    },
+    "base": {
+     "margin": 0.18,
+     "growth5": 0.05,
+     "costOfCapital": 0.08
+    },
+    "optimista": {
+     "margin": 0.2,
+     "growth5": 0.06,
+     "costOfCapital": 0.08
+    }
+   }
+  },
+  {
+   "id": "IND_B",
+   "nombre": "Industrial B",
+   "perfil": "operativa",
+   "revenue": 3000,
+   "ownership": 0.8,
+   "capital": 2500,
+   "escenarios": {
+    "conservador": {
+     "margin": 0.12,
+     "growth5": 0.03,
+     "costOfCapital": 0.085
+    },
+    "base": {
+     "margin": 0.14,
+     "growth5": 0.04,
+     "costOfCapital": 0.085
+    },
+    "optimista": {
+     "margin": 0.16,
+     "growth5": 0.05,
+     "costOfCapital": 0.085
+    }
+   }
+  },
+  {
+   "id": "BNK_C",
+   "nombre": "Banco C",
+   "perfil": "banco",
+   "revenue": 1200,
+   "ownership": 0.6,
+   "escenarios": {
+    "conservador": {
+     "valorExterno": {
+      "valor": 3400,
+      "tipoValor": "equity",
+      "fuente": "Expediente BNK, escenario base",
+      "fecha": "2026-11-13",
+      "motorOrigen": "ddm",
+      "refExpediente": "BNK"
+     }
+    },
+    "base": {
+     "valorExterno": {
+      "valor": 4000,
+      "tipoValor": "equity",
+      "fuente": "Expediente BNK, escenario base",
+      "fecha": "2026-11-13",
+      "motorOrigen": "ddm",
+      "refExpediente": "BNK"
+     }
+    },
+    "optimista": {
+     "valorExterno": {
+      "valor": 4600,
+      "tipoValor": "equity",
+      "fuente": "Expediente BNK, escenario base",
+      "fecha": "2026-11-13",
+      "motorOrigen": "ddm",
+      "refExpediente": "BNK"
+     }
+    }
+   },
+   "valorExterno": {
+    "valor": 4000,
+    "tipoValor": "equity",
+    "fuente": "Expediente BNK, escenario base",
+    "fecha": "2026-11-13",
+    "motorOrigen": "ddm",
+    "refExpediente": "BNK"
+   }
+  }
+ ],
+ "assumptions": {
+  "conservador": {
+   "riskFree": 0.04,
+   "taxRate": 0.25,
+   "mos": 0.35,
+   "holdingDiscount": {
+    "porcentaje": 0.1,
+    "justificacion": "Caja atrapada en jurisdicciones con retención sobre dividendos y costos de control de la matriz."
+   }
+  },
+  "base": {
+   "riskFree": 0.04,
+   "taxRate": 0.25,
+   "mos": 0.35,
+   "holdingDiscount": {
+    "porcentaje": 0.1,
+    "justificacion": "Caja atrapada en jurisdicciones con retención sobre dividendos y costos de control de la matriz."
+   }
+  },
+  "optimista": {
+   "riskFree": 0.04,
+   "taxRate": 0.25,
+   "mos": 0.35,
+   "holdingDiscount": {
+    "porcentaje": 0.1,
+    "justificacion": "Caja atrapada en jurisdicciones con retención sobre dividendos y costos de control de la matriz."
+   }
+  }
+ },
+ "provenance": [
+  {
+   "destino": "financials.shares",
+   "documento": "Informe anual (prueba)",
+   "periodo": 2025,
+   "pagina": "p. 150",
+   "moneda": "USD",
+   "unidades": "millones",
+   "valorReportado": 1000,
+   "ajuste": 0.0,
+   "celdaDestino": "'JMR Estados'!L41"
+  },
+  {
+   "destino": "financials.cash",
+   "documento": "Informe anual (prueba)",
+   "periodo": 2025,
+   "pagina": "p. 150",
+   "moneda": "USD",
+   "unidades": "millones",
+   "valorReportado": 1500,
+   "ajuste": 0.0,
+   "celdaDestino": "'JMR Estados'!L19"
+  },
+  {
+   "destino": "financials.minority",
+   "documento": "Informe anual (prueba)",
+   "periodo": 2025,
+   "pagina": "p. 150",
+   "moneda": "USD",
+   "unidades": "millones",
+   "valorReportado": 500,
+   "ajuste": 0.0,
+   "celdaDestino": "'JMR Estados'!L28"
+  },
+  {
+   "destino": "financials.debt",
+   "documento": "Informe anual (prueba)",
+   "periodo": 2025,
+   "pagina": "p. 150",
+   "moneda": "USD",
+   "unidades": "millones",
+   "valorReportado": 4000,
+   "ajuste": 0.0,
+   "celdaDestino": "'JMR Estados'!L24 + 'JMR Estados'!L25"
+  },
+  {
+   "destino": "financials.corporateExpenses",
+   "documento": "Informe anual (prueba)",
+   "periodo": 2025,
+   "pagina": "p. 150",
+   "moneda": "USD",
+   "unidades": "millones",
+   "valorReportado": 300,
+   "ajuste": 0.0,
+   "celdaDestino": "'JMR Escenarios'!$C$10"
+  },
+  {
+   "destino": "segmentos.IND_A.revenue",
+   "documento": "Informe anual (prueba)",
+   "periodo": 2025,
+   "pagina": "p. 150",
+   "moneda": "USD",
+   "unidades": "millones",
+   "valorReportado": 6000,
+   "ajuste": 0.0,
+   "celdaDestino": "'JMR Negocios'!E6"
+  },
+  {
+   "destino": "segmentos.IND_B.revenue",
+   "documento": "Informe anual (prueba)",
+   "periodo": 2025,
+   "pagina": "p. 150",
+   "moneda": "USD",
+   "unidades": "millones",
+   "valorReportado": 3000,
+   "ajuste": 0.0,
+   "celdaDestino": "'JMR Negocios'!E7"
+  },
+  {
+   "destino": "segmentos.BNK_C.revenue",
+   "documento": "Informe anual (prueba)",
+   "periodo": 2025,
+   "pagina": "p. 150",
+   "moneda": "USD",
+   "unidades": "millones",
+   "valorReportado": 1200,
+   "ajuste": 0.0,
+   "celdaDestino": "'JMR Negocios'!E8"
+  }
+ ],
+ "libro": {
+  "id": "LIBRO-HLD-PRUEBA",
+  "sha256": "e25496fbd1f919fab00ebbed4378946a5f8b7abadc5a039e3001a1f13c09483f",
+  "motor": "sotp-jmr",
+  "valores": {
+   "conservador": 7.00480626120631,
+   "base": 9.8396393361816,
+   "optimista": 12.1649083061507
+  }
+ },
+ "controlesLibro": {
+  "estados": "OK",
+  "fuentes": "OK",
+  "negocios": "OK",
+  "ingresos": "OK",
+  "claves": "no aplica"
+ },
+ "analysis": {
+  "business": "Texto de análisis con evidencia suficiente para superar el mínimo exigido por el control.",
+  "moat": "Texto de análisis con evidencia suficiente para superar el mínimo exigido por el control.",
+  "story": "Texto de análisis con evidencia suficiente para superar el mínimo exigido por el control.",
+  "risks": "Texto de análisis con evidencia suficiente para superar el mínimo exigido por el control.",
+  "conclusion": "Texto de análisis con evidencia suficiente para superar el mínimo exigido por el control."
+ },
+ "sources": [
+  {
+   "documento": "Informe anual (prueba)",
+   "url": null
+  }
+ ],
+ "justificaciones": {
+  "minoritarios": "Los minoritarios restados son acciones preferentes de la matriz, ajenas a las participaciones parciales ya ponderadas por segmento."
+ }
+}
