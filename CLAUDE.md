@@ -1,4 +1,7 @@
 # Claude Code · Modelo JMR Floyd oficial (R1–R6)
+
+> **Para cualquier tarea de JMR V2.0:** leer [CONTRATO_UNICO_LLM.md](docs/v2/metodologia/CONTRATO_UNICO_LLM.md) y [contrato-v2.json](docs/v2/metodologia/contrato-v2.json), no el procedimiento Floyd que sigue. Esta ruta y sus reglas son comunes a ChatGPT, Claude y Gemini. **Publicación en V2 ≠ auditoría ni aprobación**, y Floyd permanece independiente.
+
 Este archivo es la entrada de Claude, no un método alternativo. Leer primero [AGENTS.md](AGENTS.md). Mismas reglas para ChatGPT, Claude y Gemini.
 
 ## Ruta canónica

@@ -1,4 +1,7 @@
 # Modelo JMR · contrato multiagente — Floyd oficial
+
+> **EXCEPCIÓN PARA MODELO JMR V2.0 (ChatGPT, Claude, Gemini y cualquier agente):** Si la solicitud es sobre V2.0, ignorar los contratos Floyd que siguen abajo y leer obligatoriamente [CONTRATO_UNICO_LLM.md](docs/v2/metodologia/CONTRATO_UNICO_LLM.md), [contrato-v2.json](docs/v2/metodologia/contrato-v2.json) y [PROCEDIMIENTO_EXPEDIENTE.md](docs/v2/metodologia/PROCEDIMIENTO_EXPEDIENTE.md). El expediente V2 se publica para revisión **sin esperar auditoría**, conservando controles técnicos y salvedades. Solo el propietario puede aprobar una revisión. No mezclar motores ni datos entre V2 y Floyd.
+
 **Versión 11-nov-2026. Mismo texto obligatorio en Modelo-JMR, Modelo-JMR-datos y JMR-valuation.**
 
 ## Perfil oficial: Floyd R1–R6 (construido en el Reboot)

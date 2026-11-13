@@ -28,6 +28,8 @@ export function construirCatalogo(dir, motor = crearMotor(cargarMotor())) {
       precio: m.financials?.sharePrice ?? null,
       valorBase: base?.perShare ?? null, precioMOS: base?.mosPrice ?? null,
       estado: ev.violacion ? (ev.permitido) : ev.declarado, estadoPermitido: ev.permitido, estadoDeclarado: ev.declarado,
+      // Visibilidad en la app es independiente de la auditoría y del estado técnico.
+      visibilidadApp: ev.permitido === 'BLOQUEADO' ? 'BLOQUEADA' : 'PUBLICADA_PARA_REVISION',
       controles: ev.resumen, archivo: `empresas/${f}`,
     });
   }
