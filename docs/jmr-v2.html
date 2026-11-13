@@ -50,7 +50,8 @@
 .analysis-toc-list li{break-inside:avoid;margin:0 0 6px}
 #analysisView .analysis-grid{display:block}
 #analysisView .analysis-block{padding:20px 0;border-top:1px solid var(--border)}
-#analysisView .analysis-block h4{font-size:1.03rem;margin:0 0 9px}
+#analysisView .analysis-block > h3{font:600 1.22rem/1.4 Georgia,serif;margin:0 0 10px;scroll-margin-top:30px}
+#analysisView .analysis-block h4{font-size:.95rem;margin:16px 0 8px}
 .statement-block{margin:16px 0 28px}.statement-block h4{font:600 1.15rem Georgia,serif;margin:0 0 12px}
 .full-financial-table th,.full-financial-table td{white-space:nowrap;text-align:right}
 .full-financial-table th:first-child,.full-financial-table td:first-child{text-align:left;min-width:200px}
@@ -74,6 +75,20 @@
  .v2-audit-entry{break-inside:avoid}
  a:after{content:""}
 }
+.v2-company-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:16px;margin:18px 0 10px}
+.v2-company-card{display:flex;flex-direction:column;gap:12px;border:1px solid var(--border);border-radius:16px;background:var(--surface);padding:21px;text-decoration:none;color:var(--ink);box-shadow:0 7px 25px rgba(0,0,0,.04);transition:border-color .15s,transform .15s}
+.v2-company-card:hover,.v2-company-card:focus-visible{border-color:var(--teal);transform:translateY(-2px)}
+.v2-company-brand{height:60px;display:flex;align-items:center;justify-content:center;background:#fff;border-radius:9px;padding:8px 15px}
+.v2-company-brand img{display:block;max-height:43px;max-width:200px;object-fit:contain}
+.v2-company-brand strong{font-size:24px;color:#243c53}
+.v2-company-card h3{font:600 1.25rem Georgia,serif;margin:0}
+.v2-company-card p{margin:0;color:var(--ink-light);font-size:.77rem}
+.v2-company-prices{display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--border);padding-top:13px}
+.v2-company-prices span{display:grid;gap:3px;font-size:.75rem;color:var(--ink-light)}
+.v2-company-prices b{color:var(--ink);font-size:1.16rem}
+.v2-company-cta{margin-top:auto;color:var(--teal);font-size:.84rem;font-weight:750}
+.v2-catalog-table-fallback{display:none}
+@media print{.v2-company-cards{display:none!important}}
 </style>
 <script src="mercado.js" defer></script>
 <script src="gh_oauth.js" defer></script>
@@ -105,7 +120,8 @@
    <button id="viewApproved" type="button" aria-pressed="false">Auditadas y aprobadas por mí</button>
   </div>
   <label class="field">Buscar empresa<input id="search" type="search" placeholder="Ticker o nombre" autocomplete="off"></label>
-  <div class="table-scroll"><table id="catalogTable"><thead><tr><th>Empresa</th><th>Corte</th><th>Precio</th><th>Valor base</th><th>Precio con MOS 35 %</th><th>Estado</th></tr></thead><tbody></tbody></table></div>
+  <div id="catalogCards" class="v2-company-cards" aria-label="Fichas de las empresas"></div>
+  <div class="table-scroll v2-catalog-table-fallback"><table id="catalogTable"><thead><tr><th>Empresa</th><th>Corte</th><th>Precio</th><th>Valor base</th><th>Precio con MOS 35 %</th><th>Estado</th></tr></thead><tbody></tbody></table></div>
  </div>
  <div class="mini-features"><span>Hasta 10 años de históricos</span><span>FCFF a 10 años</span><span>Conservador / Base / Optimista</span><span>Indicadores y narrativa</span></div>
 </section>
@@ -630,6 +646,14 @@ function renderCatalog(){
  $('tickerList').innerHTML=disponibles.length
    ?'<option value="">Elige una empresa</option>'+disponibles.map(x=>`<option value="${escape(x.ticker)}">${escape(x.ticker)} — ${escape(x.company)}</option>`).join('')
    :'<option value="">Sin expedientes en este visor</option>';
+ $('catalogCards').innerHTML=rows.length?rows.map(x=>{
+   const url=typeof x.logoUrl==='string' && /^https:\/\/upload\.wikimedia\.org\/wikipedia\/commons\//.test(x.logoUrl)?x.logoUrl:null;
+   const brand=url?'<img loading="lazy" src="'+escape(url)+'" alt="Logo de '+escape(x.company)+'">':'<strong>'+escape(x.ticker)+'</strong>';
+   return '<a class="v2-company-card" href="./jmr-v2.html?ticker='+encodeURIComponent(x.ticker)+'" aria-label="Abrir análisis fundamental de '+escape(x.company)+'">'+
+    '<div class="v2-company-brand">'+brand+'</div><div><h3>'+escape(x.company)+'</h3><p>'+escape(x.ticker)+' · Corte '+escape(x.asOf||'N/D')+'</p></div>'+
+    '<div class="v2-company-prices"><span>Valor Base<b>'+money(x.valorBase,x.currency||'USD')+'</b></span><span>MOS 35 %<b>'+money(x.precioMOS,x.currency||'USD')+'</b></span></div>'+
+    '<p>'+escape(x.estado)+' · '+(x.visorAuditoria==='auditadas'?'Auditada por ti':'Pendiente de tu auditoría')+'</p><div class="v2-company-cta">Abrir valoración y análisis</div></a>';
+  }).join(''):'<p>No hay empresas en este visor.</p>';
  $('catalogTable').querySelector('tbody').innerHTML=rows.length?rows.map(x=>`<tr data-ticker="${escape(x.ticker)}" tabindex="0"><td><strong>${escape(x.ticker)}</strong> · ${escape(x.company)}</td><td>${escape(x.asOf||'N/D')}</td><td>${money(x.precio,x.currency||'USD')}</td><td>${money(x.valorBase,x.currency||'USD')}</td><td>${money(x.precioMOS,x.currency||'USD')}</td><td><span class="badge ${escape(x.estado)}">${escape(x.estado)}</span></td></tr>`).join('')
    :'<tr><td colspan="6">No hay expedientes en este visor.</td></tr>';
 }

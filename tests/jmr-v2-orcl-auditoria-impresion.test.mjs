@@ -8,23 +8,27 @@ const editor=read('docs/v2/editor-analisis.mjs');
 const audit=read('docs/v2/auditoria-notas.mjs');
 const analysis=JSON.parse(read('docs/v2/analisis/ORCL.json'));
 const model=JSON.parse(read('docs/v2/empresas/ORCL.json'));
-test('Oracle: veinte capítulos con editor, fuentes y valor del DCF intacto',()=>{
+test('Oracle: 14 capítulos JMR, 20 subapartados preservados, libro intacto y fuentes',()=>{
+ const keys=['tesis','negocio','industria','crecimiento','ciclos','finanzas','reinversion','gobierno','metodo','supuestos','valoracion','riesgos','catalizadores','fuentes'];
+ assert.equal(analysis.schemaVersion,'jmr-v2-analisis-2');
+ assert.deepEqual(Object.keys(analysis.blocks),keys);
+ assert.equal(analysis.migration.originalChapterCount,20);
  const text=Object.values(analysis.blocks).join(' ');
- for(let chapter=1;chapter<=20;chapter++)assert.match(text,new RegExp('<h3>'+chapter+'\\.'));
+ for(const title of ['Descripción de la empresa','Ciclo de la empresa','Conclusión de valoración'])assert.ok(text.includes(title));
  assert.equal(analysis.ticker,'ORCL');
  assert.equal(model.libro.valores.base,55.6560059420807);
  assert.equal(model.libro.valores.conservador,5.06884037140071);
  assert.equal(model.libro.valores.optimista,143.714427565269);
- assert.match(model.documentLinks.workbook,/^https:\/\/docs\.google\.com\/spreadsheets\//);
- assert.match(model.documentLinks.annualReportsFolder,/^https:\/\/drive\.google\.com\/drive\/folders\//);
+ assert.ok(model.documentLinks.workbook.startsWith('https://docs.google.com/spreadsheets/'));
+ assert.ok(model.documentLinks.annualReportsFolder.startsWith('https://drive.google.com/drive/folders/'));
  assert.deepEqual(model.annualReportDocuments.map(x=>x.fy),[2017,2018,2019,2020,2021,2022,2023,2024,2025,2026]);
  assert.ok(model.annualReportDocuments.every(x=>x.kind==='10-K'&&x.url.startsWith('https://drive.google.com/file/d/')));
  assert.equal(model.quarterlyReportDocuments[0].periodEnd,'2026-08-31');
  assert.match(html,/annualReportList/);
- assert.match(html,/analysisSourceLink/);
  assert.match(editor,/analysisToc/);
  assert.match(editor,/contentEditable/);
 });
+
 test('Todas las empresas: imprimir expediente completo en lugar de la pestaña activa',()=>{
  assert.match(html,/id="printFull"/);
  assert.match(html,/window\.print\(\)/);

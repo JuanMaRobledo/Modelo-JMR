@@ -27,6 +27,7 @@ export function construirCatalogo(dir, motor = crearMotor(cargarMotor())) {
     const visor = visorAuditoria(m,ev);
     empresas.push({
       ticker, company: m.company || ticker, perfil: m.profile, asOf: m.asOf || null, currency: m.currency || null,
+      logoUrl: typeof m.logoUrl === 'string' && /^https:\/\/upload\.wikimedia\.org\/wikipedia\/commons\//.test(m.logoUrl) ? m.logoUrl : null,
       precio: m.financials?.sharePrice ?? null,
       valorBase: base?.perShare ?? null, precioMOS: base?.mosPrice ?? null,
       estado: ev.violacion ? (ev.permitido) : ev.declarado, estadoPermitido: ev.permitido, estadoDeclarado: ev.declarado,
