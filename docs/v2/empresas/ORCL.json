@@ -6,7 +6,7 @@
   "currency": "USD",
   "units": "millones, excepto valor/acción",
   "asOf": "2026-11-13",
-  "estado": "EN_REVISION",
+  "estado": "EN_PROCESO",
   "financials": {
     "revenue": 67357,
     "debt": 129541,
@@ -18,7 +18,9 @@
     "shares": 2914,
     "sharePrice": 127.11,
     "effectiveTaxRate": 0.126163444819474,
-    "nol": 0
+    "nol": 0,
+    "financeLeaseLiabilities": 7701,
+    "operatingLeaseLiabilities": 30190
   },
   "history": [
     {
@@ -310,7 +312,7 @@
       "minority": 518,
       "nonoperatingAssets": 0,
       "shares": 2866,
-      "leases": 0,
+      "leases": 2934,
       "acquisitions": null,
       "financingCF": 1098,
       "dividendsBuybacks": 5343,
@@ -343,7 +345,7 @@
       "minority": 5502,
       "nonoperatingAssets": 0,
       "shares": 2914,
-      "leases": 0,
+      "leases": 7701,
       "acquisitions": null,
       "financingCF": 40284,
       "dividendsBuybacks": 5882,
@@ -472,6 +474,18 @@
       "valorReportado": 2914,
       "ajuste": 0,
       "celdaDestino": "'JMR Estados'!L41"
+    },
+    {
+      "destino": "financials.financeLeaseLiabilities",
+      "documento": "Oracle FY2026 10-K, Nota 9",
+      "periodo": 2026,
+      "pagina": "pp. 88–90; current 620 + non-current 7081",
+      "moneda": "USD",
+      "unidades": "USD millones",
+      "valorReportado": 7701,
+      "ajuste": 0,
+      "celdaDestino": "'JMR Estados'!L25",
+      "url": "https://www.sec.gov/Archives/edgar/data/1341439/000119312526277521/orcl-20260531.htm"
     }
   ],
   "libro": {
@@ -486,7 +500,8 @@
   },
   "controlesLibro": {
     "estados": "OK",
-    "fuentes": "OK"
+    "fuentes": "OK",
+    "paridadMotor": "PENDIENTE_RECALCULO_R2"
   },
   "analysis": {
     "business": "Oracle Corporation vende software de bases de datos y aplicaciones empresariales, infraestructura en la nube (OCI), hardware y servicios. En el ejercicio fiscal 2026 (cerrado el 31-may-2026) facturó US$ 67.357 millones: nube 33.989 (50 %), software 24.541 (36 %), hardware 3.084 (5 %) y servicios 5.743 (9 %); por geografía, Américas 66 %, EMEA 23 % y Asia-Pacífico 11 %. Emplea ~141.000 personas (49.000 en EE. UU.). En diez años los ingresos crecieron 6,7 % anual (37.728 → 67.357), pero con dos regímenes: casi planos hasta el FY2022 y acelerados desde entonces; el FY2026 creció 17 % y el primer trimestre del FY2027 (a agosto de 2026) 29,6 %, con la nube a +61,5 %. El negocio de nube y software ya es el 87 % de los ingresos. Las obligaciones de desempeño pendientes (RPO) pasaron de 138.000 millones (31-may-2025) a 638.000 millones (31-may-2026) y a 664.000 millones (31-ago-2026); Oracle espera reconocer ~12 % en los siguientes 12 meses y 34 % en los meses 13–36 al cierre de mayo (13 % y 37 % al cierre de agosto).",
@@ -547,6 +562,10 @@
     {
       "documento": "Alpha Vantage · precio de cierre de ORCL del 12-nov-2026 (US$ 127,11) y rendimiento del Tesoro a 10 años del 10-nov-2026 (4,98 %)",
       "url": null
+    },
+    {
+      "documento": "Oracle FY2026 10-K · Nota 9 (arrendamientos operativos vs financieros)",
+      "url": "https://www.sec.gov/Archives/edgar/data/1341439/000119312526277521/orcl-20260531.htm"
     }
   ],
   "justificaciones": {
@@ -554,9 +573,11 @@
     "hechosPosteriores": "El libro es anual y valora con los estados auditados del FY2026. El 10-Q de agosto de 2026 (acciones 3.024 millones, deuda 125.337, caja 37.077, ingresos de 12 meses 71.776) eleva el valor base a US$ 61,61; se informa aparte en el análisis."
   },
   "documentLinks": {
-    "workbook": "https://docs.google.com/spreadsheets/d/1rrDeCErDGGmH0H7RZZyNY8S3hR1vrlSI/edit",
+    "workbook": "https://docs.google.com/spreadsheets/d/1Lx3t_dpyqCNuQ7Bx7JWZZHXtigiqwcWS/edit",
     "originalFundamentalAnalysis": "https://docs.google.com/document/d/1eNoK8Rov9m6EL-UjYN-3R7oY3Y7AcNTq7_Gs6YVi3ng/edit",
-    "annualReportsFolder": "https://drive.google.com/drive/folders/15t9aVeWyOMJERF5vZBpCa7iPAorf7CTs"
+    "annualReportsFolder": "https://drive.google.com/drive/folders/15t9aVeWyOMJERF5vZBpCa7iPAorf7CTs",
+    "originalWorkbookR1": "https://docs.google.com/spreadsheets/d/1rrDeCErDGGmH0H7RZZyNY8S3hR1vrlSI/edit",
+    "workbookR2": "https://docs.google.com/spreadsheets/d/1Lx3t_dpyqCNuQ7Bx7JWZZHXtigiqwcWS/edit"
   },
   "annualReportDocuments": [
     {
@@ -640,5 +661,63 @@
     }
   ],
   "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/5/50/Oracle_logo.svg",
-  "logoSource": "Wikimedia Commons Oracle logo.svg (logotipo Oracle 2021)"
+  "logoSource": "Wikimedia Commons Oracle logo.svg (logotipo Oracle 2021)",
+  "revisionContableV2": {
+    "fecha": "2026-11-13",
+    "estado": "CORRECCION_CONTABLE_REALIZADA_PARIDAD_ECONOMICA_PENDIENTE",
+    "objeto": "Arrendamientos financieros tratados como deuda una sola vez, sin capitalizar arrendamientos operativos.",
+    "datosFY2026": {
+      "prestamosYBonos": 129541,
+      "financeLeaseCurrent": 620,
+      "financeLeaseNonCurrent": 7081,
+      "financeLeaseTotal": 7701,
+      "operatingLeaseCurrent": 3542,
+      "operatingLeaseNonCurrent": 26648,
+      "operatingLeaseTotal": 30190,
+      "preferenteSerieD": 4954,
+      "minoritariosReales": 548,
+      "minorityBridge": 5502,
+      "accionesDiluidasPromedio": 2914
+    },
+    "datosFY2025": {
+      "financeLeaseTotal": 2934,
+      "operatingLeaseTotal": 13450
+    },
+    "fuentes": [
+      {
+        "documento": "Oracle FY2026 10-K, Nota 9, pp. 88-90 y balance p. 64",
+        "url": "https://www.sec.gov/Archives/edgar/data/1341439/000119312526277521/orcl-20260531.htm"
+      }
+    ],
+    "correccionMotor": {
+      "formula": "EV - prestamoYBonos - financeLeaseLiabilities - minority + cash + activosNoOperativos - opciones",
+      "incluyeOperativosComoDeuda": false,
+      "valorBaseAnterior": 55.6560059420807,
+      "valorBaseCorregidoA_WaccFijo": 53.01324684805187,
+      "impactoBrutoPorAccion": -2.6427590940288264
+    },
+    "libroR2": {
+      "url": "https://docs.google.com/spreadsheets/d/1Lx3t_dpyqCNuQ7Bx7JWZZHXtigiqwcWS/edit",
+      "sha256": "f375042f867cd5dcbc81510ab3ca4787434b4f05b4af52641d59a878908c5fd6",
+      "hojas": 21,
+      "formulaInputDeuda": "'JMR Estados'!L24+'JMR Estados'!L25",
+      "noDestruirFormulaDamodaran": true
+    },
+    "pendientes": [
+      "Recalcular Excel R2 y conciliar WACC/DCF con motor web: la alteración del pasivo puede cambiar ponderaciones de deuda/capital.",
+      "Validar reinversión neta y capital por finance leases sin pagar principal dos veces.",
+      "Reconciliar acciones diluidas 2914 vs acciones al cierre 2880 y emisiones de 2026; preferentes no convertidas no se cuentan en divisor.",
+      "No mezclar cierre FY2026 con FY2027 Q1 sin revisión del capital y número de acciones."
+    ],
+    "noModificar": [
+      "Préstamos y bonos fuente 129541",
+      "Minoritarios/preferentes separados 5502",
+      "Arrendamientos operativos no se restan de nuevo.",
+      "CAPEX neto no se vuelve a deducir."
+    ],
+    "notas": "libro.valores contiene instantánea ANTERIOR R1 que no concilia con motor corregido; P07 debe indicar discrepancia hasta recálculo y certificación del nuevo R2. ESTADO EN_PROCESO voluntario."
+  },
+  "warnings": [
+    "CORRECCIÓN CONTABLE R2: finance leases FY2026 7701 y FY2025 2934 añadidos al puente patrimonial una sola vez; operating leases no se restan. La cifra DCF del motor web es provisional a WACC fijo; la paridad con el Excel R2 está PENDIENTE, por tanto EN_PROCESO."
+  ]
 }
