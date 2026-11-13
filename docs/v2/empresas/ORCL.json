@@ -557,5 +557,86 @@
     "workbook": "https://docs.google.com/spreadsheets/d/1rrDeCErDGGmH0H7RZZyNY8S3hR1vrlSI/edit",
     "originalFundamentalAnalysis": "https://docs.google.com/document/d/1eNoK8Rov9m6EL-UjYN-3R7oY3Y7AcNTq7_Gs6YVi3ng/edit",
     "annualReportsFolder": "https://drive.google.com/drive/folders/15t9aVeWyOMJERF5vZBpCa7iPAorf7CTs"
-  }
+  },
+  "annualReportDocuments": [
+    {
+      "fy": 2017,
+      "kind": "10-K",
+      "periodEnd": "2017-05-31",
+      "source": "Carpeta de reportes Oracle V2 en Google Drive",
+      "url": "https://drive.google.com/file/d/1Uy8tS54nB93zJh2U9a_qT2YXGh4ZmSCn/view"
+    },
+    {
+      "fy": 2018,
+      "kind": "10-K",
+      "periodEnd": "2018-05-31",
+      "source": "Carpeta de reportes Oracle V2 en Google Drive",
+      "url": "https://drive.google.com/file/d/13Pp4e-23qFS1p0JjuHa0JhPe8KFCPgbe/view"
+    },
+    {
+      "fy": 2019,
+      "kind": "10-K",
+      "periodEnd": "2019-05-31",
+      "source": "Carpeta de reportes Oracle V2 en Google Drive",
+      "url": "https://drive.google.com/file/d/1vm9mzHeS7_PlBn0WyulVKq9gsECuACnL/view"
+    },
+    {
+      "fy": 2020,
+      "kind": "10-K",
+      "periodEnd": "2020-05-31",
+      "source": "Carpeta de reportes Oracle V2 en Google Drive",
+      "url": "https://drive.google.com/file/d/1JQZZmxYNCkTUC9tQMGgwYu4CVvK-pZnj/view"
+    },
+    {
+      "fy": 2021,
+      "kind": "10-K",
+      "periodEnd": "2021-05-31",
+      "source": "Carpeta de reportes Oracle V2 en Google Drive",
+      "url": "https://drive.google.com/file/d/1KKZH0IJZmUc8f6Ay_OLshOjh7VpemeH5/view"
+    },
+    {
+      "fy": 2022,
+      "kind": "10-K",
+      "periodEnd": "2022-05-31",
+      "source": "Carpeta de reportes Oracle V2 en Google Drive",
+      "url": "https://drive.google.com/file/d/12KHsQESVPTXTQO6mIex-_38fbu60eA_g/view"
+    },
+    {
+      "fy": 2023,
+      "kind": "10-K",
+      "periodEnd": "2023-05-31",
+      "source": "Carpeta de reportes Oracle V2 en Google Drive",
+      "url": "https://drive.google.com/file/d/18meqYtWRN3aifOLbU1mB_puhXZR66pVV/view"
+    },
+    {
+      "fy": 2024,
+      "kind": "10-K",
+      "periodEnd": "2024-05-31",
+      "source": "Carpeta de reportes Oracle V2 en Google Drive",
+      "url": "https://drive.google.com/file/d/1uQtB1kFE0EZtL4-7lzwThJrkLh8gaCmu/view"
+    },
+    {
+      "fy": 2025,
+      "kind": "10-K",
+      "periodEnd": "2025-05-31",
+      "source": "Carpeta de reportes Oracle V2 en Google Drive",
+      "url": "https://drive.google.com/file/d/16eoPjS_Qy_-LRuAi18UWfAKM5X79AgAD/view"
+    },
+    {
+      "fy": 2026,
+      "kind": "10-K",
+      "periodEnd": "2026-05-31",
+      "source": "Carpeta de reportes Oracle V2 en Google Drive",
+      "url": "https://drive.google.com/file/d/1uy-9KKrxkG7z-IX-YnsfvpSdZOpzVW3V/view"
+    }
+  ],
+  "quarterlyReportDocuments": [
+    {
+      "fy": 2027,
+      "kind": "10-Q",
+      "periodEnd": "2026-08-31",
+      "source": "Carpeta de reportes Oracle V2 en Google Drive",
+      "url": "https://drive.google.com/file/d/1oUoD_FuC2WKEi5LlwUyxeYYYWHNZF42h/view"
+    }
+  ]
 }
