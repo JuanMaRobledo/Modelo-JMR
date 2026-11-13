@@ -7,6 +7,7 @@ import path from 'node:path';
 import { cargarMotor } from './v2-motor.mjs';
 import { crearMotor } from '../docs/v2/motores/despacho.mjs';
 import { evaluarExpediente } from '../docs/v2/expediente-v2.mjs';
+import { visorAuditoria } from '../docs/v2/auditoria-usuario.mjs';
 
 export function construirCatalogo(dir, motor = crearMotor(cargarMotor())) {
   const carpeta = path.join(dir, 'empresas');
@@ -22,12 +23,15 @@ export function construirCatalogo(dir, motor = crearMotor(cargarMotor())) {
     if (vistos.has(ticker)) { errores.push(`${f}: ticker duplicado`); continue; }
     vistos.add(ticker);
     const ev = evaluarExpediente(m, motor);
+    const visor = visorAuditoria(m, ev);
     const base = ev.permitido === 'BLOQUEADO' ? null : motor.calculateAll(m).scenarios?.base;
     empresas.push({
       ticker, company: m.company || ticker, perfil: m.profile, asOf: m.asOf || null, currency: m.currency || null,
       precio: m.financials?.sharePrice ?? null,
       valorBase: base?.perShare ?? null, precioMOS: base?.mosPrice ?? null,
       estado: ev.violacion ? (ev.permitido) : ev.declarado, estadoPermitido: ev.permitido, estadoDeclarado: ev.declarado,
+      visorAuditoria: visor,
+      aprobacionUsuario: visor === 'auditadas' ? { fecha: m.auditoriaUsuario.fecha, aprobadaPor: m.auditoriaUsuario.aprobadaPor } : null,
       controles: ev.resumen, archivo: `empresas/${f}`,
     });
   }
