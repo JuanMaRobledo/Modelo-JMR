@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
-<title>Vista previa · Modelo JMR V2.0 · Valoración FCFF</title>
+<title>Modelo JMR V2.0 · Valoración y análisis fundamental</title>
 <meta name="description" content="Modelo JMR V2.0: Simple Ginsu FCFF, indicadores y análisis fundamental. Tres escenarios, un motor.">
 <style>:root{color-scheme:light;--bg:#f6f8fa;--surface:#fff;--ink:#183045;--ink-light:#526679;--soft:#e6ebf0;--border:#dfe6ed;--teal:#0a746d;--navy:#142c43;--s2:#f1f6f7;--ok:#147962;--warn:#8a5f20}
 @media(prefers-color-scheme:dark){:root{color-scheme:dark;--bg:#091421;--surface:#101f2e;--ink:#ecf5fa;--ink-light:#afc0cc;--soft:#263748;--border:#344759;--teal:#64c9bf;--navy:#263f54;--s2:#1b2d3d;--ok:#71d2a9;--warn:#f0b65e}}
@@ -46,6 +46,9 @@
 .v2-concerns li{padding:8px 0;border-bottom:1px solid var(--border);overflow-wrap:anywhere}
 #assumptionsReasons p{white-space:pre-wrap;text-align:justify}
 @media(max-width:640px){.dossier-tabs{flex-wrap:nowrap;overflow-x:auto}.dossier-tabs button{flex:none}.full-financial-table th:first-child,.full-financial-table td:first-child{min-width:165px}}
+.v2-viewers{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 16px}
+.v2-viewers button{background:var(--surface);color:var(--ink);border:1px solid var(--border);font-size:.78rem;padding:9px 12px}
+.v2-viewers button[aria-pressed="true"]{border-color:var(--teal);background:var(--s2);color:var(--teal)}
 </style>
 <script src="mercado.js" defer></script>
 <script src="gh_oauth.js" defer></script>
@@ -57,10 +60,10 @@
  <div class="eyebrow"><span class="mark">JMR</span><span>MODELO FUNDAMENTAL · V2.0</span></div>
  <h1>Valoración sencilla.<br><em>Rigor sin complejidad.</em></h1>
  <p>FCFF con la metodología de Damodaran, históricos financieros e interpretación fundamental en un único expediente.</p>
- <div class="hero-note">JMR V2.0 · Valoraciones en revisión, ninguna publicada · Paridad con el Ginsu original verificada en casos de prueba (docs/v2/README.md)</div>
+ <div class="hero-note">JMR V2.0 · Expedientes visibles en revisión; auditoría y publicación son procesos diferentes</div>
 </header>
 <section class="toolbar" aria-label="Abrir expediente">
- <div class="toolbar-title"><strong>Explorar modelo</strong><span>Elige una empresa validada o carga un JSON local.</span></div>
+ <div class="toolbar-title"><strong>Explorar modelo</strong><span>Elige una empresa de tus visores o importa un expediente local.</span></div>
  <label class="field">Empresa publicada
   <select id="tickerList" aria-label="Empresa publicada"><option value="">Sin fichas publicadas</option></select>
  </label>
@@ -70,8 +73,12 @@
 </section>
 <section id="noData" class="empty" aria-live="polite">
  <div class="empty-symbol">∑</div><h2>Un solo motor. Tres escenarios.</h2>
- <p>Esta vista previa es local y no contiene empresas reales. Puedes cargar un expediente JSON o probar el funcionamiento con datos totalmente ficticios.</p>
+ <p>Consulta las valoraciones publicadas para revisión. Solo las que apruebes expresamente pasarán al visor de auditadas.</p>
  <div id="catalogBox" class="catalog" hidden>
+  <div class="v2-viewers" role="group" aria-label="Visores de auditoría personal">
+   <button type="button" class="secondary" id="viewPending" aria-pressed="true">Pendientes de mi auditoría</button>
+   <button type="button" class="secondary" id="viewApproved" aria-pressed="false">Auditadas y aprobadas por mí</button>
+  </div>
   <label class="field">Buscar empresa<input id="search" type="search" placeholder="Ticker o nombre" autocomplete="off"></label>
   <div class="table-scroll"><table id="catalogTable"><thead><tr><th>Empresa</th><th>Corte</th><th>Precio</th><th>Valor base</th><th>Precio con MOS 35 %</th><th>Estado</th></tr></thead><tbody></tbody></table></div>
  </div>
@@ -559,8 +566,8 @@ function render(model){
  $('noData').hidden=true;$('appContent').hidden=false;
  $('companyName').textContent=model.company||model.ticker||'Empresa sin identificar';
  $('meta').textContent=[model.ticker,model.asOf?`Corte ${model.asOf}`:null,model.currency,model.units].filter(Boolean).join(' · ');
- $('dataTag').textContent=model.fictional?'· EJEMPLO FICTICIO':'· NO AUDITADO';
- $('stateLabel').textContent=model.fictional?'SIMULACIÓN · NO PUBLICAR':ev?(ev.violacion?`${ev.declarado} ✕ permitido ${ev.permitido}`:ev.declarado):calc.status==='CANDIDATO'?'CANDIDATO · NO AUDITADO':'INCOMPLETO';
+ $('dataTag').textContent=model.fictional?'· EJEMPLO FICTICIO':(viewerFor(options.find(x=>x.ticker===model.ticker))==='auditadas'?'· AUDITADA POR TI':'· PENDIENTE DE TU AUDITORÍA');
+ $('stateLabel').textContent=model.fictional?'SIMULACIÓN · NO PUBLICAR':(viewerFor(options.find(x=>x.ticker===model.ticker))==='auditadas'?'AUDITADA POR TI':'PENDIENTE DE TU AUDITORÍA')+' · '+(ev?(ev.violacion?`${ev.declarado} ✕ permitido ${ev.permitido}`:ev.declarado):calc.status==='CANDIDATO'?'CANDIDATO':'INCOMPLETO');
  $('marketPrice').textContent=money(model.financials?.sharePrice,model.currency);
  $('basePrice').textContent=money(base?.perShare,model.currency);
  $('baseSmall').textContent=esAlto(model)?'FCFF · motor de alto crecimiento':esHold(model)?'Suma de partes atribuible por acción':esFin(model)?(model.metodo==='ddm'?'Dividendos descontados a Ke':'Patrimonio + exceso de retorno'):'FCFF · proyección de diez años';
@@ -581,22 +588,46 @@ $('uploadFile').addEventListener('change',async e=>{const f=e.target.files?.[0];
 document.getElementById('v2Tabs').addEventListener('click',handleTabs);
 document.getElementById('v2Tabs').addEventListener('keydown',handleTabArrows);
 let options=[];
+let vistaActiva='pendientes';
+function viewerFor(x){
+ if(!x)return 'pendientes';
+ const approval=x.aprobacionUsuario;
+ return x.visorAuditoria==='auditadas'&&approval?.aprobadaPor==='JuanMaRobledo'&&/^\d{4}-\d{2}-\d{2}$/.test(approval.fecha||'')?'auditadas':'pendientes';
+}
+const opcionesDelVisor=()=>options.filter(x=>viewerFor(x)===vistaActiva);
+function cambiarVisor(v){
+ if(!['pendientes','auditadas'].includes(v))return;
+ vistaActiva=v;showNoData();renderCatalog();
+}
+$('viewPending').addEventListener('click',()=>cambiarVisor('pendientes'));
+$('viewApproved').addEventListener('click',()=>cambiarVisor('auditadas'));
 async function loadCatalog(){
- try{const c=await loadJSON('./v2/catalogo.json');options=c&&c.schemaVersion==='jmr-v2-catalogo-1'&&Array.isArray(c.empresas)?c.empresas.filter(x=>/^[A-Z0-9.-]{1,18}$/.test(x.ticker)):[];}
+ try{const c=await loadJSON('./v2/catalogo.json');
+  options=c&&c.schemaVersion==='jmr-v2-catalogo-1'&&Array.isArray(c.empresas)
+   ?c.empresas.filter(x=>/^[A-Z0-9.-]{1,18}$/.test(x.ticker)):[];}
  catch(e){options=[];}
- $('tickerList').innerHTML=options.length?'<option value="">Elige una empresa</option>'+options.map(x=>`<option value="${escape(x.ticker)}">${escape(x.ticker)} — ${escape(x.company)}</option>`).join(''):'<option value="">Sin fichas publicadas</option>';
  renderCatalog();
 }
 function renderCatalog(){
  const term=$('search').value.trim().toLowerCase(),box=$('catalogBox');
- const rows=options.filter(x=>!term||x.ticker.toLowerCase().includes(term)||String(x.company).toLowerCase().includes(term));
+ const disponibles=opcionesDelVisor();
+ const rows=disponibles.filter(x=>!term||x.ticker.toLowerCase().includes(term)||String(x.company).toLowerCase().includes(term));
  box.hidden=!options.length;
- $('catalogTable').querySelector('tbody').innerHTML=rows.length?rows.map(x=>`<tr data-ticker="${escape(x.ticker)}" tabindex="0"><td><strong>${escape(x.ticker)}</strong> · ${escape(x.company)}</td><td>${escape(x.asOf||'N/D')}</td><td>${money(x.precio,x.currency||'USD')}</td><td>${money(x.valorBase,x.currency||'USD')}</td><td>${money(x.precioMOS,x.currency||'USD')}</td><td><span class="badge ${escape(x.estado)}">${escape(x.estado)}</span></td></tr>`).join(''):'<tr><td colspan="6">Sin coincidencias</td></tr>';
+ $('viewPending').setAttribute('aria-pressed',String(vistaActiva==='pendientes'));
+ $('viewApproved').setAttribute('aria-pressed',String(vistaActiva==='auditadas'));
+ $('viewPending').textContent='Pendientes de mi auditoría ('+options.filter(x=>viewerFor(x)==='pendientes').length+')';
+ $('viewApproved').textContent='Auditadas y aprobadas por mí ('+options.filter(x=>viewerFor(x)==='auditadas').length+')';
+ $('tickerList').innerHTML=disponibles.length?'<option value="">Elige una empresa</option>'+disponibles.map(x=>`<option value="${escape(x.ticker)}">${escape(x.ticker)} — ${escape(x.company)}</option>`).join(''):'<option value="">Sin expedientes en este visor</option>';
+ $('catalogTable').querySelector('tbody').innerHTML=rows.length?rows.map(x=>`<tr data-ticker="${escape(x.ticker)}" tabindex="0"><td><strong>${escape(x.ticker)}</strong> · ${escape(x.company)}</td><td>${escape(x.asOf||'N/D')}</td><td>${money(x.precio,x.currency||'USD')}</td><td>${money(x.valorBase,x.currency||'USD')}</td><td>${money(x.precioMOS,x.currency||'USD')}</td><td><span class="badge ${escape(x.estado)}">${escape(x.estado)}</span></td></tr>`).join(''):'<tr><td colspan="6">No hay expedientes en este visor.</td></tr>';
 }
 async function openTicker(ticker){
- if(!/^[A-Z0-9.-]{1,18}$/.test(ticker)||!options.some(x=>x.ticker===ticker))return;
- try{render(await loadJSON(`./v2/empresas/${encodeURIComponent(ticker)}.json`));$('tickerList').value=ticker;}
- catch(err){showNoData(`No se pudo abrir ${ticker}: ${err.message}`);}
+ if(!/^[A-Z0-9.-]{1,18}$/.test(ticker))return;
+ const item=options.find(x=>x.ticker===ticker);if(!item)return;
+ try{
+  if(viewerFor(item)!==vistaActiva){vistaActiva=viewerFor(item);renderCatalog();}
+  render(await loadJSON(`./v2/empresas/${encodeURIComponent(ticker)}.json`));
+  $('tickerList').value=ticker;
+ }catch(err){showNoData(`No se pudo abrir ${ticker}: ${err.message}`);}
 }
 $('tickerList').addEventListener('change',e=>openTicker(e.target.value));
 $('search').addEventListener('input',renderCatalog);
