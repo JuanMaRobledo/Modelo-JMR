@@ -20,15 +20,22 @@ test('JMR V2: los tres estados financieros tienen tablas independientes y N\/D e
  assert.match(html,/Pasivos totales/);assert.match(html,/Flujo de efectivo operativo/);
  assert.match(html,/Flujo libre \(derivado/);
 });
-test('ORCL: veinte capítulos del análisis extenso, editables en V2 sin modificar valores base',()=>{
+test('ORCL: plantilla JMR de 14 capítulos con los 20 apartados anteriores preservados como contenido',()=>{
+ const keys=['tesis','negocio','industria','crecimiento','ciclos','finanzas','reinversion','gobierno','metodo','supuestos','valoracion','riesgos','catalizadores','fuentes'];
+ const names=['Tesis de inversión y conclusión','La empresa y su modelo económico','Industria, competencia y ventaja competitiva','Motores del crecimiento futuro','Ciclos de la empresa, del mercado y de la macroeconomía','Historia financiera y calidad de resultados','Reinversión, eficiencia del capital y ROIC','Dirección, gobierno y asignación de capital','Nuestro proceso de valoración','Supuestos económicos y su justificación','Valor intrínseco, escenarios y precio','Riesgos, tesis contraria y factores de ruptura','Catalizadores y plan de seguimiento','Fuentes, limitaciones y estado del estudio'];
  assert.equal(doc.ticker,'ORCL');
- assert.equal(doc.schemaVersion,'jmr-v2-analisis-1');
+ assert.equal(doc.schemaVersion,'jmr-v2-analisis-2');
+ assert.equal(doc.status,'BORRADOR_EDITORIAL_NO_AUDITADO');
+ assert.equal(doc.migration.originalChapterCount,20);
+ assert.deepEqual(Object.keys(doc.blocks),keys);
+ for(let i=0;i<14;i++)assert.ok(js.includes("['"+keys[i]+"','"+names[i]+"']"),keys[i]);
  const text=Object.values(doc.blocks).join('\n');
- for(let n=1;n<=20;n++)assert.match(text,new RegExp('<h3>'+n+'\\.'));
- assert.match(html,/editor-analisis\.mjs/);
- assert.match(html,/gh_oauth\.js/);
+ const previous=['Descripción de la empresa','Historia y evolución','Modelo de negocio','Productos y segmentos','Mercado y sector','Ventaja competitiva','Calidad y sostenibilidad del crecimiento','Evolución de márgenes','ROIC y creación de valor','Reinversión','Eficiencia del capital','Salud financiera','Asignación de capital','Dirección y gobierno corporativo','Ciclo de la empresa','Ciclo económico, monetario y crediticio','Riesgos y disrupciones','Historias conservadora, base y optimista','Justificación de los supuestos','Conclusión de valoración'];
+ for(const name of previous)assert.ok(text.includes('<h4>'+name+'</h4>'),name);
+ assert.doesNotMatch(text,/<h3>\d+\./);
+ assert.match(js,/let chapterNumber=0/);
+ assert.match(js,/\.analysis-block > h3/);
  assert.match(js,/contentEditable/);
- assert.match(js,/Insertar imagen/);
  assert.match(js,/Guardar borrador en GitHub/);
  assert.match(js,/v2\/analisis-borradores/);
  assert.equal(model.estado,'EN_REVISION');
@@ -36,6 +43,13 @@ test('ORCL: veinte capítulos del análisis extenso, editables en V2 sin modific
  assert.equal(model.libro.valores.conservador,5.06884037140071);
  assert.equal(model.libro.valores.optimista,143.714427565269);
  assert.equal(model.auditoria,undefined);
+});
+test('El contrato editorial V2 exige 14 capítulos, soporte cuantitativo separado y aprobación personal',()=>{
+ const contract=read('docs/v2/PLANTILLA_ANALISIS_FUNDAMENTAL_14.md');
+ assert.match(contract,/índice fijo \(14 capítulos\)/);
+ assert.match(contract,/Ciclos de la empresa, del mercado y de la macroeconomía/);
+ assert.match(contract,/No integrar, fusionar ni publicar automáticamente/);
+ assert.match(contract,/cinco fuerzas de Porter/);
 });
 test('Editar no equivale a publicar ni aprobar y el libro sigue separado',()=>{
  assert.match(html,/no recalcula ni publica esta ficha automáticamente/);
