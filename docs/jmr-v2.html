@@ -144,6 +144,7 @@
  <p id="statementsNote" class="panel-hint"></p>
  <p class="panel-hint">Los conceptos ausentes en el expediente normalizado aparecen como N/D. No equivalen a cero: para acreditar estados financieros íntegros hay que conciliar cada renglón con los informes oficiales.</p>
  <a id="originalReportsFinancial" target="_blank" rel="noopener noreferrer" hidden>Consultar los reportes anuales originales ↗</a>
+ <div id="annualReportList" class="panel-hint" aria-label="Informes 10-K y 10-Q por periodo"></div>
  </section>
  <section class="panel" data-v2-tab="indicadores" aria-labelledby="financeTitle">
   <div class="sectionhead"><div><div class="eyebrow muted">EVOLUCIÓN FINANCIERA</div><h3 id="financeTitle">Márgenes, eficiencia y salud</h3></div><p>Ratios calculados · Los vacíos se muestran como N/D</p></div>
@@ -492,6 +493,9 @@ function renderStatements(model){
  $('statementsNote').textContent=periods.length+' periodos · '+missing+' celdas sin datos reportados. Se identifican los cálculos derivados y se distingue el periodo LTM de un año fiscal completo.';
  const report=safeUrl(model.documentLinks?.annualReportsFolder),link=$('originalReportsFinancial');
  link.hidden=!report;if(report)link.href=report;else link.removeAttribute('href');
+ const reports=[...(model.annualReportDocuments||[]),...(model.quarterlyReportDocuments||[])].filter(x=>x&&safeUrl(x.url)&&Number.isInteger(x.fy));
+ $('annualReportList').innerHTML=reports.length?'<p><strong>Informes originales para cotejo contable:</strong></p><p>'+
+  reports.map(x=>'<a href="'+escape(safeUrl(x.url))+'" target="_blank" rel="noopener noreferrer">'+escape(x.kind||'Reporte')+' '+escape('FY '+x.fy)+(x.periodEnd?' ('+escape(x.periodEnd)+')':'')+'</a>').join(' · ')+'</p>':'';
 }
 function renderAssumptions(model){
  const params=[['Crecimiento año 1','growth1','p'],['Crecimiento años 2–5','growth2to5','p'],['Margen inicial','margin1','p'],['Margen objetivo','marginTarget','p'],['Ventas / capital años 1–5','salesToCapital1to5','n'],['Ventas / capital años 6–10','salesToCapital6to10','n'],['WACC inicial','waccInitial','p'],['WACC terminal','waccTerminal','p'],['ROIC terminal','roicTerminal','p'],['Crecimiento perpetuo','gTerminal','p'],['Impuesto marginal','marginalTax','p'],['MOS','mos','p']];
