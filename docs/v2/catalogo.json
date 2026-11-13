@@ -13,13 +13,13 @@
    "estado": "EN_REVISION",
    "estadoPermitido": "EN_REVISION",
    "estadoDeclarado": "EN_REVISION",
+   "visibilidadApp": "PUBLICADA_PARA_REVISION",
    "controles": {
     "bloqueos": 0,
     "errores": 1,
     "avisos": 0
    },
-   "archivo": "empresas/ORCL.json",
-   "visibilidadApp": "PUBLICADA_PARA_REVISION"
+   "archivo": "empresas/ORCL.json"
   }
  ]
 }
