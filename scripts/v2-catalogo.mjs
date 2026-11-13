@@ -7,6 +7,7 @@ import path from 'node:path';
 import { cargarMotor } from './v2-motor.mjs';
 import { crearMotor } from '../docs/v2/motores/despacho.mjs';
 import { evaluarExpediente } from '../docs/v2/expediente-v2.mjs';
+import { visorAuditoria } from '../docs/v2/auditoria-usuario.mjs';
 
 export function construirCatalogo(dir, motor = crearMotor(cargarMotor())) {
   const carpeta = path.join(dir, 'empresas');
@@ -23,6 +24,7 @@ export function construirCatalogo(dir, motor = crearMotor(cargarMotor())) {
     vistos.add(ticker);
     const ev = evaluarExpediente(m, motor);
     const base = ev.permitido === 'BLOQUEADO' ? null : motor.calculateAll(m).scenarios?.base;
+    const visor = visorAuditoria(m,ev);
     empresas.push({
       ticker, company: m.company || ticker, perfil: m.profile, asOf: m.asOf || null, currency: m.currency || null,
       precio: m.financials?.sharePrice ?? null,
@@ -30,6 +32,8 @@ export function construirCatalogo(dir, motor = crearMotor(cargarMotor())) {
       estado: ev.violacion ? (ev.permitido) : ev.declarado, estadoPermitido: ev.permitido, estadoDeclarado: ev.declarado,
       // Visibilidad en la app es independiente de la auditoría y del estado técnico.
       visibilidadApp: ev.permitido === 'BLOQUEADO' ? 'BLOQUEADA' : 'PUBLICADA_PARA_REVISION',
+      visorAuditoria: visor,
+      aprobacionUsuario: visor === 'auditadas' ? {fecha:m.auditoriaUsuario.fecha,aprobadaPor:m.auditoriaUsuario.aprobadaPor,revisionSha256:m.auditoriaUsuario.revisionSha256} : null,
       controles: ev.resumen, archivo: `empresas/${f}`,
     });
   }
