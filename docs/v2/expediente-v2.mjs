@@ -32,8 +32,13 @@ export function controlesDatos(m) {
       const nci = FINANCIEROS.includes(m.profile) && num(x.minority) ? x.minority : 0;   // entidades financieras: minoritarias y preferentes fuera del patrimonio común
       add('D06', 'error', rel(x.assets, x.liabilities + x.equity + nci, 0.005), `${x.year}: activos ≠ pasivos + patrimonio${nci ? ' + minoritarias/preferentes' : ''} (tolerancia 0,5 %).`);
     }
-    if ([x.ebit, x.interestExpense, x.pretaxIncome].every(num))
-      add('D07', 'error', rel(x.pretaxIncome, x.ebit - x.interestExpense + (num(x.nonOperatingIncome) ? x.nonOperatingIncome : 0), 0.005), `${x.year}: utilidad antes de impuestos ≠ EBIT − intereses + ingresos no operativos.`);
+    if ([x.ebit, x.pretaxIncome].every(num) && (num(x.totalNonOperatingIncome) || num(x.interestExpense))) {
+      // Algunos 10-K muestran el no-operativo neto, con intereses ya incluidos.
+      // No descontar el interés dos veces; Oracle conserva su campo noOperatingIncome.
+      const esperado = num(x.totalNonOperatingIncome) ? x.ebit + x.totalNonOperatingIncome
+        : x.ebit - x.interestExpense + (num(x.nonOperatingIncome) ? x.nonOperatingIncome : 0);
+      add('D07', 'error', rel(x.pretaxIncome, esperado, 0.005), `${x.year}: utilidad antes de impuestos ≠ EBIT y partidas no operativas.`);
+    }
     if ([x.pretaxIncome, x.taxExpense, x.netIncome].every(num))
       add('D08', 'error', rel(x.netIncome, x.pretaxIncome - x.taxExpense, 0.005), `${x.year}: utilidad neta ≠ utilidad antes de impuestos − impuestos.`);
     if (num(x.revenue) && num(x.cogs)) add('D09', 'error', x.cogs >= 0 && x.cogs <= x.revenue * 1.0001, `${x.year}: costo de ventas inválido.`);
