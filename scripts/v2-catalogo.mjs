@@ -5,9 +5,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { cargarMotor } from './v2-motor.mjs';
+import { crearMotor } from '../docs/v2/motores/despacho.mjs';
 import { evaluarExpediente } from '../docs/v2/expediente-v2.mjs';
 
-export function construirCatalogo(dir, motor = cargarMotor()) {
+export function construirCatalogo(dir, motor = crearMotor(cargarMotor())) {
   const carpeta = path.join(dir, 'empresas');
   const archivos = fs.existsSync(carpeta) ? fs.readdirSync(carpeta).filter(f => f.endsWith('.json')).sort() : [];
   const empresas = [], errores = [], vistos = new Set();

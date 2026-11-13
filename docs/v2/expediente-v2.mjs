@@ -8,7 +8,9 @@ export const ESTADOS = ['EN_PROCESO', 'EN_REVISION', 'PUBLICADO', 'BLOQUEADO'];
 export const MOS_ESTANDAR = 0.35;
 const num = x => typeof x === 'number' && Number.isFinite(x);
 const rel = (a, b, tol) => Math.abs(a - b) <= Math.max(tol * Math.max(Math.abs(a), Math.abs(b)), 1e-9);
-const CAMPOS_MATERIALES = ['revenue', 'debt', 'cash', 'minority', 'nonoperatingAssets', 'shares'];
+const FINANCIEROS = ['banco', 'aseguradora'];
+const CAMPOS_OPERATIVA = ['revenue', 'debt', 'cash', 'minority', 'nonoperatingAssets', 'shares'];
+const CAMPOS_FINANCIERA = ['netIncome', 'bookEquity', 'bookEquityPrior', 'dividends', 'shares'];
 const SECCIONES_ANALISIS = ['business', 'moat', 'story', 'risks', 'conclusion'];
 const AUTORES_NO_VALIDOS = /^(claude|ia|ai|gpt|gemini|chatgpt|modelo|bot)\b/i;
 
@@ -32,8 +34,14 @@ export function controlesDatos(m) {
     if (num(x.revenue) && num(x.cogs)) add('D09', 'error', x.cogs >= 0 && x.cogs <= x.revenue * 1.0001, `${x.year}: costo de ventas inválido.`);
   }
   const last = ord.length ? h.find(x => x.year === ord[ord.length - 1]) : null, f = m.financials || {};
-  if (last) for (const k of ['revenue', 'debt', 'cash', 'minority', 'nonoperatingAssets', 'shares'])
+  const financiero = FINANCIEROS.includes(m.profile), CAMPOS_MATERIALES = financiero ? CAMPOS_FINANCIERA : CAMPOS_OPERATIVA;
+  if (last && !financiero) for (const k of CAMPOS_OPERATIVA)
     if (num(f[k]) && num(last[k])) add('D10', 'error', rel(f[k], last[k], 0.001), `Base de valoración (${k}=${f[k]}) no coincide con el último histórico ${last.year} (${last[k]}).`);
+  if (last && financiero) {
+    const prev = h.find(x => x.year === last.year - 1), par = [['netIncome', last.netIncome], ['bookEquity', last.equity], ['dividends', last.dividends], ['shares', last.shares], ['bookEquityPrior', prev?.equity]];
+    for (const [k, v] of par) if (num(f[k]) && num(v)) add('D10', 'error', rel(f[k], v, 0.001), `Base de valoración (${k}=${f[k]}) no coincide con el histórico (${v}).`);
+    for (const k of CAMPOS_FINANCIERA) add('D13', 'bloqueo', num(f[k]), `Falta dato financiero base: financials.${k}.`);
+  }
   const prov = Array.isArray(m.provenance) ? m.provenance : [];
   for (const k of CAMPOS_MATERIALES) {
     const p = prov.find(p => p.destino === `financials.${k}`);
@@ -47,8 +55,12 @@ export function controlesDatos(m) {
 
 export function controlesValoracion(m, engine) {
   const r = [], add = (id, gravedad, ok, msg) => { if (!ok) r.push({ id, grupo: 'valoracion', gravedad, msg }); };
-  add('V01', 'bloqueo', m.profile === 'operativa', `Perfil «${m.profile}»: este motor solo valora empresas operativas.`);
-  if (m.profile !== 'operativa') return r;
+  const soporta = engine.soporta ? engine.soporta(m.profile) : m.profile === 'operativa';
+  add('V01', 'bloqueo', soporta, `Perfil «${m.profile}»: sin motor implementado en este despliegue.`);
+  if (!soporta) return r;
+  const financiero = FINANCIEROS.includes(m.profile);
+  if (financiero) r.push(...controlesFinancieros(m));
+  if (r.some(x => x.gravedad === 'bloqueo')) return r;
   const calc = engine.calculateAll(m), s = calc.scenarios || {};
   for (const n of engine.SCENARIOS) add('V02', 'bloqueo', ['CANDIDATO', 'REVISAR'].includes(s[n]?.status),
     `Escenario ${n}: ${s[n]?.status || 'sin resultado'} ${(s[n]?.issues || []).join('; ')}`.trim());
@@ -58,6 +70,17 @@ export function controlesValoracion(m, engine) {
   const a = m.assumptions;
   add('V05', 'error', engine.SCENARIOS.every(n => a[n].mos === MOS_ESTANDAR), `El MOS debe ser ${MOS_ESTANDAR * 100} % en los tres escenarios.`);
   add('V06', 'error', rel(s.base.mosPrice, s.base.perShare * (1 - MOS_ESTANDAR), 1e-9), 'Precio con MOS ≠ valor base × 0,65.');
+  if (financiero) {
+    const tasa = n => `${a[n].beta}|${a[n].riskFree}|${a[n].erp}|${a[n].stableBeta ?? ''}`;
+    add('V07', 'error', engine.SCENARIOS.every(n => tasa(n) === tasa('base')) || !!(m.justificaciones && m.justificaciones.ke),
+      'El costo del patrimonio difiere entre escenarios sin justificación económica (justificaciones.ke).');
+    add('V08', 'error', a.conservador.roeHighGrowth <= a.base.roeHighGrowth && a.base.roeHighGrowth <= a.optimista.roeHighGrowth, 'ROE de alto crecimiento no ordenado entre escenarios.');
+    for (const n of engine.SCENARIOS) {
+      const g = m.metodo === 'ddm' ? (a[n].overrideStableGrowth ? a[n].stableGrowth : a[n].riskFree) : a[n].stableGrowth;
+      add('V09', 'error', g < s[n].costOfEquityStable, `${n}: crecimiento estable ≥ costo del patrimonio estable.`);
+    }
+    return r;
+  }
   const wacc = n => `${a[n].waccInitial}|${a[n].waccTerminal}`;
   add('V07', 'error', engine.SCENARIOS.every(n => wacc(n) === wacc('base')) || !!(m.justificaciones && m.justificaciones.wacc),
     'El WACC difiere entre escenarios sin justificación económica (justificaciones.wacc).');
@@ -69,6 +92,25 @@ export function controlesValoracion(m, engine) {
     // Más crecimiento debe exigir reinversión: el crecimiento sin reinversión es incoherente.
     add('V11', 'error', y.slice(0, 9).every(x => x.growth <= 0 || x.reinvestment > 0 || x.ebit <= 0), `${n}: crecimiento positivo sin reinversión.`);
     add('V12', 'error', y10.revenue > 0, `${n}: ingresos no positivos al año 10.`);
+  }
+  return r;
+}
+
+/** Bancos y aseguradoras: método justificado, datos regulatorios y ROE con respaldo histórico. Sin datos regulatorios no hay valoración. */
+function controlesFinancieros(m) {
+  const r = [], add = (id, gravedad, ok, msg) => { if (!ok) r.push({ id, grupo: 'valoracion', gravedad, msg }); };
+  add('F01', 'bloqueo', ['ddm', 'exceso'].includes(m.metodo), 'Método de valoración no declarado (metodo: «ddm» o «exceso»).');
+  add('F02', 'error', !!(m.justificaciones && String(m.justificaciones.metodo || '').trim().length >= 40),
+    'Falta justificación de la elección del método (calidad de datos de reparto frente a retorno excedente).');
+  const g = m.regulatorio || {}, banco = m.profile === 'banco';
+  const [campo, minimo, nombre] = banco ? ['cet1', 'cet1Minimo', 'CET1'] : ['solvencyRatio', 'solvencyMinimo', 'ratio de solvencia'];
+  add('F03', 'bloqueo', num(g[campo]) && num(g[minimo]) && !!g.fecha && !!g.fuente,
+    `Faltan datos regulatorios indispensables (${nombre}, mínimo exigido, fecha y fuente): sin ellos no se genera valoración.`);
+  if (num(g[campo]) && num(g[minimo])) add('F04', 'error', g[campo] >= g[minimo], `${nombre} (${g[campo]}) por debajo del mínimo exigido (${g[minimo]}): el reparto de dividendos del modelo no es sostenible.`);
+  const roes = (m.history || []).filter(x => num(x.netIncome) && num(x.equity) && x.equity > 0).map(x => x.netIncome / x.equity);
+  if (roes.length >= 3 && m.assumptions) for (const n of ['conservador', 'base', 'optimista']) {
+    const a = m.assumptions[n]; if (!a || !num(a.roeHighGrowth)) continue;
+    add('F05', 'error', a.roeHighGrowth <= Math.max(...roes) * 1.3, `${n}: ROE de alto crecimiento (${(a.roeHighGrowth * 100).toFixed(1)} %) supera en más de 30 % el máximo histórico (${(Math.max(...roes) * 100).toFixed(1)} %).`);
   }
   return r;
 }

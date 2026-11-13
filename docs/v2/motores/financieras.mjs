@@ -89,3 +89,45 @@ export function evaluarExcesoRetorno(i) {
   return { status: warnings.length ? 'REVISAR' : 'CANDIDATO', issues: [], warnings, years: rows, costOfEquity: ke, costOfEquityStable: keStable,
     roeStable, payoutStable, terminalValue, pvExcess, equity, perShare };
 }
+
+// ───────── Tres escenarios para bancos y aseguradoras (mismo motor, distintos supuestos) ─────────
+export const SCENARIOS = ['conservador', 'base', 'optimista'];
+export const METODOS = ['ddm', 'exceso'];
+const entradas = (metodo, f, a) => metodo === 'ddm'
+  ? { netIncome: f.netIncome, bookEquityPrior: f.bookEquityPrior, dividends: f.dividends, shares: f.shares, ...a }
+  : { bookEquity: f.bookEquity, shares: f.shares, ...a };
+const evaluar = (metodo, f, a) => metodo === 'ddm' ? evaluarDDM(entradas(metodo, f, a)) : evaluarExcesoRetorno(entradas(metodo, f, a));
+
+export function calculateAll(model) {
+  const meta = { ticker: model?.ticker || '', company: model?.company || '', units: model?.units || '', currency: model?.currency || '' };
+  if (!model?.financials || !model.assumptions) return { status: 'INCOMPLETO', issues: ['Faltan datos o supuestos.'], scenarios: {}, meta };
+  if (!METODOS.includes(model.metodo)) return { status: 'INCOMPLETO', issues: [`Método «${model.metodo}» no reconocido (ddm | exceso).`], scenarios: {}, meta };
+  const scenarios = {};
+  for (const n of SCENARIOS) {
+    const a = model.assumptions[n];
+    if (!a) { scenarios[n] = { status: 'INCOMPLETO', issues: [`Faltan supuestos del escenario ${n}.`] }; continue; }
+    const r = evaluar(model.metodo, model.financials, a);
+    if (!fin(a.mos) || a.mos < 0 || a.mos >= 1) scenarios[n] = { status: 'INCOMPLETO', issues: ['Margen de seguridad fuera de rango.'] };
+    else scenarios[n] = r.perShare === undefined ? r : { ...r, mosPrice: r.perShare * (1 - a.mos) };
+  }
+  const ok = Object.values(scenarios).every(s => s.status === 'CANDIDATO');
+  return { status: ok ? 'CANDIDATO' : 'INCOMPLETO', scenarios, meta, metodo: model.metodo };
+}
+
+/** Sensibilidad reproducible del escenario: prima de riesgo (Ke) × crecimiento estable, recalculando el motor completo. */
+export function sensibilidad(model, nombre = 'base', size = 5) {
+  const a = model?.assumptions?.[nombre];
+  if (!a || !METODOS.includes(model.metodo)) return { status: 'INCOMPLETO', issues: ['Sin supuestos.'] };
+  const c = Math.floor(size / 2), g0 = model.metodo === 'ddm' ? (a.overrideStableGrowth ? a.stableGrowth : a.riskFree) : a.stableGrowth;
+  const base = evaluar(model.metodo, model.financials, a);
+  if (!['CANDIDATO', 'REVISAR'].includes(base.status)) return { status: base.status, issues: base.issues };
+  const growths = Array.from({ length: size }, (_, j) => g0 + (j - c) * 0.005), rows = [];
+  for (let i = 0; i < size; i++) {
+    const erp = a.erp + (i - c) * 0.005, cells = growths.map(g => {
+      const r = evaluar(model.metodo, model.financials, { ...a, erp, stableGrowth: g, overrideStableGrowth: true });
+      return ['CANDIDATO', 'REVISAR'].includes(r.status) ? r.perShare : null;
+    });
+    rows.push({ costOfEquity: base.costOfEquity + (i - c) * 0.005 * a.beta, erp, cells });
+  }
+  return { status: 'CANDIDATO', growths, rows, centerValue: rows[c].cells[c] };
+}

@@ -8,3 +8,9 @@ test('la página conecta el módulo de controles sin depender de él para cargar
   assert.match(html, /id="controlsView"/);
   assert.ok(fs.existsSync(new URL('../docs/v2/expediente-v2.mjs', import.meta.url)));
 });
+test('la página despacha por perfil y no muestra valores con un bloqueo activo', () => {
+  assert.match(html, /await import\('\.\/v2\/motores\/despacho\.mjs'\)/);
+  assert.match(html, /bloqueado\?\{status:'INCOMPLETO',scenarios:\{\}\}:motor\.calculateAll\(model\)/);
+  assert.match(html, /renderSensitivity\(model,bloqueado\)/);
+  assert.ok(fs.existsSync(new URL('../docs/v2/motores/financieras.mjs', import.meta.url)));
+});
