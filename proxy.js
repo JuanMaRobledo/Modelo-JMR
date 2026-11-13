@@ -18,6 +18,8 @@ export default function proxy(request) {
   // El Centro Financiero valida el origen contra una lista exacta;
   // producción y los demás hosts mantienen el flujo de acceso anterior.
   const previewOrigin = "https://modelo-jmr-git-fix-sync-sheet-ta-0c6a24-juanmarobledos-projects.vercel.app";
+  const v2PreviewOrigin = "https://modelo-jmr-git-feat-jmr-v2-previ-fbf730-juanmarobledos-projects.vercel.app";
   if (url.origin === previewOrigin) destination.searchParams.set("target", previewOrigin);
+  if (url.origin === v2PreviewOrigin) destination.searchParams.set("target", v2PreviewOrigin);
   return Response.redirect(destination, 303);
 }
