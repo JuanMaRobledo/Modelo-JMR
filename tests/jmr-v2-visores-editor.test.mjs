@@ -35,8 +35,8 @@ test('ocho pestañas, estados financieros por estado e interfaz de edición inte
    assert.match(html,new RegExp('data-v2-view="'+n+'"'));
    assert.match(html,new RegExp('data-v2-tab="'+n+'"'));
  }
- assert.match(html,/id="statementsTable"/);
- for(const phrase of ['Estado de resultados','Estado de situación financiera','Estado de flujos de efectivo','Flujo operativo','operatingCF','No hay estados financieros vinculados']){
+ for(const id of ['incomeTable','balanceTable','cashflowTable'])assert.match(html,new RegExp('id="'+id+'"'));
+ for(const phrase of ['Estado de resultados','Estado de situación financiera','Estado de flujos de efectivo','Flujo de efectivo operativo','operatingCF','Los conceptos ausentes en el expediente normalizado aparecen como N/D']){
    assert.ok(html.includes(phrase),phrase);
  }
  assert.match(html,/await import\('\.\/v2\/editor-analisis\.mjs'\)/);
