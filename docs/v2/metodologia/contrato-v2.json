@@ -1,6 +1,6 @@
 {
   "id": "jmr-v2-contrato-unico",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "effectiveDate": "2026-11-13",
   "scope": "Modelo JMR V2.0; never Floyd",
   "canonicalDocument": "docs/v2/metodologia/CONTRATO_UNICO_LLM.md",
@@ -38,9 +38,11 @@
     "auditadas"
   ],
   "audit": {
-    "technicalIndependentRequiredForPublication": true,
+    "technicalIndependentRequiredForPublication": false,
     "ownerApprovalRequiredForAuditedViewer": true,
-    "aiCanApprove": false
+    "aiCanApprove": false,
+    "independentAuditIsSeparate": true,
+    "approvalMustMatchCurrentRevision": true
   },
   "analyticalSections": [
     "business",
@@ -104,8 +106,56 @@
     "recalculate-and-export-json",
     "write-evidence-based-analysis",
     "run-economic-checks",
-    "update-catalog-and-test",
-    "independent-audit",
-    "owner-review"
-  ]
+    "publish-to-app-for-review",
+    "independent-audit-if-requested",
+    "owner-review-and-approval"
+  ],
+  "publication": {
+    "appPublicationRequiresAudit": false,
+    "appPublicationRequiresOwnerApproval": false,
+    "pendingViewer": "pendientes",
+    "auditedViewer": "auditadas",
+    "visibilityValues": [
+      "PUBLICADA_PARA_REVISION",
+      "BLOQUEADA"
+    ],
+    "visibilityDependsOn": [
+      "realCompany",
+      "supportedValuationModel",
+      "minimumMaterialData",
+      "noMaterialBlockingControl"
+    ],
+    "displayWithoutAudit": "publish for review with conspicuous unverified status, issues and provenance",
+    "invalidNumbersWhenBlocked": "hide valuation numbers, show blockers",
+    "distinction": "technical publication state is not equivalent to user approval"
+  },
+  "portal": {
+    "primaryValuationApp": "Modelo JMR V2.0",
+    "preserveFloyd": true,
+    "cover": [
+      "marketPriceWithAsOf",
+      "intrinsicValueBase",
+      "mos35Base",
+      "conservativeBaseOptimistic",
+      "upside",
+      "provisionalLabel"
+    ],
+    "financials": [
+      "incomeStatement",
+      "balanceSheet",
+      "cashFlowStatement"
+    ],
+    "scenarios": "publish evidence, counterevidence and economic rationale for each story and every material assumption",
+    "fundamentalAnalysis": "complete, integrated in browser, editable and supports images",
+    "eightTabs": [
+      "analisis",
+      "valoracion",
+      "financieros",
+      "indicadores",
+      "modelo",
+      "sensibilidades",
+      "asuntos",
+      "revision"
+    ]
+  }
 }
