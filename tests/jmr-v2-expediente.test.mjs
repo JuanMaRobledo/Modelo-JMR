@@ -84,3 +84,10 @@ test('V10: el ROIC terminal alto se levanta solo con justificación escrita', ()
   assert.ok(!ids(check(m => { alto(m); m.justificaciones = { roicTerminal: 'Ventaja competitiva duradera por escala, marca y contratos de largo plazo con renovación.' }; })).includes('V10'));
   assert.ok(ids(check(m => { alto(m); m.justificaciones = { roicTerminal: 'porque sí' }; })).includes('V10'));
 });
+test('D07: la utilidad antes de impuestos admite ingresos/gastos no operativos entre EBIT y UAI', () => {
+  const sin = check(m => { const h = m.history.at(-1); h.pretaxIncome = h.ebit - h.interestExpense + 500; h.netIncome = h.pretaxIncome - h.taxExpense; });
+  assert.ok(ids(sin).includes('D07'), 'una partida no operativa no declarada descuadra');
+  const con = check(m => { const h = m.history.at(-1); h.nonOperatingIncome = 500; h.pretaxIncome = h.ebit - h.interestExpense + 500; h.netIncome = h.pretaxIncome - h.taxExpense; });
+  assert.ok(!ids(con).includes('D07'));
+  assert.ok(ids(check(m => { const h = m.history.at(-1); h.nonOperatingIncome = 500; })).includes('D07'), 'declararla sin que concilie sigue siendo error');
+});

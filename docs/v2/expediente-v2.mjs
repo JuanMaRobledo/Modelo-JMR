@@ -33,7 +33,7 @@ export function controlesDatos(m) {
       add('D06', 'error', rel(x.assets, x.liabilities + x.equity + nci, 0.005), `${x.year}: activos ≠ pasivos + patrimonio${nci ? ' + minoritarias/preferentes' : ''} (tolerancia 0,5 %).`);
     }
     if ([x.ebit, x.interestExpense, x.pretaxIncome].every(num))
-      add('D07', 'error', rel(x.pretaxIncome, x.ebit - x.interestExpense, 0.005), `${x.year}: utilidad antes de impuestos ≠ EBIT − intereses.`);
+      add('D07', 'error', rel(x.pretaxIncome, x.ebit - x.interestExpense + (num(x.nonOperatingIncome) ? x.nonOperatingIncome : 0), 0.005), `${x.year}: utilidad antes de impuestos ≠ EBIT − intereses + ingresos no operativos.`);
     if ([x.pretaxIncome, x.taxExpense, x.netIncome].every(num))
       add('D08', 'error', rel(x.netIncome, x.pretaxIncome - x.taxExpense, 0.005), `${x.year}: utilidad neta ≠ utilidad antes de impuestos − impuestos.`);
     if (num(x.revenue) && num(x.cogs)) add('D09', 'error', x.cogs >= 0 && x.cogs <= x.revenue * 1.0001, `${x.year}: costo de ventas inválido.`);

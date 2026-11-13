@@ -18,7 +18,7 @@ from xml.sax.saxutils import escape
 
 E, I, S = "'JMR Estados'", "'JMR Indicadores'", "'JMR Escenarios'"
 YC = [chr(c) for c in range(ord('C'), ord('L') + 1)]            # C..L = 10 ejercicios, el más reciente en L
-R = dict(ingresos=6, cogs=7, bruta=8, opex=9, da=10, ebitda=11, ebit=12, interes=13, uai=14, impuestos=15, neta=16,
+R = dict(ingresos=6, cogs=7, bruta=8, opex=9, da=10, ebitda=11, ebit=12, interes=13, uai=14, impuestos=15, neta=16, otrono=17,
          caja=19, ac=20, inventarios=21, activos=22, pc=23, deuda=24, arrend=25, pasivos=26, patrimonio=27, minoritarios=28, noop=29, capinv=30,
          cfo=33, capex=34, dwc=35, adq=36, fin=37, divrec=38, acciones=41, sbc=42, id=43, nol=44, precio=47, fecha=48)
 
@@ -68,7 +68,7 @@ class Sheet:
 ROWS_IN = [  # (clave, etiqueta, estilo)
  ('ingresos', 'Ingresos', 'in_num'), ('cogs', 'Costo de ventas', 'in_num'), ('opex', 'Gastos operativos (incluye D&A; no incluye costo de ventas)', 'in_num'),
  ('da', 'Depreciación y amortización', 'in_num'), ('ebit', 'EBIT reportado', 'in_num'), ('interes', 'Gastos por intereses', 'in_num'),
- ('uai', 'Utilidad antes de impuestos', 'in_num'), ('impuestos', 'Impuestos', 'in_num'), ('neta', 'Utilidad neta', 'in_num'),
+ ('uai', 'Utilidad antes de impuestos', 'in_num'), ('otrono', 'Ingresos (gastos) no operativos, netos (entre EBIT y utilidad antes de impuestos)', 'in_num'), ('impuestos', 'Impuestos', 'in_num'), ('neta', 'Utilidad neta', 'in_num'),
  ('caja', 'Caja y equivalentes', 'in_num'), ('ac', 'Activos corrientes', 'in_num'), ('inventarios', 'Inventarios', 'in_num'), ('activos', 'Activos totales', 'in_num'),
  ('pc', 'Pasivos corrientes', 'in_num'), ('deuda', 'Deuda financiera', 'in_num'), ('arrend', 'Arrendamientos (deuda por arrendamiento)', 'in_num'),
  ('pasivos', 'Pasivos totales', 'in_num'), ('patrimonio', 'Patrimonio total (incluye minoritarias)', 'in_num'), ('minoritarios', '  de las cuales: participaciones minoritarias', 'in_num'),
@@ -94,15 +94,16 @@ def build_estados(base, datos):
     for r, t in HEADS.items():
         for col in ['A', 'B'] + YC + ['M']: sh.put(ref(col, r), t if col == 'A' else None, st='head')
     def valor(key, h):
-        m = dict(ingresos='revenue', cogs='cogs', opex=None, da='da', ebit='ebit', interes='interestExpense', uai='pretaxIncome', impuestos='taxExpense', neta='netIncome',
+        m = dict(ingresos='revenue', cogs='cogs', opex=None, da='da', ebit='ebit', interes='interestExpense', otrono='nonOperatingIncome', uai='pretaxIncome', impuestos='taxExpense', neta='netIncome',
                  caja='cash', ac='currentAssets', inventarios='inventory', activos='assets', pc='currentLiabilities', deuda='debt', arrend=None, pasivos='liabilities',
                  patrimonio='equity', minoritarios='minority', noop='nonoperatingAssets', cfo='operatingCF', capex='capex', dwc='changeNWC', adq=None, fin=None, divrec=None,
                  acciones='shares', sbc=None, id=None, nol=None)[key]
         if key == 'opex': return h['revenue'] - h['cogs'] - h['ebit']
         if key in ('arrend', 'adq', 'fin', 'divrec', 'sbc', 'id', 'nol'): return h.get({'arrend': 'leases', 'adq': 'acquisitions', 'fin': 'financingCF', 'divrec': 'dividendsBuybacks', 'sbc': 'sbc', 'id': 'rd', 'nol': 'nol'}[key], 0.0)
-        return h[m]
+        return h.get(m)
     for key, label, stl in ROWS_IN:
         r = R[key]; sh.put(ref('A', r), label); sh.put(ref('B', r), 'Reportado', st='note')
+        if (datos or {}).get('notas', {}).get(key): sh.put(ref('M', r), datos['notas'][key], st='note')
         for k, c in enumerate(YC):
             y = sh.cells.get((3, c), (None,))[0]
             sh.put(ref(c, r), valor(key, hist[y]) if (datos and y in hist) else None, st=stl)
@@ -113,7 +114,7 @@ def build_estados(base, datos):
     sh.put(ref('A', R['fecha']), 'Fecha de valoración'); sh.put(ref('C', R['fecha']), (datos or {}).get('asOf') if datos else None, st='in_text')
     ctr = [(51, 'Balance: activos = pasivos + patrimonio (±0,5 %)', lambda c: 'IF(%s%d="","",IF(ABS(%s%d-%s%d-%s%d)<=0.005*ABS(%s%d),"OK","REVISAR"))' % (c, R['activos'], c, R['activos'], c, R['pasivos'], c, R['patrimonio'], c, R['activos'])),
            (52, 'Resultados: EBIT = utilidad bruta − gastos operativos (±0,5 %)', lambda c: 'IF(%s%d="","",IF(ABS(%s%d-(%s%d-%s%d))<=0.005*MAX(ABS(%s%d),1),"OK","REVISAR"))' % (c, R['ebit'], c, R['ebit'], c, R['bruta'], c, R['opex'], c, R['ebit'])),
-           (53, 'Resultados: UAI = EBIT − intereses (±0,5 %)', lambda c: 'IF(%s%d="","",IF(ABS(%s%d-(%s%d-%s%d))<=0.005*MAX(ABS(%s%d),1),"OK","REVISAR"))' % (c, R['uai'], c, R['uai'], c, R['ebit'], c, R['interes'], c, R['uai'])),
+           (53, 'Resultados: UAI = EBIT − intereses + no operativos (±0,5 %)', lambda c: 'IF(%s%d="","",IF(ABS(%s%d-(%s%d-%s%d+N(%s%d)))<=0.005*MAX(ABS(%s%d),1),"OK","REVISAR"))' % (c, R['uai'], c, R['uai'], c, R['ebit'], c, R['interes'], c, R['otrono'], c, R['uai'])),
            (54, 'Resultados: utilidad neta = UAI − impuestos (±0,5 %)', lambda c: 'IF(%s%d="","",IF(ABS(%s%d-(%s%d-%s%d))<=0.005*MAX(ABS(%s%d),1),"OK","REVISAR"))' % (c, R['neta'], c, R['neta'], c, R['uai'], c, R['impuestos'], c, R['neta']))]
     for r, label, fn in ctr:
         sh.put(ref('A', r), label)
@@ -134,8 +135,10 @@ def build_fuentes(base, datos):
         fin_ = (datos or {}).get('financials', {}); v = None
         if datos:
             h = (datos['history'][-1]); m = {'ingresos': 'revenue', 'deuda': 'debt', 'caja': 'cash', 'minoritarios': 'minority', 'noop': 'nonoperatingAssets', 'acciones': 'shares'}[a]; v = h[m]
-        for col, val, stl in [('B', 'Informe anual (prueba)' if datos else None, 'in_text'), ('C', 2025 if datos else None, 'in_int'), ('D', 'p. 80' if datos else None, 'in_text'),
-                              ('E', (datos or {}).get('currency') if datos else None, 'in_text'), ('F', 'millones' if datos else None, 'in_text'), ('G', v, 'in_num'), ('H', 0.0 if datos else None, 'in_num')]:
+        fu = ((datos or {}).get('fuentes') or {}).get(campo, {})
+        for col, val, stl in [('B', fu.get('documento', 'Informe anual (prueba)' if datos else None), 'in_text'), ('C', fu.get('periodo', 2025 if datos else None), 'in_int'), ('D', fu.get('pagina', 'p. 80' if datos else None), 'in_text'),
+                              ('E', (datos or {}).get('currency') if datos else None, 'in_text'), ('F', fu.get('unidades', 'millones' if datos else None), 'in_text'),
+                              ('G', fu.get('valorReportado', v), 'in_num'), ('H', fu.get('ajuste', 0.0 if datos else None), 'in_num')]:
             sh.put(ref(col, r), val, st=stl)
         sh.put(ref('I', r), f=f, st='calc_num')
         sh.put(ref('J', r), f='IF(G%d="","",IF(ABS(G%d+H%d-I%d)<=0.0001*MAX(ABS(I%d),1),"OK","REVISAR"))' % (r, r, r, r, r), st='ctrl')
@@ -176,7 +179,7 @@ def build_ind(base):
     row(28, 'Conversión de caja (flujo operativo / utilidad neta)', '×', lambda c: '%s/%s' % (e(c, 'cfo'), e(c, 'neta')), 'calc_mult')
     row(29, 'Reinversión por unidad de ingreso incremental', '×', lambda c: '%s8/(%s-%s)' % (c, e(c, 'ingresos'), e(prev(c), 'ingresos')), 'calc_mult', YC[1:])
     row(32, 'Liquidez corriente (activos / pasivos corrientes)', '×', lambda c: '%s/%s' % (e(c, 'ac'), e(c, 'pc')), 'calc_mult')
-    row(33, 'Prueba ácida ((activos corrientes − inventarios) / pasivos corrientes)', '×', lambda c: '(%s-%s)/%s' % (e(c, 'ac'), e(c, 'inventarios'), e(c, 'pc')), 'calc_mult')
+    row(33, 'Prueba ácida ((activos corrientes − inventarios) / pasivos corrientes)', '×', lambda c: 'IF(%s="","N/D",(%s-%s)/%s)' % (e(c, 'inventarios'), e(c, 'ac'), e(c, 'inventarios'), e(c, 'pc')), 'calc_mult')
     row(34, 'Deuda neta (deuda + arrendamientos − caja)', 'mon.', lambda c: '%s+%s-%s' % (e(c, 'deuda'), e(c, 'arrend'), e(c, 'caja')), 'calc_num')
     row(35, 'Deuda neta / EBITDA', '×', lambda c: '(%s-%s)/%s' % (e(c, 'deuda'), e(c, 'caja'), e(c, 'ebitda')), 'calc_mult')
     row(36, 'Apalancamiento (deuda / patrimonio)', '×', lambda c: '%s/%s' % (e(c, 'deuda'), e(c, 'patrimonio')), 'calc_mult')
@@ -280,6 +283,20 @@ def build(src, out, datos=None, escenario='Base'):
     if huerfanos: raise SystemExit('Fórmulas compartidas huérfanas tras los reemplazos (si=%s): ampliar INPUT_LINKS' % huerfanos)
     if datos:
         s1, _ = set_cell(s1, 'B4', inline=datos.get('company', ''))
+    # Celdas de entrada adicionales del Ginsu (país, industria, costo de capital, tabla de regiones…): {hoja: {celda: valor}}
+    for hoja, celdas in ((datos or {}).get('celdas') or {}).items():
+        if hoja == 'Input sheet': x = s1
+        else:
+            wbx = parts['xl/workbook.xml'].decode('utf8'); relx = parts['xl/_rels/workbook.xml.rels'].decode('utf8')
+            rid_ = re.search(r'<sheet [^>]*name="%s"[^>]*r:id="(rId\d+)"' % re.escape(hoja.replace('&', '&amp;')), wbx).group(1)
+            tgt = [re.search(r'Target="([^"]+)"', r_).group(1) for r_ in re.findall(r'<Relationship [^>]*/>', relx) if 'Id="%s"' % rid_ in r_][0]
+            pth = 'xl/' + tgt; x = parts[pth].decode('utf8')
+        for cell, v in celdas.items():
+            if isinstance(v, str) and v.startswith('='): x, _ = set_cell(x, cell, formula=v[1:])
+            elif isinstance(v, str): x, _ = set_cell(x, cell, inline=v)
+            else: x, _ = set_cell(x, cell, value=repr(float(v)) if isinstance(v, float) else str(v))
+        if hoja == 'Input sheet': s1 = x
+        else: parts[pth] = x.encode('utf8')
     for nme in list(parts):
         if re.match(r'xl/worksheets/sheet\d+\.xml$', nme): parts[nme] = strip_cached(parts[nme].decode('utf8') if nme != 'xl/worksheets/sheet1.xml' else s1).encode('utf8')
     parts['xl/workbook.xml'] = wb.encode('utf8'); parts['xl/_rels/workbook.xml.rels'] = rels.encode('utf8'); parts['[Content_Types].xml'] = ct.encode('utf8')
@@ -299,7 +316,7 @@ def exportar(libro, meta_path, work, salida):
         datos[esc] = openpyxl.load_workbook(os.path.join(work, 'o_' + esc, esc + '.xlsx'), data_only=True)
     b = datos['Base']; i, o, es, sc, fu = b['Input sheet'], b['Valuation output'], b['JMR Estados'], b['JMR Escenarios'], b['JMR Fuentes']
     num = lambda v: v if isinstance(v, (int, float)) else None
-    claves = dict(revenue='ingresos', cogs='cogs', ebit='ebit', interestExpense='interes', pretaxIncome='uai', taxExpense='impuestos', netIncome='neta', operatingCF='cfo', capex='capex',
+    claves = dict(revenue='ingresos', cogs='cogs', ebit='ebit', interestExpense='interes', nonOperatingIncome='otrono', pretaxIncome='uai', taxExpense='impuestos', netIncome='neta', operatingCF='cfo', capex='capex',
                   da='da', changeNWC='dwc', cash='caja', currentAssets='ac', currentLiabilities='pc', inventory='inventarios', assets='activos', liabilities='pasivos', debt='deuda',
                   equity='patrimonio', minority='minoritarios', nonoperatingAssets='noop', shares='acciones', leases='arrend', acquisitions='adq', financingCF='fin', dividendsBuybacks='divrec', sbc='sbc', rd='id', nol='nol')
     history = []
