@@ -17,7 +17,7 @@ const a={growth1:.20,growth2to5:.20,margin1:3060.9/21765.4,
  failureProbability:0,recoveryRate:.5};
 const near=(actual,expected)=>Math.abs(actual-expected)<=Math.max(1,Math.abs(expected))*0.000002;
 test('embedded browser FCFF matches original Ginsu Almarai reference',()=>{
-  const v=engine.evaluateDCF(financials,a);
+  const v=engine.calculateAll({financials,assumptions:{conservador:a,base:a,optimista:a},profile:'operativa'}).scenarios.base;
   assert.equal(v.status,'CANDIDATO');
   assert.ok(near(v.perShare,1.982961845));
   assert.ok(near(v.terminalValue,112533.7314));
@@ -27,5 +27,5 @@ test('embedded browser FCFF matches original Ginsu Almarai reference',()=>{
   assert.ok(near(v.mosPrice,v.perShare*0.65));
 });
 test('browser FCFF remains profile gated for financials',()=>{
-  assert.equal(engine.evaluateDCF(financials,a,{profile:'banco'}).status,'INCOMPLETO');
+  assert.equal(engine.calculateAll({financials,assumptions:{conservador:a,base:a,optimista:a},profile:'banco'}).scenarios.base.status,'INCOMPLETO');
 });
