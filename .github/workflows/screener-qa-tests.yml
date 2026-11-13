@@ -1,0 +1,29 @@
+name: Validación de auditoría del screener
+
+on:
+  push:
+    paths:
+      - "scripts/auditar_screener.py"
+      - "tests/test_screener_audit.py"
+      - ".github/workflows/screener*.yml"
+  pull_request:
+    paths:
+      - "scripts/auditar_screener.py"
+      - "tests/test_screener_audit.py"
+      - ".github/workflows/screener*.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  audit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Verificar sintaxis
+        run: python -m py_compile scripts/auditar_screener.py tests/test_screener_audit.py
+      - name: Probar auditor estructural sin red
+        run: python -m unittest discover -s tests -p 'test_screener_audit.py' -v
