@@ -19,8 +19,8 @@ test('Oracle: 14 capítulos JMR, 20 subapartados preservados, libro intacto y fu
  assert.equal(model.libro.valores.base,55.6560059420807);
  assert.equal(model.libro.valores.conservador,5.06884037140071);
  assert.equal(model.libro.valores.optimista,143.714427565269);
- assert.match(model.documentLinks.workbook,/^https:\\/\\/docs\\.google\\.com\\/spreadsheets\\//);
- assert.match(model.documentLinks.annualReportsFolder,/^https:\\/\\/drive\\.google\\.com\\/drive\\/folders\\//);
+ assert.ok(model.documentLinks.workbook.startsWith('https://docs.google.com/spreadsheets/'));
+ assert.ok(model.documentLinks.annualReportsFolder.startsWith('https://drive.google.com/drive/folders/'));
  assert.deepEqual(model.annualReportDocuments.map(x=>x.fy),[2017,2018,2019,2020,2021,2022,2023,2024,2025,2026]);
  assert.ok(model.annualReportDocuments.every(x=>x.kind==='10-K'&&x.url.startsWith('https://drive.google.com/file/d/')));
  assert.equal(model.quarterlyReportDocuments[0].periodEnd,'2026-08-31');
