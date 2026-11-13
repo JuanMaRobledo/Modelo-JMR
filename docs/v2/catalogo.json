@@ -1,4 +1,24 @@
 {
  "schemaVersion": "jmr-v2-catalogo-1",
- "empresas": []
+ "empresas": [
+  {
+   "ticker": "EPAM",
+   "company": "EPAM Systems, Inc.",
+   "perfil": "operativa",
+   "asOf": "2026-09-30",
+   "currency": "USD",
+   "precio": 163.83,
+   "valorBase": 210.69113563005644,
+   "precioMOS": 136.9492381595367,
+   "estado": "EN_PROCESO",
+   "estadoPermitido": "EN_REVISION",
+   "estadoDeclarado": "EN_PROCESO",
+   "controles": {
+    "bloqueos": 0,
+    "errores": 2,
+    "avisos": 0
+   },
+   "archivo": "empresas/EPAM.json"
+  }
+ ]
 }
