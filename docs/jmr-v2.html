@@ -510,7 +510,7 @@ function render(model){
  if(esHold(model))notice.push('Perfil holding (suma de partes): fórmula por negocio verificada contra el libro illGE de Damodaran; los negocios financieros entran con valor externo de su propio motor; sin descuento de holding salvo justificación escrita.');
  if(esFin(model))notice.push(`Perfil financiero (${model.metodo==='ddm'?'Dividend Discount Ginsu':'Exceso de retorno'}): sin FCFF industrial; prima de riesgo del original sin calculadora ERP; capital regulatorio exigido para valorar.`);
  if(model.fictional)notice.push('SIMULACIÓN: todos los datos son ficticios y NO corresponden a un valor negociable.');
- notice.push('El motor analítico aún no ha completado la auditoría de paridad con todas las funciones del Ginsu original.');
+ notice.push('La paridad con el Ginsu original aún no está certificada para todos los ajustes materiales.');
  if(Array.isArray(model.warnings))notice.push(...model.warnings);
  if(calc.status!=='CANDIDATO')notice.push('El expediente tiene entradas incompletas o escenarios que requieren revisión.');
  $('noData').hidden=true;$('appContent').hidden=false;
