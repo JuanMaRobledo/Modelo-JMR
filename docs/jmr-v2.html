@@ -235,6 +235,7 @@ function validateInputs(financials, assumptions, profile='operativa') {
   if (f.revenue <= 0 || f.shares <= 0) issues.push('Ingresos y acciones diluidas deben ser positivos.');
   if (f.debt < 0 || f.cash < 0 || f.minority < 0 || f.optionsValue < 0) issues.push('Deuda, efectivo y reclamos deben ser no negativos.');
   if (f.financeLeaseLiabilities !== undefined && (!finite(f.financeLeaseLiabilities) || f.financeLeaseLiabilities < 0)) issues.push('El pasivo por arrendamiento financiero debe ser un número no negativo, distinto de los préstamos.');
+  if (f.debtIncludesFinanceLeases === true && (f.financeLeaseLiabilities ?? 0)>0) issues.push('Doble conteo: la deuda ya incluye arrendamientos financieros; no informar financeLeaseLiabilities por segunda vez.');
   if (!(a.growth1 > -1 && a.growth2to5 > -1 && a.gTerminal > -1)) issues.push('Crecimiento anual no puede ser <= -100 %.');
   if (!(a.waccInitial > 0 && a.waccTerminal > a.gTerminal)) issues.push('Debe cumplirse WACC inicial > 0 y WACC terminal > crecimiento terminal.');
   if (!(a.roicTerminal > 0 && a.salesToCapital1to5 > 0 && a.salesToCapital6to10 > 0)) issues.push('ROIC terminal y eficiencia de capital deben ser positivos.');
