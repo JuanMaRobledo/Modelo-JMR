@@ -2,11 +2,20 @@
 // Los borradores compartidos se escriben SOLO en una rama editorial de GitHub.
 // El SSO da acceso de lectura; para guardar remotamente se exige OAuth de GitHub.
 export const SECCIONES_ANALISIS_V2 = [
-  ['business','Negocio y modelo económico'],
-  ['moat','Ventaja competitiva'],
-  ['story','Historias → números'],
-  ['risks','Riesgos y contraevidencia'],
-  ['conclusion','Conclusión fundamental'],
+ ['tesis','Tesis de inversión y conclusión'],
+ ['negocio','La empresa y su modelo económico'],
+ ['industria','Industria, competencia y ventaja competitiva'],
+ ['crecimiento','Motores del crecimiento futuro'],
+ ['ciclos','Ciclos de la empresa, del mercado y de la macroeconomía'],
+ ['finanzas','Historia financiera y calidad de resultados'],
+ ['reinversion','Reinversión, eficiencia del capital y ROIC'],
+ ['gobierno','Dirección, gobierno y asignación de capital'],
+ ['metodo','Nuestro proceso de valoración'],
+ ['supuestos','Supuestos económicos y su justificación'],
+ ['valoracion','Valor intrínseco, escenarios y precio'],
+ ['riesgos','Riesgos, tesis contraria y factores de ruptura'],
+ ['catalizadores','Catalizadores y plan de seguimiento'],
+ ['fuentes','Fuentes, limitaciones y estado del estudio'],
 ];
 const REPO='JuanMaRobledo/Modelo-JMR';
 const RAMA='v2/analisis-borradores';
@@ -50,18 +59,26 @@ function cleanHtml(html){
 }
 function normalizar(model, document){
  const blocks={};
- for(const [key] of SECCIONES_ANALISIS_V2){
+ const legacy={tesis:'conclusion',negocio:'business',industria:'moat',reinversion:'story',valoracion:'conclusion',riesgos:'risks'};
+ for(const [key,label] of SECCIONES_ANALISIS_V2){
   const rich=document?.blocks?.[key];
-  blocks[key]=cleanHtml(typeof rich==='string'?rich:'<p>'+esc(model.analysis?.[key]||'Pendiente de análisis')+'</p>');
+  const oldKey=legacy[key];
+  const legacyHtml=oldKey?document?.blocks?.[oldKey]:null;
+  const legacyPlain=oldKey?model.analysis?.[oldKey]:null;
+  const fallback=typeof legacyHtml==='string'?legacyHtml:
+     typeof legacyPlain==='string'?'<p>'+esc(legacyPlain)+'</p>':
+     '<p>Pendiente de investigación con fuentes primarias: '+esc(label)+'.</p>';
+  blocks[key]=cleanHtml(typeof rich==='string'?rich:fallback);
  }
- return {schemaVersion:'jmr-v2-analisis-1',ticker:model.ticker,blocks};
+ return {schemaVersion:'jmr-v2-analisis-2',ticker:model.ticker,status:'BORRADOR_EDITORIAL_NO_AUDITADO',
+ revision:document?.revision||model.libro?.id||null,source:document?.source||null,blocks};
 }
 async function getOfficial(ticker){
  try{
   const resp=await fetch('./v2/analisis/'+encodeURIComponent(ticker)+'.json',{cache:'no-store'});
   if(!resp.ok)return null;
   const data=await resp.json();
-  return data.ticker===ticker&&data.schemaVersion==='jmr-v2-analisis-1'?data:null;
+  return data.ticker===ticker&&['jmr-v2-analisis-1','jmr-v2-analisis-2'].includes(data.schemaVersion)?data:null;
  }catch{return null;}
 }
 function githubToken(){return globalThis.GhOAuth?.getGhToken?.()||'';}
@@ -144,13 +161,14 @@ export async function montarEditorAnalisis(model,root){
  function obtener(){
   const blocks={};
   for(const [name] of SECCIONES_ANALISIS_V2){blocks[name]=cleanHtml(sections.querySelector('[data-editor-section="'+name+'"]').innerHTML);}
-  return {schemaVersion:'jmr-v2-analisis-1',ticker,blocks,updatedAt:new Date().toISOString()};
+  return {schemaVersion:'jmr-v2-analisis-2',ticker,status:'BORRADOR_EDITORIAL_NO_AUDITADO',revision:saved.revision||model.libro?.id||null,source:saved.source||null,blocks,updatedAt:new Date().toISOString()};
  }
  function dibujar(doc){
   sections.replaceChildren();
+  let numberChapter=0;
   for(const [name,label] of SECCIONES_ANALISIS_V2){
    const card=document.createElement('section');card.className='analysis-block';
-   const title=document.createElement('h4');title.textContent=label;card.append(title);
+   const title=document.createElement('h3');title.textContent=(++numberChapter)+'. '+label;card.append(title);
    const body=document.createElement('div');
    body.className='v2-rich-editor';body.dataset.editorSection=name;
    body.innerHTML=cleanHtml(doc.blocks[name]);
@@ -161,7 +179,7 @@ export async function montarEditorAnalisis(model,root){
   const title=document.createElement('strong');title.textContent='Índice del análisis fundamental';toc.append(title);
   const list=document.createElement('ol');list.className='analysis-toc-list';
   let chapter=0;
-  for(const heading of sections.querySelectorAll('.v2-rich-editor h3')){
+  for(const heading of sections.querySelectorAll('.analysis-block > h3')){
    const id='v2-ch-'+ticker+'-'+(++chapter);heading.id=id;
    const li=document.createElement('li'),link=document.createElement('a');
    link.href='#'+id;link.textContent=heading.textContent;li.append(link);list.append(li);
