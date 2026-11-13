@@ -21,8 +21,34 @@
 .catalog{text-align:left;margin:26px auto 0;max-width:980px}.catalog input{background:var(--surface);color:var(--ink);border:1px solid var(--border);border-radius:9px;padding:11px;width:min(340px,100%);margin-bottom:12px}.catalog tr[data-ticker]{cursor:pointer}.catalog tr[data-ticker]:hover td{background:var(--s2)}.badge{font-size:.7rem;font-weight:800;letter-spacing:.03em}.badge.PUBLICADO{color:var(--ok)}.badge.BLOQUEADO{color:#cc5555}.badge.EN_PROCESO,.badge.EN_REVISION{color:var(--warn)}
 .ctl-sum{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}.ctl-sum span{background:var(--s2);border:1px solid var(--border);border-radius:999px;padding:4px 11px;font-size:.76rem;font-weight:750}.ctl-list{list-style:none;margin:0;padding:0}.ctl-list li{display:grid;grid-template-columns:auto auto 1fr;gap:10px;padding:9px 0;border-top:1px solid var(--border);font-size:.82rem}.ctl-list b{font-variant-numeric:tabular-nums}.ctl-list .g-bloqueo{color:#cc5555}.ctl-list .g-error{color:var(--warn)}.ctl-list .g-aviso{color:var(--ink-light)}
 @media print{body{background:#fff}.hero{padding:20px;background:#fff;color:#111;border:1px solid #999}.hero h1,.hero p{color:#111}.toolbar,.appnav{display:none}.kpis,.scenario-grid,.two-panels{break-inside:avoid}.panel{box-shadow:none}}
+
+/* Expediente V2 · ocho pestañas y editor cualitativo en navegador */
+.dossier-tabs{display:flex;gap:8px;flex-wrap:wrap;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:15px;margin:22px 0 14px}
+.dossier-tabs button{padding:9px 12px;background:var(--surface);color:var(--ink);border:1px solid var(--border);font-size:.85rem}
+.dossier-tabs button[aria-selected=true]{background:var(--s2);border-color:var(--teal);color:var(--teal)}
+[data-v2-tab][hidden]{display:none!important}
+.v2-editor-bar{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.v2-editor-bar .note{margin-right:auto;color:var(--ink-light);font-size:.79rem}
+.v2-editor-bar button,.v2-editor-bar label{font-size:.78rem}
+.v2-editor-note{font-size:.82rem;color:var(--ink-light);margin:8px 0}
+.v2-editor-note[data-level=error]{color:#b33}
+.v2-rich-editor{line-height:1.76;overflow-wrap:anywhere}
+.v2-rich-editor p{text-align:justify;white-space:pre-wrap}
+.v2-rich-editor h3{font:600 1.16rem/1.4 Georgia,serif;margin:24px 0 9px}
+.v2-rich-editor[contenteditable=true]{min-height:130px;background:var(--surface);padding:14px;border:1px solid var(--teal);outline-offset:3px;border-radius:10px}
+.v2-rich-editor img{max-width:100%;height:auto;border:1px solid var(--border);border-radius:8px}
+.v2-rich-editor figure{margin:20px auto;text-align:center}.v2-rich-editor figcaption{font-size:.8rem;color:var(--ink-light)}
+.statement-block{margin:16px 0 28px}.statement-block h4{font:600 1.15rem Georgia,serif;margin:0 0 12px}
+.full-financial-table th,.full-financial-table td{white-space:nowrap;text-align:right;padding:10px;border-bottom:1px solid var(--border);font-variant-numeric:tabular-nums}
+.full-financial-table thead th{position:sticky;top:0;background:var(--surface);z-index:1}
+.full-financial-table th:first-child,.full-financial-table td:first-child{text-align:left;position:sticky;left:0;background:var(--surface);min-width:220px;z-index:1}
+.full-financial-table thead th:first-child{z-index:2}.full-financial-table tbody tr:hover td{background:var(--s2)}
+.v2-concerns li{padding:8px 0;border-bottom:1px solid var(--border);overflow-wrap:anywhere}
+#assumptionsReasons p{white-space:pre-wrap;text-align:justify}
+@media(max-width:640px){.dossier-tabs{flex-wrap:nowrap;overflow-x:auto}.dossier-tabs button{flex:none}.full-financial-table th:first-child,.full-financial-table td:first-child{min-width:165px}}
 </style>
 <script src="mercado.js" defer></script>
+<script src="gh_oauth.js" defer></script>
 </head>
 <body>
 <nav class="appnav" aria-label="Navegación JMR"><a href="jmr-v2.html" aria-current="page">JMR V2.0</a><a href="expediente.html?seccion=analisis">Volver a Floyd</a></nav>
@@ -63,35 +89,70 @@
   <article class="kpi"><span>Precio con MOS 35 %</span><strong id="mosPrice">—</strong><small>Solo sobre escenario Base</small></article>
   <article class="kpi"><span>Brecha frente al mercado</span><strong id="upside">—</strong><small>Valor Base / mercado − 1</small></article>
  </section>
- <section class="panel" aria-labelledby="scenariosTitle">
-  <div class="sectionhead"><div><div class="eyebrow muted">STORIES TO NUMBERS</div><h3 id="scenariosTitle">Tres escenarios, una lógica FCFF</h3></div><p>Sin promediar múltiplos con el DCF</p></div>
+
+ <nav id="v2Tabs" class="dossier-tabs" role="tablist" aria-label="Pestañas del expediente JMR V2.0">
+  <button type="button" role="tab" data-v2-view="analisis" aria-selected="true">Análisis fundamental</button>
+  <button type="button" role="tab" data-v2-view="valoracion" aria-selected="false" tabindex="-1">Valoración</button>
+  <button type="button" role="tab" data-v2-view="financieros" aria-selected="false" tabindex="-1">Estados financieros</button>
+  <button type="button" role="tab" data-v2-view="indicadores" aria-selected="false" tabindex="-1">Indicadores</button>
+  <button type="button" role="tab" data-v2-view="modelo" aria-selected="false" tabindex="-1">Modelo y supuestos</button>
+  <button type="button" role="tab" data-v2-view="sensibilidades" aria-selected="false" tabindex="-1">Sensibilidades</button>
+  <button type="button" role="tab" data-v2-view="asuntos" aria-selected="false" tabindex="-1">Asuntos por revisar</button>
+  <button type="button" role="tab" data-v2-view="revision" aria-selected="false" tabindex="-1">Revisión y auditoría</button>
+ </nav>
+ <section class="panel" data-v2-tab="analisis" aria-labelledby="fundTitle">
+  <div class="sectionhead"><div><div class="eyebrow muted">ANÁLISIS FUNDAMENTAL</div><h3 id="fundTitle">La empresa, sus riesgos y la historia detrás del valor</h3></div><p>Documento completo, legible y editable aquí mismo</p></div>
+  <p class="panel-hint">El análisis editorial y sus imágenes se guardan como borrador. Editarlo no altera el DCF, no lo aprueba ni lo publica automáticamente.</p>
+  <div id="analysisView"></div>
+ </section>
+ <section class="panel" data-v2-tab="valoracion" aria-labelledby="scenariosTitle" hidden>
+  <div class="sectionhead"><div><div class="eyebrow muted">STORIES TO NUMBERS</div><h3 id="scenariosTitle">Tres escenarios, una lógica de valoración</h3></div><p>Conservador, Base y Optimista</p></div>
   <div id="scenarioGrid" class="scenario-grid"></div>
  </section>
- <section class="panel" aria-labelledby="financeTitle">
-  <div class="sectionhead"><div><div class="eyebrow muted">EVOLUCIÓN FINANCIERA</div><h3 id="financeTitle">Márgenes, eficiencia y salud</h3></div><p>Ratios calculados · Los vacíos se muestran como N/D</p></div>
+ <section class="panel" data-v2-tab="valoracion" aria-labelledby="cashflowsTitle" hidden>
+  <div class="sectionhead"><div><div class="eyebrow muted">FLUJOS DE CAJA</div><h3 id="cashflowsTitle">Proyección del escenario Base</h3></div><p>Proyección generada por el motor, no introducida a mano</p></div>
+  <div class="table-scroll"><table id="projectionTable"><thead></thead><tbody></tbody></table></div>
+ </section>
+ <section class="panel" data-v2-tab="financieros" aria-label="Estados financieros completos" hidden>
+  <div class="sectionhead"><div><div class="eyebrow muted">ESTADOS FINANCIEROS</div><h3>Resultados, balance y flujos de efectivo</h3></div><p>Históricos FY · cifras en las unidades del expediente</p></div>
+  <p id="financialDisclosure" class="panel-hint"></p>
+  <article class="statement-block"><h4>Estado de resultados</h4><div class="table-scroll"><table class="full-financial-table" id="incomeTable"><thead></thead><tbody></tbody></table></div></article>
+  <article class="statement-block"><h4>Estado de situación financiera</h4><div class="table-scroll"><table class="full-financial-table" id="balanceTable"><thead></thead><tbody></tbody></table></div></article>
+  <article class="statement-block"><h4>Estado de flujos de efectivo</h4><div class="table-scroll"><table class="full-financial-table" id="cashflowTable"><thead></thead><tbody></tbody></table></div></article>
+  <p class="panel-hint">Los conceptos ausentes en el expediente normalizado aparecen como N/D. Para el desglose oficial íntegro deben cotejarse los informes 10-K; no se completan cifras faltantes por inferencia.</p>
+  <a id="originalReportsFinancial" target="_blank" rel="noopener noreferrer" hidden>Abrir reportes anuales originales ↗</a>
+ </section>
+ <section class="panel" data-v2-tab="indicadores" aria-labelledby="financeTitle" hidden>
+  <div class="sectionhead"><div><div class="eyebrow muted">EVOLUCIÓN FINANCIERA</div><h3 id="financeTitle">Márgenes, múltiplos, eficiencia y salud</h3></div><p>Ratios calculados · N/D para ausencias</p></div>
   <div class="table-scroll"><table id="financeTable"><thead></thead><tbody></tbody></table></div>
  </section>
- <section class="two-panels">
-  <section class="panel" aria-labelledby="cashflowsTitle"><div class="sectionhead"><div><div class="eyebrow muted">FLUJOS DE CAJA</div><h3 id="cashflowsTitle">Proyección del escenario Base</h3></div></div>
-    <div class="table-scroll"><table id="projectionTable"><thead></thead><tbody></tbody></table></div>
-  </section>
-  <section class="panel" aria-labelledby="sensitivityTitle"><div class="sectionhead"><div><div class="eyebrow muted">CONTROL ECONÓMICO</div><h3 id="sensitivityTitle">Sensibilidad terminal 5×5</h3></div></div>
-    <p class="panel-hint" id="sensHint">WACC terminal por crecimiento perpetuo. Los años explícitos se mantienen fijos.</p>
-    <div class="table-scroll"><table id="sensitivityTable"><thead></thead><tbody></tbody></table></div>
-  </section>
+ <section class="panel" data-v2-tab="modelo" aria-labelledby="assumptionsTitle" hidden>
+  <div class="sectionhead"><div><div class="eyebrow muted">HISTORIAS → NÚMEROS</div><h3 id="assumptionsTitle">Modelo, escenarios y supuestos</h3></div><p>Cifras del libro V2, no editadas desde el visor</p></div>
+  <div class="table-scroll"><table class="full-financial-table" id="assumptionsTable"><thead></thead><tbody></tbody></table></div>
+  <h4>Justificación económica y fuentes de supuestos</h4>
+  <div id="assumptionsReasons" class="analysis-block"></div>
+  <p id="modelSources" class="panel-hint"></p>
+  <a id="workbookEditLink" href="#" target="_blank" rel="noopener noreferrer" hidden>Abrir libro V2 en el navegador para editar datos y supuestos ↗</a>
  </section>
- <section class="panel" aria-labelledby="ctlTitle">
-  <div class="sectionhead"><div><div class="eyebrow muted">CONTROLES DE PUBLICACIÓN</div><h3 id="ctlTitle">Estado del expediente</h3></div><p>El estado declarado no puede superar al permitido por los controles</p></div>
+ <section class="panel" data-v2-tab="sensibilidades" aria-labelledby="sensitivityTitle" hidden>
+  <div class="sectionhead"><div><div class="eyebrow muted">CONTROL ECONÓMICO</div><h3 id="sensitivityTitle">Sensibilidad terminal 5×5</h3></div><p>WACC terminal y crecimiento perpetuo</p></div>
+  <p class="panel-hint" id="sensHint">Los años explícitos se mantienen fijos.</p>
+  <div class="table-scroll"><table id="sensitivityTable"><thead></thead><tbody></tbody></table></div>
+ </section>
+ <section class="panel" data-v2-tab="asuntos" aria-labelledby="pendingTitle" hidden>
+  <div class="sectionhead"><div><div class="eyebrow muted">REVISIÓN DE RIESGOS</div><h3 id="pendingTitle">Asuntos por revisar</h3></div><p>La lista no desaparece por publicar en la app</p></div>
+  <ul id="concernsView" class="v2-concerns"></ul>
+ </section>
+ <section class="panel" data-v2-tab="revision" aria-labelledby="ctlTitle" hidden>
+  <div class="sectionhead"><div><div class="eyebrow muted">CONTROLES TÉCNICOS</div><h3 id="ctlTitle">Revisión y auditoría</h3></div><p>Publicar y aprobar son actos distintos</p></div>
   <div id="controlsView"><p class="muted">Módulo de controles no disponible.</p></div>
  </section>
- <section class="panel" aria-labelledby="fundTitle">
-  <div class="sectionhead"><div><div class="eyebrow muted">ANÁLISIS CUALITATIVO</div><h3 id="fundTitle">La historia detrás del valor</h3></div><p>Sin sustituir datos por relatos</p></div>
-  <div id="analysisView" class="analysis-grid"></div>
- </section>
- <section class="panel" aria-labelledby="sourcesTitle">
+ <section class="panel" data-v2-tab="revision" aria-labelledby="sourcesTitle" hidden>
   <div class="sectionhead"><div><div class="eyebrow muted">TRAZABILIDAD</div><h3 id="sourcesTitle">Fuentes y limitaciones</h3></div></div>
   <div id="sourcesView"></div>
+  <a id="analysisSourceLink" target="_blank" rel="noopener noreferrer" hidden>Consultar documento original de análisis ↗</a>
  </section>
+
 </div>
 <footer>JMR V2.0 · Los resultados son calculados, no auditados. Comparar con el workbook original Simple Ginsu antes de tomar decisiones de inversión. <span>Floyd permanece independiente.</span></footer>
 </main>
