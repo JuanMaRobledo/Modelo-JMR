@@ -18,7 +18,7 @@
    "aprobacionUsuario": null,
    "controles": {
     "bloqueos": 0,
-    "errores": 2,
+    "errores": 3,
     "avisos": 0
    },
    "archivo": "empresas/EPAM.json"
