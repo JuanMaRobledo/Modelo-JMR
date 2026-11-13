@@ -44,6 +44,23 @@
 .catalog{text-align:left;margin:26px auto 0;max-width:980px}.catalog input{background:var(--surface);color:var(--ink);border:1px solid var(--border);border-radius:9px;padding:11px;width:min(340px,100%);margin-bottom:12px}.catalog tr[data-ticker]{cursor:pointer}.catalog tr[data-ticker]:hover td{background:var(--s2)}.badge{font-size:.7rem;font-weight:800;letter-spacing:.03em}.badge.PUBLICADO{color:var(--ok)}.badge.BLOQUEADO{color:#cc5555}.badge.EN_PROCESO,.badge.EN_REVISION{color:var(--warn)}
 .ctl-sum{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}.ctl-sum span{background:var(--s2);border:1px solid var(--border);border-radius:999px;padding:4px 11px;font-size:.76rem;font-weight:750}.ctl-list{list-style:none;margin:0;padding:0}.ctl-list li{display:grid;grid-template-columns:auto auto 1fr;gap:10px;padding:9px 0;border-top:1px solid var(--border);font-size:.82rem}.ctl-list b{font-variant-numeric:tabular-nums}.ctl-list .g-bloqueo{color:#cc5555}.ctl-list .g-error{color:var(--warn)}.ctl-list .g-aviso{color:var(--ink-light)}
 @media print{body{background:#fff}.hero{padding:20px;background:#fff;color:#111;border:1px solid #999}.hero h1,.hero p{color:#111}.toolbar,.appnav{display:none}.kpis,.scenario-grid,.two-panels{break-inside:avoid}.panel{box-shadow:none}}
+
+#analysisView .analysis-grid{display:block}
+#analysisView .analysis-block{padding:20px 0;border-top:1px solid var(--border)}
+#analysisView .analysis-block h4{font-size:1.03rem;margin:0 0 9px}
+.analysis-toc{padding:14px 19px;margin:14px 0 22px;background:var(--s2);border:1px solid var(--border);border-radius:12px}
+.analysis-toc strong{font-weight:780;display:block;margin-bottom:10px}
+.analysis-toc-list{columns:2;column-gap:32px;font-size:.86rem;margin:0;padding-left:20px}
+.analysis-toc-list li{break-inside:avoid;margin:0 0 6px}
+.full-financial-table th,.full-financial-table td{white-space:nowrap;text-align:right;padding:10px;border-bottom:1px solid var(--border);font-variant-numeric:tabular-nums}
+.full-financial-table thead th{position:sticky;top:0;background:var(--surface);z-index:1}
+.full-financial-table th:first-child,.full-financial-table td:first-child{text-align:left;position:sticky;left:0;background:var(--surface);min-width:220px;z-index:1}
+.full-financial-table thead th:first-child{z-index:2}
+.full-financial-table tbody tr:hover td{background:var(--s2)}
+.statement-block{margin:16px 0 28px}.statement-block h4{font:600 1.15rem Georgia,serif;margin:0 0 12px}
+#assumptionsReasons p{white-space:pre-wrap;text-align:justify}
+@media(max-width:740px){.analysis-toc-list{columns:1}.full-financial-table th:first-child,.full-financial-table td:first-child{min-width:165px}}
+
 </style>
 <script src="mercado.js" defer></script>
 <script src="gh_oauth.js" defer></script>
@@ -105,19 +122,26 @@
   <div class="sectionhead"><div><div class="eyebrow muted">STORIES TO NUMBERS</div><h3 id="scenariosTitle">Tres escenarios, una lógica FCFF</h3></div><p>Sin promediar múltiplos con el DCF</p></div>
   <div id="scenarioGrid" class="scenario-grid"></div>
  </section>
- <section class="panel" data-v2-tab="financieros" aria-label="Estados financieros históricos">
-  <div class="sectionhead"><div><div class="eyebrow muted">DATOS REPORTADOS</div><h3>Estados financieros históricos</h3></div><p>Sin inventar cifras ausentes · LTM separado de FY</p></div>
-  <div class="table-scroll"><table id="statementsTable" class="v2-history-table"><thead></thead><tbody></tbody></table></div>
-  <p class="panel-hint" id="statementsNote"></p>
+ <section class="panel" data-v2-tab="financieros" aria-label="Estados financieros completos" hidden>
+  <div class="sectionhead"><div><div class="eyebrow muted">ESTADOS FINANCIEROS</div><h3>Resultados, balance y flujos de efectivo</h3></div><p>Históricos FY · cifras en las unidades del expediente</p></div>
+  <p id="financialDisclosure" class="panel-hint"></p>
+  <article class="statement-block"><h4>Estado de resultados</h4><div class="table-scroll"><table class="full-financial-table" id="incomeTable"><thead></thead><tbody></tbody></table></div></article>
+  <article class="statement-block"><h4>Estado de situación financiera</h4><div class="table-scroll"><table class="full-financial-table" id="balanceTable"><thead></thead><tbody></tbody></table></div></article>
+  <article class="statement-block"><h4>Estado de flujos de efectivo</h4><div class="table-scroll"><table class="full-financial-table" id="cashflowTable"><thead></thead><tbody></tbody></table></div></article>
+  <p class="panel-hint">Los conceptos ausentes en el expediente normalizado aparecen como N/D. Para el desglose oficial íntegro deben cotejarse los informes 10-K; no se completan cifras faltantes por inferencia.</p>
+  <a id="originalReportsFinancial" target="_blank" rel="noopener noreferrer" hidden>Abrir reportes anuales originales ↗</a>
  </section>
  <section class="panel" data-v2-tab="indicadores" aria-labelledby="financeTitle">
   <div class="sectionhead"><div><div class="eyebrow muted">EVOLUCIÓN FINANCIERA</div><h3 id="financeTitle">Márgenes, eficiencia y salud</h3></div><p>Ratios calculados · Los vacíos se muestran como N/D</p></div>
   <div class="table-scroll"><table id="financeTable"><thead></thead><tbody></tbody></table></div>
  </section>
- <section class="panel" data-v2-tab="modelo" aria-label="Modelo y supuestos">
-  <div class="sectionhead"><div><div class="eyebrow muted">ENTRADAS DEL MODELO</div><h3>Supuestos por escenario</h3></div><p>Revisión de parámetros sin alterar el motor DCF</p></div>
-  <div class="table-scroll"><table id="assumptionsTable" class="v2-model-table"><thead></thead><tbody></tbody></table></div>
+ <section class="panel" data-v2-tab="modelo" aria-labelledby="assumptionsTitle" hidden>
+  <div class="sectionhead"><div><div class="eyebrow muted">HISTORIAS → NÚMEROS</div><h3 id="assumptionsTitle">Modelo, escenarios y supuestos</h3></div><p>Cifras del libro V2, no editadas desde el visor</p></div>
+  <div class="table-scroll"><table class="full-financial-table" id="assumptionsTable"><thead></thead><tbody></tbody></table></div>
+  <h4>Justificación económica y fuentes de supuestos</h4>
+  <div id="assumptionsReasons" class="analysis-block"></div>
   <p id="modelSources" class="panel-hint"></p>
+  <a id="workbookEditLink" href="#" target="_blank" rel="noopener noreferrer" hidden>Abrir libro V2 en el navegador para editar datos y supuestos ↗</a>
  </section>
  <section class="two-panels" data-v2-tab="sensibilidades">
   <section class="panel" aria-labelledby="cashflowsTitle"><div class="sectionhead"><div><div class="eyebrow muted">FLUJOS DE CAJA</div><h3 id="cashflowsTitle">Proyección del escenario Base</h3></div></div>
@@ -143,6 +167,7 @@
  <section class="panel" data-v2-tab="revision" aria-labelledby="sourcesTitle">
   <div class="sectionhead"><div><div class="eyebrow muted">TRAZABILIDAD</div><h3 id="sourcesTitle">Fuentes y limitaciones</h3></div></div>
   <div id="sourcesView"></div>
+  <a id="analysisSourceLink" target="_blank" rel="noopener noreferrer" hidden>Consultar análisis fundamental original en Drive ↗</a>
  </section>
 </div>
 <footer>JMR V2.0 · La aprobación personal se diferencia de los controles técnicos. Conciliar con el libro original antes de invertir. <span>Floyd permanece independiente.</span></footer>
@@ -413,56 +438,86 @@ function renderRegulatorio(model){const g=model.regulatorio;if(!g||!esFin(model)
  const l=model.profile==='banco'?[['CET1',g.cet1],['Mínimo exigido',g.cet1Minimo]]:[['Ratio de solvencia',g.solvencyRatio],['Mínimo exigido',g.solvencyMinimo]];
  return `<p><strong>Capital regulatorio</strong> · ${l.map(([k,v])=>`${escape(k)}: ${finite(v)?(model.profile==='banco'?percent(v):number(v*100,0)+' %'):'N/D'}`).join(' · ')} · ${escape(g.fecha||'sin fecha')} · ${escape(g.fuente||'sin fuente')}</p>`;}
 function renderStatements(model){
- const periods=(model.history||[]).slice(-11);
- const table=$('statementsTable');
- if(!periods.length){table.innerHTML='<tbody><tr><td>No hay estados financieros vinculados.</td></tr></tbody>';return;}
- const grupos=[
-  ['Estado de resultados',[
-   ['Ingresos','revenue'],['Costo de ventas','cogs'],['Utilidad bruta (calculada)','grossProfit'],
-   ['Gastos generales y administrativos','sga'],['I+D','researchAndDevelopment'],['Utilidad operativa (EBIT)','ebit'],
-   ['Intereses','interestExpense'],['Otros ingresos no operativos','nonOperatingIncome'],
-   ['Partidas no operativas netas, incluidos intereses','totalNonOperatingIncome'],
-   ['Utilidad antes de impuestos','pretaxIncome'],['Impuestos','taxExpense'],['Utilidad neta','netIncome'],
-   ['EPS diluido','dilutedEPS'],['Acciones diluidas (millones)','shares']]],
-  ['Estado de situación financiera',[
-   ['Efectivo y equivalentes','cash'],['Cuentas por cobrar','receivables'],['Inventarios','inventory'],
-   ['Activos corrientes','currentAssets'],['Activos no corrientes','noncurrentAssets'],['Activos totales','assets'],
-   ['Pasivos corrientes','currentLiabilities'],['Pasivos no corrientes','noncurrentLiabilities'],
-   ['Pasivos totales','liabilities'],['Deuda financiera','debt'],['Patrimonio','equity'],
-   ['Participaciones minoritarias','minority'],['Activos no operativos','nonoperatingAssets']]],
-  ['Estado de flujos de efectivo',[
-   ['Utilidad neta','netIncome'],['Depreciación y amortización','da'],['Compensación en acciones','sbc'],
-   ['Variación del capital de trabajo','changeNWC'],['Flujo operativo','operatingCF'],
-   ['Inversiones de capital (CAPEX)','capex'],['Flujo de inversión','investingCF'],
-   ['Flujo de financiación','financingCF'],['Dividendos','dividends'],['FCF = CFO − CAPEX (calculado)','calculatedFCF']]]
- ];
- const value=(h,key)=>{
-  if(key==='grossProfit' && !finite(h.grossProfit) && finite(h.revenue)&&finite(h.cogs))return h.revenue-h.cogs;
-  if(key==='calculatedFCF' && finite(h.operatingCF)&&finite(h.capex))return h.operatingCF-h.capex;
-  return h[key];
+ const h=Array.isArray(model.history)?model.history:[];
+ const rows={
+  incomeTable:[
+   ['Ingresos','revenue'],['Costo de ventas','cogs'],
+   ['Beneficio bruto (derivado: ingresos − costo)','grossComputed'],
+   ['Investigación y desarrollo','rd'],['EBIT (resultado operativo)','ebit'],
+   ['Gasto de intereses','interestExpense'],['Ingresos/gastos no operativos, netos','nonOperatingIncome'],
+   ['Resultado antes de impuestos','pretaxIncome'],['Gasto por impuestos','taxExpense'],
+   ['Resultado neto','netIncome']
+  ],
+  balanceTable:[
+   ['Efectivo y valores negociables','cash'],['Activos corrientes','currentAssets'],
+   ['Inventarios','inventory'],['Activos no corrientes (derivados)','noncurrentAssets'],
+   ['Activos totales','assets'],['Pasivos corrientes','currentLiabilities'],
+   ['Pasivos no corrientes (derivados)','noncurrentLiabilities'],
+   ['Pasivos totales','liabilities'],['Deuda financiera (incluida en pasivos)','debt'],
+   ['Patrimonio reportado','equity'],
+   ['Participaciones / preferentes ajustadas para valoración (no sumar al balance)','minority'],
+   ['Activos no operativos para valoración','nonoperatingAssets']
+  ],
+  cashflowTable:[
+   ['Flujo de efectivo operativo','operatingCF'],
+   ['Depreciación y amortización','da'],['Remuneración basada en acciones','sbc'],
+   ['Variación de capital de trabajo (según libro)','changeNWC'],
+   ['Inversión en capital (CAPEX)','capex'],['Adquisiciones (si reportadas)','acquisitions'],
+   ['Flujo de inversión reportado','investingCF'],
+   ['Flujo de financiación','financingCF'],
+   ['Dividendos y recompras (total)','dividendsBuybacks'],
+   ['Flujo libre (derivado: FCO − CAPEX)','freeCashFlow']
+  ]
  };
- table.querySelector('thead').innerHTML='<tr><th>Concepto</th>'+periods.map(h=>'<th>'+escape(h.periodo||String(h.year))+'</th>').join('')+'</tr>';
- table.querySelector('tbody').innerHTML=grupos.map(([grupo,fields])=>
-  '<tr><th colspan="'+(periods.length+1)+'" scope="colgroup" style="text-align:left;background:var(--s2);position:static">'+escape(grupo)+'</th></tr>'+
-  fields.map(([label,key])=>'<tr><th scope="row">'+escape(label)+'</th>'+
-   periods.map(h=>'<td>'+number(value(h,key),2)+'</td>').join('')+'</tr>').join('')
- ).join('');
- const missing=grupos.flatMap(x=>x[1]).reduce((sum,x)=>sum+periods.filter(h=>!finite(value(h,x[1]))).length,0);
- $('statementsNote').textContent='N/D indica una partida no documentada en el expediente, no cero. '+missing+
-  ' celdas sin datos. Los importes calculados se identifican expresamente y LTM no representa un año fiscal completo.';
+ function val(x,k){
+  if(k==='grossComputed')return typeof x.revenue==='number'&&typeof x.cogs==='number'?x.revenue-x.cogs:null;
+  if(k==='noncurrentAssets')return typeof x.assets==='number'&&typeof x.currentAssets==='number'?x.assets-x.currentAssets:null;
+  if(k==='noncurrentLiabilities')return typeof x.liabilities==='number'&&typeof x.currentLiabilities==='number'?x.liabilities-x.currentLiabilities:null;
+  if(k==='freeCashFlow')return typeof x.operatingCF==='number'&&typeof x.capex==='number'?x.operatingCF-x.capex:null;
+  return x[k]??null;
+ }
+ const formatted=x=>typeof x==='number'&&Number.isFinite(x)?number(x,2):'N/D';
+ for(const [id,fields] of Object.entries(rows)){
+  const t=$(id);t.querySelector('thead').innerHTML='<tr><th>Concepto</th>'+h.map(y=>'<th scope="col">'+escape(y.periodo||('FY '+y.year))+'</th>').join('')+'</tr>';
+  t.querySelector('tbody').innerHTML=fields.map(([label,key])=>'<tr><th scope="row">'+escape(label)+'</th>'+h.map(y=>'<td>'+formatted(val(y,key))+'</td>').join('')+'</tr>').join('');
+ }
+ $('financialDisclosure').textContent='Cifras de '+(model.units||'las unidades del expediente')+' · '+h.length+' ejercicios. Se muestran todos los campos normalizados disponibles; algunos renglones necesarios para reproducir íntegramente el 10-K aún no están desagregados y se indican N/D.';
+ const url=safeUrl(model.documentLinks?.annualReportsFolder);
+ const link=$('originalReportsFinancial');
+ link.hidden=!url;if(url)link.href=url;else link.removeAttribute('href');
 }
+
 function renderAssumptions(model){
- const params=[['Crecimiento año 1','growth1','p'],['Crecimiento años 2–5','growth2to5','p'],['Margen inicial','margin1','p'],['Margen objetivo','marginTarget','p'],['Ventas / capital años 1–5','salesToCapital1to5','n'],['Ventas / capital años 6–10','salesToCapital6to10','n'],['WACC inicial','waccInitial','p'],['WACC terminal','waccTerminal','p'],['ROIC terminal','roicTerminal','p'],['Crecimiento perpetuo','gTerminal','p'],['Impuesto marginal','marginalTax','p'],['MOS','mos','p']];
- const tab=$('assumptionsTable'), sc=['conservador','base','optimista'];
- tab.querySelector('thead').innerHTML='<tr><th>Supuesto</th>'+sc.map(x=>'<th>'+escape(x)+'</th>').join('')+'</tr>';
- tab.querySelector('tbody').innerHTML=params.map(([name,key,fmt])=>'<tr><th scope="row">'+escape(name)+'</th>'+sc.map(x=>'<td>'+(fmt==='p'?percent(model.assumptions?.[x]?.[key]):number(model.assumptions?.[x]?.[key],2))+'</td>').join('')+'</tr>').join('');
- $('modelSources').textContent='Fuente de los parámetros: expediente V2. El modelo y los supuestos pueden no estar auditados; el editor de análisis no modifica estos valores.';
+ const names={growth1:'Crecimiento año 1',growth2to5:'Crecimiento compuesto años 2–5',margin1:'Margen EBIT año 1',marginTarget:'Margen objetivo',marginConvergenceYear:'Año de convergencia de margen',salesToCapital1to5:'Ventas / capital años 1–5',salesToCapital6to10:'Ventas / capital años 6–10',waccInitial:'WACC inicial',waccTerminal:'WACC terminal',roicTerminal:'ROIC terminal',gTerminal:'Crecimiento perpetuo',marginalTax:'Tasa marginal de impuestos',mos:'Margen de seguridad',failureProbability:'Probabilidad de fracaso',recoveryRate:'Tasa de recuperación',growthHigh:'Crecimiento extraordinario',payout:'Payout',roe:'ROE',costOfEquity:'Costo del patrimonio'};
+ const sc=motor.SCENARIOS;
+ const preferred=Object.keys(names);
+ const extras=[...new Set(sc.flatMap(n=>Object.keys(model.assumptions?.[n]||{})))].filter(k=>!preferred.includes(k));
+ const keys=[...preferred.filter(k=>sc.some(n=>Object.prototype.hasOwnProperty.call(model.assumptions?.[n]||{},k))),...extras];
+ const percentKeys=/growth|margin|wacc|roic|terminal|tax|mos|probability|recovery|payout|roe|costofequity/i;
+ const output=x=>typeof x==='number'&&Number.isFinite(x)?(Number.isInteger(x)&&x>=1&&x<=10?number(x,0):number(x,3)):(typeof x==='string'?escape(x):'N/D');
+ const format=(v,k)=>typeof v==='number'&&Number.isFinite(v)&&percentKeys.test(k)&&!/year$/i.test(k)?percent(v,2):output(v);
+ const t=$('assumptionsTable');
+ t.querySelector('thead').innerHTML='<tr><th>Supuesto</th>'+sc.map(n=>'<th>'+escape(n)+'</th>').join('')+'</tr>';
+ t.querySelector('tbody').innerHTML=keys.map(k=>'<tr><th scope="row">'+escape(names[k]||k)+'</th>'+sc.map(n=>'<td>'+format(model.assumptions?.[n]?.[k],k)+'</td>').join('')+'</tr>').join('');
+ const reasons=Object.entries(model.justificaciones||{}).map(([key,value])=>'<p><strong>'+escape(key)+':</strong> '+escape(value)+'</p>').join('');
+ const story=typeof model.analysis?.story==='string'?'<h4>Historia económica de los escenarios</h4><p>'+escape(model.analysis.story)+'</p>':'';
+ $('assumptionsReasons').innerHTML=story+reasons||'<p>Justificaciones pendientes; revisar fuentes del expediente.</p>';
+ $('modelSources').textContent='Los parámetros son de la valoración V2 vigente. Editar el libro no recalcula ni publica esta ficha automáticamente: la revisión deberá exportarse, conciliarse y aprobarse antes de incorporarse a la app.';
+ const url=safeUrl(model.documentLinks?.workbook);
+ const link=$('workbookEditLink');link.hidden=!url;if(url)link.href=url;else link.removeAttribute('href');
 }
+
 function renderConcerns(model,ev){
- const pending=[...(model.warnings||[])];
- if(ev)for(const c of ev.controles)pending.push(c.id+' · '+c.msg);
- $('concernsView').innerHTML=pending.length?pending.map(msg=>'<li>'+escape(msg)+'</li>').join(''):'<li>Sin observaciones pendientes registradas.</li>';
+ const issues=[];
+ if(ev&&Array.isArray(ev.controles))for(const c of ev.controles)issues.push(c.id+' · '+c.gravedad.toUpperCase()+' · '+c.msg);
+ for(const w of model.warnings||[])issues.push('Advertencia · '+w);
+ if(model.ticker==='ORCL'){
+  issues.push('Para declarar completos los tres estados financieros en el visor hay que incorporar los desgloses contables que todavía no están presentes en el expediente normalizado (señalados N/D). Consultar los Forms 10-K originales.');
+  issues.push('Los arrendamientos operativos, el valor de opciones y RSU y los activos no operativos requieren validación económica independiente antes de aprobar la valoración.');
+ }
+ $('concernsView').innerHTML=issues.length?issues.map(x=>'<li>'+escape(x)+'</li>').join(''):'<li>No hay asuntos pendientes registrados.</li>';
 }
+
 function selectV2Tab(name){
  const tabs=[...document.querySelectorAll('[data-v2-view]')];
  if(!tabs.some(b=>b.dataset.v2View===name))name='analisis';
@@ -489,6 +544,10 @@ function renderAnalysis(model){const sections=[['business','Negocio y modelo eco
  const sources=model.sources||[];
  $('sourcesView').innerHTML=renderRegulatorio(model)+(sources.length?`<ul class="source-list">${sources.map(s=>{const href=safeUrl(s.url);
   return `<li>${href?`<a href="${escape(href)}" target="_blank" rel="noopener noreferrer">${escape(s.label||s.documento||href)}</a>`:`<span class="note">${escape(s.label||s.documento||'Fuente no documentada')}</span>`}</li>`;}).join('')}</ul>`:'<p>Faltan fuentes primarias documentadas.</p>');
+ const original=safeUrl(model.documentLinks?.originalFundamentalAnalysis);
+ const originalLink=$('analysisSourceLink');originalLink.hidden=!original;
+ if(original)originalLink.href=original;else originalLink.removeAttribute('href');
+
 }
 function renderControls(model){
  const box=$('controlsView');if(!evaluarExpediente){return null;}
