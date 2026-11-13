@@ -515,6 +515,11 @@
       "documento": "EPAM Systems · Form 10-K FY2025 · copia independiente en JMR V2.0",
       "label": "Formulario anual oficial 10-K · FY2025 (pendiente cotejo de cifras V2)",
       "url": "https://drive.google.com/file/d/1YR5VkPTz-sCCZa-OZjXmEuble-Up-71z/view"
+    },
+    {
+      "documento": "EPAM Systems, resultados 3T2026 · 5-nov-2026",
+      "label": "Fuente primaria reciente: ingresos, márgenes, acciones y guía",
+      "url": "https://investors.epam.com/news/news-details/2026/EPAM-Reports-Results-for-Third-Quarter-2026/default.aspx"
     }
   ],
   "warnings": [
@@ -523,7 +528,8 @@
     "Los supuestos son una traslación preliminar desde Floyd, NO calibración independiente del modelo V2.",
     "El valor de opciones (29,824 M), 2,292 M de RSU, tratamiento de arrendamientos operativos, NOL y WACC requieren revisión documental independiente.",
     "Los múltiplos históricos deben revisarse antes de publicación: los cálculos emplean deuda financiera sin arrendamientos y distintas bases de acciones.",
-    "Documentos V2: 10-K FY2020–FY2025 copiados a su carpeta propia; faltan 10-K individuales FY2016–FY2019 y cotejo contra originales para certificar la década."
+    "Documentos V2: 10-K FY2020–FY2025 copiados a su carpeta propia; faltan 10-K individuales FY2016–FY2019 y cotejo contra originales para certificar la década.",
+    "Revisión V2 13-nov: en 3T2026 crecimiento orgánico 2,5 % y guía FY2026 3,5–3,7 % nominal; Base 6,5 % el año siguiente requiere evidencia adicional. El 69,5 % del EV Base es valor terminal. Ver análisis de 14 capítulos y revisiónEconomicaV2."
   ],
   "driveV2": {
     "carpetaExpediente": "https://drive.google.com/drive/folders/1SEsfnjrdTD8CQB8Hs7DsF1L5wweMRxp1",
@@ -570,5 +576,59 @@
       2019
     ],
     "estadoDocumental": "INCOMPLETO · fuentes secundarias Floyd pendientes de contraste primario V2"
+  },
+  "documentLinks": {
+    "annualReportsFolder": "https://drive.google.com/drive/folders/1v2IR_BTQ2SfDk24PGTYtojOu6Yq7eskj",
+    "valuationFolder": "https://drive.google.com/drive/folders/1uPSO5wOYkQ-qnSQZiwa0fa2LU3st1bkC",
+    "auditFolder": "https://drive.google.com/drive/folders/1QnWZCI-_beNxIKs0EoBvrwQpVP2KqnVk",
+    "originalFundamentalAnalysis": null
+  },
+  "revisionEconomicaV2": {
+    "fecha": "2026-11-13",
+    "estado": "REVISION_PRELIMINAR_NO_CONCILIADA_LIBRO",
+    "fuenteReciente": "https://investors.epam.com/news/news-details/2026/EPAM-Reports-Results-for-Third-Quarter-2026/default.aspx",
+    "conciliacionesConfirmadas": [
+      {
+        "concepto": "Ingresos LTM",
+        "formula": "FY2025 + 9M2026 - 9M2025",
+        "operacion": "5457.056 + 4241.258 - 4049.508",
+        "resultado": 5648.806,
+        "unidad": "millones USD"
+      },
+      {
+        "concepto": "EBIT LTM",
+        "formula": "FY2025 + 9M2026 - 9M2025",
+        "operacion": "520.003 + 444.918 - 370.749",
+        "resultado": 594.172,
+        "unidad": "millones USD"
+      }
+    ],
+    "salidasActualesMotorV2": {
+      "conservador": 130.20192178621176,
+      "base": 210.69113563005644,
+      "optimista": 316.6594357198547,
+      "mosBase35": 136.9492381595367
+    },
+    "porcentajeVPTerminalEV": {
+      "conservador": 59.84,
+      "base": 69.55,
+      "optimista": 74.37
+    },
+    "advertencias": [
+      "FY2026 proyectado debe partir de LTM septiembre 2026: la guía de FY2026 calendario no es automáticamente la guía de 12 meses siguientes.",
+      "Crecimiento 6.5% año 1, 7.62% años 2–5 en Base no está validado con demanda orgánica reciente (2.5% 3T2026).",
+      "WACC 8.63%→8.13%, ROIC terminal y Sales-to-Capital provienen de Floyd sin conciliación independiente.",
+      "FY2016–FY2019 provienen del histórico compilado, no 10-K cotejados en carpeta V2.",
+      "Acciones diluidas, opciones/RSU, arrendamientos y capital invertido aún requieren revisión.",
+      "Copia de plantilla V2 sin cargar, no usar como referencia de valor financiero oficial."
+    ],
+    "alternativaIlustrativaNoPublicada": {
+      "growth1": 0.04,
+      "growth2to5": 0.06,
+      "marginTarget": 0.115,
+      "gTerminal": 0.03,
+      "otrosSupuestos": "Base inalterados",
+      "precioMotorV2": 173.84195437428934
+    }
   }
 }
