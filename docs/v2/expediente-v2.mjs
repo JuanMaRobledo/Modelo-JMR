@@ -30,8 +30,13 @@ export function controlesDatos(m) {
   for (const x of h) {
     if ([x.assets, x.liabilities, x.equity].every(num))
       add('D06', 'error', rel(x.assets, x.liabilities + x.equity, 0.005), `${x.year}: activos ≠ pasivos + patrimonio (tolerancia 0,5 %).`);
-    if ([x.ebit, x.interestExpense, x.pretaxIncome].every(num))
-      add('D07', 'error', rel(x.pretaxIncome, x.ebit - x.interestExpense, 0.005), `${x.year}: utilidad antes de impuestos ≠ EBIT − intereses.`);
+    // La utilidad antes de impuestos también incorpora partidas no operativas.
+    // Si se dispone del total neto no operativo (incluido interés neto), usarlo
+    // para no denunciar falsos descuadres en compañías con rendimientos financieros.
+    if ([x.ebit, x.pretaxIncome].every(num) && (num(x.totalNonOperatingIncome) || num(x.interestExpense))) {
+      const esperado = num(x.totalNonOperatingIncome) ? x.ebit + x.totalNonOperatingIncome : x.ebit - x.interestExpense;
+      add('D07', 'error', rel(x.pretaxIncome, esperado, 0.005), `${x.year}: utilidad antes de impuestos no concilia con EBIT y partidas no operativas.`);
+    }
     if ([x.pretaxIncome, x.taxExpense, x.netIncome].every(num))
       add('D08', 'error', rel(x.netIncome, x.pretaxIncome - x.taxExpense, 0.005), `${x.year}: utilidad neta ≠ utilidad antes de impuestos − impuestos.`);
     if (num(x.revenue) && num(x.cogs)) add('D09', 'error', x.cogs >= 0 && x.cogs <= x.revenue * 1.0001, `${x.year}: costo de ventas inválido.`);
