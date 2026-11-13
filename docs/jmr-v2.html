@@ -117,6 +117,8 @@
  <section class="panel" data-v2-tab="modelo" aria-label="Modelo y supuestos">
   <div class="sectionhead"><div><div class="eyebrow muted">ENTRADAS DEL MODELO</div><h3>Supuestos por escenario</h3></div><p>Revisión de parámetros sin alterar el motor DCF</p></div>
   <div class="table-scroll"><table id="assumptionsTable" class="v2-model-table"><thead></thead><tbody></tbody></table></div>
+  <div id="scenarioReasons" class="scenario-grid" aria-label="Justificación económica de cada escenario"></div>
+  <div id="otherReasons"></div>
   <p id="modelSources" class="panel-hint"></p>
  </section>
  <section class="two-panels" data-v2-tab="sensibilidades">
@@ -456,7 +458,19 @@ function renderAssumptions(model){
  const tab=$('assumptionsTable'), sc=['conservador','base','optimista'];
  tab.querySelector('thead').innerHTML='<tr><th>Supuesto</th>'+sc.map(x=>'<th>'+escape(x)+'</th>').join('')+'</tr>';
  tab.querySelector('tbody').innerHTML=params.map(([name,key,fmt])=>'<tr><th scope="row">'+escape(name)+'</th>'+sc.map(x=>'<td>'+(fmt==='p'?percent(model.assumptions?.[x]?.[key]):number(model.assumptions?.[x]?.[key],2))+'</td>').join('')+'</tr>').join('');
- $('modelSources').textContent='Fuente de los parámetros: expediente V2. El modelo y los supuestos pueden no estar auditados; el editor de análisis no modifica estos valores.';
+ const story=model.justificaciones?.escenarios||{};
+ const campos=[['tesis','Tesis económica'],['crecimiento','Crecimiento'],['margenes','Márgenes'],['reinversion','Reinversión y ventas/capital'],['roic','ROIC terminal'],['descuento','Costo de capital'],['terminal','Valor terminal'],['contraevidencia','Contraevidencia'],['evidencia','Estado de la evidencia']];
+ $('scenarioReasons').innerHTML=sc.map(nombre=>{
+  const data=story[nombre];
+  if(!data||typeof data!=='object')return '<article class="scenario"><h4>'+escape(prettyCase[nombre])+'</h4><p class="muted">Justificación específica pendiente de documentar; los valores presentados no son evidencia.</p></article>';
+  return '<article class="scenario '+(nombre==='base'?'base':'')+'"><h4>'+escape(prettyCase[nombre])+'</h4>'+
+    campos.filter(([k])=>typeof data[k]==='string'&&data[k].trim()).map(([k,t])=>
+      '<section class="analysis-block"><h4>'+escape(t)+'</h4><p>'+escape(data[k])+'</p></section>').join('')+'</article>';
+ }).join('');
+ const extras=Object.entries(model.justificaciones||{}).filter(([k,v])=>k!=='escenarios' && typeof v==='string'&&v.trim());
+ $('otherReasons').innerHTML=extras.length?'<h4>Justificaciones transversales y limitaciones</h4>'+
+  extras.map(([key,txt])=>'<p><strong>'+escape(key)+':</strong> '+escape(txt)+'</p>').join(''):'';
+ $('modelSources').textContent='Escenarios = hipótesis de negocio, no resultados confirmados. Fuente: expediente V2 y fuentes documentadas; las cifras preliminares conservan las salvedades de revisión.';
 }
 function renderConcerns(model,ev){
  const pending=[...(model.warnings||[])];
