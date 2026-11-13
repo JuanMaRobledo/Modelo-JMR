@@ -19,3 +19,11 @@ Un motor por perfil económico (`motores/despacho.mjs`); nunca se ejecutan todos
 - Plantilla en blanco en Drive (`PLANTILLAS`). **No verificada abriéndola en Excel** (solo LibreOffice y openpyxl); las tres cifras de los escenarios se guardan como instantánea con control «VIGENTE/DESACTUALIZADO» porque un solo motor calcula un escenario a la vez.
 
 - Pendiente: libro para los otros tres perfiles, informes reales, despliegue en Vercel y QA con autenticación.
+
+## Dos visores y aprobación personal
+
+- **Pendientes de mi auditoría**: todos los expedientes no aprobados personalmente, incluso si terminaron sus controles técnicos.
+- **Auditadas y aprobadas por mí**: solo expedientes reales cuyo estado técnico es `PUBLICADO`, cuyo resultado de `evaluarExpediente` es `publicable` y que contienen una aprobación explícita `auditoriaUsuario: { resultado: 'APROBADA', aprobadaPor: 'JuanMaRobledo', fecha: 'AAAA-MM-DD', evidencia: 'referencia-a-acta-o-revisión' }`.
+- Los controles técnicos y la auditoría independiente NO implican aprobación del propietario. Ninguna prueba, merge ni IA añade `auditoriaUsuario` de manera automática.
+- La separación actual es **de catálogo y lectura**. La aprobación debe incorporarse mediante un cambio revisado del expediente; todavía no hay botón con firma autenticada para aprobar desde la aplicación. La verificación de identidad de una futura acción de aprobación deberá ser de servidor.
+- EPAM beta sigue en `pendientes` hasta superar sus salvedades y recibir la aprobación expresa del propietario.
