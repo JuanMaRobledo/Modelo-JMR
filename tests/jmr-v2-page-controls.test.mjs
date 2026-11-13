@@ -24,3 +24,11 @@ test('la página presenta el perfil de alto crecimiento con su propio motor y se
   assert.match(html, /Δ margen \/ S2C/);
   assert.ok(fs.existsSync(new URL('../docs/v2/motores/alto-crecimiento.mjs', import.meta.url)));
 });
+
+test('la app muestra dos visores sin aprobar expedientes automáticamente', () => {
+  assert.match(html, /id="viewPending"/);
+  assert.match(html, /id="viewApproved"/);
+  assert.match(html, /visorAuditoria==='auditadas'/);
+  assert.match(html, /PENDIENTE DE TU AUDITORÍA/);
+  assert.match(html, /AUDITADA POR TI/);
+});
