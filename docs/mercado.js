@@ -35,6 +35,7 @@
     // bajo otra etiqueta. Hojas, auditorías y sensibilidades de una empresa se abren desde su ficha. La navegación contextual se limita a la segunda fila.
     nav.innerHTML =
       link('expediente.html?seccion=analisis', 'Empresas y análisis', page==='expediente.html' || page==='analisis-lectura.html') +
+      link('jmr-v2.html','JMR V2.0',page==='jmr-v2.html') +
       link('https://cartera-two-eta.vercel.app/', 'Cartera', false, 'jmr-home') +
       '<details class="jmr-tools-menu"><summary>Herramientas</summary><div class="jmr-tools-links">'+
       link('calculadora.html'+qs,'Calculadora DCF',page==='calculadora.html')+
