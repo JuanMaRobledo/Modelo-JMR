@@ -1,5 +1,7 @@
 # JMR múltiplos
 
+> **Migrado (13-nov-2026):** este directorio está congelado. Versión canónica y mantenida: `JuanMaRobledo/JMR-M-ltiplos`. No editar aquí.
+
 Aplicación aparte, complemento de **JMR V2.0**: valoración relativa por múltiplos, **sin DCF**. Se elabora **solo cuando el propietario lo solicita expresamente** (campo `solicitudExpresa` obligatorio).
 
 - Contrato: `metodologia/CONTRATO_MULTIPLOS.md` + `contrato-multiplos.json`
