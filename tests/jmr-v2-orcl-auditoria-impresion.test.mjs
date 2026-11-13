@@ -17,6 +17,10 @@ test('Oracle: veinte capítulos con editor, fuentes y valor del DCF intacto',()=
  assert.equal(model.libro.valores.optimista,143.714427565269);
  assert.match(model.documentLinks.workbook,/^https:\/\/docs\.google\.com\/spreadsheets\//);
  assert.match(model.documentLinks.annualReportsFolder,/^https:\/\/drive\.google\.com\/drive\/folders\//);
+ assert.deepEqual(model.annualReportDocuments.map(x=>x.fy),[2017,2018,2019,2020,2021,2022,2023,2024,2025,2026]);
+ assert.ok(model.annualReportDocuments.every(x=>x.kind==='10-K'&&x.url.startsWith('https://drive.google.com/file/d/')));
+ assert.equal(model.quarterlyReportDocuments[0].periodEnd,'2026-08-31');
+ assert.match(html,/annualReportList/);
  assert.match(html,/analysisSourceLink/);
  assert.match(editor,/analysisToc/);
  assert.match(editor,/contentEditable/);
