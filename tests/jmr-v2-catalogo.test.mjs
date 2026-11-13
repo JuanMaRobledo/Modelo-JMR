@@ -25,6 +25,30 @@ test('catálogo deriva valor base, MOS y estado del motor y de los controles', (
   assert.ok(Math.abs(e.precioMOS - e.valorBase * 0.65) < 1e-9);
   assert.equal(e.archivo, 'empresas/TEST.json');
 });
+test('sin aprobación personal una empresa técnicamente PUBLICADA sigue pendiente de mi auditoría', () => {
+  const e = construirCatalogo(carpeta({ 'TEST.json': valido('TEST') })).catalogo.empresas[0];
+  assert.equal(e.estado, 'PUBLICADO');
+  assert.equal(e.visorAuditoria, 'pendientes');
+  assert.equal(e.aprobacionUsuario, null);
+});
+test('solo la aprobación personal documentada coloca un expediente en Auditadas por mí', () => {
+  const m = valido('TEST');
+  m.auditoriaUsuario = { resultado: 'APROBADA', aprobadaPor: 'JuanMaRobledo', fecha: '2026-11-13', evidencia: 'revision-manual-epam-v2-20261113' };
+  const e = construirCatalogo(carpeta({ 'TEST.json': m })).catalogo.empresas[0];
+  assert.equal(e.visorAuditoria, 'auditadas');
+  assert.deepEqual(e.aprobacionUsuario, { fecha: '2026-11-13', aprobadaPor: 'JuanMaRobledo' });
+});
+test('no se admiten aprobaciones ficticias, ajenas, incompletas ni con bloqueos', () => {
+  const m = valido('TEST');
+  m.auditoriaUsuario = { resultado: 'APROBADA', aprobadaPor: 'IA', fecha: '2026-11-13', evidencia: 'revision-manual-epam-v2-20261113' };
+  assert.equal(construirCatalogo(carpeta({ 'TEST.json': m })).catalogo.empresas[0].visorAuditoria, 'pendientes');
+  m.auditoriaUsuario.aprobadaPor = 'JuanMaRobledo';
+  m.auditoriaUsuario.fecha = '2026-02-30';
+  assert.equal(construirCatalogo(carpeta({ 'TEST.json': m })).catalogo.empresas[0].visorAuditoria, 'pendientes');
+  m.auditoriaUsuario.fecha = '2026-11-13';
+  delete m.auditoria;
+  assert.equal(construirCatalogo(carpeta({ 'TEST.json': m })).catalogo.empresas[0].visorAuditoria, 'pendientes');
+});
 test('un estado declarado por encima de lo permitido se degrada en el catálogo', () => {
   const m = valido('TEST'); delete m.auditoria;
   const e = construirCatalogo(carpeta({ 'TEST.json': m })).catalogo.empresas[0];
