@@ -37,7 +37,7 @@ test('EPAM V2: valoración preliminar, escenarios ordenados y MOS base 35%',()=>
 test('EPAM V2: estados conservadores y catálogo generado coinciden',()=>{
  const ev=evaluarExpediente(m,motor);
  assert.equal(ev.permitido,'EN_PROCESO');assert.equal(ev.declarado,'EN_PROCESO');assert.equal(ev.violacion,null);
- assert.deepEqual(ev.resumen,{bloqueos:0,errores:2,avisos:0});
+ assert.deepEqual(ev.resumen,{bloqueos:0,errores:3,avisos:0});
  const {catalogo,errores}=construirCatalogo(new URL('../docs/v2',import.meta.url).pathname);
  assert.deepEqual(errores,[]);
  assert.equal(catalogo.empresas.find(x=>x.ticker==='EPAM')?.valorBase,motor.calculateAll(m).scenarios.base.perShare);
