@@ -12,8 +12,11 @@ const fechaValida = value => {
 export function auditadaPorUsuario(expediente, controles) {
   const a = expediente?.auditoriaUsuario;
   return expediente?.fictional !== true
-    && expediente?.estado === 'PUBLICADO'
-    && controles?.publicable === true
+    && ['EN_REVISION','PUBLICADO'].includes(controles?.permitido)
+    // Cada aprobación debe referirse a la huella de esta revisión del libro,
+    // no a otra valoración ni a una declaración de identidad hecha por la IA.
+    && /^[a-f0-9]{64}$/.test(expediente?.libro?.sha256 || '')
+    && a?.revisionSha256 === expediente.libro.sha256
     && a?.resultado === 'APROBADA'
     && a?.aprobadaPor === REVISOR
     && fechaValida(a?.fecha)
