@@ -18,6 +18,7 @@
 .table-scroll{overflow-x:auto;width:100%;border:1px solid var(--border);border-radius:10px}table{border-collapse:collapse;width:100%;min-width:610px;font-variant-numeric:tabular-nums;font-size:.78rem}th,td{padding:10px 10px;border-bottom:1px solid var(--border);text-align:right;white-space:nowrap}th{background:var(--s2);color:var(--ink-light);font-weight:750}td:first-child,th:first-child{text-align:left;position:sticky;left:0;background:var(--surface);z-index:1;font-weight:650;min-width:165px}tr:last-child td{border-bottom:0}td.positive{color:var(--ok)}td.negative{color:#cc5555}td.center{background:#dcf2e9!important;color:#185c55;font-weight:850}@media(prefers-color-scheme:dark){td.center{background:#21493f!important;color:#a1e4c8}}
 .two-panels{display:grid;grid-template-columns:1.2fr .8fr;gap:20px}.two-panels .panel{min-width:0}.two-panels .sectionhead h3{font-size:21px}.analysis-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.analysis-block{border-top:1px solid var(--border);padding:14px 2px}.analysis-block h4{font-size:.85rem;margin:0 0 7px}.analysis-block p{font-size:.86rem;color:var(--ink-light);margin:0;line-height:1.7;white-space:pre-wrap}.source-list{list-style:none;margin:0;padding:0}.source-list li{padding:10px 0;border-top:1px solid var(--border);font-size:.85rem}.source-list a{word-break:break-word}.error-state{color:#a44}.source-list .note{color:var(--ink-light)}footer{padding:14px 6px;text-align:center;color:var(--ink-light);font-size:.75rem}footer span{font-weight:700;color:var(--teal)}
 @media(max-width:1000px){.two-panels{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:700px){.company-head{flex-wrap:wrap}.state{white-space:normal;max-width:100%}.scenario-grid{grid-template-columns:1fr}.analysis-grid{grid-template-columns:1fr}.company-head{align-items:start}.hero-note{border-radius:12px}.toolbar-title{width:100%}.toolbar select{max-width:180px}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.kpi{padding:14px}.panel{padding:15px}.sectionhead h3{font-size:21px}}@media(max-width:460px){.kpis{grid-template-columns:1fr 1fr;gap:8px}.kpi strong{font-size:22px}.filebutton,.toolbar button{flex:1 1 100%}.toolbar select{min-width:190px;max-width:100%}}
+.catalog{text-align:left;margin:26px auto 0;max-width:980px}.catalog input{background:var(--surface);color:var(--ink);border:1px solid var(--border);border-radius:9px;padding:11px;width:min(340px,100%);margin-bottom:12px}.catalog tr[data-ticker]{cursor:pointer}.catalog tr[data-ticker]:hover td{background:var(--s2)}.badge{font-size:.7rem;font-weight:800;letter-spacing:.03em}.badge.PUBLICADO{color:var(--ok)}.badge.BLOQUEADO{color:#cc5555}.badge.EN_PROCESO,.badge.EN_REVISION{color:var(--warn)}
 .ctl-sum{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}.ctl-sum span{background:var(--s2);border:1px solid var(--border);border-radius:999px;padding:4px 11px;font-size:.76rem;font-weight:750}.ctl-list{list-style:none;margin:0;padding:0}.ctl-list li{display:grid;grid-template-columns:auto auto 1fr;gap:10px;padding:9px 0;border-top:1px solid var(--border);font-size:.82rem}.ctl-list b{font-variant-numeric:tabular-nums}.ctl-list .g-bloqueo{color:#cc5555}.ctl-list .g-error{color:var(--warn)}.ctl-list .g-aviso{color:var(--ink-light)}
 @media print{body{background:#fff}.hero{padding:20px;background:#fff;color:#111;border:1px solid #999}.hero h1,.hero p{color:#111}.toolbar,.appnav{display:none}.kpis,.scenario-grid,.two-panels{break-inside:avoid}.panel{box-shadow:none}}
 </style>
@@ -44,6 +45,10 @@
 <section id="noData" class="empty" aria-live="polite">
  <div class="empty-symbol">∑</div><h2>Un solo motor. Tres escenarios.</h2>
  <p>Esta vista previa es local y no contiene empresas reales. Puedes cargar un expediente JSON o probar el funcionamiento con datos totalmente ficticios.</p>
+ <div id="catalogBox" class="catalog" hidden>
+  <label class="field">Buscar empresa<input id="search" type="search" placeholder="Ticker o nombre" autocomplete="off"></label>
+  <div class="table-scroll"><table id="catalogTable"><thead><tr><th>Empresa</th><th>Corte</th><th>Precio</th><th>Valor base</th><th>Precio con MOS 35 %</th><th>Estado</th></tr></thead><tbody></tbody></table></div>
+ </div>
  <div class="mini-features"><span>10 años de históricos</span><span>FCFF a 10 años</span><span>Conservador / Base / Optimista</span><span>Indicadores y narrativa</span></div>
 </section>
 <div id="appContent" hidden>
@@ -371,17 +376,33 @@ async function loadJSON(url){const response=await fetch(url,{cache:'no-store'});
 $('loadDemo').addEventListener('click',async()=>{try{render(JMR_DEMO);}catch(e){showNoData(`Error en ejemplo: ${e.message}`)}});
 $('reset').addEventListener('click',()=>{showNoData();$('uploadFile').value='';});
 $('uploadFile').addEventListener('change',async e=>{const f=e.target.files?.[0];if(!f)return;
- try{if(f.size>2_000_000)throw new Error('El expediente supera 2 MB');render(JSON.parse(await f.text()));}
+ try{if(f.size>2_000_000)throw new Error('El expediente supera 2 MB');const m=JSON.parse(await f.text());render(m);$('dataTag').textContent='· LOCAL · NO PUBLICADO';$('stateLabel').textContent='LOCAL · '+$('stateLabel').textContent;}
  catch(err){showNoData(`No se pudo leer el archivo JSON: ${err.message}`);}});
-const catalog={empresas:[]};
-const options=Array.isArray(catalog.empresas)?catalog.empresas:[];
-if(options.length){$('tickerList').innerHTML='<option value="">Elige una empresa</option>'+options.map(x=>`<option value="${escape(x.ticker)}">${escape(x.ticker)} — ${escape(x.company)}</option>`).join('');}
-$('tickerList').addEventListener('change',async e=>{const ticker=e.target.value;
- if(!/^[A-Z0-9.-]{1,18}$/.test(ticker))return;
- try{render(await loadJSON(`./v2/empresas/${encodeURIComponent(ticker)}.json`));}
- catch(err){showNoData(`No se pudo abrir ${ticker}: ${err.message}`);}});
+let options=[];
+async function loadCatalog(){
+ try{const c=await loadJSON('./v2/catalogo.json');options=c&&c.schemaVersion==='jmr-v2-catalogo-1'&&Array.isArray(c.empresas)?c.empresas.filter(x=>/^[A-Z0-9.-]{1,18}$/.test(x.ticker)):[];}
+ catch(e){options=[];}
+ $('tickerList').innerHTML=options.length?'<option value="">Elige una empresa</option>'+options.map(x=>`<option value="${escape(x.ticker)}">${escape(x.ticker)} — ${escape(x.company)}</option>`).join(''):'<option value="">Sin fichas publicadas</option>';
+ renderCatalog();
+}
+function renderCatalog(){
+ const term=$('search').value.trim().toLowerCase(),box=$('catalogBox');
+ const rows=options.filter(x=>!term||x.ticker.toLowerCase().includes(term)||String(x.company).toLowerCase().includes(term));
+ box.hidden=!options.length;
+ $('catalogTable').querySelector('tbody').innerHTML=rows.length?rows.map(x=>`<tr data-ticker="${escape(x.ticker)}" tabindex="0"><td><strong>${escape(x.ticker)}</strong> · ${escape(x.company)}</td><td>${escape(x.asOf||'N/D')}</td><td>${money(x.precio,x.currency||'USD')}</td><td>${money(x.valorBase,x.currency||'USD')}</td><td>${money(x.precioMOS,x.currency||'USD')}</td><td><span class="badge ${escape(x.estado)}">${escape(x.estado)}</span></td></tr>`).join(''):'<tr><td colspan="6">Sin coincidencias</td></tr>';
+}
+async function openTicker(ticker){
+ if(!/^[A-Z0-9.-]{1,18}$/.test(ticker)||!options.some(x=>x.ticker===ticker))return;
+ try{render(await loadJSON(`./v2/empresas/${encodeURIComponent(ticker)}.json`));$('tickerList').value=ticker;}
+ catch(err){showNoData(`No se pudo abrir ${ticker}: ${err.message}`);}
+}
+$('tickerList').addEventListener('change',e=>openTicker(e.target.value));
+$('search').addEventListener('input',renderCatalog);
+$('catalogTable').addEventListener('click',e=>{const tr=e.target.closest('tr[data-ticker]');if(tr)openTicker(tr.dataset.ticker);});
+$('catalogTable').addEventListener('keydown',e=>{if(e.key==='Enter'){const tr=e.target.closest('tr[data-ticker]');if(tr)openTicker(tr.dataset.ticker);}});
 const q=new URLSearchParams(location.search).get('ticker')?.toUpperCase();
-if(q&&options.some(x=>x.ticker===q)){$('tickerList').value=q;$('tickerList').dispatchEvent(new Event('change'));}
+await loadCatalog();
+if(q)await openTicker(q);
 
 </script>
 </body></html>

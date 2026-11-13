@@ -1,28 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
-import vm from 'node:vm';
 import { evaluarExpediente } from '../docs/v2/expediente-v2.mjs';
 
-const html = fs.readFileSync(new URL('../docs/jmr-v2.html', import.meta.url), 'utf8');
-const engine = vm.runInNewContext(html.slice(html.indexOf('const JMR_DCF=(()=>{'), html.indexOf('const JMR_IND=(()=>{')) + '\nJMR_DCF;', {});
-const demo = vm.runInNewContext('(' + html.match(/const JMR_DEMO=(\{.*\});/)[1] + ')', {});
+import { cargarMotor } from '../scripts/v2-motor.mjs';
+import { demo, valido } from './fixtures/v2-expediente-valido.mjs';
+const engine = cargarMotor();
 
-// Expediente de prueba coherente. Es sintético: solo sirve para ejercitar los controles.
-function valido() {
-  const m = structuredClone(demo);
-  delete m.fictional; m.status = undefined; m.estado = 'PUBLICADO';
-  const h = m.history.at(-1), prov = k => ({ destino: `financials.${k}`, documento: 'Informe anual (prueba)', periodo: 2025,
-    pagina: 80, moneda: 'USD', unidades: 'millones', valorReportado: m.financials[k], ajuste: 0 });
-  m.provenance = ['revenue', 'debt', 'cash', 'minority', 'nonoperatingAssets', 'shares'].map(prov);
-  m.history.forEach(x => { x.liabilities = +(x.assets - x.equity).toFixed(3); });
-  m.sources = [{ documento: 'Informe anual (prueba)', url: null }];
-  const t = 'Texto de análisis con evidencia suficiente para superar el mínimo exigido por el control.';
-  m.analysis = Object.fromEntries(['business', 'moat', 'story', 'risks', 'conclusion'].map(k => [k, t]));
-  m.libro = { id: 'LIBRO-PRUEBA', sha256: 'a'.repeat(64) };
-  m.auditoria = { aprobadaPor: 'Auditor independiente', fecha: '2026-11-13', evidencia: 'acta-prueba' };
-  return m;
-}
 const ids = r => r.controles.map(c => c.id);
 const check = (mut) => { const m = valido(); mut(m); return evaluarExpediente(m, engine); };
 
