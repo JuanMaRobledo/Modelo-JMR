@@ -13,6 +13,8 @@
    "estado": "EN_PROCESO",
    "estadoPermitido": "EN_REVISION",
    "estadoDeclarado": "EN_PROCESO",
+   "visorAuditoria": "pendientes",
+   "aprobacionUsuario": null,
    "controles": {
     "bloqueos": 0,
     "errores": 2,
