@@ -28,8 +28,10 @@ export function controlesDatos(m) {
   add('D04', 'error', ord.every((y, i) => i === 0 || y === ord[i - 1] + 1), 'Los ejercicios históricos no son consecutivos (faltan años).');
   add('D05', 'bloqueo', !!m.currency && !!m.units, 'Falta moneda o unidades del expediente.');
   for (const x of h) {
-    if ([x.assets, x.liabilities, x.equity].every(num))
-      add('D06', 'error', rel(x.assets, x.liabilities + x.equity, 0.005), `${x.year}: activos ≠ pasivos + patrimonio (tolerancia 0,5 %).`);
+    if ([x.assets, x.liabilities, x.equity].every(num)) {
+      const nci = FINANCIEROS.includes(m.profile) && num(x.minority) ? x.minority : 0;   // entidades financieras: minoritarias y preferentes fuera del patrimonio común
+      add('D06', 'error', rel(x.assets, x.liabilities + x.equity + nci, 0.005), `${x.year}: activos ≠ pasivos + patrimonio${nci ? ' + minoritarias/preferentes' : ''} (tolerancia 0,5 %).`);
+    }
     if ([x.ebit, x.interestExpense, x.pretaxIncome].every(num))
       add('D07', 'error', rel(x.pretaxIncome, x.ebit - x.interestExpense, 0.005), `${x.year}: utilidad antes de impuestos ≠ EBIT − intereses.`);
     if ([x.pretaxIncome, x.taxExpense, x.netIncome].every(num))

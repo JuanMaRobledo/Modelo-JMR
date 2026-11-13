@@ -20,4 +20,12 @@ Un motor por perfil económico (`motores/despacho.mjs`); nunca se ejecutan todos
 - Verificación (`verify`, LibreOffice + `tests/jmr-v2-libro.test.mjs`): los tres escenarios coinciden con el motor JS, los indicadores del libro coinciden con los del navegador en los 10 ejercicios, y un enlace roto en el constructor hace fallar las pruebas.
 - Plantilla en blanco en Drive (`PLANTILLAS`). **No verificada abriéndola en Excel** (solo LibreOffice y openpyxl); las tres cifras de los escenarios se guardan como instantánea con control «VIGENTE/DESACTUALIZADO» porque un solo motor calcula un escenario a la vez.
 
-- Pendiente: libro para los otros tres perfiles, informes reales, despliegue en Vercel y QA con autenticación.
+## Libro financiero (bancos y aseguradoras)
+`scripts/v2-libro-financiero.py` aplica la misma técnica a `divginzu.xlsx` (método `ddm`) y a `eqexret` (método `exceso`; el original `.xls` se convierte a `.xlsx` con LibreOffice, así que esa plantilla parte de una copia convertida). Hojas nuevas: Estados (resultados, balance con minoritarias y preferentes, datos regulatorios con controles), Indicadores (ROE, ROA, payout, capital, P/E, P/BV; sin indicadores industriales), Escenarios y Fuentes.
+- `exportar` genera el expediente desde el libro recalculado. Los valores del libro coinciden con el motor JS en los tres escenarios (banco DDM 20,21 / 21,15 / 22,13; aseguradora exceso 18,65 / 20,20 / 21,83, datos sintéticos) y el expediente exportado solo queda pendiente de la auditoría independiente.
+- Mutaciones del constructor detectadas; plantillas en blanco en `PLANTILLAS` (no abiertas en Excel).
+
+## Circuito completo (operativas, bancos, aseguradoras)
+libro diligenciado → `exportar` → `docs/v2/empresas/TICKER.json` → `scripts/v2-catalogo.mjs` → página. P07 exige que el valor del libro concilie con el motor (±0,5 %).
+
+- Pendiente: libro para **holdings** y **alto crecimiento** (sus expedientes no pueden llegar a `PUBLICADO` sin él, por P07), informes reales, despliegue en Vercel y QA con autenticación.
