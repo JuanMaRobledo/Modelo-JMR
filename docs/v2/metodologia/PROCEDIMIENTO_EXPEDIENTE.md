@@ -13,6 +13,7 @@ La IA hace **tres** cosas económicas: (1) recopilar, normalizar y conciliar his
    `python3 -I scripts/v2-libro-holding.py exportar libro.xlsx meta.json trabajo/ docs/v2/empresas/TICKER.json`
    `meta.json` aporta `ticker`, `analysis`, `sources`, `justificaciones` (y `auditoria` solo si ya existe, firmada por un tercero).
 6. **Catálogo**: `node scripts/v2-catalogo.mjs` y `npm test`. El estado queda determinado por los controles.
-7. **PR** a `main`: CI en verde. Un expediente `PUBLICADO` solo se fusiona con la auditoría independiente adjunta.
+7. **Publicar para revisión**: PR a `main`, pruebas y validaciones técnicas, sin exigir auditoría previa. El catálogo marcará `visibilidadApp=PUBLICADA_PARA_REVISION`; mostrar los tres escenarios, el MOS sobre Base, estados financieros completos, análisis y justificación económica de cada supuesto. El expediente debe llevar las advertencias pertinentes. Si existe un bloqueo material, exponer los asuntos pendientes, no cifras intrínsecas inválidas.
+8. **Auditoría posterior**: guardar evidencia de auditoría independiente cuando se realice; solo la aprobación personal expresa para la revisión vigente la mueve de «Pendientes de mi auditoría» a «Auditadas y aprobadas por mí». La publicación para revisión no implica certificación.
 
 Datos que bloquean solo esa valoración: se documenta el bloqueo concreto y se continúa con las demás.
