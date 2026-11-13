@@ -1,0 +1,111 @@
+{
+  "id": "jmr-v2-contrato-unico",
+  "version": "1.0.0",
+  "effectiveDate": "2026-11-13",
+  "scope": "Modelo JMR V2.0; never Floyd",
+  "canonicalDocument": "docs/v2/metodologia/CONTRATO_UNICO_LLM.md",
+  "agents": [
+    "ChatGPT",
+    "Claude",
+    "Gemini",
+    "other"
+  ],
+  "sourceOfTruth": "official V2 workbook; engine and exported JSON must reconcile",
+  "profiles": {
+    "operativa": "fcffsimpleginzu",
+    "banco": "divginzu-or-eqexret",
+    "aseguradora": "divginzu-or-eqexret",
+    "holding": "SOTP",
+    "alto-crecimiento": "higrowth-when-justified"
+  },
+  "scenarios": [
+    "conservador",
+    "base",
+    "optimista"
+  ],
+  "marginOfSafety": 0.35,
+  "mosScenario": "base",
+  "requiredHistoryYearsTarget": 10,
+  "minimumCompleteYears": 3,
+  "states": [
+    "BLOQUEADO",
+    "EN_PROCESO",
+    "EN_REVISION",
+    "PUBLICADO"
+  ],
+  "catalogViews": [
+    "pendientes",
+    "auditadas"
+  ],
+  "audit": {
+    "technicalIndependentRequiredForPublication": true,
+    "ownerApprovalRequiredForAuditedViewer": true,
+    "aiCanApprove": false
+  },
+  "analyticalSections": [
+    "business",
+    "moat",
+    "story",
+    "risks",
+    "conclusion"
+  ],
+  "dossierTabs": [
+    "analisis",
+    "valoracion",
+    "financieros",
+    "indicadores",
+    "modelo",
+    "sensibilidades",
+    "asuntos",
+    "revision"
+  ],
+  "requiredEvidence": [
+    "officialReportOrReliablePrimarySource",
+    "period",
+    "pageOrNote",
+    "units",
+    "currency",
+    "reportedValue",
+    "adjustmentReason"
+  ],
+  "economicTests": [
+    "growth",
+    "margins",
+    "reinvestment",
+    "salesToCapital",
+    "roic",
+    "wacc",
+    "tax",
+    "leases",
+    "researchAndDevelopment",
+    "sbcAndDilution",
+    "options",
+    "nol",
+    "terminalValue",
+    "sensitivity"
+  ],
+  "controlsSource": "docs/v2/expediente-v2.mjs",
+  "exportSource": "scripts/v2-libro-*.py",
+  "catalogCommand": "node scripts/v2-catalogo.mjs --check",
+  "toleranceBookToEngine": 0.005,
+  "limitations": {
+    "changesToCalculationRequireReview": true,
+    "missing10ReportsNotAutomaticBlock": true,
+    "missingMaterialDataNotPermittedToFabricate": true,
+    "draftVisibilityDoesNotMeanCertified": true
+  },
+  "steps": [
+    "classify",
+    "collect-primary-data",
+    "reconcile-financial-statements",
+    "normalize-economics",
+    "document-three-stories",
+    "fill-v2-workbook",
+    "recalculate-and-export-json",
+    "write-evidence-based-analysis",
+    "run-economic-checks",
+    "update-catalog-and-test",
+    "independent-audit",
+    "owner-review"
+  ]
+}
