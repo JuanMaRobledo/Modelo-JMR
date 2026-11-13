@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { cargarMotor } from '../scripts/v2-motor.mjs';
 import { crearMotor } from '../docs/v2/motores/despacho.mjs';
 import { evaluarExpediente } from '../docs/v2/expediente-v2.mjs';
-import { validoHolding } from './fixtures/v2-expediente-valido.mjs';
+import { validoHolding, conValores } from './fixtures/v2-expediente-valido.mjs';
 import { evaluarSOTP, entradas } from '../docs/v2/motores/sotp.mjs';
 
 const fcff = cargarMotor(), motor = crearMotor(fcff);
@@ -45,7 +45,7 @@ test('el descuento de holding solo con justificación explícita y razonable', (
   const sin = check(m => { for (const n of Object.keys(m.assumptions)) m.assumptions[n].holdingDiscount = { porcentaje: 0.15 }; });
   assert.equal(sin.permitido, 'BLOQUEADO'); // el motor se niega a aplicarlo sin justificación
   const j = 'Caja atrapada en jurisdicciones con retención sobre dividendos y costos de control de la matriz.';
-  const con = check(m => { for (const n of Object.keys(m.assumptions)) m.assumptions[n].holdingDiscount = { porcentaje: 0.15, justificacion: j }; });
+  const con = check(m => { for (const n of Object.keys(m.assumptions)) m.assumptions[n].holdingDiscount = { porcentaje: 0.15, justificacion: j }; conValores(m); });
   assert.equal(con.permitido, 'PUBLICADO');
   const base = motor.calculateAll(validoHolding()).scenarios.base.perShare, desc = motor.calculateAll(con ? (() => { const m = validoHolding(); for (const n of Object.keys(m.assumptions)) m.assumptions[n].holdingDiscount = { porcentaje: 0.15, justificacion: j }; return m; })() : null).scenarios.base.perShare;
   assert.ok(Math.abs(desc - base * 0.85) < 1e-9);

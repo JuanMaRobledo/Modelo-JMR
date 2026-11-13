@@ -50,3 +50,28 @@ test('libro · cada entrada de «Input sheet» enlazada a «JMR Estados» trae e
     B20: u.minority, B21: u.shares, B22: semilla.financials.sharePrice, B23: u.taxExpense / u.pretaxIncome };
   for (const [celda, v] of Object.entries(esperado)) close(i[celda], v, `Input ${celda}`);
 });
+
+import { crearMotor } from '../docs/v2/motores/despacho.mjs';
+import { evaluarExpediente } from '../docs/v2/expediente-v2.mjs';
+const exportado = () => structuredClone(load('jmr-v2-expediente-exportado.json'));
+test('circuito: el expediente exportado del libro pasa los controles y solo le falta la auditoría independiente', () => {
+  const m = exportado(), r = evaluarExpediente(m, crearMotor(motor));
+  // la semilla optimista usa ROIC terminal 18 % frente a un WACC terminal de 7,2 %: el control V10 exige justificarlo
+  assert.deepEqual(r.controles.filter(c => c.gravedad !== 'aviso').map(c => c.id), ['V10', 'P02'], JSON.stringify(r.controles));
+  assert.equal(m.controlesLibro.estados, 'OK'); assert.equal(m.controlesLibro.fuentes, 'OK');
+  m.justificaciones = { roicTerminal: 'Escenario optimista: ventaja competitiva duradera por escala y contratos de largo plazo que sostienen retornos sobre el capital.' };
+  assert.deepEqual(evaluarExpediente(m, crearMotor(motor)).controles.filter(c => c.gravedad !== 'aviso').map(c => c.id), ['P02']);
+  assert.equal(evaluarExpediente(m, crearMotor(motor)).permitido, 'EN_REVISION');
+  m.auditoria = { aprobadaPor: 'Auditor independiente', fecha: '2026-11-13', evidencia: 'acta-prueba' }; m.estado = 'PUBLICADO';
+  const final = evaluarExpediente(m, crearMotor(motor));
+  assert.equal(final.permitido, 'PUBLICADO'); assert.equal(final.publicable, true);
+});
+test('circuito: el valor del libro y el del motor coinciden en los tres escenarios del expediente exportado', () => {
+  const m = exportado(), c = crearMotor(motor).calculateAll(m);
+  for (const n of ['conservador', 'base', 'optimista']) close(c.scenarios[n].perShare, m.libro.valores[n], `valor ${n}`);
+  assert.match(m.libro.sha256, /^[0-9a-f]{64}$/);
+});
+test('circuito: alterar un supuesto del expediente exportado sin recalcular el libro se detecta (P07)', () => {
+  const m = exportado(); m.assumptions.base.growth2to5 += 0.03;
+  assert.ok(evaluarExpediente(m, crearMotor(motor)).controles.some(c => c.id === 'P07'));
+});

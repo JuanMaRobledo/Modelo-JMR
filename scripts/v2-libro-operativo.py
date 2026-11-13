@@ -8,6 +8,7 @@ Construye el libro a partir del fcffsimpleginzu.xlsx ORIGINAL de Damodaran inyec
 Cambios en «Input sheet»: solo las celdas listadas en INPUT_LINKS pasan a ser fórmulas (antes eran valores digitados).
 
 Uso:
+  python3 -I scripts/v2-libro-operativo.py exportar <libro.xlsx> <meta.json> <dir_trabajo> <salida_expediente.json>
   python3 -I scripts/v2-libro-operativo.py build  <ginzu.xlsx> <salida.xlsx> [--datos semilla.json] [--escenario Base]
   python3 -I scripts/v2-libro-operativo.py verify <ginzu.xlsx> <semilla.json> <dir_trabajo> <salida_casos.json>
 `--datos` carga una semilla (solo para pruebas con datos SINTÉTICOS); sin ella el libro sale en blanco para una empresa nueva.
@@ -119,6 +120,27 @@ def build_estados(base, datos):
         for c in YC: sh.put(ref(c, r), f=fn(c), st='ctrl')
     sh.put('A55', 'Ejercicios consecutivos y sin duplicados'); sh.put('C55', f='IF(AND(COUNT(C3:L3)=10,SUMPRODUCT(--(D3:L3-C3:K3=1))=9),"OK","REVISAR")', st='ctrl')
     sh.put('A56', 'Resumen de controles'); sh.put('C56', f='IF(COUNTIF(C51:L55,"REVISAR")=0,"OK","REVISAR")', st='ctrl')
+    return sh
+# ───────────── «JMR Fuentes» (trazabilidad por campo material) ─────────────
+FUENTES = [('financials.revenue', 'ingresos', None), ('financials.debt', 'deuda', 'arrend'), ('financials.cash', 'caja', None),
+           ('financials.minority', 'minoritarios', None), ('financials.nonOperatingAssets', 'noop', None), ('financials.shares', 'acciones', None)]
+def build_fuentes(base, datos):
+    sh = Sheet(base); sh.widths = {1: 34, 2: 36, 3: 10, 4: 16, 5: 9, 6: 20, 7: 16, 8: 16, 9: 18, 10: 11, 11: 30}
+    sh.put('A1', 'JMR V2.0 · Trazabilidad de cifras materiales', st='head'); sh.put('A2', 'Documento, período, página/nota, moneda, unidades, valor reportado y ajuste. El control compara contra «JMR Estados».', st='note')
+    for col, t in zip('ABCDEFGHIJK', ['Campo destino', 'Documento', 'Período', 'Página / nota', 'Moneda', 'Unidades', 'Valor reportado', 'Ajuste normalización', 'Valor en el libro', 'Control', 'Celda destino']): sh.put(ref(col, 3), t, st='head')
+    for k, (campo, a, b) in enumerate(FUENTES):
+        r = 4 + k; sh.put(ref('A', r), campo)
+        f = "%s!L%d" % (E, R[a]) + (("+%s!L%d" % (E, R[b])) if b else '')
+        fin_ = (datos or {}).get('financials', {}); v = None
+        if datos:
+            h = (datos['history'][-1]); m = {'ingresos': 'revenue', 'deuda': 'debt', 'caja': 'cash', 'minoritarios': 'minority', 'noop': 'nonoperatingAssets', 'acciones': 'shares'}[a]; v = h[m]
+        for col, val, stl in [('B', 'Informe anual (prueba)' if datos else None, 'in_text'), ('C', 2025 if datos else None, 'in_int'), ('D', 'p. 80' if datos else None, 'in_text'),
+                              ('E', (datos or {}).get('currency') if datos else None, 'in_text'), ('F', 'millones' if datos else None, 'in_text'), ('G', v, 'in_num'), ('H', 0.0 if datos else None, 'in_num')]:
+            sh.put(ref(col, r), val, st=stl)
+        sh.put(ref('I', r), f=f, st='calc_num')
+        sh.put(ref('J', r), f='IF(G%d="","",IF(ABS(G%d+H%d-I%d)<=0.0001*MAX(ABS(I%d),1),"OK","REVISAR"))' % (r, r, r, r, r), st='ctrl')
+        sh.put(ref('K', r), "'JMR Estados'!L%d" % R[a], st='note')
+    sh.put('A11', 'Resumen de trazabilidad'); sh.put('J11', f='IF(COUNTBLANK(B4:H9)>0,"INCOMPLETO",IF(COUNTIF(J4:J9,"REVISAR")=0,"OK","REVISAR"))', st='ctrl')
     return sh
 # ───────────── «JMR Indicadores» ─────────────
 def build_ind(base):
@@ -237,7 +259,7 @@ def strip_cached(xml):   # fuerza el recálculo completo en cualquier aplicació
 def build(src, out, datos=None, escenario='Base'):
     z = zipfile.ZipFile(src); parts = {n: z.read(n) for n in z.namelist()}; order = z.namelist()
     sx = parts['xl/styles.xml'].decode('utf8'); sx, base = add_styles(sx); parts['xl/styles.xml'] = sx.encode('utf8')
-    sheets = [('JMR Estados', build_estados(base, datos)), ('JMR Indicadores', build_ind(base)), ('JMR Escenarios', build_esc(base, datos, escenario))]
+    sheets = [('JMR Estados', build_estados(base, datos)), ('JMR Indicadores', build_ind(base)), ('JMR Escenarios', build_esc(base, datos, escenario)), ('JMR Fuentes', build_fuentes(base, datos))]
     wb = parts['xl/workbook.xml'].decode('utf8'); rels = parts['xl/_rels/workbook.xml.rels'].decode('utf8'); ct = parts['[Content_Types].xml'].decode('utf8')
     sid = max(int(x) for x in re.findall(r'sheetId="(\d+)"', wb)); rid = max(int(x) for x in re.findall(r'Id="rId(\d+)"', rels)); n = 18
     for name, sh in sheets:
@@ -265,11 +287,54 @@ def build(src, out, datos=None, escenario='Base'):
         for nme in order: o.writestr(nme, parts[nme])
     return links
 
+def exportar(libro, meta_path, work, salida):
+    """Genera el expediente JSON a partir del libro YA diligenciado: recalcula con LibreOffice los tres escenarios y lee los resultados.
+    No inventa auditoría, análisis ni fuentes: esos campos solo se copian de meta.json (los redacta el proceso humano/IA y la auditoría la hace un tercero)."""
+    import hashlib, openpyxl, warnings; warnings.filterwarnings('ignore')
+    os.makedirs(work, exist_ok=True); meta = json.load(open(meta_path)); datos = {}
+    sha = hashlib.sha256(open(libro, 'rb').read()).hexdigest()
+    for esc in ['Conservador', 'Base', 'Optimista']:
+        wb = openpyxl.load_workbook(libro); wb['JMR Escenarios']['C3'] = esc; tmp = os.path.join(work, esc + '.xlsx'); wb.save(tmp)
+        subprocess.run(['soffice', '--headless', '--convert-to', 'xlsx:Calc MS Excel 2007 XML', '--outdir', os.path.join(work, 'o_' + esc), tmp], check=True, capture_output=True, timeout=300)
+        datos[esc] = openpyxl.load_workbook(os.path.join(work, 'o_' + esc, esc + '.xlsx'), data_only=True)
+    b = datos['Base']; i, o, es, sc, fu = b['Input sheet'], b['Valuation output'], b['JMR Estados'], b['JMR Escenarios'], b['JMR Fuentes']
+    num = lambda v: v if isinstance(v, (int, float)) else None
+    claves = dict(revenue='ingresos', cogs='cogs', ebit='ebit', interestExpense='interes', pretaxIncome='uai', taxExpense='impuestos', netIncome='neta', operatingCF='cfo', capex='capex',
+                  da='da', changeNWC='dwc', cash='caja', currentAssets='ac', currentLiabilities='pc', inventory='inventarios', assets='activos', liabilities='pasivos', debt='deuda',
+                  equity='patrimonio', minority='minoritarios', nonoperatingAssets='noop', shares='acciones', leases='arrend', acquisitions='adq', financingCF='fin', dividendsBuybacks='divrec', sbc='sbc', rd='id', nol='nol')
+    history = []
+    for c in range(3, 13):
+        y = es.cell(3, c).value
+        if not isinstance(y, (int, float)): continue
+        h = {'year': int(y)}
+        for k, key in claves.items(): h[k] = num(es.cell(R[key], c).value)
+        history.append(h)
+    if history: history[-1]['sharePrice'] = num(es.cell(R['precio'], 3).value)
+    keys = [(7, 'growth1'), (8, 'margin1'), (9, 'growth2to5'), (10, 'marginTarget'), (11, 'marginConvergenceYear'), (12, 'salesToCapital1to5'), (13, 'salesToCapital6to10'), (14, 'roicTerminal')]
+    mos, tax = num(sc['C19'].value), num(sc['C18'].value)
+    comun = dict(waccInitial=i['B35'].value, waccTerminal=o['M12'].value, gTerminal=o['M2'].value, marginalTax=tax, mos=mos, failureProbability=o['B22'].value or 0, recoveryRate=i['B54'].value)
+    assumptions = {n: {**{k: num(sc.cell(r, col).value) for r, k in keys}, **comun} for n, col in [('conservador', 4), ('base', 5), ('optimista', 6)]}
+    prov = [{'destino': fu.cell(r, 1).value, 'documento': fu.cell(r, 2).value, 'periodo': fu.cell(r, 3).value, 'pagina': fu.cell(r, 4).value, 'moneda': fu.cell(r, 5).value,
+             'unidades': fu.cell(r, 6).value, 'valorReportado': num(fu.cell(r, 7).value), 'ajuste': num(fu.cell(r, 8).value) or 0.0, 'celdaDestino': fu.cell(r, 11).value} for r in range(4, 10)]
+    exp = {'schemaVersion': 'jmr-v2-0.2', 'ticker': meta['ticker'], 'company': meta.get('company') or i['B4'].value, 'profile': 'operativa', 'currency': prov[0]['moneda'],
+           'units': es['B2'].value, 'asOf': str(es.cell(R['fecha'], 3).value)[:10], 'estado': meta.get('estado', 'EN_PROCESO'),
+           'financials': {'revenue': num(i['B11'].value), 'debt': num(i['B15'].value), 'cash': num(i['B18'].value), 'minority': num(i['B20'].value), 'nonOperatingAssets': num(i['B19'].value),
+                          'nonoperatingAssets': num(i['B19'].value), 'optionsValue': num(o['B30'].value) or 0.0, 'shares': num(i['B21'].value), 'sharePrice': num(i['B22'].value),
+                          'effectiveTaxRate': num(i['B23'].value), 'nol': num(o['B10'].value) or 0.0},
+           'history': history, 'assumptions': assumptions, 'provenance': [{**p_, 'destino': p_['destino'].replace('nonOperatingAssets', 'nonoperatingAssets')} for p_ in prov],
+           'libro': {'id': meta.get('libroId', os.path.basename(libro)), 'sha256': sha, 'motor': 'fcffsimpleginzu', 'valores': {n.lower(): datos[n]['Valuation output']['B33'].value for n in datos}},
+           'controlesLibro': {'estados': es['C56'].value, 'fuentes': fu['J11'].value}}
+    for k in ['analysis', 'sources', 'justificaciones', 'auditoria', 'condiciones']:
+        if k in meta: exp[k] = meta[k]
+    json.dump(exp, open(salida, 'w'), indent=1, default=str, ensure_ascii=False); return exp
+
 if __name__ == '__main__':
     a = sys.argv[1:]
     if a and a[0] == 'build':
         p = argparse.ArgumentParser(); p.add_argument('cmd'); p.add_argument('src'); p.add_argument('out'); p.add_argument('--datos'); p.add_argument('--escenario', default='Base'); x = p.parse_args(a)
         build(x.src, x.out, json.load(open(x.datos)) if x.datos else None, x.escenario); print('libro escrito:', x.out)
+    elif a and a[0] == 'exportar':
+        _, libro, meta, work, salida = a; e = exportar(libro, meta, work, salida); print('expediente escrito:', salida, {k: round(v, 4) for k, v in e['libro']['valores'].items()})
     elif a and a[0] == 'verify':
         import openpyxl, warnings; warnings.filterwarnings('ignore')
         _, src, semilla, work, salida = a; os.makedirs(work, exist_ok=True); datos = json.load(open(semilla)); res = {}

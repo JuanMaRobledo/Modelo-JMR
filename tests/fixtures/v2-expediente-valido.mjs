@@ -1,6 +1,8 @@
 // Expediente SINTÉTICO coherente derivado del ejemplo del motor; solo para ejercitar controles y catálogo.
 import fs from 'node:fs';
 import vm from 'node:vm';
+import { cargarMotor } from '../../scripts/v2-motor.mjs';
+import { crearMotor } from '../../docs/v2/motores/despacho.mjs';
 const html = fs.readFileSync(new URL('../../docs/jmr-v2.html', import.meta.url), 'utf8');
 export const demo = vm.runInNewContext('(' + html.match(/const JMR_DEMO=(\{.*\});/)[1] + ')', {});
 export function valido(ticker = 'TEST') {
@@ -14,7 +16,7 @@ export function valido(ticker = 'TEST') {
   m.analysis = Object.fromEntries(['business', 'moat', 'story', 'risks', 'conclusion'].map(k => [k, t]));
   m.libro = { id: 'LIBRO-PRUEBA', sha256: 'a'.repeat(64) };
   m.auditoria = { aprobadaPor: 'Auditor independiente', fecha: '2026-11-13', evidencia: 'acta-prueba' };
-  return m;
+  return conValores(m);
 }
 
 /** Expediente SINTÉTICO de banco o aseguradora, coherente con sus controles. Solo para pruebas. */
@@ -46,7 +48,7 @@ export function validoFinanciero(profile = 'banco', ticker = 'BNK', metodo = 'dd
   const t = 'Texto de análisis con evidencia suficiente para superar el mínimo exigido por el control.';
   m.analysis = Object.fromEntries(['business', 'moat', 'story', 'risks', 'conclusion'].map(k => [k, t]));
   if (metodo === 'exceso') for (const n of Object.keys(m.assumptions)) m.assumptions[n].retentionHighGrowth = 0.6;
-  return m;
+  return conValores(m);
 }
 const CAMPOS = ['netIncome', 'bookEquity', 'bookEquityPrior', 'dividends', 'shares'];
 
@@ -80,7 +82,7 @@ export function validoHolding(ticker = 'HLD') {
   };
   const t = 'Texto de análisis con evidencia suficiente para superar el mínimo exigido por el control.';
   m.analysis = Object.fromEntries(['business', 'moat', 'story', 'risks', 'conclusion'].map(k => [k, t]));
-  return m;
+  return conValores(m);
 }
 
 /** Expediente SINTÉTICO de alto crecimiento (pérdidas operativas en transición). Solo para pruebas. */
@@ -108,5 +110,13 @@ export function validoAlto(ticker = 'GRW') {
   };
   const t = 'Texto de análisis con evidencia suficiente para superar el mínimo exigido por el control.';
   m.analysis = Object.fromEntries(['business', 'moat', 'story', 'risks', 'conclusion'].map(k => [k, t]));
+  return conValores(m);
+}
+
+/** Recalcula libro.valores con el motor (simula un libro cuyo valor concilia). Úsese tras mutar supuestos que deban seguir siendo coherentes. */
+const _motor = crearMotor(cargarMotor());
+export function conValores(m) {
+  const c = _motor.calculateAll(m);
+  m.libro = { ...(m.libro || {}), valores: Object.fromEntries(Object.entries(c.scenarios).map(([n, v]) => [n, v.perShare ?? null])) };
   return m;
 }
