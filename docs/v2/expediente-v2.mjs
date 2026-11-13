@@ -11,6 +11,7 @@ const rel = (a, b, tol) => Math.abs(a - b) <= Math.max(tol * Math.max(Math.abs(a
 const FINANCIEROS = ['banco', 'aseguradora'];
 const CAMPOS_OPERATIVA = ['revenue', 'debt', 'cash', 'minority', 'nonoperatingAssets', 'shares'];
 const CAMPOS_FINANCIERA = ['netIncome', 'bookEquity', 'bookEquityPrior', 'dividends', 'shares'];
+const CAMPOS_HOLDING = ['shares', 'cash', 'minority', 'debt', 'corporateExpenses'];
 const SECCIONES_ANALISIS = ['business', 'moat', 'story', 'risks', 'conclusion'];
 const AUTORES_NO_VALIDOS = /^(claude|ia|ai|gpt|gemini|chatgpt|modelo|bot)\b/i;
 
@@ -34,15 +35,24 @@ export function controlesDatos(m) {
     if (num(x.revenue) && num(x.cogs)) add('D09', 'error', x.cogs >= 0 && x.cogs <= x.revenue * 1.0001, `${x.year}: costo de ventas inválido.`);
   }
   const last = ord.length ? h.find(x => x.year === ord[ord.length - 1]) : null, f = m.financials || {};
-  const financiero = FINANCIEROS.includes(m.profile), CAMPOS_MATERIALES = financiero ? CAMPOS_FINANCIERA : CAMPOS_OPERATIVA;
-  if (last && !financiero) for (const k of CAMPOS_OPERATIVA)
+  const financiero = FINANCIEROS.includes(m.profile), holding = m.profile === 'holding', CAMPOS_MATERIALES = holding ? CAMPOS_HOLDING : financiero ? CAMPOS_FINANCIERA : CAMPOS_OPERATIVA;
+  const prov = Array.isArray(m.provenance) ? m.provenance : [];
+  if (last && !financiero && !holding) for (const k of CAMPOS_OPERATIVA)
     if (num(f[k]) && num(last[k])) add('D10', 'error', rel(f[k], last[k], 0.001), `Base de valoración (${k}=${f[k]}) no coincide con el último histórico ${last.year} (${last[k]}).`);
+  if (last && holding) {
+    for (const k of ['shares', 'cash', 'minority']) if (num(f[k]) && num(last[k])) add('D10', 'error', rel(f[k], last[k], 0.001), `Base de valoración (${k}=${f[k]}) no coincide con el último histórico (${last[k]}).`);
+    for (const k of CAMPOS_HOLDING) add('D13', 'bloqueo', num(f[k]), `Falta dato financiero base: financials.${k}.`);
+    for (const sg of m.segmentos || []) {
+      const p = prov.find(p => p.destino === `segmentos.${sg.id}.revenue`);
+      add('D11', 'error', !!p && p.documento && p.periodo != null && (p.pagina != null || p.nota != null) && p.moneda && p.unidades && num(p.valorReportado) && rel(sg.revenue ?? p.valorReportado, p.valorReportado, 0.0001),
+        `Falta trazabilidad completa de ingresos del negocio ${sg.id} (segmentos.${sg.id}.revenue) o no coincide con el valor reportado.`);
+    }
+  }
   if (last && financiero) {
     const prev = h.find(x => x.year === last.year - 1), par = [['netIncome', last.netIncome], ['bookEquity', last.equity], ['dividends', last.dividends], ['shares', last.shares], ['bookEquityPrior', prev?.equity]];
     for (const [k, v] of par) if (num(f[k]) && num(v)) add('D10', 'error', rel(f[k], v, 0.001), `Base de valoración (${k}=${f[k]}) no coincide con el histórico (${v}).`);
     for (const k of CAMPOS_FINANCIERA) add('D13', 'bloqueo', num(f[k]), `Falta dato financiero base: financials.${k}.`);
   }
-  const prov = Array.isArray(m.provenance) ? m.provenance : [];
   for (const k of CAMPOS_MATERIALES) {
     const p = prov.find(p => p.destino === `financials.${k}`);
     add('D11', 'error', !!p && p.documento && p.periodo != null && (p.pagina != null || p.nota != null) && p.moneda && p.unidades && num(p.valorReportado),
@@ -58,8 +68,9 @@ export function controlesValoracion(m, engine) {
   const soporta = engine.soporta ? engine.soporta(m.profile) : m.profile === 'operativa';
   add('V01', 'bloqueo', soporta, `Perfil «${m.profile}»: sin motor implementado en este despliegue.`);
   if (!soporta) return r;
-  const financiero = FINANCIEROS.includes(m.profile);
+  const financiero = FINANCIEROS.includes(m.profile), holding = m.profile === 'holding';
   if (financiero) r.push(...controlesFinancieros(m));
+  if (holding) r.push(...controlesHolding(m));
   if (r.some(x => x.gravedad === 'bloqueo')) return r;
   const calc = engine.calculateAll(m), s = calc.scenarios || {};
   for (const n of engine.SCENARIOS) add('V02', 'bloqueo', ['CANDIDATO', 'REVISAR'].includes(s[n]?.status),
@@ -70,6 +81,13 @@ export function controlesValoracion(m, engine) {
   const a = m.assumptions;
   add('V05', 'error', engine.SCENARIOS.every(n => a[n].mos === MOS_ESTANDAR), `El MOS debe ser ${MOS_ESTANDAR * 100} % en los tres escenarios.`);
   add('V06', 'error', rel(s.base.mosPrice, s.base.perShare * (1 - MOS_ESTANDAR), 1e-9), 'Precio con MOS ≠ valor base × 0,65.');
+  if (holding) {
+    const tasa = n => `${a[n].riskFree}|${a[n].taxRate ?? ''}`;
+    add('V07', 'error', engine.SCENARIOS.every(n => tasa(n) === tasa('base')) || !!(m.justificaciones && m.justificaciones.tasas), 'Tasa libre de riesgo o impuestos difieren entre escenarios sin justificación (justificaciones.tasas).');
+    const k = n => JSON.stringify(m.segmentos.map(sg => sg.escenarios?.[n]?.costOfCapital ?? sg.costOfCapital ?? null));
+    add('V08', 'error', engine.SCENARIOS.every(n => k(n) === k('base')) || !!(m.justificaciones && m.justificaciones.costoCapital), 'El costo de capital de los negocios difiere entre escenarios sin justificación (justificaciones.costoCapital).');
+    return r;
+  }
   if (financiero) {
     const tasa = n => `${a[n].beta}|${a[n].riskFree}|${a[n].erp}|${a[n].stableBeta ?? ''}`;
     add('V07', 'error', engine.SCENARIOS.every(n => tasa(n) === tasa('base')) || !!(m.justificaciones && m.justificaciones.ke),
@@ -93,6 +111,31 @@ export function controlesValoracion(m, engine) {
     add('V11', 'error', y.slice(0, 9).every(x => x.growth <= 0 || x.reinvestment > 0 || x.ebit <= 0), `${n}: crecimiento positivo sin reinversión.`);
     add('V12', 'error', y10.revenue > 0, `${n}: ingresos no positivos al año 10.`);
   }
+  return r;
+}
+
+/** Holdings: cada negocio con su perfil, participaciones, reconciliación de ingresos y sin doble contabilización. */
+function controlesHolding(m) {
+  const r = [], add = (id, gravedad, ok, msg) => { if (!ok) r.push({ id, grupo: 'valoracion', gravedad, msg }); };
+  const sg = Array.isArray(m.segmentos) ? m.segmentos : [];
+  add('H01', 'bloqueo', sg.length >= 2 && sg.every(x => x.id && x.nombre && ['operativa', 'banco', 'aseguradora', 'otro'].includes(x.perfil)) && new Set(sg.map(x => x.id)).size === sg.length,
+    'Cada negocio o participación requiere id único, nombre y perfil económico (operativa | banco | aseguradora | otro); mínimo dos.');
+  add('H02', 'bloqueo', sg.every(x => x.perfil === 'operativa' || !!x.valorExterno), 'Un negocio no operativo (banco, aseguradora, otro) no se valora con la fórmula industrial: requiere valorExterno obtenido con su propio motor.');
+  for (const x of sg.filter(x => x.valorExterno)) {
+    add('H06', 'error', !!(x.valorExterno.fuente && x.valorExterno.fecha && x.valorExterno.motorOrigen), `${x.id}: el valor externo requiere fuente, fecha y motor de origen.`);
+    if (x.perfil === 'banco' || x.perfil === 'aseguradora') add('H11', 'error', !!x.valorExterno.refExpediente, `${x.id}: el negocio financiero debe referenciar su propio expediente (refExpediente) para heredar sus controles regulatorios.`);
+  }
+  add('H12', 'aviso', !(sg.some(x => x.valorExterno) && (m.financials?.corporateExpenses || 0) > 0), 'Los gastos corporativos se asignan solo a negocios valorados por fórmula: verificar que los valores externos no los omiten ni duplican.');
+  const rev = (m.history || []).slice().sort((a, b) => a.year - b.year).at(-1)?.revenue;
+  if (num(rev) && sg.every(x => num(x.revenue))) {
+    const suma = sg.reduce((s, x) => s + x.revenue, 0) + (num(m.financials?.eliminaciones) ? m.financials.eliminaciones : 0);
+    add('H04', 'error', rel(suma, rev, 0.01), `Los ingresos por negocio (${suma}) no concilian con el consolidado (${rev}) ±1 %; declarar eliminaciones intragrupo en financials.eliminaciones.`);
+  }
+  const compartidos = sg.filter(x => num(x.share));
+  if (compartidos.length === sg.filter(x => !x.valorExterno).length && compartidos.length) add('H05', 'error', Math.abs(compartidos.reduce((s, x) => s + x.share, 0) - 1) < 0.001, 'Las claves de asignación de gastos corporativos no suman 100 %.');
+  if (sg.some(x => (x.ownership ?? 1) < 1) && (m.financials?.minority || 0) > 0)
+    add('H08', 'error', String(m.justificaciones?.minoritarios || '').trim().length >= 40, 'Participaciones parciales y minoritarios restados a la vez: justificar que no se descuenta dos veces el mismo interés (justificaciones.minoritarios).');
+  for (const n of ['conservador', 'base', 'optimista']) { const d = m.assumptions?.[n]?.holdingDiscount; if (d && d.porcentaje) add('H07', 'error', d.porcentaje <= 0.3 && String(d.justificacion || '').trim().length >= 40, `${n}: descuento de holding sin justificación económica o superior a 30 %.`); }
   return r;
 }
 

@@ -14,3 +14,8 @@ test('la página despacha por perfil y no muestra valores con un bloqueo activo'
   assert.match(html, /renderSensitivity\(model,bloqueado\)/);
   assert.ok(fs.existsSync(new URL('../docs/v2/motores/financieras.mjs', import.meta.url)));
 });
+test('las fuentes sin URL no generan enlaces y los indicadores sin datos no se muestran como filas vacías', () => {
+  assert.match(html, /const safeUrl=u=>\{if\(typeof u!=='string'\|\|!u\.trim\(\)\)return null;/);
+  assert.match(html, /function metricRow\([^)]*\)\{if\(!history\.some\(x=>finite\(x\[key\]\)\)\)return '';/);
+  assert.match(html, /s\.label\|\|s\.documento/);
+});

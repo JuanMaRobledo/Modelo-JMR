@@ -76,7 +76,7 @@
     <div class="table-scroll"><table id="projectionTable"><thead></thead><tbody></tbody></table></div>
   </section>
   <section class="panel" aria-labelledby="sensitivityTitle"><div class="sectionhead"><div><div class="eyebrow muted">CONTROL ECONÓMICO</div><h3 id="sensitivityTitle">Sensibilidad terminal 5×5</h3></div></div>
-    <p class="panel-hint">WACC terminal por crecimiento perpetuo. Los años explícitos se mantienen fijos.</p>
+    <p class="panel-hint" id="sensHint">WACC terminal por crecimiento perpetuo. Los años explícitos se mantienen fijos.</p>
     <div class="table-scroll"><table id="sensitivityTable"><thead></thead><tbody></tbody></table></div>
   </section>
  </section>
@@ -279,7 +279,7 @@ let evaluarExpediente=null;
 let motor={SCENARIOS,soporta:p=>p==='operativa',calculateAll,sensibilidad:(m,n='base')=>terminalSensitivity(m.financials,m.assumptions[n])};
 try{({evaluarExpediente}=await import('./v2/expediente-v2.mjs'));}catch(e){console.warn('Controles de expediente no disponibles',e);}
 try{const {crearMotor}=await import('./v2/motores/despacho.mjs');motor=crearMotor({calculateAll,SCENARIOS,terminalSensitivity});}catch(e){console.warn('Motores financieros no disponibles: solo empresas operativas',e);}
-const FINANCIEROS=['banco','aseguradora'],esFin=m=>FINANCIEROS.includes(m?.profile);
+const FINANCIEROS=['banco','aseguradora'],esFin=m=>FINANCIEROS.includes(m?.profile),esHold=m=>m?.profile==='holding';
 const {indicatorsForHistory}=JMR_IND;
 const JMR_DEMO={"schemaVersion": "jmr-v2-0.1", "ticker": "DEMO", "company": "Compañía Sintética — DEMOSTRACIÓN", "profile": "operativa", "currency": "USD", "units": "millones, excepto valor/acción", "asOf": "2026-11-12", "fictional": true, "status": "SOLO PRUEBA", "financials": {"revenue": 1016.136, "debt": 250, "cash": 116, "minority": 20, "nonoperatingAssets": 30, "optionsValue": 10, "shares": 100, "sharePrice": 20, "effectiveTaxRate": 0.25}, "history": [{"year": 2016, "revenue": 530, "cogs": 286.2, "ebit": 95.4, "interestExpense": 20, "pretaxIncome": 75.4, "taxExpense": 18.85, "netIncome": 56.55, "operatingCF": 111.3, "capex": 37.1, "da": 21.2, "changeNWC": 5.3, "cash": 80, "currentAssets": 196.1, "currentLiabilities": 116.6, "inventory": 37.1, "assets": 901.0, "liabilities": 318.0, "debt": 250, "equity": 583.0, "minority": 20, "nonoperatingAssets": 30, "shares": 100, "sharePrice": 20}, {"year": 2017, "revenue": 569.75, "cogs": 307.665, "ebit": 102.555, "interestExpense": 20, "pretaxIncome": 82.555, "taxExpense": 20.639, "netIncome": 61.916, "operatingCF": 119.647, "capex": 39.883, "da": 22.79, "changeNWC": 5.697, "cash": 84, "currentAssets": 210.808, "currentLiabilities": 125.345, "inventory": 39.883, "assets": 968.575, "liabilities": 341.85, "debt": 250, "equity": 626.725, "minority": 20, "nonoperatingAssets": 30, "shares": 100, "sharePrice": 20}, {"year": 2018, "revenue": 612.481, "cogs": 330.74, "ebit": 110.247, "interestExpense": 20, "pretaxIncome": 90.247, "taxExpense": 22.562, "netIncome": 67.685, "operatingCF": 128.621, "capex": 42.874, "da": 24.499, "changeNWC": 6.125, "cash": 88, "currentAssets": 226.618, "currentLiabilities": 134.746, "inventory": 42.874, "assets": 1041.218, "liabilities": 367.489, "debt": 250, "equity": 673.729, "minority": 20, "nonoperatingAssets": 30, "shares": 100, "sharePrice": 20}, {"year": 2019, "revenue": 658.417, "cogs": 355.545, "ebit": 118.515, "interestExpense": 20, "pretaxIncome": 98.515, "taxExpense": 24.629, "netIncome": 73.886, "operatingCF": 138.268, "capex": 46.089, "da": 26.337, "changeNWC": 6.584, "cash": 92, "currentAssets": 243.614, "currentLiabilities": 144.852, "inventory": 46.089, "assets": 1119.309, "liabilities": 395.05, "debt": 250, "equity": 724.259, "minority": 20, "nonoperatingAssets": 30, "shares": 100, "sharePrice": 20}, {"year": 2020, "revenue": 707.799, "cogs": 382.211, "ebit": 127.404, "interestExpense": 20, "pretaxIncome": 107.404, "taxExpense": 26.851, "netIncome": 80.553, "operatingCF": 148.638, "capex": 49.546, "da": 28.312, "changeNWC": 7.078, "cash": 96, "currentAssets": 261.886, "currentLiabilities": 155.716, "inventory": 49.546, "assets": 1203.258, "liabilities": 424.679, "debt": 250, "equity": 778.579, "minority": 20, "nonoperatingAssets": 30, "shares": 100, "sharePrice": 20}, {"year": 2021, "revenue": 760.884, "cogs": 410.877, "ebit": 136.959, "interestExpense": 20, "pretaxIncome": 116.959, "taxExpense": 29.24, "netIncome": 87.719, "operatingCF": 159.786, "capex": 53.262, "da": 30.435, "changeNWC": 7.609, "cash": 100, "currentAssets": 281.527, "currentLiabilities": 167.394, "inventory": 53.262, "assets": 1293.503, "liabilities": 456.53, "debt": 250, "equity": 836.972, "minority": 20, "nonoperatingAssets": 30, "shares": 100, "sharePrice": 20}, {"year": 2022, "revenue": 817.95, "cogs": 441.693, "ebit": 147.231, "interestExpense": 20, "pretaxIncome": 127.231, "taxExpense": 31.808, "netIncome": 95.423, "operatingCF": 171.769, "capex": 57.257, "da": 32.718, "changeNWC": 8.18, "cash": 104, "currentAssets": 302.642, "currentLiabilities": 179.949, "inventory": 57.257, "assets": 1390.515, "liabilities": 490.77, "debt": 250, "equity": 899.745, "minority": 20, "nonoperatingAssets": 30, "shares": 100, "sharePrice": 20}, {"year": 2023, "revenue": 879.296, "cogs": 474.82, "ebit": 158.273, "interestExpense": 20, "pretaxIncome": 138.273, "taxExpense": 34.568, "netIncome": 103.705, "operatingCF": 184.652, "capex": 61.551, "da": 35.172, "changeNWC": 8.793, "cash": 108, "currentAssets": 325.34, "currentLiabilities": 193.445, "inventory": 61.551, "assets": 1494.803, "liabilities": 527.578, "debt": 250, "equity": 967.226, "minority": 20, "nonoperatingAssets": 30, "shares": 100, "sharePrice": 20}, {"year": 2024, "revenue": 945.243, "cogs": 510.431, "ebit": 170.144, "interestExpense": 20, "pretaxIncome": 150.144, "taxExpense": 37.536, "netIncome": 112.608, "operatingCF": 198.501, "capex": 66.167, "da": 37.81, "changeNWC": 9.452, "cash": 112, "currentAssets": 349.74, "currentLiabilities": 207.953, "inventory": 66.167, "assets": 1606.913, "liabilities": 567.146, "debt": 250, "equity": 1039.767, "minority": 20, "nonoperatingAssets": 30, "shares": 100, "sharePrice": 20}, {"year": 2025, "revenue": 1016.136, "cogs": 548.713, "ebit": 182.904, "interestExpense": 20, "pretaxIncome": 162.904, "taxExpense": 40.726, "netIncome": 122.178, "operatingCF": 213.389, "capex": 71.13, "da": 40.645, "changeNWC": 10.161, "cash": 116, "currentAssets": 375.97, "currentLiabilities": 223.55, "inventory": 71.13, "assets": 1727.431, "liabilities": 609.682, "debt": 250, "equity": 1117.75, "minority": 20, "nonoperatingAssets": 30, "shares": 100, "sharePrice": 20}], "assumptions": {"conservador": {"marginConvergenceYear": 10, "waccInitial": 0.1, "waccTerminal": 0.095, "marginalTax": 0.25, "mos": 0.35, "failureProbability": 0.0, "recoveryRate": 0.5, "growth1": 0.04, "growth2to5": 0.05, "margin1": 0.15, "marginTarget": 0.17, "salesToCapital1to5": 1.4, "salesToCapital6to10": 1.7, "roicTerminal": 0.12, "gTerminal": 0.025}, "base": {"marginConvergenceYear": 10, "waccInitial": 0.1, "waccTerminal": 0.095, "marginalTax": 0.25, "mos": 0.35, "failureProbability": 0.0, "recoveryRate": 0.5, "growth1": 0.08, "growth2to5": 0.09, "margin1": 0.18, "marginTarget": 0.22, "salesToCapital1to5": 1.8, "salesToCapital6to10": 2.0, "roicTerminal": 0.14, "gTerminal": 0.03}, "optimista": {"marginConvergenceYear": 10, "waccInitial": 0.1, "waccTerminal": 0.095, "marginalTax": 0.25, "mos": 0.35, "failureProbability": 0.0, "recoveryRate": 0.5, "growth1": 0.12, "growth2to5": 0.13, "margin1": 0.2, "marginTarget": 0.26, "salesToCapital1to5": 2.1, "salesToCapital6to10": 2.5, "roicTerminal": 0.18, "gTerminal": 0.035}}, "analysis": {"business": "Caso hipotético de entrenamiento. No representa una empresa cotizada.", "moat": "No evaluado: se necesita investigación de competidores, poder de precios y retorno del capital.", "story": "Tres historias económicas hipotéticas de crecimiento, rentabilidad y eficiencia del capital.", "risks": "Ejemplo: competencia, costos, tasa de descuento y crecimiento terminal.", "conclusion": "Este ejemplo prueba el motor y la interfaz; no constituye valoración, recomendación ni auditoría."}, "sources": [{"label": "DATOS FICTICIOS — no hay informe anual", "url": null}], "warnings": ["Ejemplo enteramente sintético. No representa datos financieros, estimaciones ni precios de mercado reales."]};
 const $=id=>document.getElementById(id);
@@ -288,11 +288,11 @@ const finite=n=>typeof n==='number'&&Number.isFinite(n);
 const money=(n,c='USD')=>finite(n)?new Intl.NumberFormat('es-CO',{style:'currency',currency:c,maximumFractionDigits:2}).format(n):'N/D';
 const number=(n,d=1)=>finite(n)?new Intl.NumberFormat('es-CO',{maximumFractionDigits:d,minimumFractionDigits:d}).format(n):'N/D';
 const percent=(n,d=1)=>finite(n)?`${number(100*n,d)} %`:'N/D';
-const safeUrl=u=>{try{const x=new URL(u,location.href);return ['https:','http:'].includes(x.protocol)?x.href:null;}catch{return null;}};
+const safeUrl=u=>{if(typeof u!=='string'||!u.trim())return null;try{const x=new URL(u,location.href);return ['https:','http:'].includes(x.protocol)?x.href:null;}catch{return null;}};
 const prettyCase={conservador:'Conservador',base:'Base',optimista:'Optimista'};
 function showNoData(text){$('noData').hidden=false;$('appContent').hidden=true;
   if(text){$('noData').querySelector('p').textContent=text;}}
-function metricRow(name,history,key,fmt=percent){return `<tr><td>${escape(name)}</td>${history.map(x=>`<td>${fmt(x[key])}</td>`).join('')}</tr>`;}
+function metricRow(name,history,key,fmt=percent){if(!history.some(x=>finite(x[key])))return '';return `<tr><td>${escape(name)}</td>${history.map(x=>`<td>${fmt(x[key])}</td>`).join('')}</tr>`;}
 function renderHistory(history,fin=false){const target=$('financeTable'),rows=indicatorsForHistory(history);
  if(!rows.length){target.innerHTML='<tbody><tr><td>Sin históricos vinculados</td></tr></tbody>';return;}
  const recent=rows.slice(-10);
@@ -316,14 +316,17 @@ function renderHistory(history,fin=false){const target=$('financeTable'),rows=in
   metricRow('P/S',recent,'ps',x=>number(x,2)+'×'),
   metricRow('FCF yield',recent,'fcfYield')
   ])
- ].join('');
+ ].join('')||'<tr><td>Sin indicadores calculables con los datos disponibles</td></tr>';
 }
 function renderScenarios(calc,model){
  $('scenarioGrid').innerHTML=motor.SCENARIOS.map(name=>{
   const a=model.assumptions?.[name]||{},v=calc.scenarios?.[name]||{};
   return `<article class="scenario ${name==='base'?'base':''}"><div class="top"><h4>${prettyCase[name]}</h4><span class="status">${escape(v.status||'INCOMPLETO')}</span></div>
     <div class="price">${money(v.perShare,model.currency)}</div><div class="sub">Valor intrínseco por acción · no auditado</div>
-    ${esFin(model)?`<dl><dt>ROE alto crecimiento</dt><dd>${percent(a.roeHighGrowth)}</dd><dt>Retención alto crecimiento</dt><dd>${percent(a.retentionHighGrowth)}</dd>
+    ${esHold(model)?`<dl><dt>Valor de los negocios (atribuible)</dt><dd>${money(v.sumaNegocios,model.currency)}</dd><dt>− Deuda</dt><dd>${money(v.debt,model.currency)}</dd>
+    <dt>− Minoritarios</dt><dd>${money(v.minority,model.currency)}</dd><dt>+ Caja</dt><dd>${money(v.cash,model.currency)}</dd>
+    <dt>Descuento de holding</dt><dd>${percent(v.holdingDiscount||0)}</dd><dt>Negocios valorados</dt><dd>${number(v.segmentos?.length,0)}</dd></dl>`
+    :esFin(model)?`<dl><dt>ROE alto crecimiento</dt><dd>${percent(a.roeHighGrowth)}</dd><dt>Retención alto crecimiento</dt><dd>${percent(a.retentionHighGrowth)}</dd>
     <dt>ROE estable</dt><dd>${percent(a.roeStable)}</dd><dt>Costo del patrimonio (Ke)</dt><dd>${percent(v.costOfEquity)}</dd>
     <dt>Crecimiento estable</dt><dd>${percent(v.growthStable??a.stableGrowth)}</dd><dt>Años de alto crecimiento</dt><dd>${number(a.years,0)}</dd></dl>`
     :`<dl><dt>Crecimiento años 2–5</dt><dd>${percent(a.growth2to5)}</dd><dt>Margen EBIT objetivo</dt><dd>${percent(a.marginTarget)}</dd>
@@ -331,7 +334,9 @@ function renderScenarios(calc,model){
     <dt>Sales-to-capital 1–5</dt><dd>${number(a.salesToCapital1to5,2)}×</dd><dt>Crecer a perpetuidad</dt><dd>${percent(a.gTerminal)}</dd></dl>`}
     ${v.issues?.length?`<p class="error-state">${escape(v.issues.join('; '))}</p>`:''}</article>`;}).join('');
 }
-function renderProjection(base,fin=false){const table=$('projectionTable');
+function renderProjection(base,fin=false,hold=false){const table=$('projectionTable');
+ if(hold&&base?.segmentos){table.querySelector('thead').innerHTML='<tr><th>Negocio</th><th>Método</th><th>Ingresos</th><th>NOPAT</th><th>ROIC</th><th>Costo capital</th><th>Crec. 5 años</th><th>Valor</th><th>Particip.</th><th>Atribuible</th></tr>';
+  table.querySelector('tbody').innerHTML=base.segmentos.map(x=>`<tr><td>${escape(x.nombre||x.id)}</td><td>${x.metodo==='externo'?'Valor externo ('+escape(x.tipoValor)+')':'Fórmula Damodaran'}</td><td>${number(x.revenue??null,0)}</td><td>${number(x.nopat,0)}</td><td>${percent(x.roic)}</td><td>${percent(x.costOfCapital)}</td><td>${percent(x.growth5)}</td><td>${number(x.value,0)}</td><td>${percent(x.ownership,0)}</td><td>${number(x.attributable,0)}</td></tr>`).join('');return;}
  if(!base?.years){table.innerHTML='<tbody><tr><td>Datos insuficientes</td></tr></tbody>';return;}
  const a=base.years;
  table.querySelector('thead').innerHTML=`<tr><th>Métrica</th>${a.map(y=>`<th>Año ${y.year}</th>`).join('')}</tr>`;
@@ -341,10 +346,10 @@ function renderProjection(base,fin=false){const table=$('projectionTable');
  table.querySelector('tbody').innerHTML=[row('Ingresos','revenue'),row('EBIT','ebit'),row('Margen EBIT','margin',percent),
     row('NOPAT','nopat'),row('Reinversión','reinvestment'),row('FCFF','fcff'),row('PV(FCFF)','pvFcff'),row('WACC','wacc',percent)].join('');
 }
-function renderSensitivity(model,bloqueado=false){const tbl=$('sensitivityTable'),s=bloqueado?{}:motor.sensibilidad(model,'base');
+function renderSensitivity(model,bloqueado=false){const tbl=$('sensitivityTable');$('sensHint').textContent=esHold(model)?'Desplazamiento del costo de capital de todos los negocios (filas) y de su crecimiento a cinco años (columnas); se recalcula la suma de partes completa.':esFin(model)?'Costo del patrimonio (por prima de riesgo) y crecimiento estable; se recalcula el motor completo.':'WACC terminal por crecimiento perpetuo. Los años explícitos se mantienen fijos.';const s=bloqueado?{}:motor.sensibilidad(model,'base');
  if(!s.rows){tbl.innerHTML='<tbody><tr><td>Datos insuficientes</td></tr></tbody>';return;}
- tbl.querySelector('thead').innerHTML=`<tr><th>${esFin(model)?'Ke / g':'WACC / g'}</th>${s.growths.map(x=>`<th>${percent(x,1)}</th>`).join('')}</tr>`;
- tbl.querySelector('tbody').innerHTML=s.rows.map((r,i)=>`<tr><td>${percent(r.wacc??r.costOfEquity,1)}</td>${r.cells.map((x,j)=>`<td class="${i===2&&j===2?'center':''}">${money(x,model.currency)}</td>`).join('')}</tr>`).join('');
+ tbl.querySelector('thead').innerHTML=`<tr><th>${esHold(model)?'Δk / Δg':esFin(model)?'Ke / g':'WACC / g'}</th>${s.growths.map((x,j)=>`<th>${s.etiquetasColumna?escape(s.etiquetasColumna[j]):percent(x,1)}</th>`).join('')}</tr>`;
+ tbl.querySelector('tbody').innerHTML=s.rows.map((r,i)=>`<tr><td>${r.etiqueta?escape(r.etiqueta):percent(r.wacc??r.costOfEquity,1)}</td>${r.cells.map((x,j)=>`<td class="${i===2&&j===2?'center':''}">${money(x,model.currency)}</td>`).join('')}</tr>`).join('');
 }
 function renderRegulatorio(model){const g=model.regulatorio;if(!g||!esFin(model))return '';
  const l=model.profile==='banco'?[['CET1',g.cet1],['Mínimo exigido',g.cet1Minimo]]:[['Ratio de solvencia',g.solvencyRatio],['Mínimo exigido',g.solvencyMinimo]];
@@ -354,7 +359,7 @@ function renderAnalysis(model){const sections=[['business','Negocio y modelo eco
  $('analysisView').innerHTML=sections.map(([k,title])=>`<div class="analysis-block"><h4>${title}</h4><p>${escape(model.analysis?.[k]||'Pendiente de análisis cualitativo con evidencia primaria.')}</p></div>`).join('');
  const sources=model.sources||[];
  $('sourcesView').innerHTML=renderRegulatorio(model)+(sources.length?`<ul class="source-list">${sources.map(s=>{const href=safeUrl(s.url);
-  return `<li>${href?`<a href="${escape(href)}" target="_blank" rel="noopener noreferrer">${escape(s.label||href)}</a>`:`<span class="note">${escape(s.label||'Fuente no documentada')}</span>`}</li>`;}).join('')}</ul>`:'<p>Faltan fuentes primarias documentadas.</p>');
+  return `<li>${href?`<a href="${escape(href)}" target="_blank" rel="noopener noreferrer">${escape(s.label||s.documento||href)}</a>`:`<span class="note">${escape(s.label||s.documento||'Fuente no documentada')}</span>`}</li>`;}).join('')}</ul>`:'<p>Faltan fuentes primarias documentadas.</p>');
 }
 function renderControls(model){
  const box=$('controlsView');if(!evaluarExpediente){return null;}
@@ -372,6 +377,7 @@ function render(model){
  const calc=bloqueado?{status:'INCOMPLETO',scenarios:{}}:motor.calculateAll(model),base=calc.scenarios?.base,notice=[];
  if(bloqueado)notice.push('Valoración bloqueada: '+ev.controles.filter(c=>c.gravedad==='bloqueo').map(c=>c.msg).join(' '));
  if(!motor.soporta(model.profile||'operativa'))notice.push(`Perfil «${model.profile}»: sin motor implementado en este despliegue; no se genera valoración.`);
+ if(esHold(model))notice.push('Perfil holding (suma de partes): fórmula por negocio verificada contra el libro illGE de Damodaran; los negocios financieros entran con valor externo de su propio motor; sin descuento de holding salvo justificación escrita.');
  if(esFin(model))notice.push(`Perfil financiero (${model.metodo==='ddm'?'Dividend Discount Ginsu':'Exceso de retorno'}): sin FCFF industrial; prima de riesgo del original sin calculadora ERP; capital regulatorio exigido para valorar.`);
  if(model.fictional)notice.push('SIMULACIÓN: todos los datos son ficticios y NO corresponden a un valor negociable.');
  notice.push('El motor analítico aún no ha completado la auditoría de paridad con todas las funciones del Ginsu original.');
@@ -384,13 +390,13 @@ function render(model){
  $('stateLabel').textContent=model.fictional?'SIMULACIÓN · NO PUBLICAR':ev?(ev.violacion?`${ev.declarado} ✕ permitido ${ev.permitido}`:ev.declarado):calc.status==='CANDIDATO'?'CANDIDATO · NO AUDITADO':'INCOMPLETO';
  $('marketPrice').textContent=money(model.financials?.sharePrice,model.currency);
  $('basePrice').textContent=money(base?.perShare,model.currency);
- $('baseSmall').textContent=esFin(model)?(model.metodo==='ddm'?'Dividendos descontados a Ke':'Patrimonio + exceso de retorno'):'FCFF · proyección de diez años';
- $('scenariosTitle').textContent=esFin(model)?'Tres escenarios, un motor de equity':'Tres escenarios, una lógica FCFF';
+ $('baseSmall').textContent=esHold(model)?'Suma de partes atribuible por acción':esFin(model)?(model.metodo==='ddm'?'Dividendos descontados a Ke':'Patrimonio + exceso de retorno'):'FCFF · proyección de diez años';
+ $('scenariosTitle').textContent=esHold(model)?'Tres escenarios, suma de partes':esFin(model)?'Tres escenarios, un motor de equity':'Tres escenarios, una lógica FCFF';
  $('mosPrice').textContent=money(base?.mosPrice,model.currency);
  $('upside').textContent=percent(base?.perShare>0&&model.financials?.sharePrice>0?base.perShare/model.financials.sharePrice-1:null);
  $('warnings').innerHTML=`<strong>Control de publicación</strong>${notice.map(escape).join(' ')}`;
  $('warnings').hidden=false;
- renderScenarios(calc,model);renderHistory(model.history,esFin(model));renderProjection(base,esFin(model));renderSensitivity(model,bloqueado);renderAnalysis(model);
+ renderScenarios(calc,model);renderHistory(model.history,esFin(model));renderProjection(base,esFin(model),esHold(model));renderSensitivity(model,bloqueado);renderAnalysis(model);
  document.title=`${model.ticker||'Expediente'} · JMR V2.0`;
 }
 async function loadJSON(url){const response=await fetch(url,{cache:'no-store'});if(!response.ok)throw new Error(`No se pudo cargar (${response.status})`);return response.json();}
