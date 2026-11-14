@@ -1,5 +1,7 @@
 # JMR V2.0 · estado de los motores
 
+> **Migrado (13-nov-2026):** este directorio está congelado. Versión canónica y mantenida: `JuanMaRobledo/Modelo-JMR-V2`. No editar aquí.
+
 Documentos: `DECISIONES.md` · `metodologia/CRITERIOS_DE_PUBLICACION.md` · `metodologia/PROCEDIMIENTO_EXPEDIENTE.md` · `metodologia/FUENTES_DAMODARAN.md`
 
 Un motor por perfil económico (`motores/despacho.mjs`); nunca se ejecutan todos sobre la misma empresa. Tres escenarios con el mismo motor; MOS 35 % sobre el escenario base.
