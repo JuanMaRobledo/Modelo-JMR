@@ -33,20 +33,27 @@
     nav.setAttribute('aria-label', 'Navegación principal JMR');
     // Cada enlace lleva a una ruta canónica estable, nunca al documento de origen
     // bajo otra etiqueta. Hojas, auditorías y sensibilidades de una empresa se abren desde su ficha. La navegación contextual se limita a la segunda fila.
+    var floyd = 'https://modelo-jmr.vercel.app/';
+    var v2 = 'https://modelo-jmr-v2.vercel.app/';
+    var inV2 = /^modelo-jmr-v2(?:[.-])/.test(location.hostname);
+    var toolsBase = inV2 ? floyd : '';
+    var toolsActive = ['calculadora.html','screener.html','az-stocks.html','damodaran.html','portafolio.html','mi-bitacora.html','historicos.html','bitacora-terceros.html'].includes(page);
     nav.innerHTML =
-      link('expediente.html?seccion=analisis', 'Empresas y análisis', page==='expediente.html' || page==='analisis-lectura.html') +
-      link('jmr-v2.html','JMR V2.0',page==='jmr-v2.html') +
-      link('https://cartera-two-eta.vercel.app/', 'Cartera', false, 'jmr-home') +
-      '<details class="jmr-tools-menu"><summary>Herramientas</summary><div class="jmr-tools-links">'+
-      link('calculadora.html'+qs,'Calculadora DCF',page==='calculadora.html')+
-      link('screener.html','Screener',page==='screener.html')+
-      link('az-stocks.html','AZ Stocks',page==='az-stocks.html')+
-      link('damodaran.html','Damodaran',page==='damodaran.html')+
-      link('portafolio.html'+qs,'Portafolio JMR',page==='portafolio.html')+
-      link('mi-bitacora.html'+qs,'Mi bitácora',page==='mi-bitacora.html')+
-      '</div></details>' +
-      link('historicos.html', 'Histórico', page==='historicos.html') +
-      link('bitacora-terceros.html', 'Bitácora de terceros', page==='bitacora-terceros.html');
+      '<div class="jmr-main-links">'+
+      link(v2+'jmr-v2.html','JMR V2',inV2 && page!=='prompts.html')+
+      link(floyd+'expediente.html?seccion=analisis','Empresas y análisis',!inV2 && (page==='expediente.html'||page==='analisis-lectura.html'))+
+      link('https://cartera-two-eta.vercel.app/cartera','Cartera',false)+
+      link(v2+'prompts.html','Prompts',inV2 && page==='prompts.html')+
+      '<details class="jmr-tools-menu"><summary'+(toolsActive?' class="active"':'')+'>Herramientas</summary><div class="jmr-tools-links">'+
+      link(toolsBase+'calculadora.html'+qs,'Calculadora DCF',page==='calculadora.html')+
+      link(toolsBase+'screener.html','Screener',page==='screener.html')+
+      link(toolsBase+'az-stocks.html','AZ Stocks',page==='az-stocks.html')+
+      link(toolsBase+'damodaran.html','Damodaran',page==='damodaran.html')+
+      link(toolsBase+'portafolio.html'+qs,'Portafolio JMR',page==='portafolio.html')+
+      link(toolsBase+'mi-bitacora.html'+qs,'Mi bitácora',page==='mi-bitacora.html')+
+      link(toolsBase+'historicos.html','Histórico',page==='historicos.html')+
+      link(toolsBase+'bitacora-terceros.html','Bitácora de terceros',page==='bitacora-terceros.html')+
+      '</div></details></div>';
     // El filtro por mercado y las siete secciones viven en la ficha de empresa.
     // Ninguna vista técnica crea una segunda barra de navegación global.
     var sub = document.getElementById('jmr-market-nav');
@@ -69,8 +76,7 @@
   };
   document.addEventListener('DOMContentLoaded', function () {
     var style = document.createElement('style');
-    style.textContent = 'nav.appnav{box-sizing:border-box;max-width:100%;overflow-x:auto}@media(min-width:900px){nav.appnav{flex-wrap:wrap}}.jmr-market-nav{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 auto;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--surface)}.jmr-market-nav[hidden]{display:none}.jmr-market-nav>span{font-size:12px;font-weight:700;color:var(--ink-faint);margin-right:12px}.jmr-market-nav a{color:var(--ink-soft);text-decoration:none;padding:8px 12px;border-radius:8px;font-size:13px;font-weight:600}.jmr-market-nav a:hover,.jmr-market-nav a.active{background:var(--accent-soft);color:var(--accent)}@media(max-width:600px){.jmr-market-nav{padding:10px 16px;gap:4px}.jmr-market-nav>span{width:100%}.jmr-market-nav a{padding:8px}}@media print{.jmr-market-nav{display:none!important}}body.pdf-mode .jmr-market-nav{display:none!important}';
-    style.textContent += '.jmr-tools-menu{position:relative;align-self:center;flex:none}.jmr-tools-menu summary{cursor:pointer;list-style:none;padding:8px 11px;border:1px solid var(--border);border-radius:8px;color:var(--ink);font-size:13px;font-weight:700}.jmr-tools-menu summary::-webkit-details-marker{display:none}.jmr-tools-menu[open] summary{background:var(--accent-soft);color:var(--accent)}.jmr-tools-links{position:absolute;top:100%;left:0;z-index:200;display:grid;gap:2px;min-width:200px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px;box-shadow:var(--shadow)}.jmr-tools-links a{padding:9px 11px!important;white-space:nowrap}.jmr-tools-links a:hover{background:var(--surface-2)}@media(max-width:650px){.jmr-tools-links{left:auto;right:0}}';
+    style.textContent = "nav.appnav{overflow:visible!important;max-width:100%;display:block}.jmr-main-links{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.jmr-main-links>a,.jmr-main-links summary{min-height:44px;display:flex;align-items:center;padding:8px 10px;border-radius:8px}.jmr-tools-menu{position:relative}.jmr-tools-menu summary{cursor:pointer;border:1px solid var(--border);font-size:.88rem;font-weight:700}.jmr-tools-links{position:absolute;left:0;top:100%;z-index:200;min-width:210px;display:grid;padding:8px;background:var(--surface,#fff);border:1px solid var(--border);border-radius:10px}.jmr-tools-links a{min-height:44px;display:flex;align-items:center;white-space:normal}.jmr-main-links a[aria-current=page],.jmr-tools-menu[open] summary{background:var(--accent-soft,var(--s2,#e7f5f2));color:var(--accent,var(--teal,#0a746d))}@media(max-width:700px){.jmr-main-links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch}.jmr-main-links>a{white-space:normal}.jmr-tools-menu{grid-column:1/-1}.jmr-tools-links{position:static;min-width:0;grid-template-columns:repeat(2,minmax(0,1fr));margin-top:4px}}@media print{nav.appnav{display:none!important}}";
     document.head.appendChild(style); render();
   });
 })();
