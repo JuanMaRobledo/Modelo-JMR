@@ -24,13 +24,24 @@ test('ORCL: cifras clave del FY2026 tal como figuran en el 10-K (páginas 66, 67
   assert.equal(u.debt, 7199 + 122342); assert.equal(u.cash, 31289 + 605); assert.equal(u.minority, 548 + 4954); assert.equal(u.shares, 2914);
   assert.equal(u.equity, 42508 + 548);
 });
-test('ORCL: el valor del libro concilia con el motor; escenarios ordenados; MOS 35 % sobre el base', () => {
-  const e = m(), c = motor.calculateAll(e);
-  for (const n of ['conservador', 'base', 'optimista']) close(c.scenarios[n].perShare, e.libro.valores[n], `valor ${n}`);
-  close(e.libro.valores.base, 55.656, 'valor base fijado', 1e-4);
-  assert.ok(e.libro.valores.conservador < e.libro.valores.base && e.libro.valores.base < e.libro.valores.optimista);
-  close(c.scenarios.base.mosPrice, e.libro.valores.base * 0.65, 'precio con MOS');
-  assert.match(e.libro.sha256, /^[0-9a-f]{64}$/); assert.equal(e.controlesLibro.estados, 'OK'); assert.equal(e.controlesLibro.fuentes, 'OK');
+test('ORCL: corregir leases financieros una vez y marcar paridad Excel pendiente', () => {
+  const e=m(), c=motor.calculateAll(e);
+  assert.equal(e.financials.debt,129541);
+  assert.equal(e.financials.financeLeaseLiabilities,7701);
+  assert.equal(e.financials.operatingLeaseLiabilities,30190);
+  assert.equal(e.history.at(-2).leases,2934);
+  assert.equal(e.history.at(-1).leases,7701);
+  const sin=structuredClone(e);
+  delete sin.financials.financeLeaseLiabilities;
+  const original=motor.calculateAll(sin);
+  for(const n of ['conservador','base','optimista']){
+    close(original.scenarios[n].perShare-c.scenarios[n].perShare,7701/2914,'lease una vez '+n);
+    close(c.scenarios[n].perShare,e.libro.valores[n]-7701/2914,'valor tras leases '+n);
+  }
+  close(c.scenarios.base.mosPrice,c.scenarios.base.perShare*0.65,'MOS corregido');
+  assert.equal(e.revisionContableV2.estado,'CORRECCION_CONTABLE_REALIZADA_PARIDAD_ECONOMICA_PENDIENTE');
+  assert.equal(e.controlesLibro.paridadMotor,'PENDIENTE_RECALCULO_R2');
+  assert.match(e.libro.sha256,/^[0-9a-f]{64}$/);
 });
 test('ORCL: WACC y supuestos comunes iguales en los tres escenarios; ROIC terminal sin retorno excedente material', () => {
   const a = m().assumptions;
@@ -39,11 +50,16 @@ test('ORCL: WACC y supuestos comunes iguales en los tres escenarios; ROIC termin
 });
 test('ORCL: trazabilidad con documento, período, página y ajuste documentado (preferente Serie D)', () => {
   const p = m().provenance, min = p.find(x => x.destino === 'financials.minority');
-  assert.equal(p.length, 6); assert.ok(p.every(x => /10-K/.test(x.documento) || /Sin cifra/.test(x.documento)));
+  assert.equal(p.length, 7); assert.ok(p.every(x => /10-K/.test(x.documento) || /Sin cifra/.test(x.documento)));
   assert.equal(min.valorReportado, 548); assert.equal(min.ajuste, 4954);
 });
-test('ORCL: en revisión; el único control pendiente es la auditoría independiente (que no certifica la IA)', () => {
-  const e = m(), r = evaluarExpediente(e, motor);
-  assert.deepEqual(r.controles.filter(c => c.gravedad !== 'aviso').map(c => c.id), ['P02']);
-  assert.equal(e.estado, 'EN_REVISION'); assert.equal(r.permitido, 'EN_REVISION'); assert.equal(r.publicable, false); assert.equal(e.auditoria, undefined);
+test('ORCL: P07 impide certificar la conciliación de libro R2 hasta recalcular el WACC', () => {
+  const e=m(),r=evaluarExpediente(e,motor);
+  const ids=r.controles.filter(c=>c.gravedad!=='aviso').map(c=>c.id);
+  assert.ok(ids.includes('P07'),ids.join(','));
+  assert.ok(ids.includes('P02'),ids.join(','));
+  assert.equal(e.estado,'EN_PROCESO');
+  assert.equal(r.permitido,'EN_PROCESO');
+  assert.equal(r.publicable,false);
+  assert.equal(r.violacion,null);
 });

@@ -32,17 +32,17 @@
    "currency": "USD",
    "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/5/50/Oracle_logo.svg",
    "precio": 127.11,
-   "valorBase": 55.656005942080576,
-   "precioMOS": 36.17640386235237,
-   "estado": "EN_REVISION",
-   "estadoPermitido": "EN_REVISION",
-   "estadoDeclarado": "EN_REVISION",
+   "valorBase": 53.01324684805175,
+   "precioMOS": 34.45861045123364,
+   "estado": "EN_PROCESO",
+   "estadoPermitido": "EN_PROCESO",
+   "estadoDeclarado": "EN_PROCESO",
    "visibilidadApp": "PUBLICADA_PARA_REVISION",
    "visorAuditoria": "pendientes",
    "aprobacionUsuario": null,
    "controles": {
     "bloqueos": 0,
-    "errores": 1,
+    "errores": 2,
     "avisos": 0
    },
    "archivo": "empresas/ORCL.json"

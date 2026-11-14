@@ -234,6 +234,8 @@ function validateInputs(financials, assumptions, profile='operativa') {
   const a = assumptions, f = financials;
   if (f.revenue <= 0 || f.shares <= 0) issues.push('Ingresos y acciones diluidas deben ser positivos.');
   if (f.debt < 0 || f.cash < 0 || f.minority < 0 || f.optionsValue < 0) issues.push('Deuda, efectivo y reclamos deben ser no negativos.');
+  if (f.financeLeaseLiabilities !== undefined && (!finite(f.financeLeaseLiabilities) || f.financeLeaseLiabilities < 0)) issues.push('El pasivo por arrendamiento financiero debe ser un número no negativo, distinto de los préstamos.');
+  if (f.debtIncludesFinanceLeases === true && (f.financeLeaseLiabilities ?? 0)>0) issues.push('Doble conteo: la deuda ya incluye arrendamientos financieros; no informar financeLeaseLiabilities por segunda vez.');
   if (!(a.growth1 > -1 && a.growth2to5 > -1 && a.gTerminal > -1)) issues.push('Crecimiento anual no puede ser <= -100 %.');
   if (!(a.waccInitial > 0 && a.waccTerminal > a.gTerminal)) issues.push('Debe cumplirse WACC inicial > 0 y WACC terminal > crecimiento terminal.');
   if (!(a.roicTerminal > 0 && a.salesToCapital1to5 > 0 && a.salesToCapital6to10 > 0)) issues.push('ROIC terminal y eficiencia de capital deben ser positivos.');
@@ -286,7 +288,10 @@ function calculateInternal(financials, a) {
   const pvTerminal=terminalValue*t.discountFactor;
   const evBeforeRisk=sumPV+pvTerminal;
   const ev=evBeforeRisk*(1-a.failureProbability+a.failureProbability*a.recoveryRate);
-  const equity=ev-financials.debt-financials.minority+financials.cash+
+  // financials.debt = préstamos y bonos; financeLeaseLiabilities = SOLO leases financieros.
+  // Los leases operativos ya están como gasto en EBIT y nunca se descuentan dos veces.
+  const financeLeaseDebt=financials.financeLeaseLiabilities??0;
+  const equity=ev-financials.debt-financeLeaseDebt-financials.minority+financials.cash+
     financials.nonoperatingAssets-financials.optionsValue;
   const perShare=equity/financials.shares;
   const mosPrice=perShare*(1-a.mos);
@@ -336,7 +341,8 @@ function terminalSensitivity(financials,a,size=5){
       const terminalCF=nopat*(1-g/a.roicTerminal);
       const ev0=base.sumPV+terminalCF/(wacc-g)*base.terminalDiscountFactor;
       const ev=ev0*(1-a.failureProbability+a.failureProbability*a.recoveryRate);
-      cells.push((ev-financials.debt-financials.minority+financials.cash+financials.nonoperatingAssets-financials.optionsValue)/financials.shares);
+      const financeLeaseDebt=financials.financeLeaseLiabilities??0;
+      cells.push((ev-financials.debt-financeLeaseDebt-financials.minority+financials.cash+financials.nonoperatingAssets-financials.optionsValue)/financials.shares);
     }
     values.push({wacc,cells});
   }
@@ -351,7 +357,8 @@ const n=x=>typeof x==='number'&&Number.isFinite(x);
 const divide=(a,b)=>n(a)&&n(b)&&b!==0?a/b:null;
 const difference=(a,b)=>n(a)&&n(b)?a-b:null;
 function indicatorsForYear(h, prior){
-  const rev=h.revenue,ebit=h.ebit,net=h.netIncome,assets=h.assets,debt=h.debt,cash=h.cash;
+  const rev=h.revenue,ebit=h.ebit,net=h.netIncome,assets=h.assets,
+    debt=n(h.debt)?h.debt+(n(h.leases)?h.leases:0):null,cash=h.cash;
   const invested=n(debt)&&n(h.equity)&&n(cash)?debt+h.equity-cash:null;
   const effectiveTax=divide(h.taxExpense,h.pretaxIncome);
   const nopat=n(ebit)?(ebit>0&&n(effectiveTax)?ebit*(1-effectiveTax):ebit):null;
@@ -485,7 +492,8 @@ function renderStatements(model){
    ['Efectivo y equivalentes','cash'],['Cuentas por cobrar','receivables'],['Inventarios','inventory'],
    ['Activos corrientes','currentAssets'],['Activos no corrientes','noncurrentAssets'],['Activos totales','assets'],
    ['Pasivos corrientes','currentLiabilities'],['Pasivos no corrientes','noncurrentLiabilities'],
-   ['Pasivos totales','liabilities'],['Deuda financiera','debt'],['Patrimonio','equity'],
+   ['Pasivos totales','liabilities'],['Préstamos y bonos','debt'],
+   ['Arrendamientos financieros (NO operativos)','leases'],['Patrimonio','equity'],
    ['Participaciones minoritarias','minority'],['Activos no operativos','nonoperatingAssets']]],
   ['Estado de flujos de efectivo',[
    ['Utilidad neta','netIncome'],['Depreciación y amortización','da'],['Compensación en acciones','sbc'],
