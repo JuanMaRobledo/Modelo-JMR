@@ -171,7 +171,10 @@ test('las páginas por empresa reconocen archivos de revisión TICKER-AAAAMMDD-R
   }
 });
 test('menú y páginas restantes: el menú no desborda la página y colombia no falla sin enlace activo',()=>{
-  assert.match(get('docs/mercado.js'),/nav\.appnav\{box-sizing:border-box;max-width:100%;overflow-x:auto\}/);
+  const nav = get('docs/mercado.js');
+  assert.match(nav,/nav\.appnav\{overflow:visible!important;max-width:100%/);
+  assert.match(nav,/\.jmr-main-links\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(nav,/\.jmr-tools-links\{position:static;min-width:0/);
   assert.match(get('docs/colombia/app.js'),/\?\.scrollIntoView\(/);
   assert.match(get('docs/portafolio.html'),/\.port-grid\{grid-template-columns:minmax\(0,1fr\)\}/);
 });
