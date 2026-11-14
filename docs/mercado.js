@@ -35,7 +35,8 @@
     // bajo otra etiqueta. Hojas, auditorías y sensibilidades de una empresa se abren desde su ficha. La navegación contextual se limita a la segunda fila.
     var floyd = 'https://modelo-jmr.vercel.app/';
     var v2 = 'https://modelo-jmr-v2.vercel.app/';
-    var inV2 = location.origin === new URL(v2).origin;
+    var inV2 = /^modelo-jmr-v2(?:[.-])/.test(location.hostname);
+    var toolsBase = inV2 ? floyd : '';
     var toolsActive = ['calculadora.html','screener.html','az-stocks.html','damodaran.html','portafolio.html','mi-bitacora.html','historicos.html','bitacora-terceros.html'].includes(page);
     nav.innerHTML =
       '<div class="jmr-main-links">'+
@@ -44,14 +45,14 @@
       link('https://cartera-two-eta.vercel.app/cartera','Cartera',false)+
       link(v2+'prompts.html','Prompts',inV2 && page==='prompts.html')+
       '<details class="jmr-tools-menu"><summary'+(toolsActive?' class="active"':'')+'>Herramientas</summary><div class="jmr-tools-links">'+
-      link(floyd+'calculadora.html'+qs,'Calculadora DCF',page==='calculadora.html')+
-      link(floyd+'screener.html','Screener',page==='screener.html')+
-      link(floyd+'az-stocks.html','AZ Stocks',page==='az-stocks.html')+
-      link(floyd+'damodaran.html','Damodaran',page==='damodaran.html')+
-      link(floyd+'portafolio.html'+qs,'Portafolio JMR',page==='portafolio.html')+
-      link(floyd+'mi-bitacora.html'+qs,'Mi bitácora',page==='mi-bitacora.html')+
-      link(floyd+'historicos.html','Histórico',page==='historicos.html')+
-      link(floyd+'bitacora-terceros.html','Bitácora de terceros',page==='bitacora-terceros.html')+
+      link(toolsBase+'calculadora.html'+qs,'Calculadora DCF',page==='calculadora.html')+
+      link(toolsBase+'screener.html','Screener',page==='screener.html')+
+      link(toolsBase+'az-stocks.html','AZ Stocks',page==='az-stocks.html')+
+      link(toolsBase+'damodaran.html','Damodaran',page==='damodaran.html')+
+      link(toolsBase+'portafolio.html'+qs,'Portafolio JMR',page==='portafolio.html')+
+      link(toolsBase+'mi-bitacora.html'+qs,'Mi bitácora',page==='mi-bitacora.html')+
+      link(toolsBase+'historicos.html','Histórico',page==='historicos.html')+
+      link(toolsBase+'bitacora-terceros.html','Bitácora de terceros',page==='bitacora-terceros.html')+
       '</div></details></div>';
     // El filtro por mercado y las siete secciones viven en la ficha de empresa.
     // Ninguna vista técnica crea una segunda barra de navegación global.
